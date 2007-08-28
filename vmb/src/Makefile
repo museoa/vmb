@@ -1,8 +1,7 @@
 
 CFLAGS= -g -Wall
 
-GENERICS = bus-util.o main.o message.o  bus-arith.o param.o option.o error.o
-SUBDIRS  = mmix screen mother keyboard ram rom disk mmixio
+SUBDIRS  = util mother mmix screen keyboard ram rom disk mmixio
      
 
 .PHONY: hardware $(SUBDIRS) clean

@@ -1,14 +1,18 @@
+PROG= mother
+UTILDIR = ../util
 CFLAGS= -g -Wall
+CC = gcc
 
 
-GENERICS= ../message.o  ../bus-arith.o ../param.o ../option.o ../error.o
+all: $(PROG)
 
-../%.o: ../%.c
-	(cd ..; make $*.o )
+utilities:
+	$(MAKE) -C  $(UTILDIR)
 
-mother: mother.c $(GENERICS)
-	$(CC) $(CFLAGS) -I ..  $^ -o $@
+
+$(PROG): $(PROG).c  utilities
+	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -o $(PROG)
 
 clean:
-	rm -f mother mother.exe *.o *~
+	rm -f $(PROG) *.o *~
 
