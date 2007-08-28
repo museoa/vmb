@@ -1,0 +1,45 @@
+.\" Manual for MMix Motherboard
+.TH MOTHER "1" "Jul 2005" "mmix" mmix
+.SH NAME
+mother \- Motherboard for the mmix processor
+.SH OPTIONS
+.B mother
+[\fI-d \fR] \fIPORT \fR
+.br
+
+\fB\-d  \fR
+get debugging output
+.br
+
+\fB\PORT  \fR
+port number in decimal, where motherboard waits for connecting devices
+.br
+.SH DESCRIPTION
+Motherboard is part of the MMIX-MB project, which aims to provide an infrastructure for the MMIX processor
+by Donald Knuth. The project provides protocols and software components to enable the assembly of MMIX CPU,
+physical RAM, Serial I/O, Graphic Cards, ROM, Disks, Network Interfaces, etc... to a complete computing system.
+
+The motherboard is extensible in the sense, that new simulators written for new hardware can be "plugged into" the
+existing motherboard configuration to provide extended hardware capabilities.
+New components can be detected at boot time/run time by the CPU and can be used by application programs after installing appropriate software drivers.
+
+The motherboard provides the communication between all hardware components, implemented by separate processes, through a virtual data- and address bus,
+and virtual interrupt lines. It defines a generic hardware interface, such that simulators for arbitrary hardware
+components can be written and used together with the MMIX motherboard.
+
+.SH SEE ALSO
+MMIX, RAM, ROM, KEYBOARD, SCREEN
+.br
+.UR http://www.cs.fhm.edu/~ruckert/mmix/index.html .UE
+.br
+
+.SH AUTHOR
+Written by Anton Wolf, Martin Ruckert
+.br
+
+.SH REPORT BUGS
+Report bugs to <ruckert@cs.fhm.edu>.
+.br
+
+.SH COPYRIGHT
+.br
