@@ -1,0 +1,106 @@
+ Installation Documentation:
+
+##############################################################################
+ Compile your own.
+##############################################################################
+ If you want to compile your own and install it yourself all you need to do is:
+
+1. Get the latest source;
+2. untar and go into the new directory:
+        $ tar zxf uMPS*.tar.gz; cd uMPS*
+3. configure the program
+	$ ./configure
+4. compile the program:
+        $ make
+5. install the program as root:
+        # make install
+
+ When installation ends, umps, umps-mkdev, umps-elf2mps, umps-objdump
+executables have been installed (see documentation for usage).
+ They will be located in ${/installation/path}/bin/.
+
+ Some support file will be installed too.
+ They will be located in:
+1- System ROMs and LD scripts in ${/installation/path}/share/uMPS/;
+2- Object files in ${/installation/path}/lib/uMPS;
+3- Header files in ${/installation/path}/include/uMPS.
+
+ Simulator will run correctly only if instructed on the position
+of these support files. This may be achieved by specifying their
+position in a umpsrc file or in Makefile(s).
+
+
+##############################################################################
+ Package contents.
+##############################################################################
+
+src/	: the simulator sources.
+
+support/: some support files, and system ROMs (see documentation).
+
+example/: Classical "Hello World" example for umps simulator: it prints a
+	message on terminal 0 and ends.
+	 It has been included to show how MIPS cross-compiler
+	and umps-commands should be used to build executable code for the
+	uMPS virtual machine.
+
+example2: 
+example3:
+example4: Variations on classical "Hello World" example.
+
+net.example:
+net.example2: Examples using vde_network interface. They sends and receive 
+	simple message through net interface. It has been included to show 
+	how Makefile and umpsrc should be constructed.
+	 You need VDE to use net examples. (http://vde.sourceforge.net/)
+
+ All Makefile(s) are using autotools "make" infrastructure.
+ Example's Makefile(s) are constructed in "in hybrid way" in order to 
+facilitate the interpretation.
+	
+ The kernel.*.umps links to example(s) files are used as they are
+default names for files to be loaded from simulator, while other
+*.umps files represent uMPS simulated devices.
+
+##############################################################################
+ How uMPS work.
+##############################################################################
+
+ The umpsrc file is searched: 
+
+	1) in the current directory (./.umpsrc);
+	2) in the user home directory ($HOME/.umpsrc);
+	3) in a system-wide configuration file (/etc/umpsrc).
+
+ Search stops at the first file found.
+umpsrc.sample file is located in support/ directory, and it is
+self-describing.
+
+ If XForms libs are not located in standard path, you should have to set  
+LD_LIBRARY_PATH to include the path to XForms library needed by uMPS.
+
+ If you use tcsh:
+% setenv LD_LIBRARY_PATH /path/to/FORMS
+
+ If you use bash:
+$ export LD_LIBRARY_PATH=/path/to/FORMS
+
+Under FreeBSD, you may have to add /usr/compat/linux/lib to
+LD_LIBRARY_PATH too.
+
+##############################################################################
+ Testing uMPS.
+##############################################################################
+
+1) Build umps;
+2) start XWindow server and open a shell terminal (MacOSX need X11 support
+  enabled);
+3) change directory to example/ directory;
+4) set src/ directory in execution path or just type:
+
+$ ./umps
+
+ The simulator will run and load the example. Pressing on 
+"Run" button you will see the simulation start.
+
+ Read  the documentation to explore all simulator features. 

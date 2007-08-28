@@ -1,0 +1,65 @@
+task :clean do |t|
+  Dir["../*"].each do |d|
+    if File.directory? d
+    	cd d
+	sh "make clean || true" if File.exist? "Makefile"
+    end
+  end
+end
+task :dispatch do |t|
+  puts "dispatching code from subversion repository"
+  sh 'rsync -aPpr --exclude ".svn" --exclude ".deps" --exclude Makefile.in --exclude Makefile --exclude atom4te.cache --exclude docs ~/dipl/src/umps/ .'
+end
+task :bootstrap do |t|
+  sh 'aclocal'
+  sh 'autoconf'
+  sh 'automake --add-missing'
+  sh './configure --with-cross=/home/mh/dipl/toolchain/bin'
+  sh 'make distclean'
+  #rm_r "src/.deps/"
+  sh './configure --with-cross=/home/mh/dipl/toolchain/bin'
+end
+
+task :build do |t|
+  sh 'make'
+end
+
+task :mb do |t|
+  cp "../mother/default.mmc","backup.mmc"
+  cp "default.mmc","../mother/default.mmc"
+  sh "../mother/mother"
+end
+
+task :ram do |t|
+  cd ".."
+  sh "ram/ram -h localhost -a 20000000 -s 5000000000&"
+  sh "ram/ram -h localhost -a 1E000000 -s 16777000&"
+end
+task :rom do |t|
+  cd ".."
+  sh "rom/rom -h localhost -a 00000000 -d 1 -f umps/support/exec.rom.umps &"
+  sh "rom/rom -h localhost -a 1FC00000 -d 1 -f umps/support/coreboot.rom.umps &"
+end
+task :screen do |t|
+  cd ".."
+  sh "xterm -g 80x10 -e 'screen/screen -h localhost -i 6 -a 1000025C'&"
+end
+task :kb do |t|
+  cd ".."
+  sh "xterm -geometry 80x10 -e 'keyboard/keyboard -i 7 -d 0 -h localhost -a 10000008'&"
+end
+task :kbsc => [:kb,:screen] do 
+  sh "cat"
+  sh "killall screen"
+  sh "killall keyboard"
+end
+task :new => [:dispatch,:bootstrap,:build] do
+end
+task :ct do 
+  sh "cp -v ~/projects/dipl/src/umps/src/*.c* src/"
+  sh "cp -v ~/projects/dipl/src/umps/src/h/*.h src/h"
+  sh "cp -v ~/projects/dipl/src/umps/src/e/*.e src/e"
+end
+task :cp do
+  sh "cp -v ~/projects/dipl/src/umps/src/*.c* src/"
+end

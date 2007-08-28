@@ -1,0 +1,53 @@
+# default.mmc configuration file for  the MMIX hardware
+
+
+port 9002
+host localhost
+#debug
+
+
+#if mother
+debug
+#exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e ../keyboard/keyboard
+#exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e ../screen/screen
+#exec xterm -e insight -n --args ./mmix -i -B9002 
+#exec xterm -e ../mmix/mmix -B9002 -g12345
+#exec xterm -e ../mmix/mmix -B9002 -i hello.mmo
+#exec ../rom/rom
+#exec ../ram/ram
+#exec ../keyboard/keyboard
+#exec ../screen/screen
+
+#exec ..\rom\Debug\rom.exe
+
+#exec ..\ram\Debug\ram.exe
+#exec ..\screen\Debug\screen.exe
+#exec ..\sc_vs\Debug\sc_vs.exe
+#exec ..\keyboard\Debug\keyboard.exe
+#exec ..\mmix\Debug\mmix.exe -B9002 -i
+#endif
+
+#if keyboard
+address 0000000001008
+interrupt 17
+#endif
+
+#if screen
+address 0000000001000
+#address 1000000000008
+interrupt 18
+debug off
+#endif
+
+#if rom
+address 0000000000000000
+file ../rom/bios.rom
+#endif
+
+#if ram
+size 4000000
+address 0000000000000001
+#size 3145728
+#address 0000000100000000
+
+#endif

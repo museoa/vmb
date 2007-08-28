@@ -1,0 +1,60 @@
+*** Changes from version 1.23rc1 to 1.23rc2
+
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Enrico Cataldi <ecataldi@cs.unibo.it>
+#Date: Sun 4 Dec 2005
+
+ Using latest Xforms-lib version (1.0.90), uMPS won't compile or link without the xpm libs.
+ configure.ac updated to check for xpm libs.
+
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Enrico Cataldi <ecataldi@cs.unibo.it>
+#Date: Mon 28 Nov 2005
+
+ On newer distroes, libforms header location changed from /usr/include/X11 to /usr/include
+ This caused configuration error.
+
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Enrico Cataldi <ecataldi@cs.unibo.it>
+#Date: Sun 10 Jul 2005
+
+ Fixed bug in vde_network.cc.
+ On some systems, sender storage in recvfrom fault with EINVAL.
+ We are not intersted on that informations so we can use NULL instead of a sockaddr_un struct.
+ 
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Enrico Cataldi <ecataldi@cs.unibo.it>
+#Date: Mon 21 Jun 2005
+
+ Moved to autotools "make" infrastructure.
+ Definitively ported to Darwin/MacOSX with X11 support enabled.
+ Configuration and installation details fixed in ./README and ./INSTALL.
+ 
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Enrico Cataldi <ecataldi@cs.unibo.it>
+#Date: Mon 20 Jun 2005
+
+ Fixed bug in vde_network.cc. 
+ Sun_path in local address was referred always to the abstract namespace maintained by the Unix protocol module.
+ That feature is not supported in *BSD and MacOSX 10.3.9 systems.
+ If host is not Linux we use a temp pathname of the socket on the real filesystem.
+
+#Author(s): Dario Laera <laera@cs.unibo.it>
+#Date: Fri 18 Feb 2005
+
+ Example, compiled on a Linux system can run on MacOSX with X11 support enabled.
+
+#Author(s): Valerio Acciavatti <acciavat@cs.unibo.it>, Enrico Cataldi <ecataldi@cs.unibo.it>,
+#	Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Dario Laera <laera@cs.unibo.it> 
+#Date: Thu 03 Feb 2005
+
+ Fixed bug in vde_network.cc.
+ Wrong assignment to the next packet pointer in netblockq::enqueue().
+ 
+#Author(s): Valerio Acciavatti <acciavat@cs.unibo.it>, Enrico Cataldi <ecataldi@cs.unibo.it>,
+#	Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Dario Laera <laera@cs.unibo.it> 
+#Date: Thu 16 Dec 2004
+
+ Fixed bug in device.cc.
+ All packets was truncated to the BLOCKSIZE size.
+ The right size is PACKETSIZE.
+
+#Author(s): Antonio Grida' Cucco <antonio.gridacucco@gmail.com>, Dario Laera <laera@cs.unibo.it> 
+#Date: 25 Sep 2004
+
+ Porting to Linux/PPC.
