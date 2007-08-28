@@ -1,4 +1,4 @@
-package edu.fhm.mmixmb.comm;
+package net.sourceforge.vmb.comm;
 
 import java.io.*;
 import java.util.*;
@@ -11,28 +11,42 @@ public class MotherboardConnection {
 	private OutputStream outputStream;
 	private InputStream in;
 
+    private final long startAddress;
+    private final int size;
+
 	private List<IConnectionListener> connectionListeners = new ArrayList<IConnectionListener>();
 
+    public MotherboardConnection(long startAddress, int size) {
+        this.startAddress = startAddress;
+        this.size = size;
+    }
+
 	public void establishConnection(InetAddress address, int port) throws IOException{
-		s = new Socket();
-		sa = new InetSocketAddress(address, port);
-		s.connect(sa);
-		outputStream = s.getOutputStream();
-		in = s.getInputStream();
-		try{
-			register();
-			while(s.isConnected()){
-				dispatchMessage(new Message(this));
-			}
-		}catch(IOException ex){
-			// TODO handle exception
-			ex.printStackTrace();
-		}
-		finally{
-			s.close();
-		}
+	    s = new Socket();
+	    sa = new InetSocketAddress(address, port);
+	    s.connect(sa);
+	    outputStream = s.getOutputStream();
+	    in = s.getInputStream();
+	    register();
+	    new Thread(new Runnable() {
+	        public void run() {
+	            while(s.isConnected()){
+	                try {
+	                    dispatchMessage(new Message(MotherboardConnection.this));
+	                } catch (IOException e) {
+	                    e.printStackTrace();
+	                    return;
+	                }
+	                finally{
+	                    try {
+	                        s.close();
+	                    } catch (IOException e) {
+	                        e.printStackTrace();
+	                    }
+	                }
+	            }}}).run();
 	}
-	
+
 	public byte readByte() throws IOException{
 		int r = in.read();
 		if(r < 0){
@@ -41,6 +55,9 @@ public class MotherboardConnection {
 		return (byte)(r & 0xFF);
 	}
 
+    /*
+     * This message will only be called from the receiver thread.
+     */
 	private void dispatchMessage(Message message) {
 		for (IConnectionListener listener : connectionListeners) {
 			if(message.isBusMessage()){
@@ -63,17 +80,19 @@ public class MotherboardConnection {
 			}
 			else{
 				switch(message.getId()){
+                    case 0:
+                        listener.DataReceived((int)(message.getAddress() - startAddress), message.getPayload());
 				default:
 					System.out.println("unhandeled message");
-				}					
+				}
 			}
 		}
 	}
 
 	private void register() throws IOException {
-		send(MessageFactory.createRegistrationMessage(0x0003000000000000l, 0x0003000000100000l, 0xFFl, "framebuffer"));
+		send(MessageFactory.createRegistrationMessage(startAddress, startAddress + size, 0xFFl, "framebuffer"));
 	}
-	
+
 	public void send(Message message) throws IOException{
 		outputStream.write(message.toByteArray());
 	}

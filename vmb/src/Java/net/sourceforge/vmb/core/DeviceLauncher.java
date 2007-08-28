@@ -1,23 +1,26 @@
-package edu.fhm.mmixmb.core;
+package net.sourceforge.vmb.core;
 
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 
-import edu.fhm.mmixmb.comm.*;
-import edu.fhm.mmixmb.view.*;
+import net.sourceforge.vmb.comm.*;
+import net.sourceforge.vmb.view.*;
 
 public class DeviceLauncher {
-	
+
+    private static final int WIDTH  = 640;
+    private static final int HEIGHT = 480;
+
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		final FrameBufferDevice deviceWindow = new FrameBufferDevice();
-		MotherboardConnection connection = new MotherboardConnection();
+		final FrameBufferDevice deviceWindow = new FrameBufferDevice(WIDTH, HEIGHT);
+		MotherboardConnection connection = new MotherboardConnection(0x0003000000000000l, 4 * WIDTH * HEIGHT);
 		connection.addConnectionListener(new IConnectionListener(){
-			public void DataReceived() {
+			public void DataReceived(int offset, byte[] payload) {
 				System.out.println("data");
 			}
 			public void interruptRequest(int irqNumber) {
@@ -28,8 +31,8 @@ public class DeviceLauncher {
 			}
 			public void powerOn() {
 				deviceWindow.setVisible(true);
-				deviceWindow.setTitle("MMIX Frame Buffer");
-				deviceWindow.display(genImage());
+				deviceWindow.setTitle("Frame Buffer Device");
+				deviceWindow.clear();
 			}
 			public void readRequest() {
 				System.out.println("read");
@@ -40,7 +43,7 @@ public class DeviceLauncher {
 			public void writeRequest() {
 				System.out.println("write");
 			}});
-		
+
 		try {
 			connection.establishConnection(InetAddress.getByName("mbox.informatik.fh-muenchen.de"), 9002);
 		} catch (UnknownHostException e) {
@@ -48,10 +51,10 @@ public class DeviceLauncher {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		deviceWindow.setVisible(true);
-		deviceWindow.setTitle("MMIX Frame Buffer");
-		deviceWindow.display(genImage());
+		deviceWindow.setTitle("Frame Buffer Device");
+		deviceWindow.clear();
 
 		deviceWindow.addWindowListener(new WindowListener(){
 			public void windowOpened(WindowEvent arg0) {
@@ -70,16 +73,13 @@ public class DeviceLauncher {
 			}
 			public void windowDeactivated(WindowEvent arg0) {
 			}});
+
+        deviceWindow.DataReceived(10*WIDTH + 10, new byte[] {100, 100, 100, 100});
+        deviceWindow.DataReceived(11*WIDTH + 11, new byte[] {100, 100, 100, 100});
+        deviceWindow.DataReceived(12*WIDTH + 12, new byte[] {100, 100, 100, 100});
+
 	}
 
-	private static int[][] genImage() {
-		int[][] raster = new int[640][480];
-		for (int i = 0; i < raster.length; i++) {
-			for (int j = 0; j < raster[i].length; j++) {
-				raster[i][j] = 0x123456;
-			}
-		}
-		return raster;
-	}
+
 
 }

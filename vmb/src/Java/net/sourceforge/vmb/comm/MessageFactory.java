@@ -2,10 +2,10 @@
  * Created on Jun 14, 2007
  *
  */
-package edu.fhm.mmixmb.comm;
+package net.sourceforge.vmb.comm;
 
 public class MessageFactory {
-	
+
 	public static Message createRegistrationMessage(long address, long limit, long mask, String name){
 		Message message = new Message();
 		message.setType((byte)(Message.TYPE_BUS | Message.TYPE_PAYLOAD));

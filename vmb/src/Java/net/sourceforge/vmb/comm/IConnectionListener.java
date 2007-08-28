@@ -1,8 +1,8 @@
-package edu.fhm.mmixmb.comm;
+package net.sourceforge.vmb.comm;
 
 public interface IConnectionListener {
-	
-	public void DataReceived();
+
+	public void DataReceived(int offset, byte[] payload);
 	public void powerOn();
 	public void powerOff();
 	public void reset();

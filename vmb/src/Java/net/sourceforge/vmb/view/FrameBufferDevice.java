@@ -1,107 +1,116 @@
-package edu.fhm.mmixmb.view;
+package net.sourceforge.vmb.view;
 
 import java.awt.*;
-import java.awt.image.*;
 
-import edu.fhm.mmixmb.comm.*;
+import javax.swing.*;
+
+import net.sourceforge.vmb.comm.*;
 
 public class FrameBufferDevice extends Frame implements IConnectionListener{
 
-	private Image img;
-	private Insets insets;
+    private JPanel drawingArea;
+    private final int width;
+    private final int height;
+    private int bitmap[][];
 
-	public FrameBufferDevice(){
+	public FrameBufferDevice(int width, int height){
+        this.height = height;
+        this.width = width;
+        bitmap = new int[width][height];
 		initComponents();
 	}
 
 	private void initComponents() {
-		this.setLayout(new GridLayout(3, 1));
+        this.setResizable(false);
+        drawingArea = new JPanel();
+        this.add(drawingArea);
+
+        drawingArea.setPreferredSize(new Dimension(width, height));
 
 		pack();
-
 	}
 
-	/** Darstellung eines Farb-Bildes im Fenster.
-	 * @param grid Zweidimensionales int-Array mit Pixeldaten.
-	 * Jedes Element liefert einen RGB-Wert im Java-Farbformat
-	 * (xxxxxxxx.rrrrrrrr.gggggggg.bbbbbbbb).
-	 * Der Alphakanal wird immer auf 255 gestellt.
-	 */
-	public void display(int[][] grid)
-	{
-		int w = grid.length;
-		int h = grid[0].length;
-
-		int[] pixel = new int[w*h];
-		int p = 0;
-		for(int y = h - 1;  y >= 0;  y--)
-			for(int x = 0;	x < w;	x++)
-				pixel[p++] = 0xFF000000 | grid[x][y];
-
-		load(w, h, pixel);
-	}
-
-	/** Uebertraegt die Pixeldaten aus dem Array in ein neues
-	 * Image-Objekt und zeigt dieses im Fenster.
-	 */
-	private void load(int w, int h, int[] pixel)
-	{
-		img = createImage(new MemoryImageSource(w, h, pixel, 0, w));
-
-		insets = getInsets();
-		setSize(w, h);
-
-		repaint();
-	}
+    public void display(long address, int pixel) {
+//        bitmap[][] = pixel;
+        drawingArea.getGraphics().setColor(Color.GREEN);
+        drawingArea.getGraphics().drawRect(10, 10, 1, 1);
+    }
 
 	/** Callbackmethode zum Neuzeichnen des Fensters.
 	 * @param g Graphics context.
 	 */
 	public void paint(Graphics g)
 	{
-		g.drawImage(img, insets.left, insets.top, this);
+        System.out.println("paint");
+        if(bitmap == null) {
+            return;
+        }
+
+        for(int w = 0; w < width; w++) {
+            for(int h = 0; h< height; h++) {
+                    drawPixel(w, h);
+            }
+        }
 	}
+
+	public void drawPixel(int x, int y) {
+	    if(bitmap[x][y] != 0) {
+	        drawingArea.getGraphics().setColor(new Color(bitmap[x][y]));
+	        drawingArea.getGraphics().drawRect(x, y, 1, 1);
+	    }
+    }
 
 	/** Callbackmethode zum Neuzeichnen des Fensters.
 	 * @param g Graphics context.
 	 */
 	public void update(Graphics g)
 	{
-		paint(g);
+        System.out.println("update");
+		repaint();
 	}
 
-	public void DataReceived() {
-		// TODO Auto-generated method stub
-		
+	public void DataReceived(int offset, byte[] payload) {
+        final int w = offset / width;
+        final int h = offset % width;
+        int color = payload[0] | (payload[1] << 8) | (payload[2] << 16) | (payload[3] << 24);
+        bitmap[w][h] = color;
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                drawPixel(w, h);
+            }});
 	}
 
 	public void powerOff() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void powerOn() {
-		// TODO Auto-generated method stub
-		
+        bitmap = new int[width][height];
 	}
 
 	public void interruptRequest(int irqNumber) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void readRequest() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void reset() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void writeRequest() {
 		// TODO Auto-generated method stub
-		
+
 	}
+
+    public void clear() {
+        // TODO Auto-generated method stub
+
+    }
 }

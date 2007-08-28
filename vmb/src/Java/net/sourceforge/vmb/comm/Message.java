@@ -2,13 +2,13 @@
  * Created on Jun 14, 2007
  *
  */
-package edu.fhm.mmixmb.comm;
+package net.sourceforge.vmb.comm;
 
 import java.io.*;
 import java.util.*;
 
 public class Message {
-	
+
 	public static final byte TYPE_BUS = (byte)(0x80);
 	public static final byte TYPE_TIME = (byte)(0x40);
 	public static final byte TYPE_ADDRESS = (byte)(0x20);
@@ -16,7 +16,7 @@ public class Message {
 	public static final byte TYPE_PAYLOAD = (byte)(0x08);
 	public static final byte TYPE_REQUEST = (byte)(0x04);
 	public static final byte TYPE_LOCK = (byte)(0x02);
-	
+
 	public static final byte ID_REGISTER = (byte)(0xFA);
 	public static final byte ID_UNREGISTER = (byte)(0xFB);
 	public static final byte ID_INTERRUPT = (byte)(0xFC);
@@ -30,7 +30,7 @@ public class Message {
 	private byte id;
 	private int timeStamp = 0;
 	private long address = 0;
-	private ArrayList<Byte> payload = new ArrayList<Byte>(); 
+	private ArrayList<Byte> payload = new ArrayList<Byte>();
 
 	public Message(MotherboardConnection connection) throws IOException {
 		readHeader(connection);
@@ -44,9 +44,9 @@ public class Message {
 			readPayload(connection);
 		}
 	}
-	
+
 	public Message(){
-		
+
 	}
 
 	private void readPayload(MotherboardConnection connection) throws IOException {
@@ -58,14 +58,14 @@ public class Message {
 	private void readAddress(MotherboardConnection connection) throws IOException {
 		address = 0;
 		for(int i = 0; i < 8; i++){
-			address = (address << 8) + connection.readByte(); 
+			address = (address << 8) + connection.readByte();
 		}
 	}
 
 	private void readTimeStamp(MotherboardConnection connection) throws IOException {
 		timeStamp = 0;
 		for(int i = 0; i < 4; i++){
-			timeStamp = (timeStamp << 8) + connection.readByte(); 
+			timeStamp = (timeStamp << 8) + connection.readByte();
 		}
 	}
 
@@ -75,35 +75,35 @@ public class Message {
 		slot = connection.readByte();
 		id   = connection.readByte();
 	}
-	
+
 	public boolean isBusMessage(){
 		return (type & TYPE_BUS) != 0;
 	}
-	
+
 	public boolean hasTimeStamp(){
 		return (type & TYPE_TIME) != 0;
 	}
-	
+
 	public boolean hasAddress(){
 		return (type & TYPE_ADDRESS) != 0;
 	}
-	
+
 	public boolean hasRoute(){
 		return (type & TYPE_ROUTE) != 0;
 	}
-	
+
 	public boolean hasPayload(){
 		return (type & TYPE_PAYLOAD) != 0;
 	}
-	
+
 	public void setType(byte type){
 		this.type = type;
 	}
-	
+
 	public boolean isRequest(){
 		return (type & 0x04) != 0;
 	}
-	
+
 	public boolean hasLock(){
 		return (type & 0x02) != 0;
 	}
@@ -130,7 +130,7 @@ public class Message {
 	public int getTimeStamp() {
 		return timeStamp;
 	}
-	
+
 	public byte[] toByteArray(){
 		int arraySize = 4;
 		if(hasTimeStamp()){
@@ -163,7 +163,7 @@ public class Message {
 		}
 		return m;
 	}
-	
+
 	public int payloadSize(){
 		return (size + 1) * 8;
 	}
@@ -174,31 +174,31 @@ public class Message {
 			value >>>= 8;
 		}
 	}
-	
+
 	public static void append(long value, ArrayList<Byte> a) {
 		for(int i = 7; i >= 0; i--){
 			a.add((byte)((value >>> 8*i) & 0xFF));
 		}
 	}
-	
+
 	public static void append(ArrayList<Byte> value, ArrayList<Byte> a) {
 		for(int i = 0; i < value.size(); i++){
 			a.add(value.get(i));
 		}
 	}
-	
+
 	public void appendToPayload(long l) {
 		append(l, payload);
 	}
-	
+
 	public void appendToPayload(int i) {
 		append(i, payload);
 	}
-	
+
 	public void appendToPayload(ArrayList<Byte> list) {
 		append(list, payload);
 	}
-	
+
 	public void appendToPayload(String s) {
 		for(int i = 0; i < s.length(); i++){
 			payload.add((byte)(s.charAt(i) & 0xFF));
@@ -227,5 +227,13 @@ public class Message {
 		}
 		size = (byte)(payload.size() / 8 - 1);
 	}
-	
+
+    public byte[] getPayload() {
+        byte[] pl = new byte[payloadSize()];
+        for(int i = 0; i< payloadSize(); i++) {
+            pl[i] = payload.get(i);
+        }
+        return pl;
+    }
+
 }
