@@ -16,7 +16,7 @@ exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e ../scree
 exec xterm -e ../mmix/mmix -B9002 -g12345
 exec ../rom/rom
 exec ../ram/ram
-#exec ../hostdisk/hostdisk
+exec ../hostdisk/hostdisk
 #exec ../vram/vram
 #exec ..\rom\Debug\rom.exe
 #exec ..\ram\Debug\ram.exe
@@ -56,7 +56,7 @@ address 0000000100000000
 
 #if vram
 #debug
-size 1228800
+size 3145728
 address 0002000000000000
 # inside the mapable range
 #address 0000000200000000
@@ -64,7 +64,7 @@ address 0002000000000000
 #endif
 
 #if hostdisk
-address 3000000000000
+address 2000000000000
 debug on
 #endif
 

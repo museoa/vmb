@@ -1,0 +1,73 @@
+.\" Manual for MMix GDB interface
+.TH "gdb" "1" "Jul 2005" "Lothar Kaiser" "mmix"
+.SH "NAME"
+gdb \- GDB remote interface for the mmix processor
+.SH "OPTIONS"
+.B mmix
+[\fI\-g\fR]\fIPORT \fR
+.br 
+
+\fB\-g  \fR
+enable GDB remote debugging interface
+.br 
+
+\fB\PORT \fR
+port number in decimal, where mmix waits for a connecting GDB
+.br 
+.SH "DESCRIPTION"
+The GDB remote debuggin interface is part of the MMIX\-MB project, which aims to provide an infrastructure for the MMIX processor by Donald Knuth. The project provides protocols and software components to enable the assembly of MMIX CPU, physical RAM, Serial I/O, Graphic Cards, ROM, Disks, Network Interfaces, etc. to a complete computing system.
+
+The GDB remote interface is basically a stub, which enables the GDB to communicate with the MMIX\-MB processor using its packet protocol. With this basic protocol, you are able to completely debug the MMIX and even use sophisticated GDB frontends like DDD or Insight. Currently the mandatory protocol is fully implemented and some additional packet types have been implemented to reduce the debugging traffic. 
+
+Please note that the MMIX\-MB needs a special version of the GDB for a successful remote session, since the platform specific details of the MMIX are not yet part of the standard distribution. The MMIX\-specific version can be downloaded from the MMIX\-MB website. 
+
+To setup a debug session simply start the MMIX\-MB environment and make sure to pass the MMIX the \-g option, for example "mmix \-B9002 \-g1234". This starts the GDB remote interface and listens on port 1234 for incoming GDB connections. Then you have to start the GDB and enter the remote debugging command "set debug remote 1". Now, you can connect to the target via "target remote <targethost>:1234". Replace the "<localhost>" with the IP address of the device the MMIX is running on. 
+
+There are many possibilities to the remote debugging and you can even transfer files to the target using the "load" command. Don't forget to "add\-symbol\-file" after a file transfer, so you can set break\- and watchpoints on entries of the file's symbol table.
+
+
+.TP 
+Currently supported packets:
+
+c	Resume at the current addres 
+
+s	Step a single instruction
+
+g	Read all registers
+
+G	Write all registers
+
+p	Read single register
+
+P	Write single register
+
+m	Read memory
+
+M	Write memory
+
+z	Remove breakpoint or watchpoint
+
+Z0	Insert breakpoint
+
+Z1	Insert breakpoint
+
+Z2 	Insert write watchpoint
+
+Z3	Insert read watchpoint
+
+.SH "SEE ALSO"
+MMIX, RAM, ROM, KEYBOARD, SCREEN, MOTHER
+.br 
+.UR http://www.cs.fhm.edu/~ruckert/mmix/index.html .UE
+.br 
+
+.SH "AUTHOR"
+Written by Martin Ruckert, Lothar Kaiser
+.br 
+
+.SH "REPORT BUGS"
+Report bugs to <ruckert@cs.fhm.edu>.
+.br 
+
+.SH "COPYRIGHT"
+.br 

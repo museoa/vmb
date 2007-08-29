@@ -1,7 +1,7 @@
 
 CFLAGS= -g -Wall
 
-SUBDIRS  = util mother mmix screen keyboard ram rom disk mmixio
+SUBDIRS  = util mother mmix screen keyboard ram rom disk hostdisk vram
      
 
 .PHONY: hardware $(SUBDIRS) clean

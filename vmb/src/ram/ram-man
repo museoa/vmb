@@ -1,0 +1,58 @@
+.\" Manual for MMix Ram
+.TH Ram "1" "Jul 2005" "mmix" mmix
+.SH NAME
+ram \- Ram module for the mmix processor
+.SH OPTIONS
+.B ram
+[\fI-d \fR] \fIHOST:PORT \fR \fIADDRESS\fR \fISIZE\fR 
+.br
+
+\fB\-d  \fR
+Set the debug flag to see some debug information.
+.br
+\fB\HOST:PORT  \fR
+Delcare host an port of the mother module.
+.br
+\fB\ADDRESS  \fR
+Simulated address of the ram module.
+.br
+\fB\SIZE  \fR
+Size of the ram, given in bytes.
+.br
+.SH DESCRIPTION
+This module simulates one ram module on a motherboard for the mmix mb Simulator.
+There are three Interrupts where the ram reacts:
+
+	The "Power On" is needed for initiating the ram the first time.
+	On an Power off (which is the same interrupt like Power fail) the content of the ram will be deleted and new initialized.
+	After that the ram will wait until an "Power On" comes from the motherboard.
+	On an "Reboot" the ram only deletes its memory and reinitializes it.
+
+Internally the ram module gets from the bus an address to read from or to write to. The module
+calculates an 32 Bit ofset from this address. (This will be the address to read/write - address where the ram starts)
+the first 10 bits are the index for the high index table of the ram,
+the following 10 bits are the index for the low index table of the ram,
+and the last 12 bits are needed to address blocks of 4kbyte.
+Each entry of the high index table will point to an different low index table, in the low index table
+there are pointers to the single blocks. After initiating no blocks and no low index tables will be
+created, only if you write to an address for which no low index table and/or no block exists, they will be
+created.
+On an read operation, to an address, where no low index table or no block exists, it will be returned zero
+bytes.
+
+.SH SEE ALSO
+MMIX, RAM, ROM, KEYBOARD, SCREEN
+.br
+.UR http://www.cs.fhm.edu/~ruckert/mmix/index.html .UE
+.br
+
+.SH AUTHOR
+Written by Alexander Ukas, Martin Ruckert
+.br
+
+.SH REPORT BUGS
+Report bugs to <ruckert@cs.fhm.edu>.
+.br
+
+.SH COPYRIGHT
+.br

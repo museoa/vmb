@@ -13,12 +13,12 @@ exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e ../scree
 #exec xterm -e insight -n --args ./mmix -i -B9002 
 #exec xterm -e ../mmix/mmix -B9002 -g12345
 #exec xterm -e ../mmix/mmix -B9002 -i hello.mmo
-exec xterm -e ../mmix/mmix -B9002 -g12345
+exec xterm -e ../mmix/mmix -B9002 -i
 exec ../rom/rom
 exec ../ram/ram
-#exec ../hostdisk/hostdisk
-#exec ../vram/vram
+
 #exec ..\rom\Debug\rom.exe
+
 #exec ..\ram\Debug\ram.exe
 #exec ..\screen\Debug\screen.exe
 #exec ..\sc_vs\Debug\sc_vs.exe
@@ -26,7 +26,6 @@ exec ../ram/ram
 
 #exec ..\mmix\Debug\mmix.exe -B9002 -i
 #endif
-
 
 #if keyboard
 #address 0000000001008
@@ -53,18 +52,3 @@ size 3145728
 address 0000000100000000
 
 #endif
-
-#if vram
-#debug
-size 1228800
-address 0002000000000000
-# inside the mapable range
-#address 0000000200000000
-
-#endif
-
-#if hostdisk
-address 3000000000000
-debug on
-#endif
-
