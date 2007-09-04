@@ -1,309 +1,409 @@
-This file collects considerations regarding the
-structure of bus messages.
+
+REFERECE SECTION on SYNTAX and SEMANTICS of MESSAGES
+====================================================
+
+Message Format
+--------------
+A message has the following parts:
+ 4 Byte Header (TYPE,SIZE,SLOT,ID)
+ 4 Byte Timestamp (optional)
+ 8 Byte Address (optional)
+ 1-256 Octabyte Payload (optional)
+
+The header together with the optional timestamp and the optional address
+is called the extended header.
 
 
-What kind of messages do I need
+Message TYPE
+------------
+The TYPE Byte in the Header has the follwing bits:
+  bus, time, address, route, payload, request, lock, unused
+These bit have the following semantics:
 
-1. Register with the motherborad
+bus bit 1
+    This is a message for/from the bus (motherboard). 
+    The bus will hndle this message.
+    The type of the message is determined by the ID byte (see below).
+bus bit 0
+    This is a message from device to device which just needs to be
+    forwarded by the bus.
 
-keyboard: specifies an address (one octa for reading) 
-          and an interrupt it wants to use
-terminal: specifies an address (one octa for reading and writing) 
-          and an interrupt it wants to use
-rom:      specifies an address and a size in octas
-ldosto:   wants to load and store has no own adresses, wants to get all interrupts
-
-
-2. Interrupt
-
-keyboard: signals an interrupt (as soon as a character gets available)
-terminal: signals an interrupt (as soon as the terminal is ready to receive)
-ldosto:   wants to receive all interrupts
-
-3. Read/Write
-keyboard: answers read requests for a single address
-terminal: answers read and write requests for a single address
-rom:      answers read request for a range of addresses
-ldosto:   sends read and write requests for all addresses.
-
-4. RESET and POWER-ON
-all of the above might be interested in a reset interrupt and a power-on
-interrupt.
-
-5. Timing
-A provision to exchange information on the timing of messages
-is needed.
-
-6. Locking
-It should be possible to lock the bus to get exclusive use of it
-preventing further bus access and/or interrupts by other components
-
-
-Use cases:
-
-1. Load an octa from rom.
-
-ldo: send a request to the bus, that ldo wants 1 octa at address xxx
-bus: passes the request to the rom, based on the address,
-     inserts a slot number for the return
-rom: receives the request and the return slot and looks up the data
-rom: sends an answer to the bus with the data and the requesting slot.
-bus: bus knows where the answer should go based on the slot and forwards the data.
-ldo: receives the answer and can tell from the message what the answer means,
-     that is the answer to a read to a cerain address and of a certain size
-
-2. Load an octa from rom with a locking bus.
-
-ldo: send a request to the bus, that ldo wants 1 octa at address xxx
-bus: determines the reviver of the request based on the address.
-     locks the bus for the complete point to point data exchange.
-     passes the request to the rom
-rom: receives the request and looks up the data
-rom: sends an answer to the bus with the data
-bus: forwards the data and unlocks the bus once the answer is complete.
-ldo: receives the answer 
-
-
-3. Receiving a character from the keyboard
-
-keyboard: receives an input character
-keyborad: raises an interrupt
-ldo:      receives the interrupt, starts a trap handler
-ldo:      send a request to the bus, that ldo wants 1 octa at address xxx
-... like Load an octa from rom ...
-
-4. Store a block of data from disk to memory
-
-disk: reads the data 
-disk: sends first block of the data with address and size to the bus
-bus: determines the reciver based on the addess and forwards it to the ram
-ram: receives message and stores data.
-disk: repeats the sending until done
-disk: raises interrupt to signal completion of transfer.
-
-5. The CSWAP instuction
-Note: this is an indivisible uninterruptable instruction!
-cswap: sends a read request to the bus with a certain address
-       the request must lock the bus
-bus:   forwards request based on address to ram, rom, or even io
-ram:   needs some time to answer the read request
-bus:   sends answe to cswap
-cswap: decides depending on rP register and the answer received
-       whether to issue a write request
-cswap: may issue a write request and unlock or unlock the bus.
-bus:   forwards request to ram
-ram:   updates value
-
-
-6. Snooping
-In multi-processor systems, processors must monitor
-read and write requests to shared memory. 
-
-If a read request
-concerns an addess for which the processor has an
-updated value in its cache. It must either supply this
-value from its cache or first write the updated value
-to memory before the memory can be allowed to answer
-the request.
-
-If a write request 
-concerns an address for which the processor has a
-value in its cache, it must invalidate its cache
-or update its cache by the value written.
-
-Snooping may occur (very likely) together with the CSWAP
-instruction.
-
-
-Discussion:
-
-1. Locking of the bus for a complete data exchange:
-Advantage: 
-- easy to use for the cpu. Send request and then wait for
-  the answer of the request. 
-Disadvantage: the bus blocks until the request has an answer.
-
-2. No locking, request and answer are two separate messages
-Advantage: 
-- a component can issue several requests and get bussy
-  again. It can handle the answers many cycles later.
-Disadvantage: 
-- More complex 
-- Need a mechanism to relate request and answer.
-- Need some mechnism to route the answer to the receiver.
-- Even if a component sends only one request, the next message
-  received might not be the answer but e.g. an interrupt.
-
-Implementation Requirements and Proposals
-
-1. Make any message a multiple of four byte
-2. Have a header of four byte
-3. Have an extended header that inlcudes an address.
-4. the bus should be able to tell the message size from the
-   header so that it can lock the bus for the message.
-
-5. have a header tetra with
-   1 byte message TYPE: 
-     interrupt, 
-     single tetra, 
-     tetra plus address, 
-     has payload of given size     
-     is an answer to the specified slot
-   1 byte SIZE-1 of the payload  message in octas
-   1 byte SLOT information
-   1 byte message ID (0=ignore 1=read, 2=write, 3=read answer 4=register ....)
-
-
-
-
-6. TYPE bits: (bus, time, address, route, payload, request, lock, unused)
-What does the bus if the following type bits are set:
-
-bus bit set
-    this is a message for/from the bus. 
-    the type of the message is determined by the ID byte
-    ID = 0 ignore   
-    ID = 1 interrupt
-      all TYPE bits, except the time bit, are ignored
-      SIZE ignored
-      SLOT the interrupt number, send the message to 
-         all devices that need this interrupt
-    ID = 2 register
-      all TYPE bits, except the time bit, are ignored
-      the payload bit sould be set the SIZE byte should specify 3 octas
-      SLOT  ignored
-
-time bit set    
+time bit 1    
     the four byte header is followed by a four byte time stamp
     that may be incremented by the bus and other components to provide
     timing information.
+time bit 0
+   there is no time time stamp after the header
 
-address bit set
+address bit 1
     the four byte header and the optional four byte time stamp
     are followed by an eight byte address. 
     if the route bit is not set, ignore SLOT and determine 
     the receiver from the address
+address bit 0
+    there is no 8 byte address after the header ond the (optional) time stamp.
 
-route bit set
-    if this bit is set, send the message to the SLOT byte otherwise
+route bit 1
+    if this bit is set, send the message to the SLOT byte.
+route bit 0
     if the address bit is set, determine the receiver from the address,
-    otherwise there is no receiver.
+    otherwise there is no receiver, which may be ok for bus messages,
+    or if the ID is 0 (ignore)
 
-payload bit set
-    if the payload bit is set, the (extended) header is followed by a payload.
-    Its size as a multiple of octas is given by the SIZE byte.
-    It stores size-1. For size=0 just dont set the payload bit.
-    This allows for up to 256 octas payload = 2k byte (Without
-    the -1, 255 octas would be just short of 2k byte.)
+payload bit 1
+    if the payload bit is set, the extended header is followed by a payload.
+    Its size as a multiple of octas is given by the SIZE byte as SIZE+1.
+    This allows from 1 octa up to 256 octas payload = 2k byte.
+    For an empty payload just dont set the payload bit.
+payload bit 0
+    there is no payload after the extended header.
    
-request bit set
-    if this bit is set, the SLOT byte will be set to the sender slot 
+request bit 1
+    if this bit is set, the bus will set the SLOT byte to the sender slot 
     before delivering the message but after determining 
     the receiver (which might be specified by the SLOT). This allows
     the receiver to send an answer using the route bit.
+    If the request bit is set, the sending device will expect an answer.
+    If there is no receiving device or if the receiving device disconnects
+    before sending an answer, the bus should provide a dummy answer.
+request bit 0
+    The SLOT byte is not changed, there will be no answer expected.
 
-lock bit set
+lock bit 1
     if this bit is set, the bus is locked for exclusive access according to 
     the following rules:
     After the bus accepts a message with the lock bit, no other message will
     be accepted or delivered until the bus gets unlocked again.
 
-    The the bus repeats the following two steps:
+    The the bus then repeats the following two steps:
     1.  It will deliver the message to the receiver.
     2.  Then it will wait until the receiver sends a message.
 
     The bus is unlocked as soon as a message without the lock bit has been
-    delivered (after step 1).
+    delivered (after step 1 above).
     To unlock the bus the final receiver can send a message with four
     zero byte (without address and route bit, and id=0, it will be ignored).
 
+Message Size
+------------
+The message size can be determined from the first two byte 
+(the TYPE and the SIZE byte of the header) of the message.
+It is computed as follows:
+   The minimum size of the message is 4 byte. 
+      (the message consists of just the header)
+   Add 4, if the time bit in the TYPE byte is set.
+   Add 8, if the address bit in the TYPE byte is set.
+   Add 8*(SIZE+1), if the payload bit in the TYPE byte is set.
 
-7. How to raise an interupt number X: send: TYPE_BUS,0,X,BUS_INTERRUPT
 
-8. How to check for an interrupt: 
-   read the bus non blocking
-   if nothing is received, there is no interrupt. If the message starts with
-   a negative byte, its from the bus, if ID==BUS_INTERRUPT, then the SLOT byte
-   is the interrupt number.
+Summary of the predefined Message ID's
+======================================
 
-9. How to load an octa: 
-   send TYPE_ADDRESS|TYPE_REQUEST,0,0,ID_READ,ADDRESS
-   the TYPE byte with the address and the request bit set.
-   SIZE is 0 (1 octa, but no payload bit)
-   SLOT is 0 (ignored) and 
-   ID is ID_READ
-   send the address after the header
-   wait for an answer
-   The answer will be TYPE_ADDRESS|TYPE_ROUTE|TYPE_PAYLOAD,0,?,ID_READREPLY,ADDRESS,DATA
-   the TYPE with the address bit, the route bit, and the payload set.
-   the SIZE will be 0 (1 octa)
-   the SLOT is ignored, (its your slot)
-   the ID will be ID_READREPLY = read reply.
-   read the address it sould match the address you asked for.
-   read one more octa of data.
+#define ID_IGNORE    0
+----------------------
+Message Format: 4 to 16 Byte
+    TYPE = (bus=0, time=any, address=any, route=any, 
+            payload=0, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0
+    if time bit set
+      time = any (4 Byte)
+    if address bit set
+      address = any (8 Byte)
 
-10. How to answer the request for a load octa?
-    read the bus.
-    If a message is received with a positive type byte (no bus message)
-    and an ID of ID_READ then answer the read request.
-    after the header follows 1 octa, the address.
-    From this address read SIZE+1 octa, and send a new message
-    TYPE_ADDRESS|TYPE_ROUTE|TYPE_PAYLOAD,SIZE,SLOT,ID_READREPLY,ADDRESS,DATA
-    reuse the SLOT, the SIZE, and the ADDRESS from the request.
-    change the TYPE byte and the ID byte, and append the necessary DATA octas.
+Semantics:
+   The sender of such a message can use the route bit and the SLOT,
+   or the address bit and the address field to determine the receiver.
+   If neither is specified the bus will ignore this message (but may
+   unlock).
 
-11. How to store an octa ?
-    send TYPE_ADDRESS|TYPE_PAYLOAD,0,0,ID_WRITE,ADDRESS,DATA
-    TYPE has the address and payload bit
-    SIZE is 0 (1 octa)
-    SLOT is 0 (ignored)
-    ID is ID_WRITE
-    send the address and the data after the first four header byte.
+   The receiver can savely ignore this message.
+
+
+
+#define ID_READ      1
+----------------------
+Message Format: 12 to 16 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=0, request=1, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 1
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+
+Semantics:
+   The sender of this message will expect a answer containing 
+   (SIZE+1)*8 byte at the given address.
+   The answer should have ID = ID_READREPLY 
+   (or ID=ID_NOREPLY in case of an error).
+
+   The bus will replace the SLOT byte by the sending slot number, such
+   that the receiver of the message can send an answer using the route bit.
+   The bus will make sure that eventuelly the sender will receive an answer.
+
+   The receiver should send a answer with ID=ID_READREPLY to the device
+   given in the SLOT byte using the route bit. It should add SIZE+1 octas
+   of payload containing the memory content atarting at the given address.
+
+
+#define ID_WRITE     2
+----------------------
+Message Format: 20 to 16+256*8 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 2
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+    payload = any ((SIZE+1)*8 Byte)
+
+Semantics:
+   The sender of this message will expect that the SIZE+1 octas contained
+   in the payload will be stored by the receiver at the given address.
+
+   The reciver will store the data. There is no answer.
+
+#define ID_READREPLY 3
+----------------------
+Message Format: 20 to 16+256*8 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 3
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+    payload = any ((SIZE+1)*8 Byte)
+    
+
+Semantics:
+   The sender of this message will inform the receiver
+    that the SIZE+1 octas contained in the payload 
+    are stored at the given address.
+
+   The reciver can use the data.
+
+#define ID_NOREPLY   4
+----------------------
+Message Format: 12 to 16 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=0, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 4
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+
+Semantics:
+   The sender of this message will inform the receiver
+   that the read request just received can not be answered.
+   The sender may be either a device or the bus.
+   Typically the sender of such a message should also raise 
+   an interrupt to cause proper error treatment.
+
+   The receiver should treat this message as a (soft) read error.
+   It can also ignore this message and process the interrupt
+   caused by an unsuccessfull read.
+
+#define ID_READBYTE  5
+#define ID_READWYDE  6
+#define ID_READTETRA 7
+----------------------
+Message Format: 12 to 16 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=0, request=1, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 5,6, or 7
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+
+Semantics:
+   The sender of this message will expect a answer containing 
+   1 (READBYTE), 1 (READWYDE) or 4 (READTETRA) byte at the given address.
+   The answer should have ID = ID_BYTEREPLY, ID=ID_WYDEREPLY, or
+   ID=ID_TETRAREPLY
+   (or ID=ID_NOREPLY in case of an error).
+
+   The bus will replace the SLOT byte by the sending slot number, such
+   that the receiver of the message can send an answer using the route bit.
+   The bus will make sure that eventuelly the sender will receive an answer.
+
+   The receiver should send a answer with ID=ID_BYTEREPLY, ID=ID_WYDEREPLY, or
+   ID=ID_TETRAREPLYto the device given in the SLOT byte using the route bit.
+   It should add 1 octa of payload containing left justified the 
+   memory content (1, 2, or 4 byte) starting at the given address.
    
-12. How to answer a request for a store octa?
-    there is no answer.
-    If something goes wrong raise an interrupt.
 
-13. How to read a character from the keyboard
-    wait for a keyboard interrupt, then in the interrupt handler
-    read an octa from the address specified by the keyboard.
-    this octa has the format XX00 00YY 0000 00ZZ
-    the XX byte should be zero, if not there was an error with the keyboard
-    the error is reset by this read operation. but you may issue a beep or some
-    warning message.
-    the YY byte could be 0, then there is no data
-    the YY byte could be 1, then there is one byte of data in the ZZ byte
-    the YY byte could be n>1, then there were n input bytes since the
-    last read operation all of which but the last have been lost.
-    use the last of them stored in the ZZ byte.
+#define ID_WRITEBYTE  8
+#define ID_WRITEWYDE  9
+#define ID_WRITETETRA 10
+----------------------
+Message Format: 20 to 24 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+    SIZE = 0
+    SLOT = any
+    ID   = 8, 9, or 10
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+    payload = any (8 Byte
 
-14. How to write a character to the screen
-    read an octa from the address specified by the screen.
-    this octa has the format  XX00 00YY 0000 00ZZ
-    the XX byte should be zero, if not there was an error since the last write
-    operation. You may want to give a warning or just ignore this.
-    the YY byte could be 0, then write the next output byte ZZ
-      packed into an octa to the address of the screen device.
-    the YY byte could be 1 or greater then 1, then the screen device
-      is still bussy with outputting the byte ZZ. 
-      you should buffer your output byte and have the screen interrupt 
-      enabled. As soon as the screed device is done with the current byte
-      it will raise an interrupt. In the interrupt handler, you should
-      take the next byte from the buffer and send it to the screen.
-      If this makes the buffer empty, you may disable the screen interrupt.
+Semantics:
+   The sender of this message will expect that 1, 2 or 4 byte contained
+   left justified in the payload will be stored by the receiver 
+   at the given address.
 
-15. How to do DMA ?
+   The reciver will store the data. There is no answer.
 
-15. How to read a memory block from disk?
 
-16. How to register with the bus?
-    send TYPE_BUS|TYPE_PAYLOAD,2,0,BUS_REGISTER, START, LIMIT, MASK
-    Send a message with the bus bit and a
-    payload bit. Specify a size of 3 octas.
-    with SIZE = 2 (3 octas)
-    with ID = BUS_REGISTER
-    and three octas are: 
-    the start address, the end address, and the interrupt mask.
+#define ID_BYTEREPLY  11
+#define ID_WYDEREPLY  12
+#define ID_TETRAREPLY 13
+----------------------
+Message Format: 20 to 24 Byte
+    TYPE = (bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+    SIZE = 0
+    SLOT = any
+    ID   = 11, 12, or 13
+    if time bit set
+      time = any (4 Byte)
+    address = any (8 Byte)
+    payload = any (8 Byte)
+    
 
-17. How to snoop on the bus?
+Semantics:
+   The sender of this message will inform the receiver
+   that the 1, 2, or 4 byte contained left justified in the payload octa
+   are stored at the given address.
 
+   The reciver can use the data.
+
+
+#define ID_REGISTER   0xFA
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=1, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0xFA
+    if time bit set
+      time = any (4 Byte)
+    payload = any (8 Byte)
+
+Semantics:
+   The sender of this message tries to register itself with the bus.
+   The payload will contain in this order:
+     the address (8 byte)
+     the limit (8 byte)
+     the interrupt mask (8byte)
+     the name (a multiple of 8 byte)
+   The SIZE byte should correctly specify the amount of payload supplied
+   which varies because of the name.
+   The registered device claims to be responsible for the memory
+   range starting at the given address up to but not including the limit.
+   Any interrupt, where interrupt numbers range between 0 and 63,
+   that is raised will be delivered to this device if the corresponding
+   bit in the interrupt mask is set.
+   The name that follows in the payload is a zero terminated string
+   left justified in the payload. The payload may be longer than the string
+   because the payload is always a multiple of 8 byte. The name of the
+   device is just for information. 
+
+#define ID_UNREGISTER 0xFB
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=any, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0xFB
+    if time bit set
+      time = any (4 Byte)
+
+Semantics:
+   A registerd device shoud unregister itself before disconnecting.
+
+#define ID_INTERRUPT  0xFC
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+    SIZE = any
+    SLOT = 0 to 63
+    ID   = 0xFC
+    if time bit set
+      time = any (4 Byte)
+
+Semantics:
+  The sender of this message raises an interrupt. The interrupt number
+  should be a number between 0 and 63 nd is contained in the SLOT byte.
+
+  The bus will check all registered devices and if the corresponding bit
+  in the interrupt mask is set, it will forward this message to the device.
+
+  The receiver of this message should take note of the interrupt and
+  process it.
+
+#define ID_RESET      0xFD
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0xFD
+    if time bit set
+      time = any (4 Byte)
+
+Semantics:
+  This is the hardware reset signal. This is not a software interrupt.
+  Even if the software of a device is spinning in a loop or got stuck
+  otherwise the reciver should be able to process this message and get
+  back into a sane initial state.
+  Devices typically do not send this signal. It is send out by the 
+  motherboard/bus.
+  
+#define ID_POWEROFF   0xFE
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0xFE
+    if time bit set
+      time = any (4 Byte)
+
+Semantics:
+  This is not a power fail interrupt, or something that a device can handle;
+  its definitely the end of power. If the device has no (virtual) battery
+  it should stop operating. The power off signal will only come after
+  a power on signal.
+
+#define ID_POWERON    0xFF
+----------------------
+Message Format: 4 to 8 Byte
+    TYPE = (bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+    SIZE = any
+    SLOT = any
+    ID   = 0xFF
+    if time bit set
+      time = any (4 Byte)
+
+Semantics:
+  This is signal is the beginning of life for a device.
+  The device should wait after registering until it receives
+  the power on signal. Then it should start working.
