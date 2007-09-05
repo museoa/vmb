@@ -189,6 +189,12 @@ extern void read_instruction(octa address,int size);
 @z
 
 @x
+@d mm 0x98 /* the escape code of \.{mmo} format */
+@y
+@d mmo_esc 0x98 /* the escape code of \.{mmo} format */
+@z
+
+@x
 @ We do not load the symbol table. (A more ambitious simulator could
 implement \.{MMIXAL}-style expressions for interactive debugging,
 but such enhancements are left to the interested reader.)
@@ -209,6 +215,18 @@ if (mmo_file_name!=NULL)
   if (!mmo_file) {
   register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
   if (!alt_name) panic("Can't allocate file name buffer");
+@z
+
+@x
+if (buf[0]!=mm || buf[1]!=lop_pre) mmo_err;
+@y
+if (buf[0]!=mmo_esc || buf[1]!=lop_pre) mmo_err;
+@z
+
+@x
+ loop:@+if (buf[0]==mm) switch (buf[1]) {
+@y
+ loop:@+if (buf[0]==mmo_esc) switch (buf[1]) {
 @z
 
 @x
@@ -339,6 +357,13 @@ case lop_file:
 case lop_line:
  continue;
 @z
+
+@x
+   if (buf[0]==mm) {
+@y
+   if (buf[0]==mmo_esc) {
+@z
+
 
 @x
 @ Since a chunk of memory holds 512 tetrabytes, the |ll| pointer in the

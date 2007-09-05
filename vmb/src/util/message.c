@@ -41,6 +41,8 @@
 #include "message.h"
 #include "bus-arith.h"
 
+
+
 /* functions to send and receive a message */
 static int write_socket(int socket, int blocking, unsigned char *msg, int size)
 
@@ -72,7 +74,7 @@ static int write_socket(int socket, int blocking, unsigned char *msg, int size)
         }
       }
       else
-	  { bus_disconnect(socket);
+	{  bus_disconnect(socket);
         return -1;
 	  }
     } 
@@ -330,7 +332,6 @@ int bus_register(int socket,
                 unsigned char address[8],
                 unsigned char limit[8],
                 unsigned int hi_mask, unsigned int low_mask,
-
 				char *name)
 { unsigned char size;
   unsigned char msg[MAXMESSAGE] = {0};
@@ -352,17 +353,16 @@ int bus_register(int socket,
   { int n;
 
     n = strlen(name);
+    if ((n/8+1)> 255-3)
+       n = (255-4)*8;
 
-	if ((n/8+1)> 255-2) n = 255-2;
-
-	strncpy(msg+24,name,n*8);
-
-    size += n;
-
+    strncpy(msg+24,name,n*8);
+    size += n/8+1;
   }
   /* send bus register message */
   return send_msg(socket, 1, TYPE_BUS|TYPE_PAYLOAD, size, 0, ID_REGISTER, 0, 0, msg);
 }
+
 
 int bus_unregister(int socket)
 { if (socket<0)
@@ -377,8 +377,7 @@ int bus_unregister(int socket)
 
 int bus_disconnect(int socket)
 {  bus_connected = 0;
-
-if (valid_socket(socket))
+ if (valid_socket(socket))
 #ifdef WIN32
   return closesocket(socket);
 #else

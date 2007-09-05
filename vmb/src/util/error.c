@@ -91,23 +91,6 @@ void debugs(char *msg, char *s)
    debug(tmp);
 }
 
-void debugx(char *msg, char *s, int n)
-/* a function to call to display debug messages */
-{ 
-#define HEXMAX 256
-#define OUTMAX 1000
-#define MSGMAX (OUTMAX-HEXMAX*2)
-
-   static char nl[] ="\r\n";
-   static char tmp[OUTMAX], hex[HEXMAX*2+1];
-   if (hDebug==NULL)
-      return;
-   if (n>HEXMAX) n = HEXMAX;
-   if (strlen(msg)>MSGMAX) msg[MSGMAX]=0;
-   chartohex(s, hex, n);
-   sprintf(tmp,msg,hex);
-   debug(tmp);
-}
 
 
 #else
@@ -149,19 +132,32 @@ void debugs(char *msg, char *s)
   }
 }
 
+#endif
+
 
 void debugx(char *msg, char *s, int n)
-/* a function to call to display debug messages */
-{ 
+     /* a function to call to display debug messages */
+{ int i; 
 #define HEXMAX 256
-   static char hex[HEXMAX*2+1];
-   if (debugflag)
-  { if (n>HEXMAX) n = HEXMAX;
-    chartohex(s, hex, n);
-    fprintf(stderr,"DEBUG (%s): ",programname);
-    fprintf(stderr,msg,hex);
-    fprintf(stderr,"\r\n");
-  }
-}
+ 
+ static char hex[HEXMAX*2+1];
+ char *p;
+ if (n>HEXMAX) n = HEXMAX;
 
-#endif
+ i = 0;   
+ hex[0] = 0;
+ p = hex;
+ while (n-i>8)
+   { chartohex(s+i,p,8);
+   p=p+8*2;
+   *p = ' ';
+   p = p+1;
+   i = i+8;
+   }
+ if (n-i>0)
+   { chartohex(s+i,p,n-i);
+   p = p + (n-i)*2;
+   }
+ *p = 0;
+  debugs(msg,hex);
+}

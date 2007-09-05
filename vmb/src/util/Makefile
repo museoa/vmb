@@ -16,5 +16,8 @@ libvmb.a: $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $(OBJECTS)
 	$(RANLIB) $@
 
+install:
+	echo nothing to do
+
 clean:
 	rm -f *.o *~ 

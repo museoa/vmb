@@ -30,6 +30,7 @@
 #include <commctrl.h>
 #include "resource.h"
 
+;
 
 
 /* Windows needs a different main program (taken from win32main.c) */
@@ -58,7 +59,7 @@ HBITMAP hon,hoff,hconnect;
 #include "bus-arith.h"
 
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-28 10:12:06 $";
+char version[]="$Revision: 1.2 $ $Date: 2007-09-05 14:41:44 $";
 
 char howto[] =
 "\n"
@@ -89,6 +90,7 @@ char howto[] =
 #endif
 ;
 
+void terminate_device(int i);
 
 #define SLOTS 255
 
@@ -188,22 +190,72 @@ void create_server()
   debugi("Created server at Port %d", port);
 }
 
+char *debug_type(unsigned char mtype)
+{ static char typestr[100];
+  typestr[0] = 0;
+  if (mtype & TYPE_BUS) strcat(typestr,"BUS ");
+  if (mtype & TYPE_TIME) strcat(typestr,"TIME ");
+  if (mtype & TYPE_ADDRESS) strcat(typestr,"ADDRESS ");
+  if (mtype & TYPE_ROUTE) strcat(typestr,"ROUTE ");
+  if (mtype & TYPE_PAYLOAD) strcat(typestr,"PAYLOAD ");
+  if (mtype & TYPE_LOCK) strcat(typestr,"LOCK ");
+  if (mtype & TYPE_UNUSED) strcat(typestr,"UNUSED ");
+  return typestr;
+}
+
+char *debug_id(unsigned char id)
+{ switch (id)
+  {
+    case ID_IGNORE: return "IGNORE"; 
+    case ID_READ: return "READ";       
+    case ID_WRITE: return "WRITE";      
+    case ID_READREPLY: return "READREPLY";  
+    case ID_NOREPLY: return "NOREPLY";    
+    case ID_READBYTE: return "READBYTE";   
+    case ID_READWYDE: return "READWYDE";   
+    case ID_READTETRA: return "READTETRA";  
+    case ID_WRITEBYTE: return "WRITEBYTE";  
+    case ID_WRITEWYDE: return "WRITEWYDE";  
+    case ID_WRITETETRA: return "WRITETETRA"; 
+    case ID_BYTEREPLY: return "BYTEREPLY";  
+    case ID_WYDEREPLY: return "WYDEREPLY";  
+    case ID_TETRAREPLY: return "TETRAREPLY"; 
+
+/* predefined IDs for BUS messages */
+    case ID_REGISTER: return "REGISTER";   
+    case ID_UNREGISTER: return "UNREGISTER"; 
+    case ID_INTERRUPT: return "INTERRUPT";  
+    case ID_RESET: return "RESET";      
+    case ID_POWEROFF: return "POWEROFF";   
+    case ID_POWERON: return "POWERON";    
+
+    default: return NULL;
+  }
+  
+}
+
 int write_to_slot(int i)
 { if (send_msg(slot[i].fd, 1,mtype, msize,mslot,mid,mtime,maddress,mpayload)<=0)
   { errormsg("Unable to deliver message");
+    terminate_device(i);
     return 1;
   }
-  debugx("Send type:    %s",&mtype,1);
-  debugi("Send size:    %d",msize);
-  debugi("Send slot:    %d",mslot);
-
-  debugx("Send id:      %s",&mid,1);
+  debugs("Send to %s:",slot[i].name);
+  debugs("\ttype:    %s",debug_type(mtype));
+  debugi("\tsize:    %d",msize);
+  debugi("\tslot:    %d",mslot);
+  { char * id_str=debug_id(mid);
+    if (id_str==NULL)
+      debugx("\tid:      %s",&mid,1);
+    else
+      debugs("\tid:      %s",id_str);
+  }
   if (mtype&TYPE_TIME)
-    debugi("Send time:    %d",mtime);
+    debugi("\ttime:    %d",mtime);
   if (mtype&TYPE_ADDRESS)
-    debugx("Send address: %s",maddress,8);
+    debugx("\taddress: %s",maddress,8);
   if (mtype&TYPE_PAYLOAD)
-    debugx("Send payload: %s ...",mpayload,8*(msize+1));
+    debugx("\tpayload: %s",mpayload,8*(msize+1));
   write_ops++;
   return 0;
 }
@@ -269,10 +321,13 @@ void close_device(int slotnr)
    debugi("Disconnected device at Slot %d", slotnr);
 }
 
+void terminate_device(int slotnr)
+{   shutdown_device(slotnr);
+   close_device(slotnr);
+}
 void disconnect_device(int slotnr)
 {  if (powerflag)  power_off(slotnr);
-   shutdown_device(slotnr);
-   close_device(slotnr);
+   terminate_device(slotnr);
 }
 
 
@@ -371,16 +426,22 @@ void send_dummy_answer(int dest_slot)
 }
 
 void interpret_message(int source_slot)
-{ debugx("Received type:    %s",&mtype,1);
-  debugi("Received size:    %d",msize);
-  debugi("Received slot:    %d",mslot);
-  debugx("Received id:      %s",&mid,1);
+{ debugs("Received from %s.",slot[source_slot].name);
+  debugs("\ttype:    %s",debug_type(mtype));
+  debugi("\tsize:    %d",msize);
+  debugi("\tslot:    %d",mslot);
+  { char * id_str=debug_id(mid);
+    if (id_str==NULL)
+      debugx("\tid:      %s",&mid,1);
+    else
+      debugs("\tid:      %s",id_str);
+  }
   if (mtype&TYPE_TIME)
-    debugi("Received time:    %d",mtime);
+    debugi("\ttime:    %d",mtime);
   if (mtype&TYPE_ADDRESS)
-    debugx("Received address: %s",maddress,8);
+    debugx("\taddress: %s",maddress,8);
   if (mtype&TYPE_PAYLOAD)
-    debugx("Received payload: %s ...",mpayload,8*(msize+1));
+    debugx("\tpayload: %s ...",mpayload,8*(msize+1));
 
   if(mtype & TYPE_BUS)
     {
@@ -1223,6 +1284,7 @@ void  slot_info(int i)
       printf("%s\n",slot[i].name); 
     else
       printf("Unnamed\n"); 
+    printf("Slot %d Socket: %d\n",i,slot[i].fd);
     chartohex(slot[i].from_addr,hex,8);
     printf("Slot %d Starting Address: #%s\n", i, hex);
     chartohex(slot[i].to_addr,hex,8);

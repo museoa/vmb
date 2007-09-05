@@ -15,6 +15,10 @@ utilities:
 $(PROG): $(PROG).c  utilities
 	$(CC) $(CFLAGS) $(INCDIRS) $(PROG).c  $(LIBS)  -o $(PROG)
 
+install:
+	install $(PROG) $(BINDIR)
+
+
 clean:
 	rm -f $(PROG) *.o *~
 

@@ -44,6 +44,10 @@ bios.rom: $(OBJECTS)
 bios.elf: $(OBJECTS)
 	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -o bios.elf
 
+install: all
+	install $(PROG) $(BINDIR)
+	install bios.rom $(BINDIR)
+	install bios.elf $(BINDIR)
 
 clean:
 	rm -f $(PROG) *.o *~ *.rom *.elf

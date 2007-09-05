@@ -13,6 +13,10 @@ utilities:
 $(PROG): $(PROG).c  utilities
 	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -o $(PROG)
 
+install: all
+	install $(PROG) $(BINDIR)
+	install default.mmc $(BINDIR)
+
 clean:
 	rm -f $(PROG) *.o *~
 

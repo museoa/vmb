@@ -12,6 +12,8 @@ utilities:
 
 $(PROG): $(PROG).c  utilities
 	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -o $(PROG)
+install:
+	install $(PROG) $(BINDIR)
 
 clean:
 	rm -f $(PROG) *.o *~
