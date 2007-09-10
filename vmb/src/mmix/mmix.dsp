@@ -42,8 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".." /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FD /c
-# SUBTRACT CPP /YX
+# ADD CPP /nologo /W3 /GX /O2 /I "../util" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /c
 # ADD BASE RSC /l 0x407 /d "NDEBUG"
 # ADD RSC /l 0x407 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -67,8 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".." /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
-# SUBTRACT CPP /YX
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../util" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
 # ADD BASE RSC /l 0x407 /d "_DEBUG"
 # ADD RSC /l 0x407 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -94,26 +92,71 @@ SOURCE=.\address.c
 # Begin Source File
 
 SOURCE=.\breaks.c
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
-SOURCE="..\bus-arith.c"
+SOURCE="..\util\bus-arith.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\bus-util.c"
+SOURCE="..\util\bus-util.c"
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\cache.c
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\gdb.c
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
-SOURCE=..\message.c
+SOURCE=..\util\message.c
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -122,14 +165,41 @@ SOURCE=".\mmix-arith.c"
 # Begin Source File
 
 SOURCE=".\mmix-io.c"
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=".\mmix-sim.c"
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=".\remote-utils.c"
+
+!IF  "$(CFG)" == "mmix - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "mmix - Win32 Debug"
+
+# ADD CPP /Od
+
+!ENDIF 
+
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -154,14 +224,6 @@ SOURCE=.\cache.h
 # Begin Source File
 
 SOURCE=.\gdb.h
-# End Source File
-# End Group
-# Begin Group "Resource Files"
-
-# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
-# Begin Source File
-
-SOURCE=.\win32.rc
 # End Source File
 # End Group
 # End Target

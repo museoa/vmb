@@ -178,10 +178,10 @@ static cache_line *cache_lru(cache c, octa address)
   cache_line *line = c[i].line;
   int access = c[i].access;
   int lru = 0;
-  int age = access-line[lru].use;
+  unsigned int age = access-line[lru].use;
   int w;
   for (w=1;w<WAYS;w++)
-    if (access-line[w].use > age)
+    if (access-line[w].use -age > 0)
       { age = access-line[w].use; lru=w; }
   if (++access==0) ++access;
   line[lru].use = c[i].access=access;
@@ -258,7 +258,7 @@ void write_data_cache(octa address, int size)
 { cache_line *line;
  int i;
  unsigned int u;
- for (i = -(address.l&LINEMASK); i<size;i=i+LINESIZE)
+ for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
  { line = cache_lookup(data_cache,address);
    if (line!=NULL && line->dirty)
       cache_store(line);
@@ -273,7 +273,7 @@ void clear_data_cache(octa address, int size)
 { cache_line *line;
  int i;
  unsigned int u;
- for (i = -(address.l&LINEMASK); i<size;i=i+LINESIZE)
+ for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
  { line = cache_lookup(data_cache,address);
    if (line!=NULL)
      line->use=0;
@@ -288,7 +288,7 @@ void clear_instruction_cache(octa address, int size)
 { cache_line *line;
  int i;
  unsigned int u;
- for (i = -(address.l&LINEMASK); i<size;i=i+LINESIZE)
+ for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
  { line = cache_lookup(instruction_cache,address);
    if (line!=NULL)
      line->use=0;
@@ -303,7 +303,7 @@ void read_instruction_cache(octa address, int size)
 { cache_line *line;
   int i;
   unsigned int u;
-  for (i = -(address.l&LINEMASK); i<size;i=i+LINESIZE)
+  for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { line = cache_lookup(instruction_cache,address);
     if (line==NULL)
     { line = cache_lru(instruction_cache,address);

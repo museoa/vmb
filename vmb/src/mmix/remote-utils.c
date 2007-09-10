@@ -119,8 +119,8 @@ int dual_wait(int s1, int s2)
     do {
       t.tv_usec=t.tv_sec=0;
       FD_ZERO(&readfs);
-      if (s1>=0) FD_SET(s1, &readfs); 
-      if (s1>=0) FD_SET(s2, &readfs); 
+      if (s1>=0) FD_SET((unsigned int)s1, &readfs); 
+      if (s1>=0) FD_SET((unsigned int)s2, &readfs); 
       if (s1>s2) max_fd = s1; else max_fd=s2;
       if (s1<0 || s2<0)
         select(max_fd+1, &readfs, NULL, NULL, &t);
@@ -139,7 +139,7 @@ void single_wait(int s)
 {   fd_set readfs;    /* file descriptor set for read */
     if (s<0) return;
     FD_ZERO(&readfs);
-    FD_SET(s, &readfs); 
+    FD_SET((unsigned int)s, &readfs); 
     do 
       select(s+1, &readfs, NULL, NULL,NULL);
     while (!FD_ISSET(s, &readfs));

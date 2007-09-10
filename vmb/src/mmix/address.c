@@ -43,7 +43,7 @@ typedef struct {
   /* int x;  not implemented */
   octa base;    /* base address with x, y, n, p fields set to zero */
   /* int y;  not implemented */
-  int n;
+  unsigned int n;
   int p;
 } PTE;
 
@@ -127,7 +127,7 @@ int bits(octa *a, int n, int s)
 
 /* Handling a page table entry */
 
-int translate_v2p(int b[5], int s, octa *r, int n, int i, octa *address)
+int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *address)
 /* given the components b[i], s,r,n, and i from rV,
    translate the virtual address into 
    a pysical address and return the protection code p.
@@ -219,7 +219,7 @@ pagetable_error:
    return 0;
 }
 
-int translate_pte(int b[5], int s, octa *r, int n, int i, octa *base)
+int translate_pte(int b[5], int s, octa *r, unsigned int n, int i, octa *base)
 /* returns protection p or 0 if no pte was found */
 {  PTE e;
    octa x;

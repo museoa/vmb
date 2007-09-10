@@ -22,10 +22,10 @@
 */
 
 
-#define trace_bit (1<<3)
-#define read_bit  (1<<2)
-#define write_bit (1<<1)
-#define exec_bit  (1<<0)  
+#define trace_bit ((unsigned char)(1<<3))
+#define read_bit  ((unsigned char)(1<<2))
+#define write_bit ((unsigned char)(1<<1))
+#define exec_bit  ((unsigned char)(1<<0))  
 
 extern unsigned char get_break(octa a);
 /* returns a byte with break information for the given address */
