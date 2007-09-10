@@ -68,6 +68,7 @@ void wsa_init(void)
 }
 #endif
 
+
 static int remote_debug = 0;
 
 int remote_fd=-1;
@@ -108,7 +109,6 @@ int remote_server (int port)
   }
   return 1;
 }
-
 
 
 int dual_wait(int s1, int s2)
