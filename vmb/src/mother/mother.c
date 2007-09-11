@@ -55,7 +55,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.3 $ $Date: 2007-09-11 13:33:17 $";
+char version[] = "$Revision: 1.4 $ $Date: 2007-09-11 13:36:28 $";
 
 char howto[] =
   "\n"
@@ -140,8 +140,7 @@ create_server ()
   /* make the socket non blocking */
 #ifdef WIN32
   if (hMainWnd)
-    WSAAsyncSelect (mother_fd, hMainWnd, WM_SOCKET,
-		    FD_READ | FD_CONNECT | FD_ACCEPT | FD_CLOSE);
+    WSAAsyncSelect(mother_fd, hMainWnd, WM_SOCKET, FD_READ | FD_CONNECT |FD_ACCEPT | FD_CLOSE);
   else
   {
     WSAEVENT e;
