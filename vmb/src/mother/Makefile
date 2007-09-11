@@ -17,6 +17,10 @@ install: all
 	install $(PROG) $(BINDIR)
 	install default.mmc $(BINDIR)
 
+
+TAGS:
+	etags *.c *.h ../util/*.c ../util/*.h
+
 clean:
 	rm -f $(PROG) *.o *~
 
