@@ -5,7 +5,7 @@ ARFLAGS = cru
 RANLIB = ranlib
 
 
-OBJECTS = bus-util.o main.o message.o  bus-arith.o param.o option.o error.o version.o
+OBJECTS = main.o bus-util.o message.o  bus-arith.o param.o option.o error.o version.o
 
 .PHONY:  clean
      
