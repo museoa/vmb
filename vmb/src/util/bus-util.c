@@ -21,7 +21,7 @@
 
 */
 
-/* $Revision: 1.1 $ $Date: 2007-08-28 11:52:09 $ */
+/* $Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $ */
 
 
 #include <stdlib.h>
@@ -182,7 +182,7 @@ int load_bus_data(int socket, unsigned char address[8], unsigned char *data, int
   else
     return -1;
   send_msg(socket,1,TYPE_ADDRESS|TYPE_REQUEST,
-           m,0,id,0,address,NULL);
+           m,0,(unsigned char)id,0,address,NULL);
   do 
   { int n;
     unsigned char a[8];

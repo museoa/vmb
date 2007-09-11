@@ -23,7 +23,7 @@ exec ./ram
 #exec .\screen.exe
 #exec .\sc_vs.exe
 #exec .\keyboard.exe
-#exec .\mmix.exe -B9002 -i
+exec .\mmix.exe -B9002 -i
 #endif
 
 

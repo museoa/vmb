@@ -117,7 +117,7 @@ void power_led_position(int x, int y)
 { MoveWindow(hpower,x,y,32,32,TRUE);
 }
 
-static void write_request(unsigned char a[8], int s, unsigned char p[])
+int write_request(unsigned char a[8], int s, unsigned char p[])
 { unsigned int offset;
   offset = get_offset(address,a);
   if (hi_offset || overflow_offset || offset + s > size)
@@ -126,13 +126,14 @@ static void write_request(unsigned char a[8], int s, unsigned char p[])
     debugs("Write request out of range %s",hex);
     debug("raising interrupt");
     set_interrupt(bus_fd, INT_NOMEM);
-    return;
+    return 0;
   }
   debug("Writing");
   put_payload(offset,s,p);
+  return 0;
 }
 
-static void read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p[])
+int read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p[])
 { unsigned int offset;
   int i;
   offset = get_offset(address,a);
@@ -145,11 +146,12 @@ static void read_request( unsigned char a[8], int s, unsigned char slot, unsigne
     if (i < 0) errormsg("Write Error");
     debug("raising interrupt");
     set_interrupt(bus_fd, INT_NOMEM);
-    return;
+    return 0;
   }
   debug("Sending answer");
   i = answer_readrequest(bus_fd,slot,a,s,get_payload(offset,s));
   if (i < 0) errormsg("Write Error");
+  return 0;
 }
 
 
@@ -197,7 +199,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PostQuitMessage(0);
       }
     else if (event == FD_READ)
-      process_request();
+	{ int i;
+      unsigned char a[8], slot;
+      unsigned char p[MAXPAYLOAD];
+      int s;
+	  debug("Reading request");
+      i = get_request(bus_fd,0,&slot,a,&s,p);
+      if (i < 0) errormsg(strerror(errno));
+      else dispatch_message(i,a,s,slot,p);
+	}
     else if (event == FD_WRITE)
       ;
     else if (event == FD_CONNECT)

@@ -101,7 +101,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:36 $";
+char version[]="$Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $";
 
 char howto[] =
 "\n"
@@ -166,10 +166,10 @@ int ram_read_mid(int i, int offset,int size,unsigned char *payload)
 /* read size byte from the ith root entry at offset into payload
    return the number of byte read */
 { int j;
-  if (root[i]==NULL) 
-    return ram_read_page(NULL,offset,size,payload);
   j = (offset>>(BITS-ROOTBITS-MIDBITS))&MIDMASK;
   offset = offset & PAGEMASK;
+  if (root[i]==NULL) 
+    return ram_read_page(NULL,offset,size,payload);
   return ram_read_page(root[i][j],offset,size,payload);
 }
 

@@ -107,7 +107,7 @@ void store_uncached_data(int size, octa data, octa address)
 /* the cache */
 
 #define WAYS     2       /* a n-way cache */
-#define LINEBITS 6       /* bits to index a cache line */
+#define LINEBITS 8       /* bits to index a cache line */
 #define LINESIZE (1<<LINEBITS) /* bytes per cache line */
 #define LINEMASK (LINESIZE-1) /* mask to get line bits */
 #define CACHEBITS 13     /* bits to index the cache */
@@ -181,7 +181,7 @@ static cache_line *cache_lru(cache c, octa address)
   unsigned int age = access-line[lru].use;
   int w;
   for (w=1;w<WAYS;w++)
-    if (access-line[w].use -age > 0)
+    if (access-line[w].use > age)
       { age = access-line[w].use; lru=w; }
   if (++access==0) ++access;
   line[lru].use = c[i].access=access;

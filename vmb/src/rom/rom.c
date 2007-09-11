@@ -117,7 +117,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-28 12:21:03 $";
+char version[]="$Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $";
 
 char howto[] =
 "\n"
@@ -158,7 +158,7 @@ void processUMPSFile(Word* biosBuf,long lSize)
 	for(i = 0; i < lSize; i++) /*!< walk through biosBuf */
 	{  
 	    for(k=0;k<4;k++)    
-		    rom[j + k] = biosBuf[i] >> (32 - (k+1)*8); /*!< do an int to char conversion */
+		    rom[j + k] = (unsigned char)((biosBuf[i] >> (32 - (k+1)*8))&0xFF); /*!< do an int to char conversion */
 		
 		j += WORDLEN;
 	}

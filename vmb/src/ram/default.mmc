@@ -2,7 +2,8 @@
 
 
 port 9002
-host mbox.informatik.fh-muenchen.de
+host localhost
+#host mbox.informatik.fh-muenchen.de
 #host lbox.priv.cs.fhm.edu
 #debug
 
