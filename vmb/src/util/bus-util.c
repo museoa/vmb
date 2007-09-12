@@ -21,7 +21,7 @@
 
 */
 
-/* $Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $ */
+/* $Revision: 1.3 $ $Date: 2007-09-12 16:29:32 $ */
 
 
 #include <stdlib.h>
@@ -228,6 +228,9 @@ int get_interrupt(int socket, int blocking, unsigned int *hi, unsigned int *lo)
   return 1;
 }
 
+int reset_vmb(int socket)
+{  return send_msg(socket, 1, TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
+}
 
 int set_interrupt(int socket, int interrupt)
 { if (interrupt < 0 || interrupt >= 64)

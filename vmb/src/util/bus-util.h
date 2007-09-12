@@ -113,6 +113,9 @@ extern int answer_readrequest(int socket,  unsigned char slot,
 
 extern int set_interrupt(int socket, int interrupt);
 
+/* raise the reset line */
+extern int reset_vmb(int socket);
+
 
 extern int bus_fd;
 

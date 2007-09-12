@@ -55,7 +55,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.5 $ $Date: 2007-09-12 15:49:57 $";
+char version[] = "$Revision: 1.6 $ $Date: 2007-09-12 16:29:32 $";
 
 char howto[] =
   "\n"
@@ -491,6 +491,16 @@ interpret_message (int source_slot)
     case (ID_INTERRUPT):
       interrupt_all (mslot);
       break;
+    case (ID_RESET):
+      reset_all();
+      break;
+    case (ID_POWERON):
+      power_all(1);
+      break;
+    case (ID_POWEROFF):
+      power_all(0);
+      break;
+    
     case (ID_REGISTER):
       memmove (slot[source_slot].from_addr, &mpayload[0], 8);
       memmove (slot[source_slot].to_addr, &mpayload[8], 8);
@@ -507,10 +517,6 @@ interpret_message (int source_slot)
 	  strcpy (slot[source_slot].name, mpayload + 24);
       }
       if (powerflag)
-	power_on (source_slot);
-      break;
-    case (ID_POWERON):
-      if (!powerflag)
 	power_on (source_slot);
       break;
     default:

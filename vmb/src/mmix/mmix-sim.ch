@@ -211,7 +211,9 @@ but such enhancements are left to the interested reader.)
 
 @<Load object file@>=
 if (mmo_file_name!=NULL)
-{ mmo_file=fopen(mmo_file_name,"rb");
+{
+  reset_vmb(bus_fd);
+  mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
   register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
   if (!alt_name) panic("Can't allocate file name buffer");
@@ -1219,7 +1221,7 @@ break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
  break;
 case SWYM:
- if (inst&0xFFFFFF!=0) 
+ if ((inst&0xFFFFFF)!=0) 
      z.h=0, z.l=gdb_signal=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
  @+break;
 @z
@@ -1525,7 +1527,7 @@ also to underflow that was triggered by |RESUME_SET|.)
 @<Check for trap and trip interrupt@>=
 if (!resuming)
 { if (0>get_interrupt(bus_fd, 0, &g[rQ].h,&g[rQ].l))
-    panic("Unable to read rQ");
+    panic("Lost Connection to Motherboard");
   if (bus_reset) { breakpoint=true; bus_reset=0; goto boot;}
   if (remotegdb && gdb_interrupt(-1)) breakpoint=true;
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
@@ -1554,7 +1556,8 @@ if (!resuming)
  extern void wsa_init(void);
  extern void gdb_wait(int socket);
  extern int gdb_interrupt(int socket);
-     
+ extern int reset_vmb(int socket);
+    
 @ @<Initiate a trap interrupt@>=
  g[rWW]=inst_ptr;
  g[rXX]=x;
@@ -1819,7 +1822,7 @@ int main(argc,argv)
 boot:
   if (remotegdb) breakpoint = true;
   @<Initialize everything@>;
-
+  
   while (bus_connected)
   {
     while (!bus_power) 
@@ -1838,6 +1841,7 @@ boot:
         if (remotegdb) breakpoint = true;
       }
     }
+    bus_reset = 0;
     do { 
       { unsigned char b;
         b = get_break(inst_ptr);
