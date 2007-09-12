@@ -110,7 +110,7 @@ void store_uncached_data(int size, octa data, octa address)
 #define LINEBITS 8       /* bits to index a cache line */
 #define LINESIZE (1<<LINEBITS) /* bytes per cache line */
 #define LINEMASK (LINESIZE-1) /* mask to get line bits */
-#define CACHEBITS 13     /* bits to index the cache */
+#define CACHEBITS 15     /* bits to index the cache */
 #define CACHEMASK ((1<<CACHEBITS)-1)  /* mask to get cache bits */
 #define CACHEOFFSET(address) (address.l & LINEMASK)
 #define CACHEINDEX(address)  ((address.l & CACHEMASK)>>LINEBITS)
