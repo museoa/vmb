@@ -102,7 +102,7 @@ doc:    mmix-doc.ps mmixal.dvi mmix-sim.dvi
 	dvips -n13 mmixal.dvi -o mmixal-intro.ps
 	dvips -n8 mmix-sim.dvi -o mmix-sim-intro.ps
 
-install:
+install: all
 	install $(PROG) $(BINDIR)
 
 

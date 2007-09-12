@@ -15,7 +15,6 @@ $(PROG): $(PROG).c  utilities
 
 install: all
 	install $(PROG) $(BINDIR)
-	install default.mmc $(BINDIR)
 
 
 TAGS:

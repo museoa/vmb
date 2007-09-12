@@ -721,20 +721,15 @@ register char *p; /* current place in a string */
 @z
 
 
-@x
-@ @<Info for arithmetic commands@>=
-{"TRAP",0x0a,255,0,5,"%r"},@|
-@y
-@ @<Info for arithmetic commands@>=
-{"TRAP",0x0a,255,0,5,"%#z"},@|
-@z
 
 @x
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,""},@|
+{"SWYM",0x00,0,0,1,""},@|
 @y
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,"%z"},@|
+{"SWYM",0x01,0,0,1,"%z"},@|
 @z
 
 
@@ -1224,7 +1219,8 @@ break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
  break;
 case SWYM:
- if (inst&0xFFFFFF!=0) gdb_signal=inst&0xFFFFFF, breakpoint=true; /* Inform the debugger */
+ if (inst&0xFFFFFF!=0) 
+     z.h=0, z.l=gdb_signal=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
  @+break;
 @z
 
@@ -1307,13 +1303,38 @@ extern octa mmix_ftell @,@,@[ARGS((unsigned char))@];
 extern void print_trip_warning @,@,@[ARGS((int,octa))@];
 extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
 @y
+The |TRAP| instruction prints nicely for some system calls.
+
 @<Cases for ind...@>=
 case TRIP: exc|=H_BIT;@+break;
-case TRAP:
+case TRAP:@+if (xx==0 && yy<=max_sys_call) strcpy(rhs,trap_format[yy]);
+     else strcpy(rhs, "%#z");
+ if (inst == 0) /* Halt */
+ {  if (remotegdb)
+      gdb_signal=0xFF, breakpoint=true, interrupt=false;
+    else if (interacting)
+      tracing=breakpoint=true, interrupt=false;
+    else
+      tracing=true, interrupt=false;
+ }
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
  inst_ptr=g[rT];
  break;
+
+@ @<Glob...@>=
+char *trap_format[]={
+"Halt(%z)",
+"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fclose(%!z) = %x",
+"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fputs(%!z,%#b) = %x",
+"$255 = Fputws(%!z,%#b) = %x",
+"$255 = Fseek(%!z,%b) = %x",
+"$255 = Ftell(%!z) = %x"};
 @z
 
 @x
@@ -1794,8 +1815,9 @@ int main(argc,argv)
   if (bus_fd<0) panic("Unable to connect to Bus.");
   if (0>bus_register(bus_fd,NULL,NULL,0xFFFFFFFF,0xFFFFFFFF,"MMIX CPU"))
     panic("Unable to register with the bus.");
-  breakpoint = true;
+
 boot:
+  if (remotegdb) breakpoint = true;
   @<Initialize everything@>;
 
   while (bus_connected)
@@ -1813,7 +1835,7 @@ boot:
         @<Boot the machine@>;
         @<Load object file@>;
         @<Load the command line arguments@>;
-        breakpoint = true;
+        if (remotegdb) breakpoint = true;
       }
     }
     do { 
@@ -1911,8 +1933,16 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
   stack_tracing=showing_stats=false;
   profiling=false;
   return;
- case 'i': interacting=true;@+return;
+ case 'i': breakpoint=interacting=true;@+return;
  case 'I': interact_after_break=true;@+return;
+@z
+
+@x
+bool interrupt; /* has the user interrupted the simulation recently? */
+bool profiling; /* should we print the profile at the end? */
+@y
+bool interrupt=0; /* has the user interrupted the simulation recently? */
+bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
@@ -1926,7 +1956,6 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
 "-g<n> connect to gdb on port <n>\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
-"-P    print a profile when simulation ends\n",@|
 @z
 
 @x

@@ -26,5 +26,5 @@ clean:
 	  $(MAKE) -C $$dir clean; \
 	done
 
-TAGS: *.c *.h */*.c */*.h
+TAGS:
 	etags *.c *.h */*.c */*.h

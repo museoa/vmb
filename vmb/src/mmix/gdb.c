@@ -105,7 +105,7 @@ static void termination_msg(void)
 { char *p;
   char n;
   unsigned char sig;
-  if (gdb_signal!=0xFFFFFF)
+  if (gdb_signal!=0xFF)
     sig=gdb_signal; 
   else 
     { exit_msg();

@@ -143,7 +143,9 @@ DTrapScreen	SETH    $0,#8000
 	STTU	$1,$0,8
 1H	POP	0,0
 
-DTrapUnhandled	POP	0,0
+DTrapUnhandled
+	SWYM	5               % inform the debugger
+	POP	0,0
  
 
 FTrap	PUSHJ	$255,FHandler
@@ -224,7 +226,7 @@ FTrapTable JMP   TrapHalt      %0
 
 
 TrapHalt NEG	$0,1            %  enable interrupts
-	PUT	rK,$0
+  	PUT	rK,$0
 1H	SYNC	4		%go to power save mode
 	JMP	1B              % and loop idle
 
@@ -583,7 +585,9 @@ TrapGPutPixel GET	$0,rBB    %get the $255 parameter: address and RGB
 	      POP	0,0
 
 
-TrapUnhandled	POP	0,0
+TrapUnhandled	
+	SWYM	5		% tell the debugger
+	POP	0,0
 
 
 ScreenC	SETH    $1,#8000

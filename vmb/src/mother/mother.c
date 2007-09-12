@@ -55,7 +55,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.4 $ $Date: 2007-09-11 13:36:28 $";
+char version[] = "$Revision: 1.5 $ $Date: 2007-09-12 15:49:57 $";
 
 char howto[] =
   "\n"
@@ -80,7 +80,7 @@ char howto[] =
 #endif
   ;
 
-#define SLOTS 255
+#define SLOTS 256
 
 static struct
 {
@@ -91,7 +91,6 @@ static struct
   unsigned char to_addr[8];	/* Address to */
   unsigned int hi_mask, low_mask;	/* Enabled for interrupts */
   struct sockaddr addr;		/* Network Address */
-  int address_size;		/* size of addr */
   int answers_pending;
 } slot[SLOTS];
 
@@ -282,6 +281,26 @@ debug_id (unsigned char id)
     return NULL;
   }
 }
+
+void debug_message(void)
+{ debugs ("\ttype:    %s", debug_type (mtype));
+  debugi ("\tsize:    %d", msize);
+  debugi ("\tslot:    %d", mslot);
+  {
+    char *id_str = debug_id (mid);
+    if (id_str == NULL)
+      debugx ("\tid:      %s", &mid, 1);
+    else
+      debugs ("\tid:      %s", id_str);
+  }
+  if (mtype & TYPE_TIME)
+    debugi ("\ttime:    %d", mtime);
+  if (mtype & TYPE_ADDRESS)
+    debugx ("\taddress: %s", maddress, 8);
+  if (mtype & TYPE_PAYLOAD)
+    debugx ("\tpayload: %s", mpayload, 8 * (msize + 1));
+}
+
 int
 write_to_slot (int i)
 {
@@ -296,24 +315,9 @@ write_to_slot (int i)
   if (mtype & TYPE_ROUTE)
     slot[i].answers_pending--;
   debugs ("Send to %s:", slot[i].name);
-  debugs ("\ttype:    %s", debug_type (mtype));
-  debugi ("\tsize:    %d", msize);
-  debugi ("\tslot:    %d", mslot);
-  {
-    char *id_str = debug_id (mid);
-    if (id_str == NULL)
-      debugx ("\tid:      %s", &mid, 1);
-    else
-      debugs ("\tid:      %s", id_str);
-  }
+  debug_message();
   if (slot[i].answers_pending > 0)
     debugi ("\tpending answers:    %d", slot[i].answers_pending);
-  if (mtype & TYPE_TIME)
-    debugi ("\ttime:    %d", mtime);
-  if (mtype & TYPE_ADDRESS)
-    debugx ("\taddress: %s", maddress, 8);
-  if (mtype & TYPE_PAYLOAD)
-    debugx ("\tpayload: %s", mpayload, 8 * (msize + 1));
   write_ops++;
   return 0;
 }
@@ -342,6 +346,7 @@ power_off (int i)
   else
     errormsg ("Unable to send Power Off");
 }
+
 static void
 reset (int i)
 {
@@ -350,6 +355,7 @@ reset (int i)
   else
     errormsg ("Unable to send Reset");
 }
+
 void
 send_dummy_answer (int dest_slot)
 {
@@ -365,6 +371,7 @@ send_dummy_answer (int dest_slot)
       errormsg ("Unable to send dummy answer");
   }
 }
+
 void
 disconnect_device (int slotnr)
 {
@@ -374,6 +381,7 @@ disconnect_device (int slotnr)
     power_off (slotnr);
   remove_slot (slotnr);
 }
+
 int
 find_slot (unsigned char address[8])
 {
@@ -392,6 +400,7 @@ for_all_slots (void proc (int i))
     if (valid_socket (slot[i].fd))
       proc (i);
 }
+
 void
 shutdown_server ()
 {
@@ -399,11 +408,13 @@ shutdown_server ()
   if (bus_unregister (mother_fd) >= 0 && bus_disconnect (mother_fd) >= 0)
     debugi ("Shutdown server at Port %d : Successful", port);
 }
+
 void
 add_to_read_fdset (int i)
 {
   FD_SET (slot[i].fd, &read_fdset);
 }
+
 void
 build_read_fdset ()
 {
@@ -412,6 +423,7 @@ build_read_fdset ()
   FD_SET (mother_fd, &read_fdset);
   for_all_slots (add_to_read_fdset);
 }
+
 void
 send_interrupt_to (int i)
 {
@@ -424,6 +436,7 @@ send_interrupt_to (int i)
       errormsg ("Unable to send Interrupt");
   }
 }
+
 void
 interrupt_all (int i)
 {
@@ -452,34 +465,23 @@ power_all (int state)
     SendMessage (hpower, STM_SETIMAGE, (WPARAM) IMAGE_BITMAP, (LPARAM) hoff);
 #endif
 }
+
 void
 reset_all (void)
 {
   for_all_slots (reset);
   debug ("All slots reset");
 }
+
 void
 interpret_message (int source_slot)
-{
+{ read_ops++;
   debugs ("Received from %s.", slot[source_slot].name);
-  debugs ("\ttype:    %s", debug_type (mtype));
-  debugi ("\tsize:    %d", msize);
-  debugi ("\tslot:    %d", mslot);
-  {
-    char *id_str = debug_id (mid);
-    if (id_str == NULL)
-      debugx ("\tid:      %s", &mid, 1);
-    else
-      debugs ("\tid:      %s", id_str);
-  }
-  if (mtype & TYPE_TIME)
-    debugi ("\ttime:    %d", mtime);
-  if (mtype & TYPE_ADDRESS)
-    debugx ("\taddress: %s", maddress, 8);
-  if (mtype & TYPE_PAYLOAD)
-    debugx ("\tpayload: %s ...", mpayload, 8 * (msize + 1));
+  debug_message();
   if (mtype & TYPE_REQUEST)
     slot[source_slot].answers_pending++;
+  if (mtype & TYPE_REQUEST)
+	mslot = source_slot;
   if (mtype & TYPE_BUS)
   {
     switch (mid)
@@ -543,13 +545,12 @@ interpret_message (int source_slot)
     }
     else
     {
-      if (mtype & TYPE_REQUEST)
-	mslot = source_slot;
       if (write_to_slot (dest_slot) && (mtype & TYPE_REQUEST))
 	send_dummy_answer (source_slot);
     }
   }
 }
+
 void
 close_slot (int i)
 {
@@ -558,17 +559,18 @@ close_slot (int i)
   else
     errormsg ("Invalid slot number");
 }
+
 void
 connect_new_device ()
 {
   int i;
   for (i = 0; i < SLOTS; i++)
     if (!valid_socket (slot[i].fd))
-    {
+    {socklen_t addrlen;
       slot[i].answers_pending = 0;
-      slot[i].address_size = sizeof (slot[i].addr);
+      addrlen = sizeof (slot[i].addr);
       slot[i].fd =
-	accept (mother_fd, &(slot[i].addr), &(slot[i].address_size));
+	accept (mother_fd, &(slot[i].addr), &addrlen);
       if (!valid_socket (slot[i].fd))
 	return;
       if (i >= max_slot)
@@ -599,6 +601,7 @@ close_socket (int fd)
     }
 }
 #endif
+
 #ifdef WIN32
 void
 process_read_fdset (int fd)
@@ -1199,7 +1202,7 @@ bus_info (void)
       count++;
     }
   }
-  printf ("%d of %d Slots in use \n", count, SLOTS);
+  printf ("%d of %d/%d Slots in use \n", count, max_slot, SLOTS);
   printf ("Read-Ops: %d  Write-Ops: %d \n", read_ops, write_ops);
 }
 void
