@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".." /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\util" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x407 /d "_DEBUG"
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib ole32.lib ws2_32.lib. /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib ole32.lib ws2_32.lib. ../util/Debug/util.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -92,35 +92,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE="..\bus-arith.c"
-# End Source File
-# Begin Source File
-
-SOURCE="..\bus-util.c"
-# End Source File
-# Begin Source File
-
-SOURCE=..\error.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\keyboard.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\message.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\option.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\param.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\win32main.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -128,39 +100,7 @@ SOURCE=..\win32main.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE="..\bus-arith.h"
-# End Source File
-# Begin Source File
-
-SOURCE="..\bus-util.h"
-# End Source File
-# Begin Source File
-
-SOURCE=..\error.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\main.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\message.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\option.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\param.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\resource.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\win32main.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

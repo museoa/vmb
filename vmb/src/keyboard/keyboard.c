@@ -104,7 +104,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
  
 #endif
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:35 $";
+char version[]="$Revision: 1.2 $ $Date: 2007-09-12 07:22:40 $";
 
 char howto[] =
 "\n"
@@ -147,11 +147,12 @@ unsigned char *get_payload(unsigned int offset, int size)
     memmove(payload,data,8);
     // memset(data,0,8);
     
-    if((8 - offset) == size)
+    if(offset +size>=8) /* reset to zero */
         memset(data,0,8);    
     
     return payload+offset;
 }
+
 int reply_payload(unsigned char address[8], int size,unsigned char *payload)
 { return 1;
 }
