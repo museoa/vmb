@@ -1223,7 +1223,9 @@ g[rQ].h |= 0x20; /* set the b bit */
 break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
  break;
-case SWYM: @+break;
+case SWYM:
+ if (inst&0xFFFFFF!=0) gdb_signal=inst&0xFFFFFF, breakpoint=true; /* Inform the debugger */
+ @+break;
 @z
 
 @x
@@ -1308,7 +1310,6 @@ extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
 @<Cases for ind...@>=
 case TRIP: exc|=H_BIT;@+break;
 case TRAP:
- if (inst==0) gdb_signal=-1, breakpoint=true; /* Halt */
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
  inst_ptr=g[rT];
@@ -1508,7 +1509,6 @@ if (!resuming)
   if (remotegdb && gdb_interrupt(-1)) breakpoint=true;
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
-    gdb_signal=3, breakpoint=true;
     x.h=sign_bit, x.l=inst;
     @<Initiate a trap interrupt@>
     inst_ptr=g[rTT];
