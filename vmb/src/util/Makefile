@@ -1,5 +1,6 @@
 
-CFLAGS= -g -Wall
+CFLAGS= -O3 -ggdb -Wall -pg
+CC= gcc
 AR = ar
 ARFLAGS = cru
 RANLIB = ranlib

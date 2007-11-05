@@ -1309,8 +1309,12 @@ The |TRAP| instruction prints nicely for some system calls.
 
 @<Cases for ind...@>=
 case TRIP: exc|=H_BIT;@+break;
-case TRAP:@+if (xx==0 && yy<=max_sys_call) strcpy(rhs,trap_format[yy]);
-     else strcpy(rhs, "%#z");
+case TRAP:@+if (xx==0 && yy<=max_sys_call) 
+      { strcpy(rhs,trap_format[yy]);
+        a=incr(b,8);
+        @<Prepare memory arguments $|ma|={\rm M}[a]$ and $|mb|={\rm M}[b]$ if needed@>;
+      }
+     else strcpy(rhs, "%#x, $255=%#b");
  if (inst == 0) /* Halt */
  {  if (remotegdb)
       gdb_signal=0xFF, breakpoint=true, interrupt=false;
@@ -1325,18 +1329,25 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call) strcpy(rhs,trap_format[yy]);
  break;
 
 @ @<Glob...@>=
+char arg_count[]={1,3,1,3,3,3,3,2,2,2,1};
 char *trap_format[]={
-"Halt(%z)",
-"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fclose(%!z) = %x",
-"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fputs(%!z,%#b) = %x",
-"$255 = Fputws(%!z,%#b) = %x",
-"$255 = Fseek(%!z,%b) = %x",
-"$255 = Ftell(%!z) = %x"};
+"Halt(%z) $255 = %b",
+"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
+"$255 = Fclose(%!z)",
+"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
+"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
+"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
+"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
+"$255 = Fputs(%!z,%#b)",
+"$255 = Fputws(%!z,%#b)",
+"$255 = Fseek(%!z,%b)",
+"$255 = Ftell(%!z)"};
+
+@ @<Prepare memory arguments...@>=
+if (arg_count[yy]==3) {
+   load_data(8,&mb,b,0);
+   load_data(8,&ma,a,0);
+}
 @z
 
 @x
@@ -1563,7 +1574,7 @@ if (!resuming)
  g[rXX]=x;
  g[rYY]=y;
  g[rZZ]=z;
- z.h=0, z.l=inst&0xFFFFFF;
+ z.h=0, z.l=zz;
  g[rK].h = g[rK].l = 0;
  g[rBB]=g[255];
  g[255]=g[rJ];
@@ -1963,6 +1974,18 @@ bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
+"T         set current segment to Text_Segment\n",@|
+"D         set current segment to Data_Segment\n",@|
+"P         set current segment to Pool_Segment\n",@|
+"S         set current segment to Stack_Segment\n",@|
+@y
+"T         set current segment to Text_Segment\n",@|
+"D         set current segment to Data_Segment\n",@|
+"P         set current segment to Pool_Segment\n",@|
+"S         set current segment to Stack_Segment\n",@|
+"N         set current segment to Negative Addresses\n",@|
+@z
+@x
 else mmix_fake_stdin(fake_stdin);
 @y
 else fprintf(stderr,"Sorry, I can't fake stdin\n");
@@ -2149,6 +2172,7 @@ case 'T': cur_seg.h=0;@+goto passit;
 case 'D': cur_seg.h=0x20000000;@+goto passit;
 case 'P': cur_seg.h=0x40000000;@+goto passit;
 case 'S': cur_seg.h=0x60000000;@+goto passit;
+case 'N': cur_seg.h=0x80000000;@+goto passit;
 case 'B': show_breaks();
 passit: p++;@+break;
 
