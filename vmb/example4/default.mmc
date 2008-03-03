@@ -1,0 +1,25 @@
+# default.mmc configuration file for the example
+
+
+port 9002
+host localhost
+
+
+#if mother
+debug
+exec .\rom.exe
+exec .\ram.exe
+exec .\mmix.exe -B:9002 lorentz.mmo  
+#endif
+
+
+#if rom
+address 0000000000000000
+file bios.img
+#endif
+
+#if ram
+size 3145728
+address 0000000100000000
+#endif
+
