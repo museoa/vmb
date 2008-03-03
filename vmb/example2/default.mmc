@@ -1,0 +1,30 @@
+# default.mmc configuration file for the example
+
+
+port 9002
+host localhost
+
+
+#if mother
+debug
+exec ./rom
+exec ./ram
+exec ./vram
+exec xterm -e ./mmix -i -B9002 hello.mmo 
+#endif
+
+
+#if rom
+address 0000000000000000
+file bios.img
+#endif
+
+#if ram
+size 3145728
+address 0000000100000000
+#endif
+
+#if vram
+size 3145728
+address 0002000000000000
+#endif
