@@ -1,0 +1,142 @@
+
+This Document describes the Concept and Interface of
+the Cache Package for the virtual motherboard.
+
+
+1. Concept
+----------
+
+Access to RAM over the virtual bus can be slow compared to a builtin simulator.
+Therefore, as with real hardware, we use caches to reduce the overhead of the bus.
+
+In the moment we assume having one CPU only, that is, one process that
+reads and writes the cache. To make the cache as fast as possible, especialy
+on systems with several (real) CPUs, other threads - collectively called service threeads -
+will take care of the interfacing the cache with the virtual bus.
+As a general rule, access to the resources should have no, or very little overhead,
+in the (normal) case where we do not need the virtual bus.
+
+Because we move access to the virtual bus into separate processes, all forms
+of access to the bus is affected. That is, also interrupts, power-on, power-off
+and reset, and registration.
+
+1.1. Interrupts
+--------------
+This is a simple case, but illustartes the problem. A typical CPU will
+check for interrupts once per cycle. If the CPU thread checks for input on the
+virtual bus that can be very time consuming. Here is the solution:
+We have 64-Bit interrupt vector. The CPU Thread is allowed reading it at any
+time. If it is 0, there is no interrupt and the CPU thread can continue. This is the
+normal, fast case. If the bitwvector is not zero, an interupt has occured
+and things become differen. In this case, the CPU can lock the bit-vector,
+copy bits into private variables (typically with an or operation) and reset
+the bit-vector to zero.
+If an interrupt arrives, the service thread will also lock the bitvector and add a bit to it.
+Locking ensures, that write operations on the bit-vector are atomic. The read operation
+is not atomic. The CPU gets a snapshot of the bit vector. This is, however, not
+a problem. It will see the complete changes, either when locking it or if the
+bit-vector is stille zero, on the next cycle.
+
+1.2. Reset, Power-on, and Power-off
+-----------------------------------
+Power is for the CPU thread a read only variable. There is no synchronization
+needed. The CPU might miss short powerfails, if it isnt checking fast enough.
+
+Reset nedds a kind of aknowledge. Reading the reset variable again needs
+no synchronisation. Resetting it to zero needs locking.
+
+1.3. Startup and Studown
+------------------------
+This is done by (one of) the service threads after the threads are started.
+The service threads will shut down together and (one of them) will take case
+of deregistration.
+
+1.4. Cache
+----------
+1.4.1 Cache organization
+------------------------
+A multiway cache is organized as an array of sets of lines. A given
+address for memory access is mapped to a set typically by ignoring n low-order Bits and
+m high-order Bits. After stripping these bits off, the remaining bits
+are the index into the array of sets.
+Within the set, there are up to k lines (1<= k).
+Each line consists of a start address, 2^n content byte, and again 
+some administrative information. Next, we match the given address against
+the start adresses in the set, neglecting the n low-order bit.
+If the given address matches one of the start adresses in the set,
+we have a cache hit. The content byte of the line are a valid copy of the
+memory at the start adress of the line. In this case, we can use the n low-oder bits of the address
+as an indes into the 2^n content byte and access the cache content for the
+given address. If there is no match, we have a cache miss. The cache does not
+contain any information about the data at the given address.
+
+The number of lines in a set is limited by k. Therefor, we implement a set of
+lines as an array with k elements and add to each line a status flag.
+If this flag is zero (easy to test) the cache line is part of the set
+and read to use.
+
+We provide for a separate data and instruction cache. A second-level cache
+might follow at a later point.
+
+1.4.2 Cache operation
+---------------------
+If data is requested from the cache, the cache organization
+let you find easily a matching cache line. The sets are searched linearly.
+
+If we have cache hit, we can retrieve or store data in the cache line found.
+For later use each access on the cache will increment an access counter
+(wrap around like a gigantic clock) for the cache as a whole, and stores
+the time of the last access in the set.
+
+If we have a cache miss, things are more complex. We have to read the data
+over the bus and store it in a cache line, before we can continue in the same
+way as with a cache hit. To read the data, we have to interface with the
+service tread. To store the data in the cache, we have to find a cache line
+that will hold the data. If there is an unused line in the set, we use it.
+If all lines are in use, we find the least recently used and reuse it.
+Before we can reuse the cache line, we have to check if there were any write
+operations on this line. If so, we have to update the memory over the bus before
+the reuse.
+
+1.4.3 Locking, Waiting and Threads
+----------------------------------
+The main part of the line is the data_address pair, which contains beside
+data and address also status and size. The size is non negativ can be less or equal to LINESIZE
+The status can be Valid, Invalid, Reading, or Writing.
+A line that is invalid is as good as non existing. Only the CPU thread can
+change a line from Invalid to something else. No locking is required.
+A line that is valid is under complete control of the CPU thread. The service
+thread will never touch it. 
+A line that is valid can be changed by the CPU thread to reading or writing.
+It should then forward the line to the service thread, otherwise it will keep that status forever.
+A line that is writing is under the control of the service thread. The bus-write thread will
+issue a bus message for the write operation and change the status back to valid
+and reset the dirty flag. It will signal the CPU thread that a line became
+valid again, just in case the CPU thread was waiting for it. If several write requests
+are issued, the CPU can still wait only for one of them. If it is not the one it was
+waiting for. It can continue waiting.
+A line that is reading is under the control of the service thread. The bus-write thread will
+issue a bus message for the read operation. Then it will forward the line as pending
+to the bus-read thread. When the answer for the read request arrives, the bus-read thread will
+check the pending lines, find the line and store the data received. It will then set the
+status back to Valid and signals the CPU thread.
+Note that only the CPU thread will ever set the address for a line. So what if an answer
+arrives and ther is no pending line for it? This should not happen in the first place
+since requests are mage only for lines that are pending.
+If it happens anyway, the answer is ignored.
+
+It might very well happen that a line becomes valid but the CPU is not waiting for a signal.
+Fo instance there might be an instruction prefetch that causes a read operation on the
+instruction cache. The CPU will issue the read but will not wait for it to complete. 
+Then the execution may take a different route and the data will never be needed. Or the
+execution proceeds as predicted. In this case we will read the instruction, and it might be
+in the cache as valid or as reading. In the later case the thread starts waiting for it
+until the read completes.
+
+By launching serveral read or write requests it can happen that the CPU thread can not
+find an INVALID or VALID line for the next request. In this case, it will have to wait
+until the first line in the set becomes valid. 
+
+
+
+
