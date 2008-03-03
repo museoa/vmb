@@ -24,6 +24,21 @@ public class Message {
 	public static final byte ID_POWEROFF = (byte)(0xFE);
 	public static final byte ID_POWERON = (byte)(0xFF);
 
+	public static final byte ID_IGNORE = (byte)(0);
+	public static final byte ID_READ = (byte)(1);
+	public static final byte ID_WRITE = (byte)(2);
+	public static final byte ID_READREPLY = (byte)(3);
+	public static final byte ID_NOREPLY = (byte)(4);
+	public static final byte ID_READBYTE = (byte)(5);
+	public static final byte ID_READWYDE = (byte)(6);
+	public static final byte ID_READTETRA = (byte)(7);
+	public static final byte ID_WRITEBYTE = (byte)(8);
+	public static final byte ID_WRITEWYDE = (byte)(9);
+	public static final byte ID_WRITETETRA = (byte)(10);
+	public static final byte ID_BYTEREPLY = (byte)(11);
+	public static final byte ID_WYDEREPLY = (byte)(12);
+	public static final byte ID_TETRAREPLY = (byte)(13);
+
 	private byte type;
 	private byte size;
 	private byte slot;
@@ -58,7 +73,7 @@ public class Message {
 	private void readAddress(MotherboardConnection connection) throws IOException {
 		address = 0;
 		for(int i = 0; i < 8; i++){
-			address = (address << 8) + connection.readByte();
+			address = (address << 8) + ((long)(connection.readByte()) & 0xffl);
 		}
 	}
 

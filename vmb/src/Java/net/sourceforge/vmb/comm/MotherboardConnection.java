@@ -4,7 +4,9 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
-public class MotherboardConnection {
+import org.apache.log4j.*;
+
+public class MotherboardConnection implements IConnection {
 
 	private Socket s;
 	private SocketAddress sa;
@@ -16,43 +18,56 @@ public class MotherboardConnection {
 
 	private List<IConnectionListener> connectionListeners = new ArrayList<IConnectionListener>();
 
+    protected Logger logger = Logger.getLogger(LoggingConnectionListener.class);
+    
     public MotherboardConnection(long startAddress, int size) {
         this.startAddress = startAddress;
         this.size = size;
+        PropertyConfigurator.configure("log4j.properties");
     }
 
+	/* (non-Javadoc)
+     * @see net.sourceforge.vmb.comm.IConnection#establishConnection(java.net.InetAddress, int)
+     */
 	public void establishConnection(InetAddress address, int port) throws IOException{
 	    s = new Socket();
 	    sa = new InetSocketAddress(address, port);
+	    s.setTcpNoDelay(true);
 	    s.connect(sa);
 	    outputStream = s.getOutputStream();
 	    in = s.getInputStream();
 	    register();
 	    new Thread(new Runnable() {
 	        public void run() {
+	            Logger logger = Logger.getLogger(this.getClass());
+	            PropertyConfigurator.configure("log4j.properties");
 	            while(s.isConnected()){
 	                try {
 	                    dispatchMessage(new Message(MotherboardConnection.this));
 	                } catch (IOException e) {
-	                    e.printStackTrace();
+	                    logger.warn(e);
 	                    return;
 	                }
-	                finally{
-	                    try {
-	                        s.close();
-	                    } catch (IOException e) {
-	                        e.printStackTrace();
-	                    }
-	                }
-	            }}}).run();
+//	                finally{
+//	                    try {
+//	                        s.close();
+//	                    } catch (IOException e) {
+//	                        e.printStackTrace();
+//	                    }
+//	                }
+	            }}}).start();
 	}
 
+	/* (non-Javadoc)
+     * @see net.sourceforge.vmb.comm.IConnection#readByte()
+     */
 	public byte readByte() throws IOException{
 		int r = in.read();
 		if(r < 0){
 			throw new IOException("End of stream reached");
 		}
-		return (byte)(r & 0xFF);
+		byte rr = (byte)(r & 0xFF);
+		return rr;
 	}
 
     /*
@@ -75,22 +90,23 @@ public class MotherboardConnection {
 					listener.reset();
 					break;
 				default:
-					System.out.println("unhandeled message");
+					logger.warn("unhandeled message id " + message.getId());
 				}
 			}
 			else{
 				switch(message.getId()){
-                    case 0:
-                        listener.DataReceived((int)(message.getAddress() - startAddress), message.getPayload());
+                    case Message.ID_WRITETETRA:
+                        listener.dataReceived((int)(message.getAddress() - startAddress), message.getPayload());
+                        break;
 				default:
-					System.out.println("unhandeled message");
+				    logger.warn("unhandeled message id " + message.getId());
 				}
 			}
 		}
 	}
 
 	private void register() throws IOException {
-		send(MessageFactory.createRegistrationMessage(startAddress, startAddress + size, 0xFFl, "framebuffer"));
+		send(MessageFactory.createRegistrationMessage(startAddress, startAddress + size, 0x0l, "framebuffer"));
 	}
 
 	public void send(Message message) throws IOException{
@@ -101,8 +117,18 @@ public class MotherboardConnection {
 
 	}
 
+	/* (non-Javadoc)
+     * @see net.sourceforge.vmb.comm.IConnection#addConnectionListener(net.sourceforge.vmb.comm.IConnectionListener)
+     */
 	public void addConnectionListener(IConnectionListener listener){
 		connectionListeners.add(listener);
 	}
+
+    /* (non-Javadoc)
+     * @see net.sourceforge.vmb.comm.IConnection#shutDown()
+     */
+    public void shutDown() throws IOException {
+        s.close();
+    }
 
 }

@@ -4,113 +4,103 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import org.apache.log4j.*;
+
 import net.sourceforge.vmb.comm.*;
 
-public class FrameBufferDevice extends Frame implements IConnectionListener{
+public class FrameBufferDevice extends JFrame implements IConnectionListener{
 
-    private JPanel drawingArea;
+    private static final long serialVersionUID = -4947407240818597820L;
     private final int width;
     private final int height;
     private int bitmap[][];
+    private DeviceCanvas canvas;
 
+    protected Logger logger = Logger.getLogger(FrameBufferDevice.class);
+    
 	public FrameBufferDevice(int width, int height){
         this.height = height;
         this.width = width;
         bitmap = new int[width][height];
+        PropertyConfigurator.configure("log4j.properties");
 		initComponents();
 	}
 
 	private void initComponents() {
+        canvas = new DeviceCanvas(width, height);
+        add(canvas);
+        setSize(width, height);
+        setPreferredSize(new Dimension(width, height));
         this.setResizable(false);
-        drawingArea = new JPanel();
-        this.add(drawingArea);
-
-        drawingArea.setPreferredSize(new Dimension(width, height));
 
 		pack();
 	}
-
-    public void display(long address, int pixel) {
-//        bitmap[][] = pixel;
-        drawingArea.getGraphics().setColor(Color.GREEN);
-        drawingArea.getGraphics().drawRect(10, 10, 1, 1);
-    }
-
-	/** Callbackmethode zum Neuzeichnen des Fensters.
-	 * @param g Graphics context.
-	 */
-	public void paint(Graphics g)
-	{
-        System.out.println("paint");
-        if(bitmap == null) {
-            return;
-        }
-
-        for(int w = 0; w < width; w++) {
-            for(int h = 0; h< height; h++) {
-                    drawPixel(w, h);
-            }
-        }
-	}
-
-	public void drawPixel(int x, int y) {
-	    if(bitmap[x][y] != 0) {
-	        drawingArea.getGraphics().setColor(new Color(bitmap[x][y]));
-	        drawingArea.getGraphics().drawRect(x, y, 1, 1);
-	    }
-    }
 
 	/** Callbackmethode zum Neuzeichnen des Fensters.
 	 * @param g Graphics context.
 	 */
 	public void update(Graphics g)
 	{
-        System.out.println("update");
 		repaint();
 	}
 
-	public void DataReceived(int offset, byte[] payload) {
-        final int w = offset / width;
-        final int h = offset % width;
-        int color = payload[0] | (payload[1] << 8) | (payload[2] << 16) | (payload[3] << 24);
-        bitmap[w][h] = color;
-		SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                drawPixel(w, h);
-            }});
+	public void dataReceived(int offset, byte[] payload) {
+		offset >>= 2;
+        final int x = offset % width;
+        final int y = offset / width;
+        if(x >= width || y >= height){
+        	logger.fatal("Coordinates out of bound: " + x + " " + y);
+        	return;
+        }
+        final int color = (payload[3] & 0xff) | ((payload[2] & 0xff) << 8) | ((payload[1] & 0xff) << 16);
+        bitmap[x][y] = color;
+        repaint();
 	}
 
 	public void powerOff() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void powerOn() {
-        bitmap = new int[width][height];
 	}
 
 	public void interruptRequest(int irqNumber) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void readRequest() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void reset() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void writeRequest() {
-		// TODO Auto-generated method stub
-
 	}
 
     public void clear() {
-        // TODO Auto-generated method stub
+    }
+    
+    private class DeviceCanvas extends Canvas{
 
+        private static final long serialVersionUID = -1746762048977413579L;
+        private final int width;
+        private final int height;
+
+        public DeviceCanvas(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        public void paint(Graphics g) {
+            super.paint(g);
+            g.setPaintMode();
+            for(int w = 0; w < width; w++) {
+                for(int h = 0; h< height; h++) {
+                    Color color = new Color((bitmap[w][h] >> 16) & 0xff, (bitmap[w][h] >> 8) & 0xff, bitmap[w][h] & 0xff);
+                    g.setColor(color);
+
+                    g.drawLine(w, h, w, h);
+                }
+            }
+        }
+        
     }
 }
