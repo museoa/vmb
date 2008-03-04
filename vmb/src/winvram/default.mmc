@@ -1,0 +1,17 @@
+# default.mmc configuration file for the example
+
+
+port 9002
+host localhost
+
+
+#if winvram
+address 0002000000000000
+size	1228800
+framewidth 640
+frameheight 480
+#you can make the actuall width/height smaller than the undelying bitmap to get offscscreen memory
+width 640
+height 480
+#endif
+
