@@ -27,7 +27,6 @@ public class DeviceLauncher {
                 propertyManager.getHeight());
         final MotherboardConnection connection = new MotherboardConnection(propertyManager.getStartAddress(), 
                 4 * propertyManager.getWidth() * propertyManager.getHeight());
-		connection.addConnectionListener(new LoggingConnectionListener());
         connection.addConnectionListener(deviceWindow);
         connection.addConnectionListener(new LoggingConnectionListener());
 		
@@ -48,16 +47,13 @@ public class DeviceLauncher {
             return;
 		}
 
-        for(int z=0; z<10000; z+=4){
-            deviceWindow.dataReceived(z, new byte[] {100, (byte)0xff, 0, 0});
-        }
-
 		deviceWindow.addWindowListener(new WindowListener(){
 			public void windowOpened(WindowEvent arg0) {
 			}
 			public void windowClosing(WindowEvent arg0) {
                 try {
                     connection.shutDown();
+                    deviceWindow.dispose();
                 } catch (IOException e) {
                     logger.error("Exception during shutdown.", e);
                 }

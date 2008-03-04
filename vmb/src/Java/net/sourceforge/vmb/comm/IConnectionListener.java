@@ -9,5 +9,6 @@ public interface IConnectionListener {
 	public void readRequest();
 	public void writeRequest();
 	public void interruptRequest(int irqNumber);
+    public void terminate();
 
 }

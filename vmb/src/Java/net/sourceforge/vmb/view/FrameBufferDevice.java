@@ -54,7 +54,10 @@ public class FrameBufferDevice extends JFrame implements IConnectionListener{
         }
         final int color = (payload[3] & 0xff) | ((payload[2] & 0xff) << 8) | ((payload[1] & 0xff) << 16);
         bitmap[x][y] = color;
-        repaint();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                canvas.drawPixel(canvas.getGraphics(), x, y);
+            }});
 	}
 
 	public void powerOff() {
@@ -78,6 +81,14 @@ public class FrameBufferDevice extends JFrame implements IConnectionListener{
     public void clear() {
     }
     
+    public void terminate() {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                FrameBufferDevice.this.setVisible(false);
+                FrameBufferDevice.this.dispose();
+            }});
+    }
+    
     private class DeviceCanvas extends Canvas{
 
         private static final long serialVersionUID = -1746762048977413579L;
@@ -90,16 +101,18 @@ public class FrameBufferDevice extends JFrame implements IConnectionListener{
         }
 
         public void paint(Graphics g) {
-            super.paint(g);
             g.setPaintMode();
             for(int w = 0; w < width; w++) {
                 for(int h = 0; h< height; h++) {
-                    Color color = new Color((bitmap[w][h] >> 16) & 0xff, (bitmap[w][h] >> 8) & 0xff, bitmap[w][h] & 0xff);
-                    g.setColor(color);
-
-                    g.drawLine(w, h, w, h);
+                    drawPixel(g, w, h);
                 }
             }
+        }
+
+        private void drawPixel(Graphics g, int w, int h) {
+            Color color = new Color((bitmap[w][h] >> 16) & 0xff, (bitmap[w][h] >> 8) & 0xff, bitmap[w][h] & 0xff);
+            g.setColor(color);
+            g.drawLine(w, h, w, h);
         }
         
     }

@@ -89,6 +89,9 @@ public class MotherboardConnection implements IConnection {
 				case Message.ID_RESET:
 					listener.reset();
 					break;
+				case Message.ID_TERMINATE:
+				    listener.terminate();
+				    break;
 				default:
 					logger.warn("unhandeled message id " + message.getId());
 				}

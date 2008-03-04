@@ -17,12 +17,13 @@ public class Message {
 	public static final byte TYPE_REQUEST = (byte)(0x04);
 	public static final byte TYPE_LOCK = (byte)(0x02);
 
+    public static final byte ID_TERMINATE = (byte)(0xF9);
 	public static final byte ID_REGISTER = (byte)(0xFA);
 	public static final byte ID_UNREGISTER = (byte)(0xFB);
 	public static final byte ID_INTERRUPT = (byte)(0xFC);
 	public static final byte ID_RESET = (byte)(0xFD);
 	public static final byte ID_POWEROFF = (byte)(0xFE);
-	public static final byte ID_POWERON = (byte)(0xFF);
+    public static final byte ID_POWERON = (byte)(0xFF);
 
 	public static final byte ID_IGNORE = (byte)(0);
 	public static final byte ID_READ = (byte)(1);
