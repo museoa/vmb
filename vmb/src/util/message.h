@@ -62,7 +62,7 @@
 #define MAXMESSAGE (4 + 4 + 8+ MAXPAYLOAD)
 /* header time address payload */
 
-extern int send_msg(int socket, int blocking,
+extern int send_msg(int socket,
          unsigned char type,
          unsigned char size,
          unsigned char slot,
@@ -71,7 +71,7 @@ extern int send_msg(int socket, int blocking,
          unsigned char address[8],
          unsigned char *payload);
 
-extern int receive_msg(int socket, int blocking,
+extern int receive_msg(int socket,
          unsigned char *type,
          unsigned char *size,
          unsigned char *slot,
@@ -99,6 +99,9 @@ extern int message_size(unsigned char msg[4]);
 #define ID_TETRAREPLY 13
 
 /* predefined IDs for BUS messages */
+/* a polite request to terminate the device */
+#define ID_TERMINATE  0xF9
+
 #define ID_REGISTER   0xFA
 #define ID_UNREGISTER 0xFB
 #define ID_INTERRUPT  0xFC
@@ -135,12 +138,7 @@ extern int message_size(unsigned char msg[4]);
 
 /* functions to connect, register, unregister, and disconnect */
 
-#ifndef WIN32
-#define C
-#endif
 
-
-extern  int bus_connected; /*status variable */
 extern  int bus_connect(char *hostname,int port);
 /* returns the socket or -1 on error */
 extern  int bus_register(int socket,
@@ -149,12 +147,10 @@ extern  int bus_register(int socket,
 extern  int bus_unregister(int socket);
 extern int bus_disconnect(int socket);
 
-
-#ifdef WIN32
-#define valid_socket(socket)  ((socket) != INVALID_SOCKET)
-#else
-#define valid_socket(socket)  ((socket) >= 0)
-#define INVALID_SOCKET (-1)
+#if !defined(INVALID_SOCKET)
+#define INVALID_SOCKET  (~0)
 #endif
+
+#define valid_socket(socket)  ((socket) != INVALID_SOCKET)
 
 #endif

@@ -26,98 +26,24 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
-#include "win32main.h"
+#pragma warning(disable : 4996)
+extern HWND hMainWnd;
 #include <io.h>
 #else
 #include <unistd.h>
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "message.h"
+
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "option.h"
 #include "param.h"
-#include "error.h"
-#include "main.h"
-
-#ifdef WIN32
-
-static void open_file(void);
-
-void InitControlls(HINSTANCE hInst,HWND hWnd)
-{
-}
-
-void PositionControlls(HWND hWnd,int width, int height)
-{  
-   power_led_position(2,8);
-}
-
-void process_focus(int on)
-{
-}
-BOOL APIENTRY   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-
-  switch ( message )
-  { case WM_INITDIALOG:
-      SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-      SetDlgItemText(hDlg,IDC_FILE,filename);
-      return TRUE;
-   case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-    case WM_COMMAND:
-      if( wparam == IDOK )
-      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-	    set_option(&hexaddress,tmp_option);
-		hextochar(hexaddress,address,8);
-        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
-	    set_option(&filename,tmp_option);
-		open_file();
-      }
-	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
-	  { OPENFILENAME ofn;       /* common dialog box structure */
-         /* Initialize OPENFILENAME */
-        ZeroMemory(&ofn, sizeof(OPENFILENAME));
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hMainWnd;
-        ofn.lpstrFile = tmp_option;
-        ofn.nMaxFile = MAXTMPOPTION;
-        ofn.lpstrFilter = "All\0*.*\0Rom\0*.rom\0";
-        ofn.nFilterIndex = 1;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = NULL;
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-        /* Display the Open dialog box. */
-        if (GetOpenFileName(&ofn)==TRUE) 
-		   SetDlgItemText(hDlg,IDC_FILE,tmp_option);
-	  }
-     if (wparam == IDOK || wparam == IDCANCEL)
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-  }
-  return FALSE;
-}
+#include "vmb.h"
 
 
-void get_settings(void)
- {
-   DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
- }
- 
-#endif
 
-char version[]="$Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $";
+
+char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
 
 char howto[] =
 "\n"
@@ -190,7 +116,7 @@ void readUMPSFile(FILE* bFile)
     if (fread((void *) &tag, WORDLEN, 1, bFile) != 1 || tag != BIOSFILEID || \
          fread((void *) sizep, WORDLEN, 1, bFile) != 1)
 	{
-	    fatal_error(__LINE__,"couldn't read umps file.\n");
+	    vmb_fatal_error(__LINE__,"couldn't read umps file.\n");
 	}
 	
 	/*! alloc buffer and read data into it */
@@ -199,21 +125,21 @@ void readUMPSFile(FILE* bFile)
 	{
 		// wrong file format
 		free(biosBuf);
-        fatal_error(__LINE__,"wrong UMPS file format.\n");
+        vmb_fatal_error(__LINE__,"wrong UMPS file format.\n");
 	}
 	/*! turn data over */
 	processUMPSFile(biosBuf,lSize);
 	
 }
 
-static void open_file(void)
+void open_file(void)
 { 
     FILE *f;
     char *c;
     struct stat fs;
     
     if (filename==NULL || strcmp(filename,"") == 0 || (f = fopen(filename, "rb")) == NULL)
-        fatal_error(__LINE__,"No filename or file");
+        vmb_fatal_error(__LINE__,"No filename or file");
         
     c = strrchr(filename,'.');
     if(strcmp(c,".umps") == 0)
@@ -224,15 +150,15 @@ static void open_file(void)
     {
        
         if (fstat(fileno(f),&fs)<0)
-            fatal_error(__LINE__,"Unable to get file size");
+            vmb_fatal_error(__LINE__,"Unable to get file size");
     
         size = ((fs.st_size+7)/8)*8; /* make it a multiple of octas */
         if (rom!=NULL) free(rom);
         rom = malloc(size);
-        if (rom==NULL) fatal_error(__LINE__,"Out of memory");
-        size=fread(rom,1,size,f);
-        if (size < 0) fatal_error(__LINE__,"Unable to read file");
-        if (size == 0) fatal_error(__LINE__,"Empty file");
+        if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
+        size=(int)fread(rom,1,size,f);
+        if (size < 0) vmb_fatal_error(__LINE__,"Unable to read file");
+        if (size == 0) vmb_fatal_error(__LINE__,"Empty file");
         size = (size+PAGESIZE-1)&~(PAGESIZE-1); /*round up to whole pages*/
        
     }
@@ -240,57 +166,74 @@ static void open_file(void)
 }
 
 
+void init_device(void)
+{  vmb_debugs("address: %s",hexaddress);
+   open_file();
+   vmb_debugi("size: %d",size);
+   close(0);
+}
+
+/* Interface to the virtual motherboard */
 
 
-unsigned char *get_payload(unsigned int offset,int size)
+unsigned char *vmb_get_payload(unsigned int offset,int size)
 {
     return rom+offset;
 }
 
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{ return 1;
-}
 
-void put_payload(unsigned int offset,int size, unsigned char *payload)
-{	/* cannot write to rom -> raise interrupt */
-	debug("Write request received");
-	debug("raising interrupt");
-	set_interrupt(bus_fd, INT_WRITE+32);
-}
-
-
-void init_device(void)
-{  debugs("address: %s",hexaddress);
-   open_file();
-   debugi("size: %d",size);
-   close(0);
-}
-
-void process_input(unsigned char c) 
-{
-}
-
-int process_interrupt(unsigned char interrupt)
-{ return 0;
-}	
-
-int process_poweron(void)
+void vmb_poweron(void)
 { 
 #ifdef WIN32
-	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon); 
+   SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
-	return 0;
 }
 
-int process_poweroff(void)
+void vmb_poweroff(void)
 {  
 #ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
+   SendMessage(hMainWnd,WM_USER+2,0,0);
 #endif
-  return 0;
 }
 
-int process_reset(void)
-{ return 0;
+void vmb_terminate(void)
+/* this function is called when the motherboard politely asks the device to terminate.*/
+{ 
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+#endif
 }
 
+
+void vmb_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+#endif
+}
+#ifdef WIN32
+#else
+int main(int argc, char *argv[])
+{
+ param_init(argc, argv);
+ vmb_debugs("%s ",vmb_program_name);
+ vmb_debugs("%s ", version);
+ vmb_debugs("host: %s ",host);
+ vmb_debugi("port: %d ",port);
+ close(0); /* stdin */
+ init_device();
+ hextochar(hexaddress,address,8);
+ add_offset(address,size,limit);
+ vmb_debugs("address: %s ",hexaddress);
+ vmb_debugi("size: %x ",size);
+ 
+ vmb_connect(host,port); 
+
+ vmb_register(chartoint(address),chartoint(address+4),
+              size, 0, 0, vmb_program_name);
+ vmb_wait_for_disconnect();
+ return 0;
+}
+
+#endif

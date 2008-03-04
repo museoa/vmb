@@ -1,6 +1,6 @@
 PROG= disk
 UTILDIR = ../util
-CFLAGS= -g -Wall
+CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
 
 

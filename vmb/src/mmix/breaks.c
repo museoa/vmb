@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "mmix-internals.h"
 #include "address.h"
 #include "breaks.h"
 

@@ -1,19 +1,20 @@
 PROG= rom
 UTILDIR = ../util
-CFLAGS= -g -Wall
+CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
 
 
-all: $(PROG) bios.rom bios.elf
+all: $(PROG) bios.rom bios.elf TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 
 $(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -o $(PROG)
+	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -lvmbopt -lpthread -o $(PROG)
 
-
+TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
+	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
 
 # making the rom bios program cross-compiling on the host with target = mmix
 

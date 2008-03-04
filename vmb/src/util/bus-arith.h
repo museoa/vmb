@@ -30,7 +30,7 @@
 
 /* utility function to pack/unpack an integer into a four byte big endian buffer */
 extern void inttochar(int val, unsigned char buffer[4]);
-extern int chartoint(unsigned char buffer[4]);
+extern int chartoint(const unsigned char buffer[4]);
 
 /* utility functions to compare addresses */
 extern int less_equal(unsigned char low[8],unsigned char addr[8]);

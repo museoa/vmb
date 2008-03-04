@@ -2,12 +2,12 @@
 
 
 port 9002
-host mbox.informatik.fh-muenchen.de
+#host localhost
 #host lbox.priv.cs.fhm.edu
 #debug
 
 #if vram
-#debug
+debug
 size 3145728
 address 0002000000000000
 # inside the mapable range

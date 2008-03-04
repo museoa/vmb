@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by win32.rc
 //
 #define IDS_CLASS                       1
@@ -30,13 +30,15 @@
 #define ID_ABOUT                        40013
 #define ID_HELP_ABOUT                   40013
 #define ID_SETTINGS                     40015
+#define ID_ALL_MINIMIZE                 40016
+#define ID_MINIMIZE                     40017
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
-#define _APS_NEXT_COMMAND_VALUE         40016
+#define _APS_NEXT_COMMAND_VALUE         40018
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

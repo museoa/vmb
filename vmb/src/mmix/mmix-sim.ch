@@ -25,10 +25,6 @@ is equivalent to \.{-eff}, tracing all eight exceptions.
 @y
 is equivalent to \.{-eff}, tracing all eight exceptions.
 
-\bull \.{-g<n>}\quad Connect to the gdb debugger on port n. Without
-this option there is only (for the time being) the internal debugger available.
-Sooner or later there will be no debugger at all if this option is omitted.
-
 \bull \.{-B[host:]port}\quad Connect to the bus on the given host and port.
 This option is required. Without a bus, the processor has no power suply, no
 memory and no other devices. It will not function. The hostname is separated with
@@ -162,30 +158,19 @@ before all of |p|'s nodes.
 @y  
 @* Simulated memory. 
 We now read memory using some external simulator.
-We provide the |extern| function |load_dat| to get
-data and |store_data| to store data.
-Both functions use virtual addresses. The adresses
-are rounded down to a multiple of 1,2,4, or 8 for alignment. 
-The the |extern| function |load_instruction| loads
-an instruction (possibly using a different cache). The
-address is rounded down to a multiple of 4.
+We provide |extern| function defined in a separate files
+The functions we use are partly concerned with virtual
+to physical address translation and contained in the
+file address.h and address.c 
+and with access to the virtual bus contained in
+mmix-bus.h and mmix-bus.c. 
+At a later point these
+should be included here as a literate program.
 
 @<Type...@>=
-extern int load_instruction(tetra *data, octa address);
-extern int load_data(int size, octa *data, octa address, int signextension);
-extern int store_data(int size, octa data, octa address);
-extern void clear_all_data_vtc(void);
-extern void clear_all_instruction_vtc(void);
-extern octa update_vtc(octa key);
-extern void write_all_data_cache(void);
-extern void clear_all_data_cache(void);
-extern void clear_all_instruction_cache(void);
-extern void store_data_translation(octa *virt, octa *phys);
-extern void store_exec_translation(octa *virt, octa *phys);
-extern void write_data(octa address,int size);
-extern void delete_data(octa address,int size);
-extern void delete_instruction(octa address,int size);
-extern void read_instruction(octa address,int size);
+#include "address.h"
+#include "mmix-bus.h"
+#include "vmb.h"
 @z
 
 @x
@@ -211,9 +196,7 @@ but such enhancements are left to the interested reader.)
 
 @<Load object file@>=
 if (mmo_file_name!=NULL)
-{
-  reset_vmb(bus_fd);
-  mmo_file=fopen(mmo_file_name,"rb");
+{ mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
   register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
   if (!alt_name) panic("Can't allocate file name buffer");
@@ -685,12 +668,9 @@ the master switch that controls most of the action.
 @x
 bool interacting; /* are we in interactive mode? */
 @y
-bool interacting; /* are we in interactive mode? */
-bool stepping; /* should we pause after the next instruction? */
-bool remotegdb=false; /* are we connected to a remote gdb? */
-int gdbport; /* on which port are we connected to gdb ? */
-int busport=-1; /* on which port to connect to the bus */
-char *bushost=NULL; /* on which host to connect to the bus */
+static bool interacting; /* are we in interactive mode? */
+static int busport=-1; /* on which port to connect to the bus */
+static char *bushost=NULL; /* on which host to connect to the bus */
 @z
 
 
@@ -716,13 +696,15 @@ register int i,j,k; /* miscellaneous indices */
 register char *p; /* current place in a string */
 
 @ @<Fetch the next instruction@>=
-{ loc=inst_ptr;
+{ unsigned char b;
+  loc=inst_ptr;
   load_instruction(&inst,loc);
+  b = get_break(loc);
+  if (b&exec_bit) breakpoint=true;
+  tracing=breakpoint||(b&trace_bit);
   inst_ptr=incr(inst_ptr,4);
 }
 @z
-
-
 
 @x
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
@@ -1174,11 +1156,11 @@ case SYNCD: case SYNCDI:
    delete_data(w,xx+1);
  break;
 case PREGO: case PREGOI:
- /* a bit artificial, since we have no pipeline and can not use the
-    time until the instructions are loaded */
- read_instruction(w,xx+1);
+ prego_instruction(w,xx+1);
  break;
-case PRELD: case PRELDI: x=incr(w,xx);@+break;
+case PRELD: case PRELDI:
+ preload_data_cache(w,xx+1);
+ x=incr(w,xx);@+break;
 @z
 
 @x
@@ -1194,7 +1176,7 @@ break_inst: breakpoint=tracing=true;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
-     get_interrupt(bus_fd, 1, &g[rQ].h,&g[rQ].l);
+     vmb_wait_for_event();
  else if (zz==5) /* empty write buffer */
    write_all_data_cache();
  else if (zz==6) /* clear VAT cache */
@@ -1222,7 +1204,7 @@ break_inst: breakpoint=tracing=true;
  break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
-     z.h=0, z.l=gdb_signal=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
+     z.h=0, z.l=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
  @+break;
 @z
 
@@ -1316,9 +1298,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
       }
      else strcpy(rhs, "%#x, $255=%#b");
  if (inst == 0) /* Halt */
- {  if (remotegdb)
-      gdb_signal=0xFF, breakpoint=true, interrupt=false;
-    else if (interacting)
+ {  if (interacting)
       tracing=breakpoint=true, interrupt=false;
     else
       tracing=true, interrupt=false;
@@ -1351,6 +1331,7 @@ if (arg_count[yy]==3) {
 @z
 
 @x
+int mmgetchars @,@,@[ARGS((char*,int,octa,int))@];@+@t}\6{@>
 int mmgetchars(buf,size,addr,stop)
   char *buf;
   int size;
@@ -1429,12 +1410,12 @@ void mmputchars(buf,size,addr)
 }
 @y
 int mmgetchars(buf,size,addr,stop)
-  char *buf;
+  unsigned char *buf;
   int size;
   octa addr;
   int stop;
 {
-  register char *p;
+  register unsigned char *p;
   register int m;
   octa x;
   octa a;
@@ -1537,10 +1518,9 @@ also to underflow that was triggered by |RESUME_SET|.)
 
 @<Check for trap and trip interrupt@>=
 if (!resuming)
-{ if (0>get_interrupt(bus_fd, 0, &g[rQ].h,&g[rQ].l))
-    panic("Lost Connection to Motherboard");
-  if (bus_reset) { breakpoint=true; bus_reset=0; goto boot;}
-  if (remotegdb && gdb_interrupt(-1)) breakpoint=true;
+{ vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
+  if (!vmb_connected)  goto end_simulation;
+  if (!vmb_power || vmb_reset_flag) { breakpoint=true; vmb_reset_flag=0; goto boot;}
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
@@ -1560,14 +1540,6 @@ if (!resuming)
 }
 
 @ We need this:
-
-@<Sub...@>=
- extern int bus_fd;
- extern int gdb_signal;
- extern void wsa_init(void);
- extern void gdb_wait(int socket);
- extern int gdb_interrupt(int socket);
- extern int reset_vmb(int socket);
     
 @ @<Initiate a trap interrupt@>=
  g[rWW]=inst_ptr;
@@ -1766,14 +1738,6 @@ if (lhs[0]=='!') { printf("%s instruction!\n",lhs+1); /* privileged or illegal *
 }
 @z
 
-@x
-#include "abstime.h"
-@y
-#include "abstime.h"
-#include "message.h"
-#include "bus-arith.h"
-#include "bus-util.h"
-@z
 
 @x
 int main(argc,argv)
@@ -1822,66 +1786,33 @@ int main(argc,argv)
   @<Process the command line@>;
 
   if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
-#ifdef WIN32
-  wsa_init();
-#endif
-  bus_fd=bus_connect(bushost,busport);
-  if (bus_fd<0) panic("Unable to connect to Bus.");
-  if (0>bus_register(bus_fd,NULL,NULL,0xFFFFFFFF,0xFFFFFFFF,"MMIX CPU"))
-    panic("Unable to register with the bus.");
-
+  init_mmix_bus(bushost,busport,"MMIX CPU");
 boot:
-  if (remotegdb) breakpoint = true;
   @<Initialize everything@>;
-  
-  while (bus_connected)
-  {
-    while (!bus_power) 
-    { if (remotegdb) 
-      { gdb_wait(bus_fd);
-        bus_poweron(bus_fd,0); /* non blocking */
-      }
-      else
-        bus_poweron(bus_fd,1); /* blocking */
-      if (!bus_connected) goto end_simulation;
-      if (bus_power) {
-        fprintf(stderr,"Power ON\n");
-        @<Boot the machine@>;
-        @<Load object file@>;
-        @<Load the command line arguments@>;
-        if (remotegdb) breakpoint = true;
-      }
+  fprintf(stderr,"Power...");
+  while (!vmb_power)
+  {  vmb_wait_for_power();
+     if (!vmb_connected) goto end_simulation;
+  }
+  fprintf(stderr,"ON\n");
+  vmb_reset_flag = 0;
+  @<Boot the machine@>;
+  @<Load object file@>;
+  @<Load the command line arguments@>;
+  while (1) {
+    if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
+    else {
+      breakpoint=false;
+      if (interacting) @<Interact with the user@>;
     }
-    bus_reset = 0;
-    do { 
-      { unsigned char b;
-        b = get_break(inst_ptr);
-        if (b&exec_bit) gdb_signal=5, breakpoint=true;
-        tracing=breakpoint||(b&trace_bit);
-        if (interrupt && !breakpoint) 
-          gdb_signal=3, breakpoint=interacting=true, interrupt=false;
-      }
-      if (breakpoint)
-      { breakpoint = false;
-        if (remotegdb) gdb_wait(-1);
-        else  if (interacting) {
-          @<Interact with the user@>;
-        }
-      }
-      if (halted) break;
-      do @<Perform one instruction@>@;
-      while (resuming);
-      if (interact_after_break) interacting=true, interact_after_break=false;
-      if (stepping) breakpoint=true,stepping=false;
-    } while (bus_power);
+    if (halted) break;
+    do @<Perform one instruction@>@;
+    while ((!interrupt && !breakpoint) || resuming);
+    if (interact_after_break) interacting=true, interact_after_break=false;
+    if (!vmb_power) goto boot;
   }
   end_simulation:
-    if (interacting || profiling || showing_stats) show_stats(true);
-  if (bus_fd>=0)
-  { bus_unregister(bus_fd);
-    bus_disconnect(bus_fd); 
-    bus_fd=-1; 
-  }
+  if (interacting || profiling || showing_stats) show_stats(true);
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
 
@@ -1921,7 +1852,6 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
  case 'b':@+if (sscanf(arg+1,"%d",&buf_size)!=1) buf_size=0;@+return;
 @y
  case 's': showing_stats=true;@+return;
- case 'g': remotegdb=true; breakpoint=true; gdbport=atoi(arg+1);@+ return;
  case 'B': 
   { char *p;
     p = strchr(arg+1,':');
@@ -1956,8 +1886,8 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
 bool interrupt; /* has the user interrupted the simulation recently? */
 bool profiling; /* should we print the profile at the end? */
 @y
-bool interrupt=0; /* has the user interrupted the simulation recently? */
-bool profiling=0; /* should we print the profile at the end? */
+static bool interrupt=0; /* has the user interrupted the simulation recently? */
+static bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
@@ -1968,7 +1898,6 @@ bool profiling=0; /* should we print the profile at the end? */
 "-L<n> list source lines with the profile\n",@|
 @y
 "-r    trace hidden details of the register stack\n",@|
-"-g<n> connect to gdb on port <n>\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z
@@ -1989,14 +1918,6 @@ bool profiling=0; /* should we print the profile at the end? */
 else mmix_fake_stdin(fake_stdin);
 @y
 else fprintf(stderr,"Sorry, I can't fake stdin\n");
-@z
-
-@x
-  case '\n': case 'n': breakpoint=tracing=true; /* trace one inst and break */
-  case 'c': goto resume_simulation; /* continue until breakpoint */
-@y
-  case '\n': case 'n': breakpoint=tracing=true; goto resume_simulation; /* trace one inst and break */
-  case 'c': breakpoint=false; goto resume_simulation; /* continue until breakpoint */
 @z
 
 @x
@@ -2188,7 +2109,7 @@ octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
 @<Load the command line arguments@>=
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));
-for (k=0; k<argc; k++,cur_arg++) {
+for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
   store_data(8,aux,x);
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(strlen(*cur_arg)&-8);

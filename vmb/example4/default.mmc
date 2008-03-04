@@ -9,6 +9,10 @@ host localhost
 debug
 exec .\rom.exe
 exec .\ram.exe
+# THis is the windows Framebuffer
+exec .\winvram
+#This is the java Framebuffer
+#exec javaw -cp log4j-1.2.15.jar;framebufferdevice.jar net.sourceforge.vmb.core.DeviceLauncher
 exec .\mmix.exe -B:9002 lorentz.mmo  
 #endif
 
@@ -21,5 +25,16 @@ file bios.img
 #if ram
 size 3145728
 address 0000000100000000
+#endif
+
+
+#if winvram
+address 0002000000000000
+size	1228800
+framewidth 640
+frameheight 480
+#you can make the actual width/height smaller than the undelying bitmap to get offscscreen memory
+width 640
+height 480
 #endif
 

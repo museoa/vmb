@@ -5,8 +5,10 @@
 %	virtual address 8000000000000000
 
 	.section    .text,"ax",@progbits		
-
+	LOC	#8000000000000000
+	
 % page table setup (see small model in address.howto)
+Main	IS	0
 Boot	GETA	$0,DTrap     set dynamic- and forced-trap  handler
 	PUT	rTT,$0
 	GETA	$0,FTrap
@@ -143,9 +145,8 @@ DTrapScreen	SETH    $0,#8000
 	STTU	$1,$0,8
 1H	POP	0,0
 
-DTrapUnhandled
-	SWYM	5               % inform the debugger
-	POP	0,0
+DTrapUnhandled	SWYM	5               % inform the debugger
+		POP	0,0
  
 
 FTrap	PUSHJ	$255,FHandler
@@ -230,22 +231,21 @@ TrapHalt NEG	$0,1            %  enable interrupts
 1H	SYNC	4		%go to power save mode
 	JMP	1B              % and loop idle
 
-TrapFputs 
-        AND     $0,$0,#0FF    %get the Z value 
+TrapFputs AND     $0,$0,#0FF    %get the Z value 
         BZ      $0,1F     %this is stdin
         CMP     $1,$0,2
         BNP     $1,4F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
         GET	$0,rJ
-	SETML	$3,0x0001 %offset for buffer
+	SETML	$3,#0001 %offset for buffer
 	ADD	$3,$3,$1  %address of disk buffer
         GET	$4,rBB    %get the $255 parameter: address of string
 	PUSHJ	$2,strcpy	
 	STTU	$2,$1,20   %nmeb
-        SET     $2,0x1
+        SET     $2,#1
 	STTU	$2,$1,16   %size
 	SET	$2,4
 	STO	$2,$1,8    %Fwrite to command
@@ -334,8 +334,7 @@ TrapFopen AND     $0,$0,#0FF    %get the Z value
 	PUT	rJ,$0
 1H	POP	0,0
 
-mmixmodes 
-	  BYTE 'r',0,0,0   %TextRead
+mmixmodes BYTE 'r',0,0,0   %TextRead
           BYTE 'w',0,0,0   %TextWrite
 	  BYTE 'r','b',0,0  % BinaryRead
           BYTE 'w','b',0,0   %BinaryWrite
@@ -361,7 +360,7 @@ TrapFread AND     $0,$0,#0FF    %get the Z value
         CMP     $1,$0,2
         BNP     $1,1F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
 
@@ -369,11 +368,11 @@ TrapFread AND     $0,$0,#0FF    %get the Z value
 	LDO	$3,$2,0   %buffer
         LDO     $5,$2,8   %size
 	STTU	$5,$1,20  % nmeb
-        SET     $2,0x1
+        SET     $2,#1
 	STTU	$2,$1,16   %size
 	SET	$2,3
 	STO	$2,$1,8    %Fread to command
-	SETML	$4,0x0001  %offset for buffer
+	SETML	$4,#0001  %offset for buffer
 	ADD	$4,$4,$1   %address of disk buffer
 	LDTU    $1,$1,28   %result
         GET	$0,rJ
@@ -390,7 +389,7 @@ TrapFgets AND     $0,$0,#0FF    %get the Z value
         CMP     $1,$0,2
         BNP     $1,1F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
 
@@ -400,7 +399,7 @@ TrapFgets AND     $0,$0,#0FF    %get the Z value
 	STTU	$5,$1,16  % size
 	SET	$2,10
 	STO	$2,$1,8    %Fgets to command
-	SETML	$4,0x0001  %offset for buffer
+	SETML	$4,#0001  %offset for buffer
 	ADD	$4,$4,$1   %address of disk buffer
 	LDTU    $1,$1,28   %result
 	BN	$1,2F
@@ -418,13 +417,13 @@ TrapFgetws AND     $0,$0,#0FF    %get the Z value
         CMP     $1,$0,2
         BNP     $1,1F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
 
         GET	$2,rBB    %get the $255 parameter: address of string
 	LDO	$3,$2,0   %ram buffer
-	SETML	$4,0x0001 %offset for disk buffer
+	SETML	$4,#0001 %offset for disk buffer
 	ADD	$4,$4,$1  %address of disk buffer
         LDO     $5,$2,8   %size in byte
         SET	$2,2
@@ -444,7 +443,7 @@ TrapFgetws AND     $0,$0,#0FF    %get the Z value
 	STWU	$7,$3,$6
 	ADD	$6,$6,2
 	SUB	$5,$5,2
-	CMP	$7,$6,'\n'
+	CMP	$7,$6,10   %newline
 	BZ	$7,7F
 
 3H	BP	$5,5B
@@ -467,11 +466,11 @@ TrapFwrite AND     $0,$0,#0FF    %get the Z value
         CMP     $1,$0,2
         BNP     $1,4F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
         GET	$0,rJ
-	SETML	$3,0x0001 %offset for buffer
+	SETML	$3,#0001 %offset for buffer
 	ADD	$3,$3,$1  %address of disk buffer
         GET	$2,rBB    %get the $255 parameter: address of string
         LDO	$4,$2,0   %buffer
@@ -480,7 +479,7 @@ TrapFwrite AND     $0,$0,#0FF    %get the Z value
         GET	$2,rBB    %get the $255 parameter: address of string
         LDO     $2,$2,8   %size
 	STTU	$2,$1,20   %nmeb
-        SET     $2,0x1
+        SET     $2,#1
 	STTU	$2,$1,16   %size
 	SET	$2,4
 	STO	$2,$1,8    %Fwrite to command
@@ -509,16 +508,16 @@ TrapFputws  AND     $0,$0,#0FF    %get the Z value
         CMP     $1,$0,2
         BNP     $1,4F     %this is stdout or stderr
 %       this is a file 
-	SETH	$2,0x8002
+	SETH	$2,#8002
 	SL	$1,$0,17
 	OR	$1,$1,$2   %base addess of file descriptor
         GET	$0,rJ
-	SETML	$3,0x0001 %offset for buffer
+	SETML	$3,#0001 %offset for buffer
 	ADD	$3,$3,$1  %address of disk buffer
         GET	$4,rBB    %get the $255 parameter: address of string
 	PUSHJ	$2,strcpyw	
 	STTU	$2,$1,20   %nmeb
-        SET     $2,0x1
+        SET     $2,#1
 	STTU	$2,$1,16   %size
 	SET	$2,4
 	STO	$2,$1,8    %Fwrite to command
@@ -585,9 +584,8 @@ TrapGPutPixel GET	$0,rBB    %get the $255 parameter: address and RGB
 	      POP	0,0
 
 
-TrapUnhandled	
-	SWYM	5		% tell the debugger
-	POP	0,0
+TrapUnhandled	SWYM	5		% tell the debugger
+		POP	0,0
 
 
 ScreenC	SETH    $1,#8000
@@ -804,8 +802,7 @@ mapvideo SETH   $0,#8000       %$0 physical address of RAM
 
 
 %       initialize the memory management
-memory
-	GET	$0,rJ
+memory	GET	$0,rJ
 
 	SETH    $2,#8000       %$0 physical address of RAM
         ORMH    $2,#0001 
@@ -844,12 +841,12 @@ DTrapPageFault  GET $0,rYY
 	  SRU $1,$0,61          %the segment in $1
 	  ANDNH $0,#E000        %the offset in $0
 	  GET $2,rV
-          AND $5,$2,0x7         %the three f bits in $5
+          AND $5,$2,#7         %the three f bits in $5
           SLU $6,$2,64-13
           SRU $6,$6,64-10       %the ten n bits in $6
           SRU $3,$2,48          %the (b0)b1b2b3b4 in $3
           SRU $4,$2,40
-	  AND $4,$4,0xFF        %the s in $4
+	  AND $4,$4,#FF        %the s in $4
 	  ANDNL $2,#1FFF        %blank out n and f in $2
           ANDNH $2,#FFFF        %blank out b1b2b3b4 in $2
           ANDNMH $2,#FF00       %blank out s in $2
@@ -884,10 +881,21 @@ DTrapPageFault  GET $0,rYY
           POP     0,0              
 
 
+%	allocate a new page in ram and return its address
+newpage	SETH	$0,#8000
+	ORMH	$0,1	     %$= now points to the first byte in ram	
+	LDO	$1,$0,0	     % get the pagecount
+	SL	$2,$1,13     % get the pageoffset
+	ADDU	$1,$1,1      % increment pagecount
+	STO	$1,$0,0      % save the new page count
+	ADDU	$0,$0,$2     % address of new page
+	POP 1,0  	
 
-	  .section    .bss,"aw",@nobits
+%	  .section    .bss,"aw",@nobits
 
-	  .global PageCount
-PageCount OCTA 0              %First page is for OS
+%	  .global PageCount
+% RAMSTART    LOC	#8000000100000000
+
+%PageCount OCTA 0              %First page is for OS
 
 	

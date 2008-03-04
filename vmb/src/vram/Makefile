@@ -1,12 +1,12 @@
 PROG= vram
 UTILDIR = ../util
-CFLAGS= -g -Wall
+CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
 INCDIRS = -I /usr/X11R6/include -I $(UTILDIR)
-LIBS    = -L/usr/X11R6/lib -lX11 -lpthread -L $(UTILDIR) -lvmb
+LIBS    = -L/usr/X11R6/lib -lX11 -lpthread -L $(UTILDIR) -lvmb  -lvmbopt -lpthread
 
 
-all: $(PROG)
+all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
@@ -24,3 +24,5 @@ clean:
 
 
 
+TAGS: *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h
+	etags *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h

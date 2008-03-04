@@ -21,10 +21,25 @@
 
 */
 
-extern void fatal_error(int line,char *msg); /* no return */
-extern void message(char *msg);
-extern void errormsg(char *msg);
-extern void debug(char *msg);
-extern void debugi(char *msg,int i);
-extern void debugs(char *msg, char *s);
-extern void debugx(char *msg, char *s, int n); /* message wit hex info */
+#ifndef ERROR_H
+#define ERROR_H
+
+extern char *vmb_program_name;
+extern unsigned int vmb_debug_flag;
+extern void vmb_fatal_error(int line,char *msg); /* no return */
+extern void vmb_message(char *msg);
+extern void vmb_errormsg(char *msg);
+extern void vmb_debug(char *msg);
+extern void vmb_debugi(char *msg,int i);
+extern void vmb_debugs(char *msg, char *s);
+extern void vmb_debugx(char *msg, unsigned char *s, int n); /* message wit hex info */
+extern void vmb_debugm(unsigned char mtype,unsigned char msize, 
+                       unsigned char mslot,unsigned char mid,
+		       unsigned char maddress[8], unsigned char *mpayload);
+
+
+extern void (*vmb_message_hook)(char *msg);
+extern void (*vmb_debug_hook)(char *msg);
+
+
+#endif

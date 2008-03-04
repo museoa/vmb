@@ -27,6 +27,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <signal.h>
+#include "mmix-internals.h"
 #include "address.h"
 #include "gdb.h"
 #include "bus-arith.h"
@@ -37,7 +38,7 @@
 
 
 
-void
+static void
 octatohex (octa *from, char *to, int n)
 {
     while (n--)
@@ -53,7 +54,7 @@ octatohex (octa *from, char *to, int n)
 }
 
 
-char *hextoocta(char *from, octa *to, int n)
+static char *hextoocta(char *from, octa *to, int n)
      /* puts the value of the hex string into *to.
         use at most 16 hex digits
         repeates for n octas.
@@ -103,7 +104,7 @@ static void exit_msg(void)
 
 static void termination_msg(void)
 { char *p;
-  char n;
+  unsigned char n;
   unsigned char sig;
   if (gdb_signal!=0xFF)
     sig=gdb_signal; 
@@ -358,7 +359,7 @@ static int ocmp(octa x, octa y)
 void readMemory(void)
 {     /* format maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToRead = 0;
-	char tmpBuffer[PBUFSIZ/2];
+	unsigned char tmpBuffer[PBUFSIZ/2];
 	octa srcAddr;
 
 	hextoint(hextoocta(buffer+1, &srcAddr,1)+1,&bytesToRead);
@@ -425,7 +426,7 @@ void readMemory(void)
 void writeMemory(void)
 {   /* format Maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToWrite = 0;
-	char tmpBuffer[PBUFSIZ/2];
+	unsigned char tmpBuffer[PBUFSIZ/2];
 	octa dstAddr;
 	char *buffPtr = buffer;
 
@@ -436,8 +437,8 @@ void writeMemory(void)
 	OK_msg();
 }
 
-void remove_escape(unsigned char * from, int size)
-{ unsigned char * to = from;
+static void remove_escape(char * from, int size)
+{ char * to = from;
   while (size-- > 0)
   { if (*from != 0x7D)
         *to++ = *from++;
@@ -472,7 +473,7 @@ void write_binary_memory(void)
 
 	buffPtr=hextoint(hextoocta(buffer+1, &dstAddr,1)+1,&bytesToWrite);
         remove_escape(buffPtr+1, bytesToWrite);
-	mmputchars(buffPtr+1, bytesToWrite, dstAddr);
+	mmputchars((unsigned char *)buffPtr+1, bytesToWrite, dstAddr);
 	OK_msg();
 }
 
@@ -540,8 +541,8 @@ void setBreakPoint(void)
 
 static int state = 0;
 
-void gdb_wait(int s)
-{ 
+void gdb_wait(void)
+{ int s = 0;
    switch (state) {
    case 0:
    start:
@@ -570,11 +571,11 @@ void gdb_wait(int s)
 	  /* continue with signal, addr  (signal, addr ignored)*/
      case 'c':
           /* continue with the simulator addr ignored */
-       single_wait(s);
+       single_wait();
        return;
      case 's':
        stepping= true;
-       single_wait(s);
+       single_wait();
        return;
      case 'g':
        getRegisters();

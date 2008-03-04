@@ -25,83 +25,15 @@
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
-#include "resource.h"
-#include "win32main.h"
-
-#include <io.h>
+extern HWND hMainWnd;
 #else
 #include <unistd.h>
 #endif
-#include "message.h"
 #include "bus-arith.h"
-#include "bus-util.h"
-#include "option.h"
-#include "param.h"
-#include "error.h"
-#include "main.h"
-
-#ifdef WIN32
-
-static void open_file(void);
-
-static void init_ram(void);
+#include "vmb.h"
 
 
-void InitControlls(HINSTANCE hInst,HWND hWnd)
-{
-}
-
-void PositionControlls(HWND hWnd,int width, int height)
-{  
-   power_led_position(2,8);
-}
-
-void process_focus(int on)
-{
-}
-BOOL APIENTRY   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-
-  switch ( message )
-  { case WM_INITDIALOG:
-      SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-      SetDlgItemInt(hDlg,IDC_RAMSIZE,size,FALSE);
-      return TRUE;
-   case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-    case WM_COMMAND:
-      if( wparam == IDOK )
-      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-	    set_option(&hexaddress,tmp_option);
-		hextochar(hexaddress,address,8);
-        size = GetDlgItemInt(hDlg,IDC_RAMSIZE,NULL,FALSE);
-
-		init_ram();
-
-     }
-     if (wparam == IDOK || wparam == IDCANCEL)
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-  }
-  return FALSE;
-}
-
-
-void get_settings(void)
- {
-   DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
- }
- 
-#endif
-
-char version[]="$Revision: 1.2 $ $Date: 2007-09-11 15:53:09 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
 
 char howto[] =
 "\n"
@@ -128,13 +60,13 @@ char howto[] =
 
 /* simulated ram as 0x100 * 0x100 * 0x10000 byte */
 /* page level functions */
-int ram_write_page(unsigned char *page[], int j, int offset,int size,unsigned char *payload)
+static int ram_write_page(unsigned char *page[], int j, int offset,int size,unsigned char *payload)
 /* write size byte from payload into the ith root entry at offset.
    return the number of byte written */
 { if (page[j]==NULL) {
     page[j] = calloc(PAGESIZE,sizeof(unsigned char));
     if (page[j]==NULL) {
-      errormsg("Out of memory");
+      vmb_errormsg("Out of memory");
       return size;
     }
   }
@@ -144,7 +76,7 @@ int ram_write_page(unsigned char *page[], int j, int offset,int size,unsigned ch
   return size;
 }
 
-int ram_read_page(unsigned char *page, int offset,int size,unsigned char *payload)
+static int ram_read_page(unsigned char *page, int offset,int size,unsigned char *payload)
 /* read size byte from the page at offset into payload.
    return the number of byte read */
 { if (size+offset > PAGESIZE)
@@ -158,11 +90,11 @@ int ram_read_page(unsigned char *page, int offset,int size,unsigned char *payloa
 
 
 
-unsigned char **root[ROOTSIZE];
+static unsigned char **root[ROOTSIZE];
 
 
 /* mid level functions */
-int ram_read_mid(int i, int offset,int size,unsigned char *payload)
+static int ram_read_mid(int i, int offset,int size,unsigned char *payload)
 /* read size byte from the ith root entry at offset into payload
    return the number of byte read */
 { int j;
@@ -173,14 +105,14 @@ int ram_read_mid(int i, int offset,int size,unsigned char *payload)
   return ram_read_page(root[i][j],offset,size,payload);
 }
 
-int ram_write_mid(int i, int offset,int size,unsigned char *payload)
+static int ram_write_mid(int i, int offset,int size,unsigned char *payload)
 /* write size byte from payload into the ith root entry at offset.
    return the number of byte written */
 { int j;
   if (root[i]==NULL) {
     root[i] = calloc(MIDSIZE,sizeof(unsigned char *));
     if (root[i]==NULL) { 
-      errormsg("Out of memory");
+      vmb_errormsg("Out of memory");
       return size;
     }
   }
@@ -193,7 +125,7 @@ int ram_write_mid(int i, int offset,int size,unsigned char *payload)
 
 /* root level functions */
 
-void ram_read(unsigned int offset,int size,unsigned char *payload)
+static void ram_read(unsigned int offset,int size,unsigned char *payload)
 /* read size byte from the ram at offset into payload */
 { int n;
   int i,k;
@@ -204,7 +136,7 @@ void ram_read(unsigned int offset,int size,unsigned char *payload)
     ram_read_mid(i+1,0,size-n,payload+n);
 }
 
-void ram_write(unsigned int offset,int size,unsigned char *payload)
+static void ram_write(unsigned int offset,int size,unsigned char *payload)
 /* write size byte from payload at offset into the ram */
 { int n;
   int i,k;
@@ -215,7 +147,7 @@ void ram_write(unsigned int offset,int size,unsigned char *payload)
     ram_write_mid(i+1,0,size-n,payload+n);
 }
 
-void ram_clean(void)
+static void ram_clean(void)
 { int i,j;
   for (i=0;i<ROOTSIZE;i++)
     if (root[i]!=NULL)
@@ -228,61 +160,53 @@ void ram_clean(void)
     }
 }
 
-void init_ram(void)
-{ ram_clean();
-}
+/* Interface to the virtual motherboard */
 
-void init_device(void){
-	close(0);
-	ram_clean();
-}
-
-
-unsigned char *get_payload(unsigned int offset,int size){
+unsigned char *vmb_get_payload(unsigned int offset,int size){
   static unsigned char payload[258*8];
   ram_read(offset,size,payload);
   return payload;
 }
 
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{
- return 1;
-}
-
-void put_payload(unsigned int offset,int size, unsigned char *payload){
+void vmb_put_payload(unsigned int offset,int size, unsigned char *payload){
     ram_write(offset,size,payload);
 }
 
-int process_poweron(void)
-{ 
+void vmb_poweron(void)
+{
 #ifdef WIN32
-	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon); 
+   SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
- return 0;
 }
 
 
-int process_poweroff(void)
+void vmb_poweroff(void)
 { ram_clean();
 #ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
+   SendMessage(hMainWnd,WM_USER+2,0,0);
 #endif
- return 0;
+}
+
+void vmb_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+#endif
 }
 
 
-int process_reset(void)
+void vmb_terminate(void)
+/* this function is called when the motherboard politely asks the device to terminate.*/
+{ 
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+#endif
+}
+
+
+void vmb_reset(void)
 { 
   ram_clean();
-  return 0;
-}
-
-int process_interrupt(unsigned char interrupt){
-  return 0;
-}
-
-
-void process_input(unsigned char c) 
-{ /* ignore input */
 }
 

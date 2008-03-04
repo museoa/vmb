@@ -24,32 +24,6 @@
 #ifndef ADDRESS_H
 #define ADDRESS_H
 
-typedef unsigned int tetra;
-typedef struct{tetra h,l;} octa;
-
-extern octa g[256]; /* global registers */
-extern int G,L; /* accessible copies of key registers */
-extern int O,S; /* accessible copies of key registers divided by 8*/
-extern octa inst_ptr; /*pointer to next instruction*/
-extern octa loc; /*instruction pointer */
-extern octa *l; /* local registers */
-extern int lring_size; /* the number of local registers (a power of 2) */
-extern int lring_mask; /* one less than |lring_size| */
-
-
-typedef enum{
-rB,rD,rE,rH,rJ,rM,rR,rBB,
-rC,rN,rO,rS,rI,rT,rTT,rK,rQ,rU,rV,rG,rL,
-rA,rF,rP,rW,rX,rY,rZ,rWW,rXX,rYY,rZZ} special_reg;
-
-
-
-extern void mmputchars(unsigned char* buf, int size, octa dest);
-
-extern int mmgetchars(char *buf, int size, octa addr, int stop);
-
-/* from address.c */
-
 /* these instructions return 0 (false) if a page fault occurs
    they return 1 (true) otherwise even if a protection violation
    occurs in this case they will not alter memory nor deliver a value
@@ -88,5 +62,6 @@ extern void write_data(octa address,int size);
 extern void delete_data(octa address,int size);
 extern void delete_instruction(octa address,int size);
 extern void read_instruction(octa address,int size);
+extern void prego_instruction(octa address,int size);
 
 #endif

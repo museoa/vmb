@@ -26,85 +26,21 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
-#include "win32main.h"
+extern HWND hMainWnd;
 #else
 #include <unistd.h>
 #include <termios.h>
 #endif
-#include "message.h"
+
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "option.h"
 #include "param.h"
-#include "error.h"
-#include "main.h"
+#include "vmb.h"
 
 void display_char(char c);
 
-#ifdef WIN32
 
-#define ID_CHILD 1
-HWND hwndEdit; 
-HBITMAP hBmpActive, hBmpInactive;
-void InitControlls(HINSTANCE hInst,HWND hWnd)
-{ hBmpInactive = hBmp;  
-  hBmpActive = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPACTIVE), 
-                                IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-}
-
-
-void PositionControlls(HWND hWnd,int width, int height)
-{  
-   power_led_position(230,1);
-}
-
-void process_focus(int on)
-{ if (on) hBmp = hBmpActive;
-  else hBmp = hBmpInactive;
-  RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
-}
-
-BOOL APIENTRY   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-  switch ( message )
-  { case WM_INITDIALOG:
-      SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-      SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
-      return TRUE;
-   case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-    case WM_COMMAND:
-      if( wparam == IDOK )
-      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-        set_option(&hexaddress,tmp_option);
-    hextochar(hexaddress,address,8);
-        interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
-      }
-    if (wparam == IDOK || wparam == IDCANCEL)
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-    }
-    break;
-
-  }
-  return FALSE;
-}
-
-
-
- void get_settings(void)
- {
-   DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
- }
- 
-#endif
-
-char version[]="$Revision: 1.2 $ $Date: 2007-09-12 07:22:40 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
 
 char howto[] =
 "\n"
@@ -139,8 +75,9 @@ static unsigned char data[8];
 #define COUNT 3
 #define DATA  7
 
+/* Interface to the virtual motherboard */
 
-unsigned char *get_payload(unsigned int offset, int size)
+unsigned char *vmb_get_payload(unsigned int offset,int size)
 {  
     static unsigned char payload[8];
     
@@ -153,13 +90,60 @@ unsigned char *get_payload(unsigned int offset, int size)
     return payload+offset;
 }
 
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{ return 1;
+void vmb_poweron(void)
+{ 
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+1,0,0);
+#endif
 }
 
-void put_payload(unsigned int offset, int size, unsigned char *payload)
-{
+
+void vmb_poweroff(void)
+{  
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+2,0,0);
+#endif
 }
+
+void vmb_terminate(void)
+/* this function is called when the motherboard politely asks the device to terminate.*/
+{ 
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+#endif
+}
+
+void vmb_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+#endif
+}
+
+
+void process_input(unsigned char c) 
+{ /* The keyboard Interface */
+  if (c<0x20 || c >= 0x7F)
+    vmb_debugi("input (#%x)\n",c);
+  else
+    vmb_debugi("input %c",c);
+  if (vmb_power)
+  { data[DATA] = c;
+    if (data[COUNT]<0xFF) data[COUNT]++;
+    if (data[COUNT]>1) data[ERROR] = 0x80;
+    vmb_raise_interrupt(interrupt);
+    vmb_debug("Raised interrupt");
+  }
+  else
+  { vmb_debug("no power character ignored");
+#ifdef WIN32
+   Beep(800,100);
+#else
+#endif
+  }
+}
+
 
 #ifdef WIN32
 #else
@@ -190,8 +174,8 @@ static void prepare_input(void)
 #endif
 
 void init_device(void)
-{  debugs("address: %s",hexaddress);
-   debugi("interrupt: %d",interrupt);
+{  vmb_debugs("address: %s",hexaddress);
+   vmb_debugi("interrupt: %d",interrupt);
    size = 8;
 #ifdef WIN32
 #else
@@ -199,58 +183,45 @@ void init_device(void)
 #endif
 }
 
-void process_input(unsigned char c) 
-{ /* The keyboard Interface */
-
-  if (bus_power)
-
-  { data[DATA] = c;
-    if (data[COUNT]<0xFF) data[COUNT]++;
-    if (data[COUNT]>1) data[ERROR] = 0x80;
-    set_interrupt(bus_fd, interrupt);
-    debug("Raised interrupt");
-
-  }
-
-  else
-
-  {
 
 #ifdef WIN32
-
-   Beep(800,100);
-
 #else
+int main(int argc, char *argv[])
+{
+  param_init(argc, argv);
+  vmb_debugs("%s ",vmb_program_name);
+  vmb_debugs("%s ", version);
+  vmb_debugs("host: %s ",host);
+  vmb_debugi("port: %d ",port);
+  close(0); /* stdin */
+  init_device();
+  hextochar(hexaddress,address,8);
+  add_offset(address,size,limit);
+  vmb_debugs("address: %s ",hexaddress);
+  vmb_debugi("size: %x ",size);
+  
+  vmb_connect(host,port); 
 
-#endif
+  vmb_register(chartoint(address),chartoint(address+4),
+               size, 0, 0, vmb_program_name);
 
+  while (vmb_connected)
+  { unsigned char c;
+    int i;
+    vmb_debug("reading character:");
+    i = read(0,&c,1);
+    if (i == 0) 
+      break;
+    if (i < 0)
+    { vmb_errormsg("Read Error");
+      break;
+    }
+    vmb_debugi("got %02X",c&0xFF);
+    process_input(c);
   }
-}
-
-int process_interrupt(unsigned char interrupt)
-{ return 0;
-}  
-
-int process_poweron(void)
-{ 
-#ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
-  SendMessage(hwndEdit, WM_SETTEXT, 0, 
-               (LPARAM) ""); 
-#endif
+  vmb_disconnect();
   return 0;
 }
 
-int process_poweroff(void)
-{  
-#ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
-  SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) howto); 
 #endif
-  return 0;
-}
-
-int process_reset(void)
-{ return 0;
-}
 

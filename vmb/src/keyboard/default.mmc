@@ -3,7 +3,7 @@
 
 port 9002
 #host mbox.informatik.fh-muenchen.de
-host lbox.priv.cs.fhm.edu
+#host lbox.priv.cs.fhm.edu
 debug
 
 
@@ -19,12 +19,12 @@ exec xterm -e ./mmix -B9002 -g12345
 #endif
 
 #if keyboard
-address 1000000000000
+address 0001000000000000
 interrupt 17
 #endif
 
 #if screen
-address 1000000000008
+address 0001000000000008
 interrupt 18
 #debug off
 #endif

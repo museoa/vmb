@@ -3,7 +3,7 @@
     adapded from Andrew Pochinsky (avp@mit.edu)
     virtual frame buffer device for mmix.
 
-    This file is part of the MMIX Motherboard project
+    This file is part of the Virtual Motherboard project
 
     This file is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,16 +33,13 @@
 
 
 
-#include "message.h"
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "option.h"
 #include "param.h"
-#include "error.h"
-#include "main.h"
+#include "vmb.h"
 
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:38 $";
+char version[]="$Revision: 1.2 $ $Date: 2008-03-04 17:22:32 $";
 
 char howto[] =
 "\n"
@@ -125,7 +122,7 @@ ColorChannel mask2channel (unsigned long mask)
   ColorChannel ch;
 
   if (mask == 0)
-    fatal_error (__LINE__, "mask2channel(0)");
+    vmb_fatal_error (__LINE__, "mask2channel(0)");
   for (f = 1; !(mask & 1); f <<= 1)
     mask >>= 1;
   ch.cch_factor = f;
@@ -133,7 +130,7 @@ ColorChannel mask2channel (unsigned long mask)
   while (mask & 1)
     mask >>= 1;
   if (mask != 0)
-    fatal_error (__LINE__, "mask2channel(): scattered bits in the mask");
+    vmb_fatal_error (__LINE__, "mask2channel(): scattered bits in the mask");
   return ch;
 }
 
@@ -158,10 +155,10 @@ void init_monitor (void)
   XGCValues gc_values;                                               /* 196 */
 
   if (!XInitThreads ())                                              /* 181 */
-    fatal_error (__LINE__, "Can't enable thread support for X11");
+    vmb_fatal_error (__LINE__, "Can't enable thread support for X11");
   vga.display = XOpenDisplay (NULL);
   if (vga.display == NULL)
-    fatal_error (__LINE__, "X connection failed");
+    vmb_fatal_error (__LINE__, "X connection failed");
   screen_num = DefaultScreen (vga.display);
   root_win = RootWindow (vga.display, screen_num);
   vi_temp.screen = screen_num;                                       /* 183 */
@@ -169,7 +166,7 @@ void init_monitor (void)
   visual_info = XGetVisualInfo (vga.display, VisualClassMask | VisualScreenMask,
                                 &vi_temp, &visual_count);
   if ((visual_info == NULL) || visual_count == 0)
-    fatal_error (__LINE__, "No TrueColor visual found");
+    vmb_fatal_error (__LINE__, "No TrueColor visual found");
   best_match = 0;
   best_depth = visual_info[0].depth;
   visual = visual_info[0].visual;
@@ -186,10 +183,10 @@ void init_monitor (void)
   vga.image = XCreateImage (vga.display, visual, best_depth, ZPixmap,   /* 194 */
                             0, NULL, window_size_x, window_size_y, 32, 0);
   if (!vga.image)
-    fatal_error (__LINE__, "image allocation error");
+    vmb_fatal_error (__LINE__, "image allocation error");
   vga.image->data = malloc (vga.image->height * vga.image->bytes_per_line);
   if (!vga.image->data) {
-    fatal_error (__LINE__, "image data allocation error");
+    vmb_fatal_error (__LINE__, "image data allocation error");
   }
   else {
     int x, y;
@@ -211,7 +208,7 @@ void init_monitor (void)
                            CWBackPixel | CWBorderPixel, &attrib);
   if (!(size_hints = XAllocSizeHints ()) ||                          /* 189 */
       !(wm_hints = XAllocWMHints ()) || !(class_hints = XAllocClassHint ()))
-    fatal_error (__LINE__, "Hint allocation failed");
+    vmb_fatal_error (__LINE__, "Hint allocation failed");
   size_hints->flags = PMinSize | PMaxSize;                           /* 191 */
   size_hints->min_width = window_size_x;
   size_hints->min_height = window_size_y;
@@ -223,7 +220,7 @@ void init_monitor (void)
   class_hints->res_name = "vram";                                    /* 193 */
   class_hints->res_class = "VRAM";
   if (!XStringListToTextProperty (&class_hints->res_name, 1, &windowName))
-    fatal_error (__LINE__, "property allocation failed");
+    vmb_fatal_error (__LINE__, "property allocation failed");
   XSetWMProperties (vga.display, vga.win, &windowName, NULL,
                     vga.argv, vga.argc, size_hints, wm_hints, class_hints);
   vga.gc = XCreateGC (vga.display, vga.win, 0, &gc_values);          /* 195 */
@@ -235,7 +232,7 @@ void init_monitor (void)
   vga.expose.count = 0;
   pthread_mutex_lock (&cp.lock);
   if (cp.status != 1)
-    fatal_error (__LINE__, "cp.status should be one now!");
+    vmb_fatal_error (__LINE__, "cp.status should be one now!");
   cp.status = 0;
   pthread_cond_signal (&cp.out_c);
   pthread_mutex_unlock (&cp.lock);
@@ -287,7 +284,7 @@ void * server (void * _ignore)
             char buffer[128];
 
             sprintf (buffer, "server: Unknown command %d\n", cmd);
-            fatal_error (__LINE__, buffer);
+            vmb_fatal_error (__LINE__, buffer);
           }
         }
         XPutImage (vga.display, vga.win, vga.gc, vga.image,
@@ -408,15 +405,9 @@ void init_device(void){
 }
 
 
-unsigned char *get_payload(unsigned int offset,int size){
+unsigned char *vmb_get_payload(unsigned int offset,int size){
   return vram+offset;
 }
-
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{
- return 1;
-}
-
 
 void show_vram(unsigned int offset,int size)
 {  while (size > 0)
@@ -426,16 +417,16 @@ void show_vram(unsigned int offset,int size)
     r =  vram[offset+1];
     g =  vram[offset+2];
     b =  vram[offset+3];
-    debugi("x = %d",x);
-    debugi("y = %d",y);
-    debugx("rgb = %s",vram+offset+1,3);
+    vmb_debugi("x = %d",x);
+    vmb_debugi("y = %d",y);
+    vmb_debugx("rgb = %s",vram+offset+1,3);
     vram_write(x,y,r,g,b);
     size = size-4;
     offset = offset +4;
   }
 }
 
-void put_payload(unsigned int offset,int size, unsigned char *payload)
+void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 { int i;
  if (offset+size>VRAMSIZE)
    size = VRAMSIZE-offset;
@@ -450,35 +441,43 @@ void put_payload(unsigned int offset,int size, unsigned char *payload)
 
 }
 
-int process_poweron(void)
+void vmb_poweron(void)
 { char *argv[1] = {"vram"};
   memset(vram,0, VRAMSIZE);
   vram_init (1, argv);
-  return 0;
 }
 
-
-
-
-int process_poweroff(void)
+void vmb_poweroff(void)
 { 
   vram_fini ();
-  return 0;
 }
 
 
-int process_reset(void)
+void vmb_reset(void)
 { memset(vram,0, VRAMSIZE);
- if (bus_power)
+ if (vmb_power)
     vram_blank();
-  return 0;
-}
-
-int process_interrupt(unsigned char interrupt){
-  return 0;
 }
 
 
-void process_input(unsigned char c) 
-{ /* ignore input */
+int main(int argc, char *argv[])
+{
+ param_init(argc, argv);
+ vmb_debugs("%s ",vmb_program_name);
+ vmb_debugs("%s ", version);
+ vmb_debugs("host: %s ",host);
+ vmb_debugi("port: %d ",port);
+ init_device();
+ hextochar(hexaddress,address,8);
+ add_offset(address,size,limit);
+ vmb_debugs("address: %s ",hexaddress);
+ vmb_debugi("size: %x ",size);
+ 
+ vmb_connect(host,port); 
+
+ vmb_register(chartoint(address),chartoint(address+4),
+              size, 0, 0, vmb_program_name);
+ vmb_wait_for_disconnect();
+ return 0;
 }
+

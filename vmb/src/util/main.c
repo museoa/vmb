@@ -55,7 +55,7 @@ int wait_event(int blocking)
   FD_ZERO(&readfs);
   FD_SET(bus_fd, &readfs);  /* set testing for source */
   FD_SET(0, &readfs);  /* set testing for stdin */
-  debug("Waiting for event");
+  vmb_debug("Waiting for event");
   if (blocking)
     select(bus_fd+1, &readfs, NULL, NULL, NULL);
   else
@@ -77,19 +77,19 @@ void handle_event(int fd)
   int s;
   if (fd == bus_fd) 
   {
-    debug("Reading request");
+    vmb_debug("Reading request");
     i = get_request(bus_fd,0,&slot,a,&s,p);
-    if (i < 0) errormsg(strerror(errno));
+    if (i < 0) vmb_errormsg(strerror(errno));
     else dispatch_message(i,a,s,slot,p);
   }
   else if (fd == 0)
   { unsigned char c;
     int i;
-    debug("reading character:");
+    vmb_debug("reading character:");
     i = read(0,&c,1);
     if (i == 0) return;
-    if (i < 0) errormsg("Read Error");
-    debugi("got %02X",c&0xFF);
+    if (i < 0) vmb_errormsg("Read Error");
+    vmb_debugi("got %02X",c&0xFF);
     process_input(c);
   }
 }
@@ -114,15 +114,15 @@ int write_request(unsigned char a[8], int s, unsigned char p[])
   if (hi_offset || overflow_offset || offset + s > size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    debugs("Write request out of range %s",hex);
-    debugx("Address: %s",address,8);
-    debugi("Size:    %d",size);
-    debugi("Offset:  %ud", offset);
-    debug("raising interrupt");
+    vmb_debugs("Write request out of range %s",hex);
+    vmb_debugx("Address: %s",address,8);
+    vmb_debugi("Size:    %d",size);
+    vmb_debugi("Offset:  %ud", offset);
+    vmb_debug("raising interrupt");
     set_interrupt(bus_fd, INT_NOMEM);
     return 0;
   }
-  debug("Writing");
+  vmb_debug("Writing");
   put_payload(offset,s,p);
   return 0;
 }
@@ -140,21 +140,21 @@ int read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p
   if (hi_offset || overflow_offset || offset + s > size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    debugs("Read request out of range %s",hex);
-    debug("Sending empty answer");
+    vmb_debugs("Read request out of range %s",hex);
+    vmb_debug("Sending empty answer");
     i = answer_readrequest(bus_fd,slot, a,0,NULL);
-    if (i < 0) errormsg("Write Error");
-    debug("raising interrupt");
+    if (i < 0) vmb_errormsg("Write Error");
+    vmb_debug("raising interrupt");
     set_interrupt(bus_fd, INT_NOMEM);
     return 0;
   }
-  debug("sending answer");
+  vmb_debug("sending answer");
   get_payload_slot = slot;
   get_payload_fd = bus_fd;
   data = get_payload(offset,s);
   if (data != NULL)
   { i = answer_readrequest(bus_fd,slot,a,s,data);
-    if (i < 0) errormsg("Write Error");
+    if (i < 0) vmb_errormsg("Write Error");
   }
   return 0;
 }
@@ -165,9 +165,9 @@ int read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p
 void process_loop(void)
 { 
   bus_fd= bus_connect(host,port);
-  if (bus_fd<0) fatal_error(__LINE__,"Unable to connect to motherboard");
+  if (bus_fd<0) vmb_fatal_error(__LINE__,"Unable to connect to motherboard");
   if (bus_register(bus_fd,address,limit,0,0,defined)<0)
-    fatal_error(__LINE__,"Unable to register with motherboard");
+    vmb_fatal_error(__LINE__,"Unable to register with motherboard");
   atexit(clean_up);
   while (bus_connected)
       process_bus();
@@ -178,15 +178,15 @@ void process_loop(void)
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- debugs("%s ",programname);
- debugs("%s ", version);
- debugs("host: %s ",host);
- debugi("port: %d ",port);
+ vmb_debugs("%s ",vmb_program_name);
+ vmb_debugs("%s ", version);
+ vmb_debugs("host: %s ",host);
+ vmb_debugi("port: %d ",port);
  init_device();
  hextochar(hexaddress,address,8);
  add_offset(address,size,limit);
- debugs("address: %s ",hexaddress);
- debugi("size: %x ",size);
+ vmb_debugs("address: %s ",hexaddress);
+ vmb_debugi("size: %x ",size);
  process_loop();
  return 0;
 }

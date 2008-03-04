@@ -26,100 +26,20 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
-#include "win32main.h"
+extern HWND hMainWnd;
 #else
 #include <unistd.h>
 #endif
-#include "message.h"
+
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "option.h"
 #include "param.h"
-#include "error.h"
-#include "main.h"
+#include "vmb.h"
 
 void display_char(char c);
 
-#ifdef WIN32
 
-#define ID_CHILD 1
-
-HWND hwndEdit; 
-void InitControlls(HINSTANCE hInst,HWND hWnd)
-{   
-
-        hwndEdit = CreateWindow( 
-                "EDIT",     // predefined class 
-                NULL,       // no window title 
-                WS_CHILD | WS_VISIBLE | 
-                    ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
-					/* | WS_VSCROLL */, 
-                0, 0, 0, 0, // set size in WM_SIZE message 
-                hWnd,       // parent window 
-                (HMENU) ID_CHILD, // edit control ID 
-                hInst, 
-                NULL);                // pointer not needed 
-             SendMessage(hwndEdit, WM_SETFONT, (WPARAM) GetStockObject(ANSI_FIXED_FONT), 0); 
-             // Add text to the window. 
-             SendMessage(hwndEdit, WM_SETTEXT, 0, 
-                (LPARAM) howto); 
-}
-
-
-void PositionControlls(HWND hWnd,int width, int height)
-{    
-  MoveWindow(hwndEdit,25,30,315,210,TRUE); 
-  power_led_position(307, 240);
-}
-
-void process_focus(int on)
-
-{ 
-
-}
-
-BOOL APIENTRY   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-
-  switch ( message )
-  { case WM_INITDIALOG:
-      SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-      SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
-      return TRUE;
-   case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-    case WM_COMMAND:
-      if( wparam == IDOK )
-      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-        set_option(&hexaddress,tmp_option);
-		hextochar(hexaddress,address,8);
-        interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
-      }
-	  if (wparam == IDOK || wparam == IDCANCEL)
-      { EndDialog(hDlg, TRUE);
-        return TRUE;
-	  }
-	  break;
-
-  }
-  return FALSE;
-}
-
-
-
- void get_settings(void)
- {
-   DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
- }
- 
-#endif
-
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:36 $";
+char version[]="$Revision: 1.2 $ $Date: 2008-03-04 17:22:32 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -154,15 +74,33 @@ static unsigned char data[8];
 #define COUNT 3
 #define DATA  7
 
-unsigned char *get_payload(unsigned int offset, int size)
+
+void init_device(void)
+{  vmb_debugs("address: %s",hexaddress);
+   vmb_debugi("interrupt: %d",interrupt);
+   size = 8;
+#ifndef WIN32
+   setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
+#endif
+}
+
+static void display_char(char c)
+{ 
+#ifdef WIN32	
+   SendMessage(hMainWnd,WM_USER+6,(WPARAM)c,0);
+#else
+    printf("%c",c);
+#endif
+} 
+
+/* Interface to the virtual motherboard */
+
+
+unsigned char *vmb_get_payload(unsigned int offset,int size)
 { return data+offset;
 }
 
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{ return 1;
-}
-
-void put_payload(unsigned int offset, int size, unsigned char *payload)
+void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 {   
     unsigned char cpData[8]; //!< to fix payload smaller then 8
     int i;
@@ -178,85 +116,75 @@ void put_payload(unsigned int offset, int size, unsigned char *payload)
     if (data[COUNT]<0xFF) data[COUNT]++;
     else data[ERROR]=0x80;
     data[DATA] = payload[7-offset];
-    debugi("(%02X)",data[DATA]);
+    vmb_debugi("(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
-    set_interrupt(bus_fd, interrupt);
+    vmb_raise_interrupt(interrupt);
 }
 
-void init_device(void)
-{  debugs("address: %s",hexaddress);
-   debugi("interrupt: %d",interrupt);
-   size = 8;
-#ifdef WIN32
-#else
-   setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
-#endif
-}
 
-void display_char(char c)
-{ 
-#ifdef WIN32	
-  char str[3];
-  int n;
-
-     n = SendMessage(hwndEdit,EM_GETLINECOUNT,0,0);
-
-   if (n>100)
-
-   { n = SendMessage(hwndEdit,EM_LINELENGTH,0,0);
-
-     SendMessage(hwndEdit,EM_SETSEL,0,n+2);
-
-     SendMessage(hwndEdit,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
-
-   }
-  if (c=='\n')
-  { str[0]='\r'; str[1]='\n'; str[2]=0; } 
-  else
-  { str[0]=c; str[1]=0; }
-  n = SendMessage(hwndEdit, WM_GETTEXTLENGTH,0,0);
-  SendMessage(hwndEdit, EM_SETSEL,n,n);
-  SendMessage(hwndEdit, EM_REPLACESEL, 0,(LPARAM)str); 
-
-  SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0); 
-#else
-    printf("%c",c);
-#endif
-} 
-
-void process_input(unsigned char c) 
-{ 
-}
-
-int process_interrupt(unsigned char interrupt)
-{ return 0;
-}	
-
-int process_poweron(void)
+void vmb_poweron(void)
 { 
 #ifdef WIN32
-	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
-	SendMessage(hwndEdit, WM_SETTEXT, 0, 
-               (LPARAM) ""); 
+   SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
-	return 0;
 }
 
-int process_poweroff(void)
+void vmb_poweroff(void)
 {  
 #ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
-  SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) howto); 
+   SendMessage(hMainWnd,WM_USER+2,0,0);
 #endif
-  return 0;
 }
 
-int process_reset(void)
+void vmb_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+#endif
+}
+
+
+void vmb_terminate(void)
+/* this function is called when the motherboard politely asks the device to terminate.*/
+{ 
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+#endif
+}
+
+void vmb_reset(void)
 {
 #ifdef WIN32
-    SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) ""); 
+   SendMessage(hMainWnd,WM_USER+4,0,0);
 #endif
-    return 0;
 }
+
+
+#ifdef WIN32
+#else
+int main(int argc, char *argv[])
+{
+ param_init(argc, argv);
+ vmb_debugs("%s ",vmb_program_name);
+ vmb_debugs("%s ", version);
+ vmb_debugs("host: %s ",host);
+ vmb_debugi("port: %d ",port);
+ close(0); /* stdin */
+ init_device();
+ hextochar(hexaddress,address,8);
+ add_offset(address,size,limit);
+ vmb_debugs("address: %s ",hexaddress);
+ vmb_debugi("size: %x ",size);
+ 
+ vmb_connect(host,port); 
+
+ vmb_register(chartoint(address),chartoint(address+4),
+              size, 0, 0, vmb_program_name);
+ vmb_wait_for_disconnect();
+ return 0;
+}
+#endif
+
 

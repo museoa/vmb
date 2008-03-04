@@ -26,7 +26,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
-#include "win32main.h"
+#pragma warning(disable : 4996)
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -44,47 +44,23 @@
 
 
 /* functions to send and receive a message */
-static int write_socket(int socket, int blocking, unsigned char *msg, int size)
-
+static int write_socket(int socket, unsigned char *msg, int size)
 /* write buffer to the socket either completely or, if blocking is false, not at all */
 { int snd = 0;
-
   while(snd < size)
-  { static int i;
+  { int i;
     i = send(socket, &msg[snd], size-snd,0);
-    if (i<0)
-    {
-#ifdef WIN32
-	  i=WSAGetLastError ();
-	  if (i == WSAESHUTDOWN || i == WSAECONNABORTED)
-      { bus_unregister(socket);
-	    bus_disconnect(socket);
-		return -1;
-	  }
-      else if (i == WSAEWOULDBLOCK )
-#else
-      if (errno == EAGAIN)
-#endif	
-      { if (!blocking && snd==0) return 0;
-        else 
-        { fd_set writefs;
-          FD_ZERO(&writefs);
-	  FD_SET((unsigned)socket, &writefs); 
-	  select(socket+1, NULL,&writefs, NULL, NULL);
-        }
-      }
-      else
-	{  bus_disconnect(socket);
-        return -1;
-	  }
-    } 
+    if (i<=0)
+    { bus_disconnect(socket);
+      return -1;
+    }
     else
       snd += i;
   }
   return 1;
 }
 
-int send_msg(int socket, int blocking,
+int send_msg(int socket,
          unsigned char type,
          unsigned char size,
          unsigned char slot,
@@ -92,90 +68,79 @@ int send_msg(int socket, int blocking,
          unsigned int  time,
          unsigned char address[8],
          unsigned char *payload)
-{
-	unsigned char buf[MAXMESSAGE] = {0}, *msg=buf;
-        int msg_size;
+{ unsigned char buf[MAXMESSAGE] = {0}, *msg=buf;
+  int msg_size;
         
-        if (socket<0)
-          return -1;
+  if (!valid_socket(socket))
+    return -1;
 
-	*msg++ = type;
-	*msg++ = size;
-	*msg++ = slot;
-	*msg++ = id;
-	msg_size = message_size(buf);
+  if (address == NULL)
+	type = type & ~TYPE_ADDRESS;
+  if (payload == NULL)
+	type = type & ~TYPE_PAYLOAD;
 
-	if(type & TYPE_TIME)
-	{
-		inttochar(time, msg);
-		msg += 4;
-	}
+  *msg++ = type;
+  *msg++ = size;
+  *msg++ = slot;
+  *msg++ = id;
+  msg_size = message_size(buf);
 
-	if(type & TYPE_ADDRESS)
-	{
-		memmove(msg, address, 8);
-		msg += 8;
-	}
+  if(type & TYPE_TIME)
+  {
+	inttochar(time, msg);
+	msg += 4;
+  }
 
-	if(type & TYPE_PAYLOAD)
-	{
-		memmove(msg, payload, (size+1)*8);
-	}
+  if(type & TYPE_ADDRESS)
+  {
+	memmove(msg, address, 8);
+	msg += 8;
+  }
 
-	return write_socket(socket,blocking,buf,msg_size);
+  if(type & TYPE_PAYLOAD)
+  {
+	memmove(msg, payload, (size+1)*8);
+  }
+  return write_socket(socket,buf,msg_size);
 }
+#ifdef WIN32
+HANDLE  recv_event;
+#endif
 
-static int read_socket(int socket, int blocking, unsigned char *msg, int size)
-
+static int read_socket(int socket, unsigned char *msg, int size)
 /* read a complete message from the socket */
 { int rcv = 0;
-
   while(rcv < size)
   { int i;
     i = recv(socket, &msg[rcv], size-rcv,0);
-    if (i<0)
-    {
-#ifdef WIN32
-	  i=WSAGetLastError ();
-	  if (i == WSAESHUTDOWN || i == WSAECONNABORTED)
-      { bus_unregister(socket);
-	    bus_disconnect(socket);
-		return -1;
-	  }
-      else if (i == WSAEWOULDBLOCK)
-#else
-      if (errno == EAGAIN)
-#endif
-      { if (!blocking && rcv==0) return 0;
-      }
-      else
-      { bus_disconnect(socket);
-        return -1;
-	  }
-    }
-    else if (i==0) 
-    { bus_unregister(socket);
-#ifdef WIN32
-#else
-      bus_disconnect(socket);
-#endif
+    if (i<0) /* error */
+    { 
+#ifdef WIN32 
+		i = WSAGetLastError();
+		if (i == WSAEWOULDBLOCK)
+		{  /* if the socket was used in nonblocking mode (motherboadr) 
+		      it might return 0 */
+			return 0;
+		}
+#endif		
+		bus_disconnect(socket);
+	  return -1;
+	}
+    else if (i==0) /* connection has closed */
+    { 
+/* there was a #ifdef WIN32 #else here to skip the disconnect with WIN32 */
+      bus_disconnect(socket); 
  	  return -1;
     } 
     else
       rcv += i;
-    if (rcv<size) 
-    { fd_set readfs;
-      FD_ZERO(&readfs);
-      FD_SET((unsigned)socket, &readfs);
-      select(socket+1, &readfs, NULL, NULL, NULL);
-    }
   }
   return rcv;
 }
 
 
 
-int receive_msg(int socket, int blocking,
+int receive_msg(int socket,
          unsigned char *type,
          unsigned char *size,
          unsigned char *slot,
@@ -183,56 +148,49 @@ int receive_msg(int socket, int blocking,
          unsigned int  *time,
          unsigned char address[8],
          unsigned char *payload)
-{
-	//recieve header and compute messgage size
-	unsigned char buf[MAXMESSAGE] = {0}, *msg=buf;
-        int msg_size;
-        int rcv;
+{ /* recieve header and compute messgage size */
+  unsigned char buf[MAXMESSAGE] = {0}, *msg=buf;
+  int msg_size;
+  int rcv;
 
-        if (socket<0)
-          return -1;
-        rcv = read_socket(socket,blocking,msg,4);
-        if (rcv <= 0)
-	  return rcv;
-	msg_size = message_size(msg);
+  if (!valid_socket(socket))
+    return -1;
+  rcv = read_socket(socket,msg,4);
+  if (rcv <= 0)
+    return rcv;
+  msg_size = message_size(msg);
 
-	//recieve rest of message
-        if (msg_size > 4)
-        { rcv = read_socket(socket,1,msg+4,msg_size-4);
-          if (rcv <0 )
-	    return rcv;
-        }
-	//transfer data to pointers
-	*type = *msg++;
-	*size = *msg++;
-	*slot = *msg++;
-	*id   = *msg++;
+  /*recieve rest of message */
+  if (msg_size > 4)
+  { rcv = read_socket(socket,msg+4,msg_size-4);
+    if (rcv <0 )
+      return rcv;
+  }
+  /* transfer data to pointers */
+  *type = *msg++;
+  *size = *msg++;
+  *slot = *msg++;
+  *id   = *msg++;
 
-	if(*type & TYPE_TIME)
-	  { *time = chartoint(msg); msg=msg+4; }
-
-	if(*type & TYPE_ADDRESS)
-	  { memmove(address, msg, 8); msg=msg+8;}
-
-	if(*type & TYPE_PAYLOAD)
-	  memmove(payload,msg, (*size+1) * 8);
-
-	return 1;
+  if(*type & TYPE_TIME)
+  { *time = chartoint(msg); msg=msg+4; }
+  if(*type & TYPE_ADDRESS)
+  { memmove(address, msg, 8); msg=msg+8;}
+  if(*type & TYPE_PAYLOAD)
+    memmove(payload,msg, (*size+1) * 8);
+  return 1;
 }
 
+
 int message_size(unsigned char msg[4])
-{
-	int size = 4;
-	if(msg[0] & TYPE_TIME)
-		size += 4;
-
-	if(msg[0] & TYPE_ADDRESS)
-		size += 8;
-
-	if(msg[0] & TYPE_PAYLOAD)
-		size += (msg[1]+1)*8;
-
-	return size;
+{ int size = 4;
+  if(msg[0] & TYPE_TIME)
+	size += 4;
+  if(msg[0] & TYPE_ADDRESS)
+	size += 8;
+  if(msg[0] & TYPE_PAYLOAD)
+	size += (msg[1]+1)*8;
+  return size;
 }
 
 
@@ -240,41 +198,45 @@ int message_size(unsigned char msg[4])
 
 /* functions to connect, register, unregister, and disconnect */
 
-int bus_connected=0;
+static int bus_connected=0;
+
+
 
 int bus_connect(char *hostname,int port)
 { int fd = 0;
   struct sockaddr_in host_addr;
   static char localhost[] = "localhost";
+  if (bus_connected) return INVALID_SOCKET;
 
   if (hostname == NULL)
     hostname = localhost;
   else if (hostname[0]==0)
     hostname = localhost;
 
-  fd = socket( PF_INET, SOCK_STREAM, 0);
+#ifdef WIN32
+  {	WSADATA wsadata;
+	if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
+    {  vmb_errormsg("Unable to initialize Winsock dll");
+	   return INVALID_SOCKET;
+	}
+  }
+#endif
+  fd = (int)socket( PF_INET, SOCK_STREAM, 0);
 
   if (!valid_socket(fd))
-    return fd;
-
-
-
-  /* make the socket non blocking */
-
+  {
 #ifdef WIN32
-  if (hMainWnd)
-  WSAAsyncSelect(fd, hMainWnd, WM_SOCKET, FD_READ | FD_CONNECT |FD_ACCEPT | FD_CLOSE);
-  else
-  {	 WSAEVENT  e;
-	 e = WSACreateEvent();
-	 WSAEventSelect (fd, e,FD_READ | FD_CONNECT | FD_ACCEPT | FD_CLOSE);
+	WSACleanup();
+#endif
+    return INVALID_SOCKET;
   }
-#else
-  { int flags;
-    flags = fcntl(fd,  F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(fd, F_SETFL,flags);
-  }
+
+#if 0
+   /* create an event corresponding to the socket */
+	 recv_event = CreateEvent(NULL,False,False,NULL);
+	 if (recv_event == NULL)
+       return INVALID_SOCKET;
+	 WSAEventSelect (fd, e,FD_READ );
 #endif
 
 { 
@@ -286,6 +248,9 @@ int bus_connect(char *hostname,int port)
     hp = gethostbyname(hostname);
     if (hp==NULL)
     { server_ip = 0;
+#ifdef WIN32
+      WSACleanup();
+#endif
       return INVALID_SOCKET;
     }
     memcpy(&server_ip,hp->h_addr,sizeof(server_ip));
@@ -298,22 +263,24 @@ int bus_connect(char *hostname,int port)
 { int i;
   i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
   if (i < 0 )
-    { 
+  {
 #ifdef WIN32
-      if (WSAGetLastError()!=WSAEWOULDBLOCK)
-#else
-      if (errno!=EINPROGRESS)
+	WSACleanup();
 #endif
-	  		  return INVALID_SOCKET;
-    }
-
-  /* wait until it is writable, then the connection has succeeded */
+    return INVALID_SOCKET;
+  }
+    /* wait until it is writable, then the connection has succeeded */
   { 
     fd_set write_set;
     FD_ZERO(&write_set);
     FD_SET((unsigned)fd, &write_set);
     if (select (fd+1, NULL, &write_set, NULL, NULL)<0)
-         return  INVALID_SOCKET;
+    {
+#ifdef WIN32
+	  WSACleanup();
+#endif
+      return INVALID_SOCKET;
+    }
   }
 }
   {
@@ -352,15 +319,15 @@ int bus_register(int socket,
 
   { int n;
 
-    n = strlen(name);
+    n = (int)strlen(name);
     if ((n/8+1)> 255-3)
        n = (255-4)*8;
 
-    strncpy(msg+24,name,n*8);
+    strncpy((char *)(msg+24),name,n*8);
     size += n/8+1;
   }
   /* send bus register message */
-  return send_msg(socket, 1, TYPE_BUS|TYPE_PAYLOAD, size, 0, ID_REGISTER, 0, 0, msg);
+  return send_msg(socket, TYPE_BUS|TYPE_PAYLOAD, size, 0, ID_REGISTER, 0, 0, msg);
 }
 
 
@@ -376,13 +343,19 @@ int bus_unregister(int socket)
 }
 
 int bus_disconnect(int socket)
-{  bus_connected = 0;
- if (valid_socket(socket))
+{ 
+  if (bus_connected)
+  { bus_connected = 0;
+
 #ifdef WIN32
-  return closesocket(socket);
+    if (valid_socket(socket))
+       closesocket(socket);
+	WSACleanup();
 #else
-  return close(socket);
+    if (valid_socket(socket))
+      close(socket);
 #endif
-  return -1;
+  }
+  return 0;
 }
 

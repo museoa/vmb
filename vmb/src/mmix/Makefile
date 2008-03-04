@@ -10,13 +10,12 @@
 MMIXDIR=/usr/local/bin
 AS=$(MMIXDIR)/mmix-as
 LD=$(MMIXDIR)/mmix-ld
-CFLAGS = -ggdb -Wall -I..
+CFLAGS = -ggdb -D_REENTRANT -Wall 
 PROG= mmix
 UTILDIR = ../util
-CFLAGS= -g -Wall
 CC = gcc
 INCDIRS = -I $(UTILDIR)
-LIBS    = -L $(UTILDIR) -lm -lvmb
+LIBS    = -L $(UTILDIR) -lm -lvmb -lpthread
 
 
 all: $(PROG)
@@ -24,7 +23,7 @@ all: $(PROG)
 utilities:
 	$(MAKE) -C  $(UTILDIR)
 
-OBJECTS=mmix-arith.o mmix-io.o mmix-sim.o address.o cache.o gdb.o remote-utils.o breaks.o
+OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o 
 
 abstime.h: abstime
 	./abstime > abstime.h
@@ -114,3 +113,5 @@ mmixal: mmix-arith.o mmixal.c
 	$(CC) $(CFLAGS) mmixal.c mmix-arith.o -o mmixal
 
 
+TAGS:
+	etags *.c *.h ../util/*.c ../util/*.h

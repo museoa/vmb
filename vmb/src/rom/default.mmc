@@ -42,7 +42,7 @@ interrupt 18
 
 #if rom
 address 0000000000000000
-file ../rom/bios.rom
+file ../rom/bios.img
 #endif
 
 #if ram

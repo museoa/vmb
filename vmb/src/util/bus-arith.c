@@ -38,17 +38,17 @@ void inttochar(int val, unsigned char buffer[4])
 	buffer[0] =  val;
 }
 
-int chartoint(unsigned char buffer[4])
+int chartoint(const unsigned char buffer[4])
 {
-	int val = 0;
-	val = buffer[0] | val;
-	val = val << 8;
-	val = buffer[1] | val;
-	val = val << 8;
-	val = buffer[2] | val;
-	val = val << 8;
-	val = buffer[3] | val;
-	return val;
+  int val;
+  val = buffer[0];
+  val = val << 8;
+  val = buffer[1] | val;
+  val = val << 8;
+  val = buffer[2] | val;
+  val = val << 8;
+  val = buffer[3] | val;
+  return val;
 }
 
 

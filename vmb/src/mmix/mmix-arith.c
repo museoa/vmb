@@ -26,13 +26,13 @@
 #define buf_max (buf+777)  \
 
 /*1:*/
-#line 32 "mmix-arith.w"
+#line 32 "./mmix-arith.w"
 
 #include <stdio.h> 
 #include <string.h> 
 #include <ctype.h> 
 /*2:*/
-#line 49 "mmix-arith.w"
+#line 49 "./mmix-arith.w"
 
 #ifdef __STDC__
 #define ARGS(list) list
@@ -41,26 +41,26 @@
 #endif
 
 /*:2*/
-#line 36 "mmix-arith.w"
+#line 36 "./mmix-arith.w"
 
 typedef enum{false,true}bool;
 /*3:*/
-#line 60 "mmix-arith.w"
+#line 60 "./mmix-arith.w"
 
 typedef unsigned int tetra;
 
 typedef struct{tetra h,l;}octa;
 
 /*:3*/
-#line 38 "mmix-arith.w"
+#line 38 "./mmix-arith.w"
 
 /*36:*/
-#line 604 "mmix-arith.w"
+#line 604 "./mmix-arith.w"
 
 typedef enum{zro,num,inf,nan}ftype;
 
 /*:36*//*59:*/
-#line 1104 "mmix-arith.w"
+#line 1104 "./mmix-arith.w"
 
 typedef struct{
 int a;
@@ -69,10 +69,10 @@ tetra dat[bignum_prec];
 }bignum;
 
 /*:59*/
-#line 39 "mmix-arith.w"
+#line 39 "./mmix-arith.w"
 
 /*4:*/
-#line 67 "mmix-arith.w"
+#line 67 "./mmix-arith.w"
 
 octa zero_octa;
 octa neg_one= {-1,-1};
@@ -82,37 +82,37 @@ octa aux;
 bool overflow;
 
 /*:4*//*9:*/
-#line 174 "mmix-arith.w"
+#line 174 "./mmix-arith.w"
 
 extern octa aux;
 extern bool overflow;
 
 /*:9*//*30:*/
-#line 463 "mmix-arith.w"
+#line 463 "./mmix-arith.w"
 
 int cur_round;
 
 /*:30*//*32:*/
-#line 527 "mmix-arith.w"
+#line 527 "./mmix-arith.w"
 
 int exceptions;
 
 /*:32*//*69:*/
-#line 1353 "mmix-arith.w"
+#line 1353 "./mmix-arith.w"
 
 octa val;
 char*next_char;
 
 /*:69*//*75:*/
-#line 1426 "mmix-arith.w"
+#line 1426 "./mmix-arith.w"
 
 static char buf[785]= "00000000";
 
 /*:75*/
-#line 40 "mmix-arith.w"
+#line 40 "./mmix-arith.w"
 
 /*5:*/
-#line 78 "mmix-arith.w"
+#line 78 "./mmix-arith.w"
 
 octa oplus ARGS((octa,octa));
 octa oplus(y,z)
@@ -135,7 +135,7 @@ return x;
 }
 
 /*:5*//*6:*/
-#line 102 "mmix-arith.w"
+#line 102 "./mmix-arith.w"
 
 octa incr ARGS((octa,int));
 octa incr(y,delta)
@@ -150,7 +150,7 @@ return x;
 }
 
 /*:6*//*7:*/
-#line 117 "mmix-arith.w"
+#line 117 "./mmix-arith.w"
 
 octa shift_left ARGS((octa,int));
 octa shift_left(y,s)
@@ -177,7 +177,7 @@ return y;
 }
 
 /*:7*//*8:*/
-#line 150 "mmix-arith.w"
+#line 150 "./mmix-arith.w"
 
 octa omult ARGS((octa,octa));
 octa omult(y,z)
@@ -188,13 +188,13 @@ tetra u[4],v[4],w[8];
 register tetra t;
 octa acc;
 /*10:*/
-#line 178 "mmix-arith.w"
+#line 178 "./mmix-arith.w"
 
 u[3]= y.h>>16,u[2]= y.h&0xffff,u[1]= y.l>>16,u[0]= y.l&0xffff;
 v[3]= z.h>>16,v[2]= z.h&0xffff,v[1]= z.l>>16,v[0]= z.l&0xffff;
 
 /*:10*/
-#line 159 "mmix-arith.w"
+#line 159 "./mmix-arith.w"
 ;
 for(j= 0;j<4;j++)w[j]= 0;
 for(j= 0;j<4;j++)
@@ -207,19 +207,19 @@ w[i+j]= t&0xffff,k= t>>16;
 w[j+4]= k;
 }
 /*11:*/
-#line 182 "mmix-arith.w"
+#line 182 "./mmix-arith.w"
 
 aux.h= (w[7]<<16)+w[6],aux.l= (w[5]<<16)+w[4];
 acc.h= (w[3]<<16)+w[2],acc.l= (w[1]<<16)+w[0];
 
 /*:11*/
-#line 170 "mmix-arith.w"
+#line 170 "./mmix-arith.w"
 ;
 return acc;
 }
 
 /*:8*//*12:*/
-#line 191 "mmix-arith.w"
+#line 191 "./mmix-arith.w"
 
 octa signed_omult ARGS((octa,octa));
 octa signed_omult(y,z)
@@ -234,7 +234,7 @@ return acc;
 }
 
 /*:12*//*13:*/
-#line 215 "mmix-arith.w"
+#line 215 "./mmix-arith.w"
 
 octa odiv ARGS((octa,octa,octa));
 octa odiv(x,y,z)
@@ -245,35 +245,35 @@ tetra u[8],v[4],q[4],mask,qhat,rhat,vh,vmh;
 register tetra t;
 octa acc;
 /*14:*/
-#line 234 "mmix-arith.w"
+#line 234 "./mmix-arith.w"
 
 if(x.h> z.h||(x.h==z.h&&x.l>=z.l)){
 aux= y;return x;
 }
 
 /*:14*/
-#line 224 "mmix-arith.w"
+#line 224 "./mmix-arith.w"
 ;
 /*15:*/
-#line 239 "mmix-arith.w"
+#line 239 "./mmix-arith.w"
 
 u[7]= x.h>>16,u[6]= x.h&0xffff,u[5]= x.l>>16,u[4]= x.l&0xffff;
 u[3]= y.h>>16,u[2]= y.h&0xffff,u[1]= y.l>>16,u[0]= y.l&0xffff;
 v[3]= z.h>>16,v[2]= z.h&0xffff,v[1]= z.l>>16,v[0]= z.l&0xffff;
 
 /*:15*/
-#line 225 "mmix-arith.w"
+#line 225 "./mmix-arith.w"
 ;
 /*16:*/
-#line 244 "mmix-arith.w"
+#line 244 "./mmix-arith.w"
 
 for(n= 4;v[n-1]==0;n--);
 
 /*:16*/
-#line 226 "mmix-arith.w"
+#line 226 "./mmix-arith.w"
 ;
 /*17:*/
-#line 250 "mmix-arith.w"
+#line 250 "./mmix-arith.w"
 
 vh= v[n-1];
 for(d= 0;vh<0x8000;d++,vh<<= 1);
@@ -289,14 +289,14 @@ vh= v[n-1];
 vmh= (n> 1?v[n-2]:0);
 
 /*:17*/
-#line 227 "mmix-arith.w"
+#line 227 "./mmix-arith.w"
 ;
 for(j= 3;j>=0;j--)/*20:*/
-#line 276 "mmix-arith.w"
+#line 276 "./mmix-arith.w"
 
 {
 /*21:*/
-#line 284 "mmix-arith.w"
+#line 284 "./mmix-arith.w"
 
 t= (u[j+n]<<16)+u[j+n-1];
 qhat= t/vh,rhat= t-vh*qhat;
@@ -306,10 +306,10 @@ if(rhat>=0x10000)break;
 }
 
 /*:21*/
-#line 278 "mmix-arith.w"
+#line 278 "./mmix-arith.w"
 ;
 /*22:*/
-#line 296 "mmix-arith.w"
+#line 296 "./mmix-arith.w"
 
 for(i= k= 0;i<n;i++){
 t= u[i+j]+0xffff0000-k-qhat*v[i];
@@ -317,10 +317,10 @@ u[i+j]= t&0xffff,k= 0xffff-(t>>16);
 }
 
 /*:22*/
-#line 279 "mmix-arith.w"
+#line 279 "./mmix-arith.w"
 ;
 /*23:*/
-#line 305 "mmix-arith.w"
+#line 305 "./mmix-arith.w"
 
 if(u[j+n]!=k){
 qhat--;
@@ -331,16 +331,16 @@ u[i+j]= t&0xffff,k= t>>16;
 }
 
 /*:23*/
-#line 280 "mmix-arith.w"
+#line 280 "./mmix-arith.w"
 ;
 q[j]= qhat;
 }
 
 /*:20*/
-#line 228 "mmix-arith.w"
+#line 228 "./mmix-arith.w"
 ;
 /*18:*/
-#line 264 "mmix-arith.w"
+#line 264 "./mmix-arith.w"
 
 mask= (1<<d)-1;
 for(j= 3;j>=n;j--)u[j]= 0;
@@ -350,22 +350,22 @@ u[j]= t>>d,k= t&mask;
 }
 
 /*:18*/
-#line 229 "mmix-arith.w"
+#line 229 "./mmix-arith.w"
 ;
 /*19:*/
-#line 272 "mmix-arith.w"
+#line 272 "./mmix-arith.w"
 
 acc.h= (q[3]<<16)+q[2],acc.l= (q[1]<<16)+q[0];
 aux.h= (u[3]<<16)+u[2],aux.l= (u[1]<<16)+u[0];
 
 /*:19*/
-#line 230 "mmix-arith.w"
+#line 230 "./mmix-arith.w"
 ;
 return acc;
 }
 
 /*:13*//*24:*/
-#line 317 "mmix-arith.w"
+#line 317 "./mmix-arith.w"
 
 octa signed_odiv ARGS((octa,octa));
 octa signed_odiv(y,z)
@@ -392,7 +392,7 @@ else return ominus(zero_octa,q);
 }
 
 /*:24*//*25:*/
-#line 346 "mmix-arith.w"
+#line 346 "./mmix-arith.w"
 
 octa oand ARGS((octa,octa));
 octa oand(y,z)
@@ -419,7 +419,7 @@ return x;
 }
 
 /*:25*//*26:*/
-#line 386 "mmix-arith.w"
+#line 386 "./mmix-arith.w"
 
 int count_bits ARGS((tetra));
 int count_bits(x)
@@ -434,7 +434,7 @@ return(xx+(xx>>16))&0xff;
 }
 
 /*:26*//*27:*/
-#line 402 "mmix-arith.w"
+#line 402 "./mmix-arith.w"
 
 tetra byte_diff ARGS((tetra,tetra));
 tetra byte_diff(y,z)
@@ -449,7 +449,7 @@ return x+((d&(m-(m>>8)))<<8);
 }
 
 /*:27*//*28:*/
-#line 420 "mmix-arith.w"
+#line 420 "./mmix-arith.w"
 
 tetra wyde_diff ARGS((tetra,tetra));
 tetra wyde_diff(y,z)
@@ -461,7 +461,7 @@ return y-(z^((y^z)&(b-a-(b>>16))));
 }
 
 /*:28*//*29:*/
-#line 433 "mmix-arith.w"
+#line 433 "./mmix-arith.w"
 
 octa bool_mult ARGS((octa,octa,bool));
 octa bool_mult(y,z,xor)
@@ -483,7 +483,7 @@ return x;
 }
 
 /*:29*//*31:*/
-#line 502 "mmix-arith.w"
+#line 502 "./mmix-arith.w"
 
 octa fpack ARGS((octa,int,char,int));
 octa fpack(f,e,s,r)
@@ -507,7 +507,7 @@ e= 0;
 }else o= f;
 }
 /*33:*/
-#line 532 "mmix-arith.w"
+#line 532 "./mmix-arith.w"
 
 if(o.l&3)exceptions|= X_BIT;
 switch(r){
@@ -524,12 +524,12 @@ if(s=='-')o.h|= sign_bit;
 return o;
 
 /*:33*/
-#line 524 "mmix-arith.w"
+#line 524 "./mmix-arith.w"
 ;
 }
 
 /*:31*//*34:*/
-#line 550 "mmix-arith.w"
+#line 550 "./mmix-arith.w"
 
 tetra sfpack ARGS((octa,int,char,int));
 tetra sfpack(f,e,s,r)
@@ -556,7 +556,7 @@ e= 0x380;
 }
 }
 /*35:*/
-#line 578 "mmix-arith.w"
+#line 578 "./mmix-arith.w"
 
 if(o&3)exceptions|= X_BIT;
 switch(r){
@@ -573,12 +573,12 @@ if(s=='-')o|= sign_bit;
 return o;
 
 /*:35*/
-#line 575 "mmix-arith.w"
+#line 575 "./mmix-arith.w"
 ;
 }
 
 /*:34*//*37:*/
-#line 607 "mmix-arith.w"
+#line 607 "./mmix-arith.w"
 
 ftype funpack ARGS((octa,octa*,int*,char*));
 ftype funpack(x,f,e,s)
@@ -606,7 +606,7 @@ do{ee--;*f= shift_left(*f,1);}while(!(f->h&0x400000));
 }
 
 /*:37*//*38:*/
-#line 633 "mmix-arith.w"
+#line 633 "./mmix-arith.w"
 
 ftype sfunpack ARGS((tetra,octa*,int*,char*));
 ftype sfunpack(x,f,e,s)
@@ -633,7 +633,7 @@ do{ee--;*f= shift_left(*f,1);}while(!(f->h&0x400000));
 }
 
 /*:38*//*39:*/
-#line 662 "mmix-arith.w"
+#line 662 "./mmix-arith.w"
 
 octa load_sf ARGS((tetra));
 octa load_sf(z)
@@ -652,7 +652,7 @@ return x;
 }
 
 /*:39*//*40:*/
-#line 679 "mmix-arith.w"
+#line 679 "./mmix-arith.w"
 
 tetra store_sf ARGS((octa));
 tetra store_sf(x)
@@ -674,7 +674,7 @@ return z;
 }
 
 /*:40*//*41:*/
-#line 704 "mmix-arith.w"
+#line 704 "./mmix-arith.w"
 
 octa fmult ARGS((octa,octa));
 octa fmult(y,z)
@@ -691,7 +691,7 @@ zt= funpack(z,&zf,&ze,&zs);
 xs= ys+zs-'+';
 switch(4*yt+zt){
 /*42:*/
-#line 730 "mmix-arith.w"
+#line 730 "./mmix-arith.w"
 
 case 4*nan+nan:if(!(y.h&0x80000))exceptions|= I_BIT;
 case 4*zro+nan:case 4*num+nan:case 4*inf+nan:
@@ -702,14 +702,14 @@ if(!(y.h&0x80000))exceptions|= I_BIT,y.h|= 0x80000;
 return y;
 
 /*:42*/
-#line 719 "mmix-arith.w"
+#line 719 "./mmix-arith.w"
 ;
 case 4*zro+zro:case 4*zro+num:case 4*num+zro:x= zero_octa;break;
 case 4*num+inf:case 4*inf+num:case 4*inf+inf:x= inf_octa;break;
 case 4*zro+inf:case 4*inf+zro:x= standard_NaN;
 exceptions|= I_BIT;break;
 case 4*num+num:/*43:*/
-#line 739 "mmix-arith.w"
+#line 739 "./mmix-arith.w"
 
 xe= ye+ze-0x3fd;
 x= omult(yf,shift_left(zf,9));
@@ -719,7 +719,7 @@ if(x.h||x.l)xf.l|= 1;
 return fpack(xf,xe,xs,cur_round);
 
 /*:43*/
-#line 724 "mmix-arith.w"
+#line 724 "./mmix-arith.w"
 ;
 }
 if(xs=='-')x.h|= sign_bit;
@@ -727,7 +727,7 @@ return x;
 }
 
 /*:41*//*44:*/
-#line 747 "mmix-arith.w"
+#line 747 "./mmix-arith.w"
 
 octa fdivide ARGS((octa,octa));
 octa fdivide(y,z)
@@ -744,7 +744,7 @@ zt= funpack(z,&zf,&ze,&zs);
 xs= ys+zs-'+';
 switch(4*yt+zt){
 /*42:*/
-#line 730 "mmix-arith.w"
+#line 730 "./mmix-arith.w"
 
 case 4*nan+nan:if(!(y.h&0x80000))exceptions|= I_BIT;
 case 4*zro+nan:case 4*num+nan:case 4*inf+nan:
@@ -755,7 +755,7 @@ if(!(y.h&0x80000))exceptions|= I_BIT,y.h|= 0x80000;
 return y;
 
 /*:42*/
-#line 762 "mmix-arith.w"
+#line 762 "./mmix-arith.w"
 ;
 case 4*zro+inf:case 4*zro+num:case 4*num+inf:x= zero_octa;break;
 case 4*num+zro:exceptions|= Z_BIT;
@@ -763,7 +763,7 @@ case 4*inf+num:case 4*inf+zro:x= inf_octa;break;
 case 4*zro+zro:case 4*inf+inf:x= standard_NaN;
 exceptions|= I_BIT;break;
 case 4*num+num:/*45:*/
-#line 774 "mmix-arith.w"
+#line 774 "./mmix-arith.w"
 
 xe= ye-ze+0x3fd;
 xf= odiv(yf,zero_octa,shift_left(zf,9));
@@ -776,7 +776,7 @@ if(aux.h||aux.l)xf.l|= 1;
 return fpack(xf,xe,xs,cur_round);
 
 /*:45*/
-#line 768 "mmix-arith.w"
+#line 768 "./mmix-arith.w"
 ;
 }
 if(xs=='-')x.h|= sign_bit;
@@ -784,7 +784,7 @@ return x;
 }
 
 /*:44*//*46:*/
-#line 789 "mmix-arith.w"
+#line 789 "./mmix-arith.w"
 
 octa fplus ARGS((octa,octa));
 octa fplus(y,z)
@@ -800,7 +800,7 @@ yt= funpack(y,&yf,&ye,&ys);
 zt= funpack(z,&zf,&ze,&zs);
 switch(4*yt+zt){
 /*42:*/
-#line 730 "mmix-arith.w"
+#line 730 "./mmix-arith.w"
 
 case 4*nan+nan:if(!(y.h&0x80000))exceptions|= I_BIT;
 case 4*zro+nan:case 4*num+nan:case 4*inf+nan:
@@ -811,7 +811,7 @@ if(!(y.h&0x80000))exceptions|= I_BIT,y.h|= 0x80000;
 return y;
 
 /*:42*/
-#line 803 "mmix-arith.w"
+#line 803 "./mmix-arith.w"
 ;
 case 4*zro+num:return fpack(zf,ze,zs,ROUND_OFF);break;
 case 4*num+zro:return fpack(yf,ye,ys,ROUND_OFF);break;
@@ -822,12 +822,12 @@ case 4*num+inf:case 4*zro+inf:x= inf_octa;xs= zs;break;
 case 4*inf+num:case 4*inf+zro:x= inf_octa;xs= ys;break;
 case 4*num+num:if(y.h!=(z.h^0x80000000)||y.l!=z.l)
 /*47:*/
-#line 820 "mmix-arith.w"
+#line 820 "./mmix-arith.w"
 
 {octa o,oo;
 if(ye<ze||(ye==ze&&(yf.h<zf.h||(yf.h==zf.h&&yf.l<zf.l))))
 /*48:*/
-#line 838 "mmix-arith.w"
+#line 838 "./mmix-arith.w"
 
 {
 o= yf,yf= zf,zf= o;
@@ -836,12 +836,12 @@ d= ys,ys= zs,zs= d;
 }
 
 /*:48*/
-#line 823 "mmix-arith.w"
+#line 823 "./mmix-arith.w"
 ;
 d= ye-ze;
 xs= ys,xe= ye;
 if(d)/*49:*/
-#line 858 "mmix-arith.w"
+#line 858 "./mmix-arith.w"
 
 {
 if(d<=2)zf= shift_right(zf,d,1);
@@ -856,7 +856,7 @@ if(oo.l!=o.l||oo.h!=o.h)zf.l|= 1;
 }
 
 /*:49*/
-#line 826 "mmix-arith.w"
+#line 826 "./mmix-arith.w"
 ;
 if(ys==zs){
 xf= oplus(yf,zf);
@@ -870,7 +870,7 @@ return fpack(xf,xe,xs,cur_round);
 }
 
 /*:47*/
-#line 812 "mmix-arith.w"
+#line 812 "./mmix-arith.w"
 ;
 case 4*zro+zro:x= zero_octa;
 xs= (ys==zs?ys:cur_round==ROUND_DOWN?'-':'+');break;
@@ -880,7 +880,7 @@ return x;
 }
 
 /*:46*//*50:*/
-#line 882 "mmix-arith.w"
+#line 882 "./mmix-arith.w"
 
 int fepscomp ARGS((octa,octa,octa,int));
 int fepscomp(y,z,e,s)
@@ -911,20 +911,20 @@ case 4*zro+num:case 4*num+zro:if(!s)return 0;
 case 4*num+num:break;
 }
 /*51:*/
-#line 918 "mmix-arith.w"
+#line 918 "./mmix-arith.w"
 
 /*52:*/
-#line 933 "mmix-arith.w"
+#line 933 "./mmix-arith.w"
 
 if(ye<0)yf= shift_left(y,2),ye= 0;
 if(ze<0)zf= shift_left(z,2),ze= 0;
 
 /*:52*/
-#line 919 "mmix-arith.w"
+#line 919 "./mmix-arith.w"
 ;
 if(ye<ze||(ye==ze&&(yf.h<zf.h||(yf.h==zf.h&&yf.l<zf.l))))
 /*48:*/
-#line 838 "mmix-arith.w"
+#line 838 "./mmix-arith.w"
 
 {
 o= yf,yf= zf,zf= o;
@@ -933,14 +933,14 @@ d= ys,ys= zs,zs= d;
 }
 
 /*:48*/
-#line 921 "mmix-arith.w"
+#line 921 "./mmix-arith.w"
 ;
 if(ze==zero_exponent)ze= ye;
 d= ye-ze;
 if(!s)ee-= d;
 if(ee>=1023)return 1;
 /*53:*/
-#line 950 "mmix-arith.w"
+#line 950 "./mmix-arith.w"
 
 if(d> 54)o= zero_octa,oo= zf;
 else o= shift_right(zf,d,1),oo= shift_left(o,d);
@@ -951,7 +951,7 @@ o= incr(o,ys==zs?-1:1);
 o= (ys==zs?ominus(yf,o):oplus(yf,o));
 
 /*:53*/
-#line 926 "mmix-arith.w"
+#line 926 "./mmix-arith.w"
 ;
 if(!o.h&&!o.l)return 1;
 if(ee<968)return 0;
@@ -960,12 +960,12 @@ else ef= shift_right(ef,1021-ee,1);
 return o.h<ef.h||(o.h==ef.h&&o.l<=ef.l);
 
 /*:51*/
-#line 911 "mmix-arith.w"
+#line 911 "./mmix-arith.w"
 ;
 }
 
 /*:50*//*54:*/
-#line 966 "mmix-arith.w"
+#line 966 "./mmix-arith.w"
 
 static void bignum_times_ten ARGS((bignum*));
 static void bignum_dec ARGS((bignum*,bignum*,tetra));
@@ -975,14 +975,14 @@ void print_float(x)
 octa x;
 {
 /*56:*/
-#line 1029 "mmix-arith.w"
+#line 1029 "./mmix-arith.w"
 
 octa f,g;
 register int e;
 register int j,k;
 
 /*:56*//*66:*/
-#line 1275 "mmix-arith.w"
+#line 1275 "./mmix-arith.w"
 
 bignum ff,gg;
 bignum tt;
@@ -990,17 +990,17 @@ char s[18];
 register char*p;
 
 /*:66*/
-#line 974 "mmix-arith.w"
+#line 974 "./mmix-arith.w"
 ;
 if(x.h&sign_bit)printf("-");
 /*55:*/
-#line 1013 "mmix-arith.w"
+#line 1013 "./mmix-arith.w"
 
 f= shift_left(x,1);
 e= f.h>>21;
 f.h&= 0x1fffff;
 if(!f.h&&!f.l)/*57:*/
-#line 1039 "mmix-arith.w"
+#line 1039 "./mmix-arith.w"
 
 {
 if(!e){
@@ -1015,7 +1015,7 @@ g.h= 0x400000,g.l= 2;
 }
 
 /*:57*/
-#line 1017 "mmix-arith.w"
+#line 1017 "./mmix-arith.w"
 
 else{
 g= incr(f,1);
@@ -1029,10 +1029,10 @@ e= 0x3ff;
 }
 
 /*:55*/
-#line 977 "mmix-arith.w"
+#line 977 "./mmix-arith.w"
 ;
 /*63:*/
-#line 1189 "mmix-arith.w"
+#line 1189 "./mmix-arith.w"
 
 k= (magic_offset-e)/28;
 ff.dat[k-1]= shift_right(f,magic_offset+28-e-28*k,1).l&0xfffffff;
@@ -1047,13 +1047,13 @@ gg.a= (gg.dat[k-1]?k-1:k);
 gg.b= (gg.dat[k+1]?k+1:k);
 
 /*:63*/
-#line 978 "mmix-arith.w"
+#line 978 "./mmix-arith.w"
 ;
 /*64:*/
-#line 1217 "mmix-arith.w"
+#line 1217 "./mmix-arith.w"
 
 if(e> 0x401)/*65:*/
-#line 1248 "mmix-arith.w"
+#line 1248 "./mmix-arith.w"
 
 {register int open= x.l&1;
 tt.dat[origin]= 10;
@@ -1077,7 +1077,7 @@ done:;
 }
 
 /*:65*/
-#line 1218 "mmix-arith.w"
+#line 1218 "./mmix-arith.w"
 
 else{
 if(ff.a> origin)ff.dat[origin]= 0;
@@ -1092,10 +1092,10 @@ bignum_times_ten(&gg);
 *p= '\0';
 
 /*:64*/
-#line 979 "mmix-arith.w"
+#line 979 "./mmix-arith.w"
 ;
 /*67:*/
-#line 1290 "mmix-arith.w"
+#line 1290 "./mmix-arith.w"
 
 if(e> 17||e<(int)strlen(s)-17)
 printf("%c%s%se%d",s[0],(s[1]?".":""),s+1,e-1);
@@ -1104,12 +1104,12 @@ else if(strlen(s)>=e)printf("%.*s.%s",e,s,s+e);
 else printf("%s%0*d.",s,e-(int)strlen(s),0);
 
 /*:67*/
-#line 980 "mmix-arith.w"
+#line 980 "./mmix-arith.w"
 ;
 }
 
 /*:54*//*60:*/
-#line 1114 "mmix-arith.w"
+#line 1114 "./mmix-arith.w"
 
 static void bignum_times_ten(f)
 bignum*f;
@@ -1126,7 +1126,7 @@ if(f->dat[f->b]==0&&f->b> f->a)f->b--;
 }
 
 /*:60*//*61:*/
-#line 1132 "mmix-arith.w"
+#line 1132 "./mmix-arith.w"
 
 static int bignum_compare(f,g)
 bignum*f,*g;
@@ -1142,7 +1142,7 @@ return-1;
 }
 
 /*:61*//*62:*/
-#line 1149 "mmix-arith.w"
+#line 1149 "./mmix-arith.w"
 
 static void bignum_dec(f,g,r)
 bignum*f,*g;
@@ -1171,7 +1171,7 @@ while(f->dat[f->b]==0)f->b--;
 }
 
 /*:62*//*68:*/
-#line 1334 "mmix-arith.w"
+#line 1334 "./mmix-arith.w"
 
 static void bignum_double ARGS((bignum*));
 int scan_const ARGS((char*));
@@ -1179,28 +1179,28 @@ int scan_const(s)
 char*s;
 {
 /*70:*/
-#line 1357 "mmix-arith.w"
+#line 1357 "./mmix-arith.w"
 
 register char*p,*q;
 register bool NaN;
 int sign;
 
 /*:70*//*76:*/
-#line 1429 "mmix-arith.w"
+#line 1429 "./mmix-arith.w"
 
 register char*dec_pt;
 register int exp;
 register int zeros;
 
 /*:76*//*81:*/
-#line 1497 "mmix-arith.w"
+#line 1497 "./mmix-arith.w"
 
 register int k,x;
 register char*pp;
 bignum ff,tt;
 
 /*:81*/
-#line 1340 "mmix-arith.w"
+#line 1340 "./mmix-arith.w"
 ;
 val.h= val.l= 0;
 p= s;
@@ -1209,7 +1209,7 @@ if(strncmp(p,"NaN",3)==0)NaN= true,p+= 3;
 else NaN= false;
 if((isdigit(*p)&&!NaN)||(*p=='.'&&isdigit(*(p+1))))
 /*73:*/
-#line 1390 "mmix-arith.w"
+#line 1390 "./mmix-arith.w"
 
 {
 for(q= buf0,dec_pt= (char*)0;isdigit(*p);p++){
@@ -1221,7 +1221,7 @@ else if(*(q-1)=='0')*(q-1)= *p;
 }
 if(NaN)*q++= '1';
 if(*p=='.')/*74:*/
-#line 1409 "mmix-arith.w"
+#line 1409 "./mmix-arith.w"
 
 {
 dec_pt= q;
@@ -1233,11 +1233,11 @@ else if(*(q-1)=='0')*(q-1)= *p;
 }
 
 /*:74*/
-#line 1400 "mmix-arith.w"
+#line 1400 "./mmix-arith.w"
 ;
 next_char= p;
 if(*p=='e'&&!NaN)/*77:*/
-#line 1441 "mmix-arith.w"
+#line 1441 "./mmix-arith.w"
 
 {register char exp_sign;
 p++;
@@ -1252,15 +1252,15 @@ next_char= p;
 }
 
 /*:77*/
-#line 1402 "mmix-arith.w"
+#line 1402 "./mmix-arith.w"
 
 else exp= 0;
 if(dec_pt)/*78:*/
-#line 1454 "mmix-arith.w"
+#line 1454 "./mmix-arith.w"
 
 {
 /*79:*/
-#line 1471 "mmix-arith.w"
+#line 1471 "./mmix-arith.w"
 
 x= buf+341+zeros-dec_pt-exp;
 if(q==buf0||x>=1413){
@@ -1274,7 +1274,7 @@ for(p= q;p<q+8;p++)*p= '0';
 q= q-1-(q+341+zeros-dec_pt-exp)%9;
 for(p= buf0-x%9,k= ff.a;p<=q&&k<=156;p+= 9,k++)
 /*80:*/
-#line 1491 "mmix-arith.w"
+#line 1491 "./mmix-arith.w"
 
 {
 for(x= *p-'0',pp= p+1;pp<p+9;pp++)x= 10*x+*pp-'0';
@@ -1282,7 +1282,7 @@ ff.dat[k]= x;
 }
 
 /*:80*/
-#line 1484 "mmix-arith.w"
+#line 1484 "./mmix-arith.w"
 ;
 ff.b= k-1;
 for(x= 0;p<=q;p+= 9)if(strncmp(p,"000000000",9)!=0)x= 1;
@@ -1291,10 +1291,10 @@ ff.dat[156]+= x;
 while(ff.dat[ff.b]==0)ff.b--;
 
 /*:79*/
-#line 1456 "mmix-arith.w"
+#line 1456 "./mmix-arith.w"
 ;
 /*83:*/
-#line 1520 "mmix-arith.w"
+#line 1520 "./mmix-arith.w"
 
 val= zero_octa;
 if(ff.a> 36){
@@ -1322,10 +1322,10 @@ if(ff.a==bignum_prec-1)break;
 if(k==0)val.l|= 1;
 
 /*:83*/
-#line 1457 "mmix-arith.w"
+#line 1457 "./mmix-arith.w"
 ;
 packit:/*84:*/
-#line 1553 "mmix-arith.w"
+#line 1553 "./mmix-arith.w"
 
 val= fpack(val,exp,sign,ROUND_NEAR);
 if(NaN){
@@ -1335,23 +1335,23 @@ else val.h|= 0x40000000;
 }
 
 /*:84*/
-#line 1458 "mmix-arith.w"
+#line 1458 "./mmix-arith.w"
 ;
 return 1;
 }
 
 /*:78*/
-#line 1404 "mmix-arith.w"
+#line 1404 "./mmix-arith.w"
 ;
 if(sign=='-')val= ominus(zero_octa,val);
 return 0;
 }
 
 /*:73*/
-#line 1347 "mmix-arith.w"
+#line 1347 "./mmix-arith.w"
 ;
 if(NaN)/*71:*/
-#line 1362 "mmix-arith.w"
+#line 1362 "./mmix-arith.w"
 
 {
 next_char= p;
@@ -1360,10 +1360,10 @@ goto packit;
 }
 
 /*:71*/
-#line 1348 "mmix-arith.w"
+#line 1348 "./mmix-arith.w"
 ;
 if(strncmp(p,"Inf",3)==0)/*72:*/
-#line 1369 "mmix-arith.w"
+#line 1369 "./mmix-arith.w"
 
 {
 next_char= p+3;
@@ -1371,13 +1371,13 @@ goto make_it_infinite;
 }
 
 /*:72*/
-#line 1349 "mmix-arith.w"
+#line 1349 "./mmix-arith.w"
 ;
 no_const_found:next_char= s;return-1;
 }
 
 /*:68*//*82:*/
-#line 1505 "mmix-arith.w"
+#line 1505 "./mmix-arith.w"
 
 static void bignum_double(f)
 bignum*f;
@@ -1394,7 +1394,7 @@ if(f->dat[f->b]==0&&f->b> f->a)f->b--;
 }
 
 /*:82*//*85:*/
-#line 1569 "mmix-arith.w"
+#line 1569 "./mmix-arith.w"
 
 int fcomp ARGS((octa,octa));
 int fcomp(y,z)
@@ -1425,7 +1425,7 @@ return(ys=='-'?-x:x);
 }
 
 /*:85*//*86:*/
-#line 1602 "mmix-arith.w"
+#line 1602 "./mmix-arith.w"
 
 octa fintegerize ARGS((octa,int));
 octa fintegerize(z,r)
@@ -1442,7 +1442,7 @@ switch(zt){
 case nan:if(!(z.h&0x80000)){exceptions|= I_BIT;z.h|= 0x80000;}
 case inf:case zro:return z;
 case num:/*87:*/
-#line 1621 "mmix-arith.w"
+#line 1621 "./mmix-arith.w"
 
 if(ze>=1074)return fpack(zf,ze,zs,ROUND_OFF);
 if(ze<=1020)xf.h= 0,xf.l= 1;
@@ -1465,13 +1465,13 @@ if(zs=='-')xf.h|= sign_bit;
 return xf;
 
 /*:87*/
-#line 1617 "mmix-arith.w"
+#line 1617 "./mmix-arith.w"
 ;
 }
 }
 
 /*:86*//*88:*/
-#line 1644 "mmix-arith.w"
+#line 1644 "./mmix-arith.w"
 
 octa fixit ARGS((octa,int));
 octa fixit(z,r)
@@ -1500,7 +1500,7 @@ return(zs=='-'?ominus(zero_octa,o):o);
 }
 
 /*:88*//*89:*/
-#line 1675 "mmix-arith.w"
+#line 1675 "./mmix-arith.w"
 
 octa floatit ARGS((octa,int,int,int));
 octa floatit(z,r,u,p)
@@ -1524,7 +1524,7 @@ z= shift_right(z,1,1);
 z.l|= t;
 }
 if(p)/*90:*/
-#line 1701 "mmix-arith.w"
+#line 1701 "./mmix-arith.w"
 
 {
 register int ex;register tetra t;
@@ -1535,13 +1535,13 @@ exceptions= ex;
 }
 
 /*:90*/
-#line 1697 "mmix-arith.w"
+#line 1697 "./mmix-arith.w"
 ;
 return fpack(z,e,s,r);
 }
 
 /*:89*//*91:*/
-#line 1712 "mmix-arith.w"
+#line 1712 "./mmix-arith.w"
 
 octa froot ARGS((octa,int));
 octa froot(z,r)
@@ -1561,7 +1561,7 @@ case nan:if(!(z.h&0x80000))exceptions|= I_BIT,z.h|= 0x80000;
 return z;
 case inf:case zro:x= z;break;
 case num:/*92:*/
-#line 1744 "mmix-arith.w"
+#line 1744 "./mmix-arith.w"
 
 xf.h= 0,xf.l= 2;
 xe= (ze+0x3fe)>>1;
@@ -1579,7 +1579,7 @@ if(rf.h||rf.l)xf.l++;
 return fpack(xf,xe,'+',r);
 
 /*:92*/
-#line 1730 "mmix-arith.w"
+#line 1730 "./mmix-arith.w"
 ;
 }
 if(zs=='-')x.h|= sign_bit;
@@ -1587,7 +1587,7 @@ return x;
 }
 
 /*:91*//*93:*/
-#line 1768 "mmix-arith.w"
+#line 1768 "./mmix-arith.w"
 
 octa fremstep ARGS((octa,octa,int));
 octa fremstep(y,z,delta)
@@ -1603,7 +1603,7 @@ yt= funpack(y,&yf,&ye,&ys);
 zt= funpack(z,&zf,&ze,&zs);
 switch(4*yt+zt){
 /*42:*/
-#line 730 "mmix-arith.w"
+#line 730 "./mmix-arith.w"
 
 case 4*nan+nan:if(!(y.h&0x80000))exceptions|= I_BIT;
 case 4*zro+nan:case 4*num+nan:case 4*inf+nan:
@@ -1614,20 +1614,20 @@ if(!(y.h&0x80000))exceptions|= I_BIT,y.h|= 0x80000;
 return y;
 
 /*:42*/
-#line 1782 "mmix-arith.w"
+#line 1782 "./mmix-arith.w"
 ;
 case 4*zro+zro:case 4*num+zro:case 4*inf+zro:
 case 4*inf+num:case 4*inf+inf:x= standard_NaN;
 exceptions|= I_BIT;break;
 case 4*zro+num:case 4*zro+inf:case 4*num+inf:return y;
 case 4*num+num:/*94:*/
-#line 1803 "mmix-arith.w"
+#line 1803 "./mmix-arith.w"
 
 odd= 0;
 thresh= ye-delta;
 if(thresh<ze)thresh= ze;
 while(ye>=thresh)/*95:*/
-#line 1824 "mmix-arith.w"
+#line 1824 "./mmix-arith.w"
 
 {
 if(yf.h==zf.h&&yf.l==zf.l)goto zero_out;
@@ -1641,7 +1641,7 @@ while(yf.h<0x400000)ye--,yf= shift_left(yf,1);
 }
 
 /*:95*/
-#line 1809 "mmix-arith.w"
+#line 1809 "./mmix-arith.w"
 ;
 if(ye>=ze){
 exceptions|= E_BIT;return fpack(yf,ye,ys,ROUND_OFF);
@@ -1655,7 +1655,7 @@ while(xf.h<0x400000)xe--,xf= shift_left(xf,1);
 return fpack(xf,xe,xs,ROUND_OFF);
 
 /*:94*/
-#line 1787 "mmix-arith.w"
+#line 1787 "./mmix-arith.w"
 ;
 zero_out:x= zero_octa;
 }
@@ -1664,7 +1664,7 @@ return x;
 }
 
 /*:93*/
-#line 41 "mmix-arith.w"
+#line 41 "./mmix-arith.w"
 
 
 /*:1*/

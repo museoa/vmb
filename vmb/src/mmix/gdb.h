@@ -65,7 +65,7 @@ int getpkt (char *buf);
 int remote_server (int port);
 int remote_open (void);
 int dual_wait(int s1, int s2);
-void single_wait(int s);
+void single_wait(void);
 int remote_interrupt(int s);
 void remote_close (void);
 int server_fd;

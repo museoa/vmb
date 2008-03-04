@@ -21,7 +21,7 @@
 
 */
 
-/* $Revision: 1.3 $ $Date: 2007-09-12 16:29:32 $ */
+/* $Revision: 1.4 $ $Date: 2008-03-04 17:22:32 $ */
 
 
 #include <stdlib.h>
@@ -213,7 +213,7 @@ int get_interrupt(int socket, int blocking, unsigned int *hi, unsigned int *lo)
         with the interrupts found so far.
      */
 {
-  int size;
+  int size=0;
   unsigned char slot;
   int id;
   unsigned char address[8];

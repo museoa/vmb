@@ -23,11 +23,10 @@
 
 #include <stdlib.h>
 #include "message.h"
+#include "mmix-internals.h"
 #include "address.h"
-#include "cache.h"
+#include "mmix-bus.h"
 #include "bus-util.h"
-
-extern octa shift_right(octa y,int s,int uns);
 
 /* CONSTANTS */
 #define EXEC_BIT 0x1
@@ -88,7 +87,7 @@ void clear_all_instruction_vtc(void)
 /* AUXILIAR FUNCTIONS */
 
 
-void unpack_pte(PTE *e,octa *a, int s)
+static void unpack_pte(PTE *e,octa *a, int s)
      /* unpack a PTE from an octa a */
 { e->p = a->l& 0x07;
   e->n = (a->l>>3)& 0x3FF;
@@ -109,67 +108,65 @@ void unpack_pte(PTE *e,octa *a, int s)
 }
 
 
-int bits(octa *a, int n, int s)
-     /* extract (up to 32) bits from octas 
-        return (a>>s)& ((1<<n)-1); in 64 bit mode  with n<=32 */
-{ unsigned int b;
-  if (s>32)
-    b= ((unsigned)a->h)>>(s-32);
-  else if (s == 32)
-    b= a->h;
-  else if (s+n <32)
-    b = ((unsigned)a->l)>>s;
-  else
-    b =  ((unsigned)a->l>>s) | (((unsigned)a->h)<<(32-s));
-  return b & ((1<<n)-1);
-}
 
 
 /* Handling a page table entry */
 
-int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *address)
+static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *address)
 /* given the components b[i], s,r,n, and i from rV,
    translate the virtual address into 
    a pysical address and return the protection code p.
    return 0 if there is no translation.
    use the alorithm as given by Don Knuth in section 47 of mmix-doc.
+   modified according to my letter to don.
      */
-{  octa base, limit, pte, ptp;
+{  octa base, pte, ptp;
+   int limit;
    int a[5];
    PTE e;
 
-   limit.h = base.h = r->h;
+   base.h = r->h;
    base.l = r->l + (b[i]<<13); /* address of first page table */
-   limit.l = r->l + (b[i+1]<<13); /* address after last page table */
-   
+   limit = (b[i+1]-b[i])*2;
 
    address->h = address->h&0x1FFFFFFF; /*remove sign and segment */ 
    *address = shift_right(*address,s,1); /* remove offset get a4a3a2a1a0 */
 
    if (address->h==0 && address->l==0)
-     limit.l=limit.l+1;
+     limit=limit+1;
+
+   if (limit <= 0) goto pagetable_error;
+   limit = limit-2;
 
    ptp = base;
    a[0] = address->l&0x3FF;
-   *address = shift_right(*address,10,1); /* remove a0 */
+   *address = shift_right(*address,10,1); /* remove a0 */   
    if (address->h!=0 || address->l!=0)
-     { base.l = base.l+0x2000;
+     { if (limit <= 0) goto pagetable_error;
+       limit = limit-2;
+       base.l = base.l+0x2000;
        ptp = base;
        a[1] =  address->l&0x3FF;
        *address = shift_right(*address,10,1); /* remove a1 */
        if (address->h!=0 || address->l!=0)
-	 { base.l = base.l+0x2000;
+	 { if (limit <= 0) goto pagetable_error;
+           limit = limit-2;
+           base.l = base.l+0x2000;
            ptp = base;
            a[2] =  address->l&0x3FF;
            *address = shift_right(*address,10,1); /* remove a2 */
            if (address->h!=0 || address->l!=0)
-	     { base.l = base.l+0x2000;
+	     { if (limit <= 0) goto pagetable_error;
+               limit = limit-2;
+               base.l = base.l+0x2000;
                ptp = base;
                a[3] =  address->l&0x3FF;
                *address = shift_right(*address,10,1); /* remove a3 */
                a[4] =  address->l&0x3FF;
 	       if (a[4] != 0)
-		 { base.l = base.l+0x2000;
+		 { if (limit <= 0) goto pagetable_error;
+                   limit = limit-2;
+                   base.l = base.l+0x2000;
                    ptp = base;
 	           base.l = base.l+8*a[4];
                    load_uncached_data(8,&base,base,0);
@@ -200,17 +197,12 @@ int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *address
          base.h = base.h & 0x7FFFFFFF;
      }
    base.l = base.l+8*a[0];
-   if (ptp.l > limit.l) /* we run off the page table */
-     goto pagetable_error;
-
    load_uncached_data(8,&pte,base,0);
    if (pte.h==0 && pte.l==0)
      return 0;
    unpack_pte(&e,&pte,s);
-
    if (e.n != n) /* this is an error in the page table structure */
      goto pagetable_error;
-
    *address = e.base;
    return e.p;
  
@@ -218,53 +210,6 @@ pagetable_error:
    g[rQ].l = g[rQ].l | BIT(INT_PAGEERROR);
    return 0;
 }
-
-int translate_pte(int b[5], int s, octa *r, unsigned int n, int i, octa *base)
-/* returns protection p or 0 if no pte was found */
-{  PTE e;
-   octa x;
-   octa ptp;
-   int a,k;
-   
-               k=4, a = bits(base,10,s+k*10);
-   if (a==0)   k=3, a = bits(base,10,s+k*10);
-   if (a==0)   k=2, a = bits(base,10,s+k*10);
-   if (a==0)   k=1, a = bits(base,10,s+k*10);
-   if (a==0)   k=0, a = bits(base,10,s+k*10);
-   if (a==0)   k=-1;
-
-   
-   ptp.h = r->h;
-   ptp.l = r->l + ((b[i]+k+1) <<13);
-   if (ptp.l < r->l) ptp.h++; /* carry */
-
-   if (b[i+1]-b[i]<=k+1)
-   { g[rQ].l = g[rQ].l | BIT(INT_PAGEERROR);
-     return 0;
-   }
-
-   while (k>=0)
-   { a = bits(base,10,s+k*10);
-     ptp.l = (ptp.l & 0xFFFFE000) | (a<<3);
-     load_uncached_data(8,&x,ptp,0);
-     if (((x.h & 0x80000000) == 0) ||(((x.l>>3) &0x3FF) != n))
-       return 0;
-     ptp.h = x.h & 0x7FFFFFFF;
-     ptp.l = x.l & 0xFFFFE000;
-     k--;
-   }   
-   load_uncached_data(8,&x,ptp,0);
-   if (x.h==0 && x.l==0)
-     return 0;
-   unpack_pte(&e,&x,s);
-   if (e.n != n) /* this is an error in the page table structure */
-   { g[rQ].l = g[rQ].l | BIT(INT_PAGEERROR);
-     return 0;
-   }
-   *base = e.base;
-   return e.p;
-}
-
 
 /* Handling the Translation Cache */
 
@@ -464,14 +409,6 @@ static void unpack_address(octa *virt, int s, int *i, octa *base, octa *offset)
   }
 }
 
-static void addu(octa *x, octa *y, octa *z)
-     /* ADD unsigned of two octas x = y + z */
-{  x->h = y->h + z->h;
-   x->l = y->l + z->l;
-   if (x->l < y->l)
-     x->h = x->h +1;
-}
-
 
 static void store_translation(TC *tc,octa *virt, octa *phys)
 { int vi, pi;
@@ -510,7 +447,7 @@ int translate_address(octa *address, TC *tc)
   s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
   unpack_address(address, s, &i, &base, &offset);
   p= TC_translate(tc, s, i, n, &base);
-  addu(address,&base,&offset);
+  *address = oplus(base,offset);
   return p;
 }
 
@@ -574,28 +511,6 @@ int load_data(int size, octa *data, octa address,int signextension)
   return 1;
 }
 
-#if 0
-int load_data_uncached(int size, octa *data, octa address,int signextension)
-/* load an octa into data from the given virtual address 
-   raise an interrupt if there is a problem
-*/
-
-{ if (address.h&0x80000000)
-    /* negative addresses are maped to physical adresses by suppressing the sign bit */
-    address.h= address.h&0x7FFFFFFF;
-  else 
-  { int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT) return 0;
-    else if (!(p&READ_BIT)) 
-    { data->h=data->l = 0;
-      g[rQ].h = g[rQ].h | BIT(INT_READ);
-      return 1;
-    }
-  }
-  load_uncached_data(size,data,address,signextension);
-  return 1;
-}
-#endif
 
 int store_data(int size,octa data, octa address)
 /* store an octa from data into the given virtual address 
@@ -676,8 +591,8 @@ void delete_instruction(octa address,int size)
     clear_instruction_cache(address, size);
 }
 
-void read_instruction(octa address,int size)
-     /* make shure size bytes starting at address are read into
+void prego_instruction(octa address,int size)
+     /* make sure size bytes starting at address are read into
         the instruction cache */
 { if (address.h&0x80000000)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
@@ -690,5 +605,5 @@ void read_instruction(octa address,int size)
   if (address.h & 0xFFFF0000)
     return; /* these addresses are not cached */
   else
-    read_instruction_cache(address, size);
+    prego_instruction_cache(address, size);
 }

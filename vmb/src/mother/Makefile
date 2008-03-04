@@ -1,6 +1,6 @@
 PROG= mother
 UTILDIR = ../util
-CFLAGS= -g -Wall
+CFLAGS= -g  -D_REENTRANT -Wall
 CC = gcc
 
 
@@ -11,7 +11,7 @@ utilities:
 
 
 $(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -o $(PROG)
+	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -lvmbopt -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)
