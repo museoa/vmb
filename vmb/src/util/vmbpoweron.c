@@ -1,9 +1,9 @@
 /*
-    Copyright 2005 Martin Ruckert
+    Copyright 2008 Martin Ruckert
     
     ruckertm@acm.org
 
-    This file is part of the MMIX Motherboard project
+    This file is part of the Virtual Motherboard project
 
     This file is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,25 +21,26 @@
 
 */
 
-/* param.h
- */
 
-extern char *host;
-extern int port;
-extern int debugflag;
-extern char *hexaddress;
-extern unsigned char address[8];
-extern unsigned char limit[8];
-extern int interrupt;
-extern char *filename;
-extern unsigned int size;
-#define MAX_EXEC 256
-extern char *commands[MAX_EXEC];
-extern void do_commands(void);
-#ifdef WIN32
-extern void param_init(void);
-#else
-extern void param_init(int argc, char *argv[]);
-#endif
-extern void load_configfile(char *name);
+/* this file provides default do-nothing implementations
+   of required functions, when linkung with vmblib
+*/
 
+
+#include <stdlib.h>
+#include "vmb.h"
+
+
+/* the next funtions are required callback functions
+   for the vmb interface. They are called from threads
+   distinct from the main thread. If these callbacks
+   share resources with the main thread, it might be necessary
+   to use a mutex to synchronize access to the resources.
+   In this template, the main thread does nothing with
+   the ram. Hence no synchronization is needed.
+*/
+
+void vmb_poweron(void)
+/* this function is called when the virtual power is turned on */
+{ /* do nothing */
+}
