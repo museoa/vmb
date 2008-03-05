@@ -15,16 +15,16 @@ exec xterm -e ./mmix -i -B9002 hello.mmo
 
 
 #if rom
-address 0000000000000000
+address 0x0000000000000000
 file bios.img
 #endif
 
 #if ram
 size 3145728
-address 0000000100000000
+address 0x0000000100000000
 #endif
 
 #if vram
 size 3145728
-address 0002000000000000
+address 0x0002000000000000
 #endif

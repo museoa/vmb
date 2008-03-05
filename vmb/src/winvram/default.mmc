@@ -6,7 +6,7 @@ host localhost
 
 
 #if winvram
-address 0002000000000000
+address 0x0002000000000000
 size	1228800
 framewidth 640
 frameheight 480

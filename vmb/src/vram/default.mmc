@@ -9,7 +9,7 @@ port 9002
 #if vram
 debug
 size 3145728
-address 0002000000000000
+address 0x0002000000000000
 # inside the mapable range
 #address 0000000200000000
 

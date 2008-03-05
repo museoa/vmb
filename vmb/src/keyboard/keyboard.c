@@ -25,6 +25,7 @@
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
+#pragma warning(disable : 4996)
 #include "resource.h"
 extern HWND hMainWnd;
 #else
@@ -40,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-03-05 17:38:29 $";
 
 char howto[] =
 "\n"
@@ -75,6 +76,11 @@ static unsigned char data[8];
 #define COUNT 3
 #define DATA  7
 
+
+#define MAXIBUFFER 10000
+static char input_buffer[MAXIBUFFER];
+static int input_buffer_first=0, input_buffer_last=0;
+
 /* Interface to the virtual motherboard */
 
 unsigned char *vmb_get_payload(unsigned int offset,int size)
@@ -84,9 +90,15 @@ unsigned char *vmb_get_payload(unsigned int offset,int size)
     memmove(payload,data,8);
     // memset(data,0,8);
     
-    if(offset +size>=8) /* reset to zero */
-        memset(data,0,8);    
-    
+    if(offset +size>=8) 
+	{ 	  memset(data,0,8);    /* reset to zero */
+      if (input_buffer_first<input_buffer_last)
+	  { data[DATA] = input_buffer[input_buffer_first++];
+        data[COUNT] = 1;
+        vmb_raise_interrupt(interrupt);
+        vmb_debug("Raised interrupt");  
+	  }
+	}
     return payload+offset;
 }
 
@@ -121,6 +133,22 @@ void vmb_disconnected(void)
 #endif
 }
 
+void process_input_file(char *filename)
+{ FILE *f;
+  if (filename==NULL) return;
+  f = fopen(filename,"rb");
+  if (f==NULL) {vmb_debug("Uble to open input file"); return;}
+  input_buffer_first = 0;
+  input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
+  if (input_buffer_last<0)  vmb_debug("Uble to read input file");
+  if (input_buffer_last==0) {vmb_debug("Empty file"); return;}
+  fclose(f);
+  data[DATA] = input_buffer[input_buffer_first++];
+  if (data[COUNT]<0xFF) data[COUNT]++;
+  if (data[COUNT]>1) data[ERROR] = 0x80;
+  vmb_raise_interrupt(interrupt);
+  vmb_debug("Raised interrupt");
+}
 
 void process_input(unsigned char c) 
 { /* The keyboard Interface */
@@ -128,7 +156,9 @@ void process_input(unsigned char c)
     vmb_debugi("input (#%x)\n",c);
   else
     vmb_debugi("input %c",c);
-  if (vmb_power)
+  if (input_buffer_first < input_buffer_last)
+	  vmb_debugi("Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
+  else if (vmb_power)
   { data[DATA] = c;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
@@ -174,9 +204,7 @@ static void prepare_input(void)
 #endif
 
 void init_device(void)
-{  vmb_debugs("address: %s",hexaddress);
-   vmb_debugi("interrupt: %d",interrupt);
-   size = 8;
+{ vmb_size = 8;
 #ifdef WIN32
 #else
    prepare_input();

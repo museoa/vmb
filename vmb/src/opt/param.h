@@ -33,6 +33,8 @@ typedef UINT64 uint64_t;
 #include <stdint.h>
 #endif
 extern uint64_t vmb_address;
+#define vmb_address_hi ((unsigned int)(vmb_address>>32))
+#define vmb_address_lo ((unsigned int)(vmb_address&0xFFFFFFFF))
 extern unsigned int vmb_size;
 extern int interrupt;
 extern char *filename;

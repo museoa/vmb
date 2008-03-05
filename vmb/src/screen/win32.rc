@@ -52,6 +52,7 @@ BEGIN
             MENUITEM "Help",                        ID_HELP
         END
         MENUITEM "Minimize",                    ID_MINIMIZE
+        MENUITEM "He&x Output",                 ID_HEXOUTPUT
     END
 END
 

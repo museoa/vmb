@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.2 $ $Date: 2008-03-04 17:07:47 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-03-05 17:38:29 $";
 
 char howto[] =
 "\n"
@@ -66,12 +66,12 @@ void open_file(void)
   f = fopen(filename,"rb");
   if (f==NULL) vmb_fatal_error(__LINE__,"Unable to open file");
   if (fstat(fileno(f),&fs)<0) vmb_fatal_error(__LINE__,"Unable to get file size");
-  size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /* make it a multiple of pages */
-  if (size <= 0)  vmb_fatal_error(__LINE__,"File empty");
+  vmb_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /* make it a multiple of pages */
+  if (vmb_size <= 0)  vmb_fatal_error(__LINE__,"File empty");
   if (flash!=NULL) free(flash);
-  flash = malloc(size);
+  flash = malloc(vmb_size);
   if (flash==NULL) vmb_fatal_error(__LINE__,"Out of memory");
-  rc=(int)fread(flash,1,size,f);
+  rc=(int)fread(flash,1,vmb_size,f);
   if (rc<0) vmb_fatal_error(__LINE__,"Unable to read file");
   if (rc==0) vmb_fatal_error(__LINE__,"Empty file");
   fclose(f);
@@ -94,8 +94,8 @@ static void write_file(void)
   { vmb_errormsg("Unable to open file");
     return;
   }
-  i = (int)fwrite(flash,1,size,f);
-  if (i<(int)size) vmb_errormsg("Unable to write file");
+  i = (int)fwrite(flash,1,vmb_size,f);
+  if (i<(int)vmb_size) vmb_errormsg("Unable to write file");
   else fclose(f);
 }
 
@@ -115,7 +115,7 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 
 void vmb_poweron(void)
 { open_file();
-  vmb_debugi("size: %d",size);
+  vmb_debugi("size: %d",vmb_size);
   #ifdef WIN32
    SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
@@ -161,15 +161,14 @@ int main(int argc, char *argv[])
  vmb_debugi("port: %d ",port);
  close(0); /* stdin */
  init_device();
- hextochar(hexaddress,address,8);
- add_offset(address,size,limit);
- vmb_debugs("address: %s ",hexaddress);
- vmb_debugi("size: %x ",size);
+ vmb_debugi("address hi: %x ",vmb_address>>32);
+ vmb_debugi("address lo: %x ",vmb_address&0xFFFFFFFF);
+ vmb_debugi("size: %x ",vmb_size);
  
  vmb_connect(host,port); 
 
- vmb_register(chartoint(address),chartoint(address+4),
-              size, 0, 0, vmb_program_name);
+ vmb_register(vmb_address>>32,vmb_address&0xFFFFFFFF,
+              vmb_size, 0, 0, vmb_program_name);
  vmb_wait_for_disconnect();
  write_file();
  return 0;

@@ -14,6 +14,8 @@
 static TCHAR szClassName[MAX_LOADSTRING];
 static TCHAR szTitle[MAX_LOADSTRING];
 static HBITMAP hBmp;
+static HBITMAP hBmpActive, hBmpInactive;
+
 static HMENU hMenu;
 static HBITMAP hon,hoff,hconnect;
 
@@ -136,20 +138,16 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 
-extern void open_file(void);
 
 
-INT_PTR CALLBACK  
+INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
-
   switch ( message )
   { case WM_INITDIALOG:
-      { char hexaddress[19];
-        uint64tohex(vmb_address,hexaddress);
-        SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-        SetDlgItemText(hDlg,IDC_FILE,filename);
-	  }
+	  uint64tohex(vmb_address,tmp_option);
+      SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -161,30 +159,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
 	    vmb_address = strtouint64(tmp_option);
-        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
-	    set_option(&filename,tmp_option);
-		open_file();
+		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
-	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
-	  { OPENFILENAME ofn;       /* common dialog box structure */
-         /* Initialize OPENFILENAME */
-        ZeroMemory(&ofn, sizeof(OPENFILENAME));
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hMainWnd;
-        ofn.lpstrFile = tmp_option;
-        ofn.nMaxFile = MAXTMPOPTION;
-        ofn.lpstrFilter = "All\0*.*\0Rom\0*.rom\0";
-        ofn.nFilterIndex = 1;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = NULL;
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-        /* Display the Open dialog box. */
-        if (GetOpenFileName(&ofn)==TRUE) 
-		   SetDlgItemText(hDlg,IDC_FILE,tmp_option);
-	  }
-     if (wparam == IDOK || wparam == IDCANCEL)
+      if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
         return TRUE;
       }
@@ -193,7 +170,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
-
+extern void process_input(unsigned char c);
+extern void process_input_file(char *filename);
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -201,11 +179,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {  
   case WM_NCHITTEST:
     return HTCAPTION;
+  case WM_SETFOCUS:
+    vmb_debug("got focus");
+	hBmp = hBmpActive;
+    RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
+    break;
+  case WM_KILLFOCUS:
+    vmb_debug("lost focus");
+	hBmp = hBmpInactive;
+	RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
+	break;
+  case WM_DROPFILES:
+	  { HDROP hDrop;
+	    char filename[500];
+	    hDrop = (HDROP)wParam;
+		DragQueryFile(hDrop,0,filename,500);
+	    process_input_file(filename);
+		DragFinish(hDrop);
+	  }
+	  return 0;
   case WM_USER+1: /* Power On */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
+	DragAcceptFiles(hWnd,TRUE);
 	return 0;
   case WM_USER+2: /* Power Off */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
+	DragAcceptFiles(hWnd,FALSE);
 	return 0;
   case WM_USER+3: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
@@ -215,10 +214,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_USER+4: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
-	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
+	  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
 	return 0;
   case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,230,1,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
   case WM_PAINT:
@@ -272,12 +271,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  return 0; 
 	}
     return 0;
-
+ case WM_CHAR:
+    process_input((unsigned char) wParam); 
+    return 0;
   case WM_DESTROY:
     PostQuitMessage(0);
     return 0;
-  default:
-    return (DefWindowProc(hWnd, message, wParam, lParam));
   }
  return (DefWindowProc(hWnd, message, wParam, lParam));
 }
@@ -506,7 +505,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 
-extern void init_device(void);
+extern int ramsize;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -518,8 +517,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
-	hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP), 
+	hBmpInactive = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP), 
 		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+ 
+  hBmpActive = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAPACTIVE), 
+                                IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+
+    hBmp= hBmpInactive;
     hon = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_ON), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
     hconnect = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_CONNECT), 
@@ -535,11 +539,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	ShowWindow(hMainWnd, nCmdShow);
 	UpdateWindow(hMainWnd);
 	param_init();
-	open_file();
+	vmb_size = 8;
     vmb_message_hook = win32_message;
 	vmb_debug_hook = win32_debug;
 	vmb_connect(host,port);
-	vmb_register(vmb_address_hi, vmb_address_lo,vmb_size,0,0,defined);
+	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 	if (vmb_debug_flag)
 	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);

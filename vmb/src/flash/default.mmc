@@ -7,5 +7,5 @@ debug
 
 #if flash
 file flash.img
-address 0000000200000000
+address 0x0000000200000000
 #endif

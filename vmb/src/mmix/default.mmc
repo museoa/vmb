@@ -19,22 +19,22 @@ exec xterm -e ./mmix -B9002 -g12345
 #endif
 
 #if keyboard
-address 1000000000000
+address 0x0001000000000000
 interrupt 17
 #endif
 
 #if screen
-address 1000000000008
+address 0x0001000000000008
 interrupt 18
 #debug off
 #endif
 
 #if rom
-address 0000000000000000
+address 0x0000000000000000
 file bios.rom
 #endif
 
 #if ram
 size 3145728
-address 0000000100000000
+address 0x0000000100000000
 #endif

@@ -28,26 +28,26 @@ debug
 #endif
 
 #if keyboard
-address 0000000001008
+address 0x0000000001008
 interrupt 17
 #endif
 
 #if screen
-address 0000000001000
-#address 1000000000008
+address 0x0000000001000
+#address 0x1000000000008
 interrupt 18
 debug off
 #endif
 
 #if rom
-address 0000000000000000
+address 0x0000000000000000
 file ../rom/bios.rom
 #endif
 
 #if ram
 size 4000000
-address 0000000000000001
+address 0x0000000000000001
 #size 3145728
-#address 0000000100000000
+#address 0x0000000100000000
 
 #endif

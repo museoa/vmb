@@ -32,13 +32,15 @@
 #define ID_SETTINGS                     40015
 #define ID_ALL_MINIMIZE                 40016
 #define ID_MINIMIZE                     40017
+#define ID_ALL_HEXOUTPUT                40018
+#define ID_HEXOUTPUT                    40019
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
-#define _APS_NEXT_COMMAND_VALUE         40018
+#define _APS_NEXT_COMMAND_VALUE         40020
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

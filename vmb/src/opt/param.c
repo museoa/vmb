@@ -52,6 +52,7 @@ extern UINT64 vmb_address;
 #include <stdint.h>
 extern uint64_t vmb_address;
 #endif
+uint64_t vmb_address;
 unsigned int vmb_size;
 char *commands[MAX_EXEC]={0};
 #define MAXARG 256

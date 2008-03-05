@@ -16,22 +16,22 @@ exec .\mmix.exe -i -B:9002 hello.mmo
 
 
 #if keyboard
-address 0001000000000000
+address 0x0001000000000000
 interrupt 17
 #endif
 
 #if screen
-address 0001000000000008
+address 0x0001000000000008
 interrupt 18
 #endif
 
 #if rom
-address 0000000000000000
+address 0x0000000000000000
 file bios.img
 #endif
 
 #if ram
 size 3145728
-address 0000000100000000
+address 0x0000000100000000
 #endif
 

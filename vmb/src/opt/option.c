@@ -67,7 +67,23 @@ void set_option(char **option, char *str)
   }
   strcpy(*option, str);
 }
-static uint64_t atouint64(char *arg)
+
+#define hexdigit(c) ((c)<10? (c)+'0':(c)+'A')
+
+void uint64tohex(uint64_t u, char *c)
+/* converts to hex respresetnation. c needs at least 19 characters */
+{ int i;
+  c[18] = 0;
+  for (i=17;i>1;i--)
+  {  c[i] = hexdigit((unsigned char)(u&0xF));
+     u = u>> 4;
+  }
+  c[1] = 'x';
+  c[0] = '0';
+}
+
+
+uint64_t strtouint64(char *arg)
 { uint64_t r = 0;
   while(isspace(*arg)) arg++;
   if (strncmp(arg,"0x",2)==0 || strncmp(arg,"0X",2)==0) /* hex */
@@ -86,6 +102,7 @@ static uint64_t atouint64(char *arg)
 	  {unsigned int d;
        d = *arg -'0';
 	   r = r*10+d;
+	   arg++;
 	  }
   return r;
 }
@@ -125,7 +142,7 @@ int do_option(option_spec *p, char *arg)
       if (arg==NULL)
 		  vmb_errormsg("Argument expected");
 	  else
-          *(p->handler.u)=atouint64(arg);
+          *(p->handler.u)=strtouint64(arg);
       return 1;
     case tgl_arg:
       if (strcmp(arg,"on")==0)
