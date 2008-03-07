@@ -145,11 +145,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
   switch ( message )
   { case WM_INITDIALOG:
-      { char hexaddress[19];
-        uint64tohex(vmb_address,hexaddress);
-        SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-        SetDlgItemText(hDlg,IDC_FILE,filename);
-	  }
+      uint64tohex(vmb_address,tmp_option);
+      SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
+      SetDlgItemText(hDlg,IDC_FILE,filename);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 

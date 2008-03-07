@@ -27,4 +27,4 @@ clean:
 	done
 
 TAGS:
-	etags *.c *.h */*.c */*.h
+	etags  */*.c */*.h mmix/*.w mmix/*.ch

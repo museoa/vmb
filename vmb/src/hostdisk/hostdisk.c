@@ -65,7 +65,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
   switch ( message )
   { case WM_INITDIALOG:
-      SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
+      uint64tohex(vmb_address,tmp_option);
+      SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
       SetDlgItemText(hDlg,IDC_FILE,filename);
       return TRUE;
    case WM_SYSCOMMAND:
@@ -77,8 +78,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
     case WM_COMMAND:
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-	    set_option(&hexaddress,tmp_option);
-		hextochar(hexaddress,address,8);
+	    vmb_address = strtouint64(tmp_option);
         GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
 	    set_option(&filename,tmp_option);
 		open_file();
@@ -119,7 +119,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:35 $";
+char version[]="$Revision: 1.2 $ $Date: 2008-03-07 15:00:48 $";
 
 char howto[] =
 "\n"
@@ -272,7 +272,8 @@ int reply_payload(unsigned char address[8], int size,unsigned char *payload)
 
 void init_device(void)
 {  size = HD_SIZE;
-   debugs("address: %s",hexaddress);
+   debugx("address hi: %s",vmb_address_hi);
+   debugx("address lo: %s",vmb_address_lo);
    debugi("size: %d",size);
    close(0);
 }

@@ -35,7 +35,7 @@ static int diskCap;
 static unsigned char diskDma[8];
 static unsigned char mem[8*5] = {0};
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:35 $";
+char version[]="$Revision: 1.2 $ $Date: 2008-03-07 15:00:48 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -260,7 +260,8 @@ void diskInit(void) {
 
 
 void init_device(void)
-{  debugs("address: %s",hexaddress);
+{  debugi("address hi: %x",vmb_address_hi);
+   debugi("address lo: %x",vmb_address_lo);
    diskInit();
    size = 8*5;
    close(0);

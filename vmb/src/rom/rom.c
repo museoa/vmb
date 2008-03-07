@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-03-07 15:00:48 $";
 
 char howto[] =
 "\n"
@@ -167,9 +167,10 @@ void open_file(void)
 
 
 void init_device(void)
-{  vmb_debugs("address: %s",hexaddress);
+{  debugi("address hi: %x",vmb_address_hi);
+   debugi("address lo: %x",vmb_address_lo);
    open_file();
-   vmb_debugi("size: %d",size);
+   vmb_debugi("size: %d",vmb_size);
    close(0);
 }
 
@@ -223,15 +224,12 @@ int main(int argc, char *argv[])
  vmb_debugi("port: %d ",port);
  close(0); /* stdin */
  init_device();
- hextochar(hexaddress,address,8);
- add_offset(address,size,limit);
- vmb_debugs("address: %s ",hexaddress);
- vmb_debugi("size: %x ",size);
+ vmb_debugi("address hi: %x",vmb_address_hi);
+ vmb_debugi("address lo: %x",vmb_address_lo);
+ vmb_debugi("size: %x ",vmb_size);
  
  vmb_connect(host,port); 
-
- vmb_register(chartoint(address),chartoint(address+4),
-              size, 0, 0, vmb_program_name);
+ vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
  vmb_wait_for_disconnect();
  return 0;
 }
