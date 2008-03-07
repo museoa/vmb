@@ -20,23 +20,18 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
-
-#ifndef CACHE_H
-#define CACHE_H
-
-extern void load_cached_instruction(tetra *instruction, octa address);
-extern void load_cached_data(int size,octa *data, octa address,int signextension);
-extern void store_cached_data(int size,octa data, octa address);
-
-extern void load_uncached_data(int size, octa *data, octa address,int signextension);
+extern void load_uncached_data(int size, octa *data, octa address, int signextension);
 extern void store_uncached_data(int size, octa data, octa address);
-
-extern void write_all_data_cache(void);
-extern void clear_all_data_cache(void);
+extern void load_cached_data(int size, octa *data, octa address, int signextension);
+extern void store_cached_data(int size, octa data, octa address);
 extern void write_data_cache(octa address, int size);
 extern void clear_data_cache(octa address, int size);
-extern void clear_all_instruction_cach(void);
 extern void clear_instruction_cache(octa address, int size);
-extern void read_instruction_cache(octa address, int size);
-
-#endif
+extern void prego_instruction_cache(octa address, int size);
+extern void preload_data_cache(octa address, int size);
+extern void load_cached_instruction(tetra *instruction, octa address);
+extern void write_all_data_cache(void);
+extern void write_all_data_cache(void);
+extern void clear_all_data_cache(void);
+extern void clear_all_instruction_cache(void);
+extern void init_mmix_bus(char *host, int port, char *name);
