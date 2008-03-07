@@ -118,7 +118,7 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           port = GetDlgItemInt(hDlg,IDC_THE_PORT,NULL,FALSE);
 		  if (!vmb_connected)
 		  {  vmb_connect(host,port);
-		     vmb_register(address_hi, address_lo,size,0,0,defined);
+		     vmb_register(vmb_address_hi, vmb_address_lo,vmb_size,0,0,defined);
 		     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 		  }
 		  EndDialog(hDlg, TRUE);

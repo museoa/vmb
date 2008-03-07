@@ -78,6 +78,7 @@ void vmb_debugi(char *msg, int i)
    vmb_debug(tmp);
 }
 
+
 void vmb_debugs(char *msg, char *s)
 /* a function to call to display debug messages */
 { 

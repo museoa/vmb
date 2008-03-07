@@ -52,32 +52,32 @@ Char *toTex(Char *symbol)
                  tex_res[j++]='\\'; break;
       case '{': if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_braceopen))
                   strcat(tex_res, tex_braceopen);
-	        i++, j+=strlen(tex_braceopen);
+	        i++, j+=(int)strlen(tex_braceopen);
                 continue;
       case '}': if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_braceclose))
                   strcat(tex_res, tex_braceclose);
-	        i++, j+=strlen(tex_braceclose);
+	        i++, j+=(int)strlen(tex_braceclose);
                 continue;
       case '|': if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_pipe))
                   strcat(tex_res, tex_pipe);
-	        i++, j+=strlen(tex_pipe);
+	        i++, j+=(int)strlen(tex_pipe);
                 continue;
       case '^': if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_hat))
                   strcat(tex_res, tex_hat);
-	        i++, j+=strlen(tex_hat);
+	        i++, j+=(int)strlen(tex_hat);
                 continue;
       case '>': if(symbol[i+1]=='>' && strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_gg))
                   strcat(tex_res, tex_gg);
-                i+=2, j+=strlen(tex_gg);
+                i+=2, j+=(int)strlen(tex_gg);
                 continue;
       case '<': if(symbol[i+1]=='<' && strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_ll))
                   strcat(tex_res, tex_ll);
-                i+=2, j+=strlen(tex_ll);
+                i+=2, j+=(int)strlen(tex_ll);
                 continue;
       case ' ': if(string_mode && j+strlen(tex_blank) < TEX_MAXSYM_LEN){
                 tex_res[j]='\0';
                 strcat(tex_res, tex_blank);
-                j+=strlen(tex_blank);}
+                j+=(int)strlen(tex_blank);}
                 /* copy blanks to output in case that |toTex| is used for
                 preprocessor directives -- DIRTY */
                 else break;

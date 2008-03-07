@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-03-07 15:39:07 $";
 
 char howto[] =
 "\n"
@@ -89,7 +89,7 @@ void processUMPSFile(Word* biosBuf,long lSize)
 		j += WORDLEN;
 	}
 	free(biosBuf);
-	size = lSize * WORDLEN; /*!< calc real size of rom */
+	vmb_size = lSize * WORDLEN; /*!< calc real size of rom */
 }
 
 /*
@@ -147,28 +147,26 @@ void open_file(void)
         readUMPSFile(f);
     }
     else
-    {
+    { int rc;
        
         if (fstat(fileno(f),&fs)<0)
             vmb_fatal_error(__LINE__,"Unable to get file size");
     
-        size = ((fs.st_size+7)/8)*8; /* make it a multiple of octas */
+        vmb_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /*round up to whole pages*/
         if (rom!=NULL) free(rom);
-        rom = malloc(size);
+        rom = malloc(vmb_size);
         if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
-        size=(int)fread(rom,1,size,f);
-        if (size < 0) vmb_fatal_error(__LINE__,"Unable to read file");
-        if (size == 0) vmb_fatal_error(__LINE__,"Empty file");
-        size = (size+PAGESIZE-1)&~(PAGESIZE-1); /*round up to whole pages*/
-       
+        rc=(int)fread(rom,1,vmb_size,f);
+        if (rc < 0) vmb_fatal_error(__LINE__,"Unable to read file");
+        if (rc == 0) vmb_fatal_error(__LINE__,"Empty file");
     }
     fclose(f);
 }
 
 
 void init_device(void)
-{  debugi("address hi: %x",vmb_address_hi);
-   debugi("address lo: %x",vmb_address_lo);
+{  vmb_debugi("address hi: %x",vmb_address_hi);
+   vmb_debugi("address lo: %x",vmb_address_lo);
    open_file();
    vmb_debugi("size: %d",vmb_size);
    close(0);

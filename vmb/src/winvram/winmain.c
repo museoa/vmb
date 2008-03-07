@@ -119,9 +119,7 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           port = GetDlgItemInt(hDlg,IDC_THE_PORT,NULL,FALSE);
 		  if (!vmb_connected)
 		  {  vmb_connect(host,port);
-		     hextoint(hexaddress,&address_hi);
-             hextoint(hexaddress+8,&address_lo);
-		     vmb_register(address_hi, address_lo,size,0,0,defined);
+		     vmb_register(vmb_address_hi, vmb_address_lo,vmb_size,0,0,defined);
 			 SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 		  }
 		  EndDialog(hDlg, TRUE);
@@ -146,9 +144,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
   switch ( message )
   { case WM_INITDIALOG:
-      { 
-         SetDlgItemText(hDlg,IDC_ADDRESS,hexaddress);
-	  }
+      uint64tohex(vmb_address,tmp_option);
+      SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -159,9 +156,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
     case WM_COMMAND:
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
-        set_option(&hexaddress, tmp_option);
-        hextoint(hexaddress,&address_hi);
-        hextoint(hexaddress+8,&address_lo);
+        vmb_address = strtouint64(tmp_option); 
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -309,7 +304,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 
 	param_init();
-	size = frameheight*framewidth*4;
+	vmb_size = frameheight*framewidth*4;
 
 	if (!InitInstance (hInstance)) return FALSE;
 
@@ -320,9 +315,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     vmb_message_hook = win32_message;
 	vmb_debug_hook = win32_debug;
 	vmb_connect(host,port);
-	hextoint(hexaddress,&address_hi);
-    hextoint(hexaddress+8,&address_lo);
-	vmb_register(address_hi,address_lo,size,0,0,defined);
+	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
 	SendMessage(hMainWnd,WM_USER+3,0,0); /* connected */
 	if (vmb_debug_flag)
 	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);

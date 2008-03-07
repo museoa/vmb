@@ -9,7 +9,7 @@ host localhost
 debug
 exec .\rom.exe
 exec .\ram.exe
-# THis is the windows Framebuffer
+# This is the windows Framebuffer
 exec .\winvram
 #This is the java Framebuffer
 #exec javaw -cp log4j-1.2.15.jar;framebufferdevice.jar net.sourceforge.vmb.core.DeviceLauncher
@@ -30,7 +30,6 @@ address 0x0000000100000000
 
 #if winvram
 address 0x0002000000000000
-size	1228800
 framewidth 640
 frameheight 480
 #you can make the actual width/height smaller than the undelying bitmap to get offscscreen memory

@@ -26,7 +26,6 @@
 #include "mmix-internals.h"
 #include "address.h"
 #include "mmix-bus.h"
-#include "bus-util.h"
 
 /* CONSTANTS */
 #define EXEC_BIT 0x1
