@@ -134,7 +134,7 @@ void vmb_wait_for_power(void)
 #ifdef WIN32
      WaitForSingleObject(hevent,INFINITE);
 #else
-     rc = pthread_cond_wait(&event_cond,&event_mutex);
+     pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
 #endif  
 }
@@ -149,15 +149,15 @@ void vmb_wait_for_disconnect(void)
       pthread_exit(NULL);
     }
     pthread_cleanup_push(clean_up_event_mutex,NULL);
-  }
 #endif
   /* in the meantime power might be on */
   while (vmb_connected)
 #ifdef WIN32
     WaitForSingleObject(hevent,INFINITE);
 #else
-     pthread_cond_wait(&event_cond,&event_mutex);
+    rc = pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
+  }
 #endif 
 }
 

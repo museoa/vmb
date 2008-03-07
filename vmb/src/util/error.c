@@ -71,22 +71,20 @@ void vmb_debug(char *msg)
 void vmb_debugi(char *msg, int i)
 /* a function to call to display debug messages */
 { 
-	static char nl[] ="\r\n";
-	static char tmp[1000];
-	 if (!vmb_debug_flag) return;
-   sprintf(tmp,msg,i);
-   vmb_debug(tmp);
+  static char tmp[1000];
+  if (!vmb_debug_flag) return;
+  sprintf(tmp,msg,i);
+  vmb_debug(tmp);
 }
 
 
 void vmb_debugs(char *msg, char *s)
 /* a function to call to display debug messages */
 { 
-	static char nl[] ="\r\n";
-	static char tmp[1000];
-	 if (!vmb_debug_flag) return;
-   sprintf(tmp,msg,s);
-   vmb_debug(tmp);
+  static char tmp[1000];
+  if (!vmb_debug_flag) return;
+  sprintf(tmp,msg,s);
+  vmb_debug(tmp);
 }
 
 
