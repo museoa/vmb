@@ -3,7 +3,7 @@ BIN=.
 AFLAGS= -gdwarf2
 AS=$(BIN)/mmixal
 
-all: hello.mmo bios.img
+all: lorentz.mmo bios.img
 
 %.mmo: %.mms
 	$(AS) $<

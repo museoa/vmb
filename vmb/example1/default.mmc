@@ -16,6 +16,7 @@ exec xterm -e ./mmix -i -B9002 hello.mmo
 
 
 #if keyboard
+debug
 address 0x1000000000000
 interrupt 17
 #endif

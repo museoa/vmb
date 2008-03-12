@@ -6,11 +6,10 @@ host localhost
 
 
 #if mother
-debug
 exec ./rom
 exec ./ram
 exec ./vram
-exec xterm -e ./mmix -i -B9002 hello.mmo 
+exec xterm -e ./mmix -B9002 lorentz.mmo
 #endif
 
 
