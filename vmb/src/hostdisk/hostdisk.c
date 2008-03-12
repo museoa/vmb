@@ -35,13 +35,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "message.h"
+#include "vmb.h"
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "option.h"
 #include "param.h"
-#include "error.h"
-#include "main.h"
 
 #ifdef WIN32
 
@@ -119,7 +116,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.2 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-03-12 16:49:38 $";
 
 char howto[] =
 "\n"
@@ -172,7 +169,7 @@ static void execute_command(int cmd)
 { unsigned char *p;
  int result;
  int fd;
- debugi("Command %d received", cmd);
+ vmb_debugi("Command %d received", cmd);
  p = mem+HD_PARAM;
  switch(cmd)
    { case HD_IGNORE :
@@ -186,7 +183,7 @@ static void execute_command(int cmd)
      p = p+8;
      mode = chartoint(p+4);  
      p = p+8;
-     pathname = p;
+     pathname = (char *)p;
      result = open(pathname,flags, mode);
      inttochar(result,mem+HD_RESULT+4);
      }
@@ -203,7 +200,7 @@ static void execute_command(int cmd)
      p = p+8;
      count = chartoint(p+4);
      if (count > HD_PARAM_SIZE)
-       errormsg("Parameter count of read too large");
+       vmb_errormsg("Parameter count of read too large");
      else   
        { result = read(fd, mem+HD_PARAM, count);
        inttochar(result,mem+HD_RESULT+4);
@@ -217,12 +214,12 @@ static void execute_command(int cmd)
      count = chartoint(p+4);
      p = p+8;
      if (count > HD_PARAM_SIZE-16)
-       errormsg("Parameter count of write too large");
+       vmb_errormsg("Parameter count of write too large");
      else   
-       { debugi("write to %d",fd);
-         debugi("%d byte", count);
+       { vmb_debugi("write to %d",fd);
+         vmb_debugi("%d byte", count);
          result = write(fd, p, count);
-         debugi("got result %d",result);
+         vmb_debugi("got result %d",result);
          inttochar(result,mem+HD_RESULT+4);
        }
      }
@@ -246,7 +243,7 @@ static void execute_command(int cmd)
      }
      break;
    default:
-     errormsg("Undefined command.");
+     vmb_errormsg("Undefined command.");
    }
 }
 
@@ -258,8 +255,8 @@ unsigned char *get_payload(unsigned int offset,int size)
 
 void put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(mem+offset,payload,size);
- debugi("writing to %d",offset);
- debugi(" %d bytes", size);
+ vmb_debugi("writing to %d",offset);
+ vmb_debugi(" %d bytes", size);
   if (offset+size > HD_COMMAND && offset <  HD_COMMAND+8)
    execute_command(disk_command);
 }
@@ -271,10 +268,10 @@ int reply_payload(unsigned char address[8], int size,unsigned char *payload)
 
 
 void init_device(void)
-{  size = HD_SIZE;
-   debugx("address hi: %s",vmb_address_hi);
-   debugx("address lo: %s",vmb_address_lo);
-   debugi("size: %d",size);
+{  vmb_size = HD_SIZE;
+   vmb_debugi("address hi: %x",vmb_address_hi);
+   vmb_debugi("address lo: %x",vmb_address_lo);
+   vmb_debugi("size: %d",vmb_size);
    close(0);
 }
 

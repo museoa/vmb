@@ -39,7 +39,7 @@
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:40 $";
 
 char howto[] =
 "\n"
@@ -476,6 +476,7 @@ int main(int argc, char *argv[])
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
 
  vmb_wait_for_disconnect();
+ vram_fini ();
  return 0;
 }
 

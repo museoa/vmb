@@ -23,15 +23,18 @@
 
 /* param.h
  */
-
+#ifndef PARAM_H
+#define PARAM_H 
 extern char *host;
 extern int port;
+
 #ifdef WIN32
 #include <windows.h>
 typedef UINT64 uint64_t;
 #else
 #include <stdint.h>
 #endif
+
 extern uint64_t vmb_address;
 #define vmb_address_hi ((unsigned int)(vmb_address>>32))
 #define vmb_address_lo ((unsigned int)(vmb_address&0xFFFFFFFF))
@@ -42,11 +45,18 @@ extern char *filename;
 #define MAX_EXEC 256
 extern char *commands[MAX_EXEC];
 extern void do_commands(void);
+
 #ifdef WIN32
 extern void param_init(void);
 #else
 extern void param_init(int argc, char *argv[]);
 #endif
+
 extern void load_configfile(char *name);
 extern void usage(char *message);
 extern void store_command(char *command);
+
+extern char version[];
+extern char howto[];
+
+#endif

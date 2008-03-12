@@ -58,7 +58,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.7 $ $Date: 2008-03-04 17:22:32 $";
+char version[] = "$Revision: 1.8 $ $Date: 2008-03-12 16:49:38 $";
 
 char howto[] =
   "\n"
@@ -574,7 +574,7 @@ process_read_fdset ()
     {
       int error;
       error =
-	receive_msg (slot[i].fd, 0, &mtype, &msize, &mslot, &mid, &mtime,
+	receive_msg (slot[i].fd, &mtype, &msize, &mslot, &mid, &mtime,
 		     maddress, mpayload);
       if (error < 0)
 	remove_slot (i);

@@ -1,6 +1,9 @@
 PROG= keyboard
 UTILDIR = ../util
-CFLAGS= -g -D_REENTRANT -Wall
+OPTDIR = ../opt
+UTILDIR = ../util
+CFLAGS= -g  -D_REENTRANT -Wall  -I $(UTILDIR) -I $(OPTDIR)
+LDFLAGS= -L $(OPTDIR) -lvmbopt -L $(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
@@ -8,10 +11,12 @@ all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
+	$(MAKE) -C  $(OPTDIR)
 
 
 $(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
+	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
+
 install:
 	install $(PROG) $(BINDIR)
 

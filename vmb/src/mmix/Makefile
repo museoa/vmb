@@ -18,7 +18,7 @@ INCDIRS = -I $(UTILDIR)
 LIBS    = -L $(UTILDIR) -lm -lvmb -lpthread
 
 
-all: $(PROG)
+all: mmix mmixal mmoboot
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)

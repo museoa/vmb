@@ -16,14 +16,10 @@
 #else
 #include <unistd.h>
 #endif
-#include "error.h"
-#include "message.h"
+#include "vmb.h"
 #include "bus-arith.h"
-#include "bus-util.h"
 #include "param.h"
 #include "disk.h"
-#include "main.h"
-
 
 static FILE *diskImage;
 static long numSectors;
@@ -35,7 +31,7 @@ static int diskCap;
 static unsigned char diskDma[8];
 static unsigned char mem[8*5] = {0};
 
-char version[]="$Revision: 1.2 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-03-12 16:49:38 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -110,8 +106,8 @@ unsigned char *get_payload(unsigned int offset, int size)
 void diskDone(void)
 { diskCtrl &= ~DISK_BUSY;
   if (diskCtrl & DISK_IEN) {
-    set_interrupt(bus_fd, interrupt);
-    debug("Raised interrupt");
+    vmb_raise_interrupt(interrupt);
+    vmb_debug("Raised interrupt");
   }
 }
 
@@ -120,12 +116,12 @@ static void diskRead(void)
   /* disk --> memory */
   while(diskCnt>0) {
     if (fread(buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
-          errormsg("cannot read from disk");
+          vmb_errormsg("cannot read from disk");
           diskCtrl |= DISK_ERR;
           break;
     }
     if (store_bus_data(bus_fd, diskDma, buffer, SECTOR_SIZE)!=1) {
-          errormsg("cannot write memory");
+          vmb_errormsg("cannot write memory");
           diskCtrl |= DISK_ERR;
           break;
     }
@@ -151,7 +147,7 @@ int reply_payload(unsigned char address[8], int size,unsigned char *buffer)
 { if (equal(address,diskDma) && size == SECTOR_SIZE && diskCnt>0)
   {
     if (fwrite(buffer, SECTOR_SIZE, 1, diskImage) != 1) {
-      errormsg("cannot write to disk image");
+      vmb_errormsg("cannot write to disk image");
       diskCtrl |= DISK_ERR;
       return 1;
     }
@@ -164,7 +160,7 @@ int reply_payload(unsigned char address[8], int size,unsigned char *buffer)
       diskDone();
   }
   else
-    errormsg("Invalid datat transfer to disk");
+    vmb_errormsg("Invalid datat transfer to disk");
  return 1;
 }
 
@@ -185,7 +181,7 @@ void put_payload(unsigned int offset, int size, unsigned char *payload)
          diskSct < diskCap &&
          diskSct + diskCnt <= diskCap) {
          if (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) != 0) {
-           errormsg("cannot position to sector in disk image");
+           vmb_errormsg("cannot position to sector in disk image");
          }
          diskCtrl |= DISK_BUSY;
          diskCtrl &= ~DISK_ERR;
@@ -195,7 +191,7 @@ void put_payload(unsigned int offset, int size, unsigned char *payload)
            diskRead();
       }
       else
-        errormsg("Illegal disk transfer request");
+        vmb_errormsg("Illegal disk transfer request");
    }
 }
 
@@ -246,13 +242,13 @@ void diskInit(void) {
     /* try to install disk */
     diskImage = fopen(filename, "r+b");
     if (diskImage == NULL) {
-      errormsg("cannot open disk image");
+      vmb_errormsg("cannot open disk image");
     }
     fseek(diskImage, 0, SEEK_END);
     numBytes = ftell(diskImage);
     fseek(diskImage, 0, SEEK_SET);
     numSectors = numBytes / SECTOR_SIZE;
-    debugi("Disk of size %ld sectors installed.", numSectors);
+    vmb_debugi("Disk of size %ld sectors installed.", numSectors);
   }
   process_reset();
 }

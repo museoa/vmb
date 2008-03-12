@@ -1,28 +1,30 @@
 PROG= vram
 UTILDIR = ../util
-CFLAGS= -g -D_REENTRANT -Wall
+OPTDIR = ../opt
+UTILDIR = ../util
+CFLAGS= -g  -D_REENTRANT -Wall  -I $(UTILDIR) -I $(OPTDIR) -I /usr/X11R6/include
+LDFLAGS= -L/usr/X11R6/lib -lX11 -L $(OPTDIR) -lvmbopt -L $(UTILDIR) -lvmb -lpthread
 CC = gcc
-INCDIRS = -I /usr/X11R6/include -I $(UTILDIR)
-LIBS    = -L/usr/X11R6/lib -lX11 -lpthread -L $(UTILDIR) -lvmb  -lvmbopt -lpthread
 
 
 all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
+	$(MAKE) -C  $(OPTDIR)
 
 
-$(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) $(INCDIRS) $(PROG).c  $(LIBS)  -o $(PROG)
+$(PROG): $(PROG).c utilities
+	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
 
-install:
+install: all
 	install $(PROG) $(BINDIR)
 
 
+TAGS: *.c $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
+	etags *.c $(UTILDIR)/*.c $(UTILDIR)/*.h
+
 clean:
-	rm -f $(PROG) *.o *~
+	rm -f $(PROG) *.o *~ TAGS
 
 
-
-TAGS: *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h
-	etags *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h

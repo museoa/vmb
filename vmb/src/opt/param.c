@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <sys/types.h>
+
 #ifdef WIN32
 #include <windows.h>
 #include <process.h>
@@ -32,6 +33,7 @@
 #else
 #include <unistd.h>
 #endif
+
 #include "param.h"
 #include "option.h"
 #include "bus-arith.h"
@@ -45,6 +47,7 @@ char *host=NULL;
 char *filename=NULL;
 int port = 9002;
 int interrupt = 16;
+
 #ifdef WIN32
 #include <windows.h>
 extern UINT64 vmb_address;
@@ -52,6 +55,7 @@ extern UINT64 vmb_address;
 #include <stdint.h>
 extern uint64_t vmb_address;
 #endif
+
 uint64_t vmb_address;
 unsigned int vmb_size;
 char *commands[MAX_EXEC]={0};

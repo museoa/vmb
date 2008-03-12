@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-05 17:38:29 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:38 $";
 
 char howto[] =
 "\n"
@@ -160,7 +160,6 @@ int main(int argc, char *argv[])
  vmb_debugs("host: %s ",host);
  vmb_debugi("port: %d ",port);
  close(0); /* stdin */
- init_device();
  vmb_debugi("address hi: %x ",vmb_address>>32);
  vmb_debugi("address lo: %x ",vmb_address&0xFFFFFFFF);
  vmb_debugi("size: %x ",vmb_size);

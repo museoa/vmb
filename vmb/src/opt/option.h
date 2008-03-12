@@ -19,6 +19,10 @@
  * 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+
+#ifndef OPTION_H
+#define OPTION_H
+
 #include <stdio.h>
 
 #ifdef WIN32
@@ -205,3 +209,5 @@ extern option_spec options[];
    }
 
 */ 
+
+#endif

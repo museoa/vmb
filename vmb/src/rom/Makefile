@@ -1,19 +1,24 @@
 PROG= rom
 UTILDIR = ../util
-CFLAGS= -g -D_REENTRANT -Wall
+OPTDIR = ../opt
+UTILDIR = ../util
+CFLAGS= -g  -D_REENTRANT -Wall  -I $(UTILDIR) -I $(OPTDIR)
+LDFLAGS= -L $(OPTDIR) -lvmbopt -L $(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
-all: $(PROG) bios.rom bios.elf TAGS
+all: $(PROG) bios.img bios.elf TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
+	$(MAKE) -C  $(OPTDIR)
 
 
 $(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb  -lvmbopt -lpthread -o $(PROG)
+	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
 
-TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
+
+TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
 	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
 
 # making the rom bios program cross-compiling on the host with target = mmix
@@ -27,23 +32,30 @@ MLDFLAGS=--entry=_start.
 #MLDFLAGS=--section-start .text=0x8000000000000000 
 
 
-OBJECTS= bios.o io.o
+#OBJECTS= bios.o io.o
 
-.o: %.mms
-	$(MAS) -gdwarf2 --linker-allocated-gregs $^ -o $@
+#.o: %.mms
+#	$(MAS) -gdwarf2 --linker-allocated-gregs $^ -o $@
 
-bios.o: bios.s
-	$(MCC) $(CFLAGS) -c  $^ -o $@
+#bios.o: bios.s
+#	$(MCC) $(CFLAGS) -c  $^ -o $@
 
-io.o: io.c
-	$(MCC) $(CFLAGS) -mabi=mmixware -mno-base-addresses -O2 -c $^
+#io.o: io.c
+#	$(MCC) $(CFLAGS) -mabi=mmixware -mno-base-addresses -O2 -c $^
 
 
-bios.rom: $(OBJECTS)
-	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.rom
+#bios.rom: $(OBJECTS)
+#	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.rom
 
-bios.elf: $(OBJECTS)
-	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -o bios.elf
+#bios.elf: $(OBJECTS)
+#	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -o bios.elf
+
+%.mmo: %.mms
+	mmixal $<
+
+%.img: %.mmo
+	../mmix/mmoboot $< 
+
 
 install: all
 	install $(PROG) $(BINDIR)

@@ -41,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.5 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.6 $ $Date: 2008-03-12 16:49:38 $";
 
 char howto[] =
 "\n"
@@ -221,16 +221,15 @@ int main(int argc, char *argv[])
   vmb_debugs("%s ", version);
   vmb_debugs("host: %s ",host);
   vmb_debugi("port: %d ",port);
-  close(0); /* stdin */
   init_device();
-  debugi("address hi: %x",vmb_address_hi);
-  debugi("address lo: %x",vmb_address_lo);
-  vmb_debugi("size: %x ",size);
+  vmb_debugi("address hi: %x",vmb_address_hi);
+  vmb_debugi("address lo: %x",vmb_address_lo);
+  vmb_debugi("size: %x ",vmb_size);
   
   vmb_connect(host,port); 
 
-  vmb_register(chartoint(address),chartoint(address+4),
-               size, 0, 0, vmb_program_name);
+  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+               0, 0, vmb_program_name);
 
   while (vmb_connected)
   { unsigned char c;

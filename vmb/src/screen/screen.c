@@ -36,10 +36,10 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 
-void display_char(char c);
+static void display_char(char c);
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-07 15:00:48 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:40 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"

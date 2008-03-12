@@ -38,17 +38,15 @@ int main(int argc, char *argv[])
  vmb_debugs("%s ", version);
  vmb_debugs("host: %s ",host);
  vmb_debugi("port: %d ",port);
- close(0); /* stdin */
- ram_clean();
- hextochar(hexaddress,address,8);
- add_offset(address,size,limit);
- vmb_debugs("address: %s ",hexaddress);
- vmb_debugi("size: %x ",size);
- 
- vmb_connect(host,port); 
+ close(0);
+  vmb_debugi("address hi: %x",vmb_address_hi);
+  vmb_debugi("address lo: %x",vmb_address_lo);
+  vmb_debugi("size: %x ",vmb_size);
 
- vmb_register(chartoint(address),chartoint(address+4),
-              size, 0, 0, vmb_program_name);
+ vmb_connect(host,port); 
+  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+               0, 0, vmb_program_name);
+
  vmb_wait_for_disconnect();
  return 0;
 }

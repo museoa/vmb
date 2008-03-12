@@ -1,8 +1,9 @@
 
 CFLAGS= -g -Wall
 
-SUBDIRS  = util mother mmix screen keyboard ram rom flash disk hostdisk vram
-     
+SUBDIRS  = util opt device mmix screen keyboard ram rom flash hostdisk vram mother
+   
+#          disk  
 
 .PHONY: hardware $(SUBDIRS) clean
      
