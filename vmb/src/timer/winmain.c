@@ -167,9 +167,17 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   }
   return FALSE;
 }
+
+static long int current_time(void)
+/* current time in ms */
+{ SYSTEMTIME now;
+  GetSystemTime(&now);
+  return (((now.wHour*60)+now.wMinute)*60+now.wSecond)*1000+now.wMilliseconds;
+}
+
+static long int timer_start_time;
 static HWND hTime;
 static HFONT hTimeFont;
-static double timefraction, timedecrement;
 static RECT timelineRect;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -203,7 +211,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     KillTimer(hMainWnd,1);
 	KillTimer(hMainWnd,2);
 	counter = 0; 
-	timefraction=timedecrement =0.0;
     InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	SetWindowText(hTime,"0.000");
 	return 0;
@@ -213,33 +220,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  SetWindowText(hTime,timestr);
 	}
     SetTimer(hMainWnd,1,counter,NULL);
-	if (counter/200> 100) /* milliseconds per pixel */
-	{ int t;
-	  t = counter/200;
-	  SetTimer(hMainWnd,2,t,NULL);
-	  timedecrement = (double)t/(double)counter;
-	  timedecrement = timedecrement *(1.0/(1.0-timedecrement));
+	timer_start_time = current_time();
+#define MINUPDATE 50 	/* minimum time between updates */
+#define NUMPIXELS 200 /* number of pixels in the timeline */
+	{ int updates, update_interval;
+	  updates = counter/MINUPDATE; /* number of updates rounded down */
+	  if (updates <1) updates = 1;
+	  if (updates > NUMPIXELS) 
+		  updates = NUMPIXELS; /* we do not need more updates then pixels */
+	  update_interval = (counter-1)/updates; /*rounded down */
+	  SetTimer(hMainWnd,2,update_interval,NULL);
+      InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	}
-	else
-	{ int t;
-	  t = 100;
-	  SetTimer(hMainWnd,2,t,NULL);
-	  timedecrement = (double)t/(double)counter;
-	  timedecrement = timedecrement *(1.0/(1.0-timedecrement));
-	}
-	timefraction=1.0;
-    InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	return 0;
   case WM_TIMER: /* Timer expired */
 	  if (wParam == 1) /* the Real Timer */
 	  { vmb_raise_interrupt(interrupt);
-	    vmb_debugi("remaining %d",(int)(200*timefraction));
-		vmb_debugi("step %d",(int)(200*timedecrement));
-	    timefraction = 1.0;
-	  }
-	  else if (wParam == 2) /* Animation only */
-	  { timefraction = timefraction -timedecrement;
-	    if (timefraction <0.0) timefraction=0.0;
+		timer_start_time = current_time();
 	  }
 	  InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	  return 0;
@@ -288,12 +285,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  }
 	  BitBlt(hdc,ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right-ps.rcPaint.left,ps.rcPaint.bottom-ps.rcPaint.top, 
 			BitmapDC, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY);
-      {
+      if (counter > 0) 
+	  {
         HPEN hpen, hpenOld;
+		long int delta;
+		int linelength;
+
         hpen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
         hpenOld = SelectObject(hdc, hpen);
 	    MoveToEx(hdc, 45, 70, (LPPOINT) NULL); 
-        LineTo(hdc, 45 + (int)(200*timefraction), 70); 
+	    delta = current_time() - timer_start_time;
+        linelength = (200*(counter -delta))/counter;
+        if (linelength>0) LineTo(hdc, 45 + linelength, 70); 
         SelectObject(hdc, hpenOld);
         DeleteObject(hpen);
       }
@@ -616,7 +619,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 
-char version[]="$Revision: 1.1 $ $Date: 2008-03-12 17:23:49 $";
+char version[]="$Revision: 1.2 $ $Date: 2008-03-13 10:30:31 $";
 
 char howto[] =
 "\n"
