@@ -31,7 +31,7 @@ option_spec options[] = {
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
-{"address where the resource is located",'a', "address", "hex address",  uint64_arg, "8000000000000000", {&vmb_address}},
+{"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x8000000000000000", {&vmb_address}},
 {"size of address range in octas",      's', "size",    "size in octas", int_arg, "1", {&vmb_size}},
 {"interrupt send by device",            'i', "interrupt", "interrupt number", int_arg, "8", {&interrupt}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
