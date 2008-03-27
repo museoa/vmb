@@ -450,15 +450,28 @@ int translate_address(octa *address, TC *tc)
   return p;
 }
 
+static octa last_i_addr={0x80000000,0}, 
+            last_i_trans={0,0};
+
 int load_instruction(tetra *instruction, octa address)
 /* load a tetra into data from the given virtual address 
    raise an interrupt if there is a problem and load 0.
 */
-{ if (address.h&0x80000000)
+{ if (address.h==last_i_addr.h &&
+      (address.l&0xFFFFE000)==last_i_addr.l)
+      address.h=last_i_trans.h,
+      address.l=last_i_trans.l|(address.l&0x1FFF);
+  else if (address.h&0x80000000)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
-    address.h= address.h&0x7FFFFFFF;
+  {  last_i_addr.h = address.h;
+     last_i_addr.l = address.l&0xFFFFE000;
+     address.h= address.h&0x7FFFFFFF;
+     last_i_trans.h = address.h;
+     last_i_trans.l = address.l&0xFFFFE000;
+  }
   else
-  { int p = translate_address(&address, &exec_tc);
+  { octa last= address;
+    int p = translate_address(&address, &exec_tc);
     if (p&PAGE_FAULT_BIT)
     { *instruction = 0;
       g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
@@ -469,6 +482,10 @@ int load_instruction(tetra *instruction, octa address)
       g[rQ].h = g[rQ].h | BIT(INT_EXEC);
       return 0;
     }
+    last_i_addr.h = last.h;
+    last_i_addr.l = last.l&0xFFFFE000;
+    last_i_trans.h=address.h;
+    last_i_trans.l=address.l&0xFFFFE000;
   }
   if (address.h & 0xFFFF0000)
   { /* load uncached */
@@ -481,17 +498,32 @@ int load_instruction(tetra *instruction, octa address)
   return 1;
 }
 
+
+static octa last_d_addr={0x80000000,0}, 
+            last_d_trans={0,0};
+
+
 int load_data(int size, octa *data, octa address,int signextension)
 /* size may be 1, 2, 4 or 8 
    load a byte, wyde, tetra, or octa into data from the given virtual address 
    raise an interrupt if there is a problem
 */
 
-{ if (address.h&0x80000000)
+{ if (address.h==last_d_addr.h &&
+      (address.l&0xFFFFE000)==last_d_addr.l)
+      address.h=last_d_trans.h,
+      address.l=last_d_trans.l|(address.l&0x1FFF);
+  else if (address.h&0x80000000)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
-    address.h= address.h&0x7FFFFFFF;
+  {  last_d_addr.h = address.h;
+     last_d_addr.l = address.l&0xFFFFE000;
+     address.h= address.h&0x7FFFFFFF;
+     last_d_trans.h = address.h;
+     last_d_trans.l = address.l&0xFFFFE000;
+  }
   else 
-  { int p = translate_address(&address, &data_tc);
+  { octa last= address;
+    int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
     { data->h=data->l = 0;
       g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
@@ -502,6 +534,10 @@ int load_data(int size, octa *data, octa address,int signextension)
       g[rQ].h = g[rQ].h | BIT(INT_READ);
       return 0;
     }
+    last_d_addr.h = last.h;
+    last_d_addr.l = last.l&0xFFFFE000;
+    last_d_trans.h=address.h;
+    last_d_trans.l=address.l&0xFFFFE000;
   }
   if (address.h & 0xFFFF0000)
     load_uncached_data(size,data,address,signextension);
@@ -515,11 +551,21 @@ int store_data(int size,octa data, octa address)
 /* store an octa from data into the given virtual address 
    raise an interrupt if there is a problem
 */
-{ if (address.h&0x80000000)
+{ if (address.h==last_d_addr.h &&
+      (address.l&0xFFFFE000)==last_d_addr.l)
+      address.h=last_d_trans.h,
+      address.l=last_d_trans.l|(address.l&0x1FFF);
+  else if (address.h&0x80000000)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
-    address.h= address.h&0x7FFFFFFF;
+  {  last_d_addr.h = address.h;
+     last_d_addr.l = address.l&0xFFFFE000;
+     address.h= address.h&0x7FFFFFFF;
+     last_d_trans.h = address.h;
+     last_d_trans.l = address.l&0xFFFFE000;
+  }
   else
-  { int p = translate_address(&address, &data_tc);
+  { octa last= address;
+    int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
     { g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
       return 0;
@@ -528,6 +574,10 @@ int store_data(int size,octa data, octa address)
     { g[rQ].h = g[rQ].h | BIT(INT_WRITE);
       return 0;
     }
+    last_d_addr.h = last.h;
+    last_d_addr.l = last.l&0xFFFFE000;
+    last_d_trans.h=address.h;
+    last_d_trans.l=address.l&0xFFFFE000;
   }
   if (address.h & 0xFFFF0000)
     store_uncached_data(size,data,address);

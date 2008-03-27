@@ -22,7 +22,7 @@ install:
 
      
 clean:
-	rm -f *.o *~ 
+	rm -f *.o *~ TAGS
 	for dir in $(SUBDIRS); do \
 	  $(MAKE) -C $$dir clean; \
 	done
