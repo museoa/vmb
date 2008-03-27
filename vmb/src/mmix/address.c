@@ -68,10 +68,21 @@ typedef struct { int last; TCE tce[TCSIZE];} TC;
 /* the two translation caches for instructions and data */
 static TC exec_tc={0,{{0}}}, data_tc={0,{{0}}}; 
 
+/* two inline caches for  instruction and data */
+
+static octa last_i_addr={0x80000000,0}, 
+            last_i_trans={0,0};
+
+static octa last_d_addr={0x80000000,0}, 
+            last_d_trans={0,0};
+
+
 void clear_all_data_vtc(void)
 { int i;
   for (i=0;i<TCSIZE;i++)
     data_tc.tce[i].p=0; 
+  last_d_addr.h=0x80000000; last_d_addr.l=0; 
+  last_d_trans.h=0; last_d_trans.l =0;
 }
 
 
@@ -79,6 +90,8 @@ void clear_all_instruction_vtc(void)
 { int i;
   for (i=0;i<TCSIZE;i++)
     exec_tc.tce[i].p=0; 
+  last_i_addr.h=0x80000000; last_i_addr.l=0; 
+  last_i_trans.h=0; last_i_trans.l =0;
 }
 
 
@@ -450,8 +463,6 @@ int translate_address(octa *address, TC *tc)
   return p;
 }
 
-static octa last_i_addr={0x80000000,0}, 
-            last_i_trans={0,0};
 
 int load_instruction(tetra *instruction, octa address)
 /* load a tetra into data from the given virtual address 
@@ -497,10 +508,6 @@ int load_instruction(tetra *instruction, octa address)
     load_cached_instruction(instruction,address);
   return 1;
 }
-
-
-static octa last_d_addr={0x80000000,0}, 
-            last_d_trans={0,0};
 
 
 int load_data(int size, octa *data, octa address,int signextension)
