@@ -41,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-03-12 16:49:38 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-03-27 15:40:42 $";
 
 char howto[] =
 "\n"
@@ -122,7 +122,10 @@ void vmb_terminate(void)
 { 
 #ifdef WIN32
    PostMessage(hMainWnd,WM_QUIT,0,0);
+#else
+   close(0);
 #endif
+
 }
 
 void vmb_disconnected(void)
@@ -188,15 +191,15 @@ static void prepare_input(void)
 
   memset(&newtio, 0, sizeof(newtio));
   newtio.c_cflag = CS8 | CLOCAL | CREAD; /* input modes */
-  newtio.c_iflag = IGNBRK;  /* control modes */
+  newtio.c_iflag = 0; /* IGNBRK; */ /* control modes */
   newtio.c_oflag = 0;      /* output modes */
 
   /* set input mode (non-canonical, no echo,...) */
   newtio.c_lflag = 0;     /* local modes */
  
   /* control characters */
-  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-  newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
+  newtio.c_cc[VTIME]    = 50;   /* inter-character timerin 1/10 s unused */
+  newtio.c_cc[VMIN]     = 0;   /* blocking read until 0 chars received */
 
   tcflush(0, TCIFLUSH);
   tcsetattr(0,TCSANOW,&newtio);
@@ -237,7 +240,7 @@ int main(int argc, char *argv[])
     vmb_debug("reading character:");
     i = read(0,&c,1);
     if (i == 0) 
-      break;
+      continue;
     if (i < 0)
     { vmb_errormsg("Read Error");
       break;
@@ -248,6 +251,7 @@ int main(int argc, char *argv[])
   vmb_disconnect();
   return 0;
 }
+
 
 #endif
 
