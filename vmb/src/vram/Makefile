@@ -2,8 +2,8 @@ PROG= vram
 UTILDIR = ../util
 OPTDIR = ../opt
 UTILDIR = ../util
-CFLAGS= -g  -D_REENTRANT -Wall  -I $(UTILDIR) -I $(OPTDIR) -I /usr/X11R6/include
-LDFLAGS= -L/usr/X11R6/lib -lX11 -L $(OPTDIR) -lvmbopt -L $(UTILDIR) -lvmb -lpthread
+CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR) -I/usr/X11R6/include
+LDFLAGS= -L/usr/X11R6/lib -lX11 -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 

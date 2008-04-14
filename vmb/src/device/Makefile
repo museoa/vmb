@@ -1,4 +1,4 @@
-PROG= ram
+PROG= devicetemplate
 UTILDIR = ../util
 CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
@@ -10,8 +10,8 @@ utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 
-$(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I$(UTILDIR) $(PROG).c  -L$(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
+$(PROG): $(PROG).c  maintemplate.c utilities
+	$(CC) $(CFLAGS) -I$(UTILDIR) maintemplate.c $(PROG).c  -L$(UTILDIR) -lvmb -lpthread  -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)

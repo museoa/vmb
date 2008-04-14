@@ -11,23 +11,15 @@ VMBOBJECTS = cache.o vmb.o message.o bus-arith.o error.o $(VMBDEFAULTS)
 
 .PHONY:  clean
      
-all: libvmb.a libvmbopt.a
+all: libvmb.a
      
 libvmb.a: $(VMBOBJECTS)
 	rm -f $@
 	$(AR) $(ARFLAGS) $@ $(VMBOBJECTS)
 	$(RANLIB) $@
 
-libvmbopt.a: $(VMBOPTOBJECTS)
-	rm -f $@
-	$(AR) $(ARFLAGS) $@ $(VMBOPTOBJECTS)
-	$(RANLIB) $@
-
 install:
 	echo nothing to do
-
-devicetemplate: devicetemplate.o libvmb.a
-	$(CC) $(CFLAGS) $< -L . -lvmb -lpthread -o $@
 
 clean:
 	rm -f *.o *.a *~ 

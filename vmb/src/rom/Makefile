@@ -2,12 +2,12 @@ PROG= rom
 UTILDIR = ../util
 OPTDIR = ../opt
 UTILDIR = ../util
-CFLAGS= -g  -D_REENTRANT -Wall  -I $(UTILDIR) -I $(OPTDIR)
-LDFLAGS= -L $(OPTDIR) -lvmbopt -L $(UTILDIR) -lvmb -lpthread
+CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
+LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
-all: $(PROG) bios.img bios.elf TAGS
+all: $(PROG) bios.img TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)

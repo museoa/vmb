@@ -11,7 +11,7 @@ utilities:
 
 
 $(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I $(UTILDIR) $(PROG).c  -L $(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
+	$(CC) $(CFLAGS) -I$(UTILDIR) $(PROG).c  -L$(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)

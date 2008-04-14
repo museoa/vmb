@@ -14,8 +14,8 @@ CFLAGS = -ggdb -D_REENTRANT -Wall
 PROG= mmix
 UTILDIR = ../util
 CC = gcc
-INCDIRS = -I $(UTILDIR)
-LIBS    = -L $(UTILDIR) -lm -lvmb -lpthread
+INCDIRS = -I$(UTILDIR)
+LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread
 
 
 all: mmix mmixal mmoboot
