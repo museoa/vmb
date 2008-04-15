@@ -1,6 +1,9 @@
-PROG= ram
+PROG= timer
 UTILDIR = ../util
-CFLAGS= -g -D_REENTRANT -Wall
+OPTDIR = ../opt
+
+CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
+LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
@@ -10,8 +13,8 @@ utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 
-$(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) -I$(UTILDIR) $(PROG).c  -L$(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
+$(PROG): main.c  utilities
+	$(CC) $(CFLAGS)  main.c  $(LDFLAGS) -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)
