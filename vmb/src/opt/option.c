@@ -145,7 +145,9 @@ int do_option(option_spec *p, char *arg)
           *(p->handler.u)=strtouint64(arg);
       return 1;
     case tgl_arg:
-      if (strcmp(arg,"on")==0)
+      if (arg==NULL)
+	vmb_errormsg("Argument expected");
+      else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
       } else if (strcmp(arg,"off")==0)
@@ -158,7 +160,9 @@ int do_option(option_spec *p, char *arg)
       (*(p->handler.i))++;
       return 0;
     case on_arg:
-      if (strcmp(arg,"on")==0)
+      if (arg==NULL)
+	 vmb_errormsg("Argument expected");
+      else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
       } else if (strcmp(arg,"off")==0)
@@ -168,7 +172,9 @@ int do_option(option_spec *p, char *arg)
       *(p->handler.i)= 1;
       return 0;
     case off_arg:
-      if (strcmp(arg,"on")==0)
+      if (arg==NULL)
+	 vmb_errormsg("Argument expected");
+      else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
       } else if (strcmp(arg,"off")==0)

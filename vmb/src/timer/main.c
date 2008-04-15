@@ -68,7 +68,7 @@ static void ram_clean(void)
 }
 
 static void wait_for_non_zero_ram(void)
-{ 
+{ vmb_debug("waiting for non zero");
   { int rc = pthread_mutex_lock(&ms_mutex);
     if (rc) 
     { vmb_errormsg("Locking ms mutex failed");
@@ -77,9 +77,10 @@ static void wait_for_non_zero_ram(void)
   }
   pthread_cleanup_push(clean_up_ms_mutex,NULL);
   /* in the meantime the event might have happend */
-  while (ms == 0)
+  if (ms == 0)
      pthread_cond_wait(&ms_cond,&ms_mutex);
   pthread_cleanup_pop(1);
+  vmb_debug("starting timer");
 }
 
 
@@ -93,6 +94,17 @@ void vmb_reset(void)
 { ram_clean();
 }
 
+
+void vmb_terminate(void)
+/* this function is called when the motherboard asks the client to terminate */
+{ vmb_debug("signal end of waiting"); 
+  int rc = pthread_cond_signal(&ms_cond);
+     if (rc) 
+     { vmb_errormsg("Locking ms mutex failed");
+       pthread_exit(NULL);
+     }
+     vmb_disconnect();
+}
 
 void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 /* this function is called if some other device on the virtual bus
@@ -168,8 +180,10 @@ int main(int argc, char *argv[])
    { if (ms == 0) 
        wait_for_non_zero_ram();
      else 
-     { sleep_ms(ms);
-       if (ms != 0 && vmb_connected) /* there might have been a write in between */
+     { vmb_debug("sleeping ...");
+       sleep_ms(ms);
+       vmb_debug("done");
+       if (ms != 0 && vmb_connected)
          vmb_raise_interrupt(interrupt);  
      }
    }

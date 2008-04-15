@@ -58,7 +58,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.8 $ $Date: 2008-03-12 16:49:38 $";
+char version[] = "$Revision: 1.9 $ $Date: 2008-04-15 08:40:38 $";
 
 char howto[] =
   "\n"
@@ -289,6 +289,7 @@ disconnect_device (int slotnr)
     send_dummy_answer (slotnr);
   if (powerflag)
     power_off (slotnr);
+  terminate(slotnr);
    if (!bus_unregister (slot[slotnr].fd))
     vmb_debugi ("Shutdown of Slot %d", slotnr);
   else
