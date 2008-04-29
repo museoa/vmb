@@ -58,7 +58,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.9 $ $Date: 2008-04-15 08:40:38 $";
+char version[] = "$Revision: 1.10 $ $Date: 2008-04-29 10:49:55 $";
 
 char howto[] =
   "\n"
@@ -1238,6 +1238,8 @@ process_stdin ()
     slot_info (atoi (&buffer[4]));
   else if (strncmp (buffer, "signal", 6) == 0)
     interrupt_all (atoi (&buffer[6]));
+  else
+    vmb_debugs("Unknown command (try \"help\"): %s", buffer);
 }
 
 int
