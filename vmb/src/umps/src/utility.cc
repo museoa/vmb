@@ -1,4 +1,4 @@
-/* File: $Id: utility.cc,v 1.1 2007-08-29 09:19:37 ruckert Exp $ */
+/* File: $Id: utility.cc,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /****************************************************************************
  *
@@ -26,6 +26,11 @@
 
 #include <forms.h>
 
+extern "C" {
+    #include "h/defaults.h"
+    #include <sys/time.h>
+}
+
 
 /****************************************************************************/
 /* Inclusion of imported declarations.                                      */
@@ -36,6 +41,9 @@
 /* Declarations strictly local to the module.                               */
 /****************************************************************************/
 
+ unsigned long ulpPerfStat[PERFARRAY] = {0};
+ unsigned long ulpPerfCount[MAXPERF] = {0};
+ 
 
 /****************************************************************************/
 /* Definitions to be exported.                                              */
@@ -260,6 +268,58 @@ Boolean StrToWord(const char * str, Word * value)
 	}
 	return(valid);
 } 
+
+void perfStat(unsigned int uiSlot, Boolean bIsLeaving)
+{
+    struct timeval tvTimeOfDay;
+    if(uiSlot >= MAXPERF || uiSlot < 0 || !enablePerf)
+        return;
+    
+    gettimeofday(&tvTimeOfDay,NULL);
+    
+    if(bIsLeaving)
+    {
+        ulpPerfStat[uiSlot] += tvTimeOfDay.tv_sec;
+        ulpPerfStat[uiSlot + PERFOFFSET] += tvTimeOfDay.tv_usec;
+        ulpPerfCount[uiSlot] += 1;
+        if(ulpPerfStat[uiSlot] != 0)
+        {
+            ulpPerfStat[uiSlot + PERFOFFSET] += 1000000*(ulpPerfStat[uiSlot]);
+            ulpPerfStat[uiSlot] = 0;
+        }
+    }
+    else
+    {
+        ulpPerfStat[uiSlot] -= tvTimeOfDay.tv_sec;
+        ulpPerfStat[uiSlot + PERFOFFSET] -= tvTimeOfDay.tv_usec;
+    }
+
+}
+
+void perfPrint()
+{
+    if(!enablePerf)
+        return;
+    
+    fprintf(stderr,"PERF:Processor:%d:%d:%d = %.4f\n",
+        ulpPerfStat[PERF_PROCCYCLE],
+        ulpPerfStat[PERF_PROCCYCLE + PERFOFFSET],
+        ulpPerfCount[PERF_PROCCYCLE],
+        ((double)(ulpPerfStat[PERF_PROCCYCLE + PERFOFFSET]))/ulpPerfCount[PERF_PROCCYCLE]);
+}
+
+void perfReset()
+{
+    if(!enablePerf)
+        return;
+    perfPrint();
+    for( unsigned int i = 0; i < MAXPERF; i += 1 )
+        ulpPerfCount[i] = 0;
+    
+    for( unsigned int i = 0; i < PERFARRAY; i += 1 )
+        ulpPerfStat[i] = 0;
+    enableCache = !enableCache; // ease performance testing by switching the cache every reset 
+}
 
 	
 /****************************************************************************/

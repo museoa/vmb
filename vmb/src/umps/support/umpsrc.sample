@@ -1,0 +1,76 @@
+# umpsrc sample file
+#
+# blank lines or lines beginning with # are ignored
+# definitions are in name=value format
+# definitions are case-sensitive
+
+# these are the defaults and valid ranges for missing definitions:
+
+# BOOTROM=./coreboot.rom.umps
+# EXECROM=./exec.rom.umps
+# COREFILE=./kernel.core.umps
+# STABFILE=./kernel.stab.umps
+
+# (0 -> 1) 0 = don't load core file, 1 = load it  
+# LOADCOREFILE=1
+ 
+# (8 -> 512) in 4K memory pages (that is, 32 KB -> 2MB) 
+# RAMPAGESIZE=64
+
+# (1 -> 99) in MHz 
+# PROCSPEED=1
+
+# (4->64) if not a power of 2 defaults to nearest one
+#TLBSIZE=16
+
+# devices (0 -> 3)
+# if file is not defined, the device is not activated
+# DISKDEV0=./disk0.umps
+# TAPEDEV0=./tape0.umps
+# PRINTER0=./printer0.umps
+# TERMINAL0=./term0.umps
+# TERMINAL1=./term1.umps
+# TERMINAL2=./term2.umps
+# TERMINAL3=./term3.umps
+# TERMINAL4=./term4.umps
+# TERMINAL5=./term5.umps
+# TERMINAL6=./term6.umps
+# TERMINAL7=./term7.umps
+
+# X interface setup
+# (0 -> 6) 0=slowest, 6=fastest 
+# SIMSPEED=6
+# (0, 1) stop on Exception, Breakpoint, Suspect
+# EXCSTOP=1
+# BRKPTSTOP=1
+# SUSPSTOP=1
+# TLBK0STOP=1
+# TLBK1STOP=1
+# EXPERTMODE=0
+
+BOOTROM=PROGPREFIX/share/PACKAGENAME/coreboot.rom.umps
+EXECROM=PROGPREFIX/share/PACKAGENAME/exec.rom.umps
+COREFILE=./kernel.core.umps
+STABFILE=./kernel.stab.umps
+LOADCOREFILE=1
+RAMPAGESIZE=64
+PROCSPEED=1
+TLBSIZE=16
+DISKDEV0=./disk0.umps
+TAPEDEV0=./tape0.umps
+PRINTER0=./printer0.umps
+TERMINAL0=./term0.umps
+TERMINAL1=./term1.umps
+TERMINAL2=./term2.umps
+TERMINAL3=./term3.umps
+TERMINAL4=./term4.umps
+TERMINAL5=./term5.umps
+TERMINAL6=./term6.umps
+TERMINAL7=./term7.umps
+SIMSPEED=6
+EXCSTOP=1
+BRKPTSTOP=1
+SUSPSTOP=1
+TLBK0STOP=1
+TLBK1STOP=1
+EXPERTMODE=0

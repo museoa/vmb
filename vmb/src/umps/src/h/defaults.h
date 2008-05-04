@@ -20,6 +20,7 @@ extern unsigned int enableCache;
 extern unsigned int enableRomFork;
 extern unsigned long ulRamSize;
 extern int debugflag;
+extern unsigned int enablePerf;
 
 #endif /* _DEFAULTS_H_ */
 

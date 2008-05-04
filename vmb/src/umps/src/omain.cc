@@ -22,43 +22,22 @@
  * - Added Doxygen commenting to this file.
  */
 
-#include <h/const.h> /*!< Constants of the Simulator */
-#include <h/types.h> /*!< Type Declarations of the Simulator */
+#include <h/const.h>      /*!< Constants of the Simulator */
+#include <h/types.h>      /*!< Type Declarations of the Simulator */
 
-#include <forms.h> /*!< Header Files for X11 Toolkit */
+#include <forms.h>        /*!< Header Files for X11 Toolkit */
 #include <e/xinterface.e> /*!< Declarations for the Classes used to design the Simulator UI */
+#include <e/utility.e>
+#include <pthread.h>      /*!< Include pthread.h to enable Simulator to become threadded */
+#include <cstdlib>        /*!< Include the cstdlib to have Stuff for Extern C calls */
 
-#include <pthread.h> /*!< Include pthread.h to enable Simulator to become threadded */
-#include <cstdlib>   /*!< Include the cstdlib to have Stuff for Extern C calls */
 
-
-#include "h/omain.h"     /*!< File declaring the chitchat with C calls */
+#include "h/omain.h"      /*!< File declaring the chitchat with C calls */
 extern "C" {
-#include "h/defaults.h"  /*!< Include Simulator setup defaults */
+#include "h/defaults.h"   /*!< Include Simulator setup defaults */
 #include "../../error.h"
 #include "h/guisync.h"
 }
-
-
-
-
-
-// int main(int argc, char * argv[])
-// {
-// 	XInterface * xint = new XInterface(&argc, argv);
-// 	
-// 	xint->ShowMainForm();	
-// 	
-// 	xint->MainLoop();
-// 	
-// 	// should never exit here, since XInterface should intercept all
-// 	// normal exit requests from user
-// 	delete xint;
-// 	fl_finish();
-// 	return(EXIT_FAILURE);
-// }
-
-// make these functions callable from C
 
   
 /*!
@@ -75,8 +54,6 @@ extern "C" {
  
 void param_init(int argc, char *argv[])
 {
-  //argc -= parseArgv(argc,argv);
-  // xint = new XInterface(&argc, argv);
   savArgc = argc;
   savArgv = argv;
   parseArgv(savArgc,savArgv);
@@ -94,14 +71,38 @@ int init_device(void)
   return 0;
 }
 
+/*!
+ * \fn unsigned char *get_payload(unsigned int offset,int size)
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief dummy function
+ *
+ */
+
 unsigned char *get_payload(unsigned int offset,int size)
 {
 }
+
+/*!
+ * \fn int reply_payload(unsigned char address[8], int size,unsigned char *payload)
+
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief dummy function
+ *
+ */
 
 int reply_payload(unsigned char address[8], int size,unsigned char *payload)
 {
   return 1;
 }
+
+/*!
+ * \fn int put_payload(unsigned int offset,int size, unsigned char *payload)
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief dummy function
+ */
 
 int put_payload(unsigned int offset,int size, unsigned char *payload)
 {
@@ -152,7 +153,6 @@ int process_poweron(void)
       xint->Reset(false,NULL);
   
   pthread_create(&pthrUIupdater,0,MainLoop,0);
-  // printf("%s(%d): process_poweron(): Received power-on from motherboard. Ready to go.\n",__FILE__,__LINE__);
   return 0;
 }
 
@@ -189,14 +189,29 @@ int process_reset(void)
   return 0;
 }
 
+/*!
+ * \fn int process_interrupt(unsigned char interrupt)
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief dummy function
+ *
+ */
+
 int process_interrupt(unsigned char interrupt)
 {
   return 0;
 }
 
 
+/*!
+ * \fn int process_input(unsigned char c) 
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief dummy function
+ */
+
 int process_input(unsigned char c) 
-{ /* ignore input */
+{
   return 0;
 }
 
@@ -211,7 +226,11 @@ int process_input(unsigned char c)
  */  
 int prepare_shutdown()
 {
-  delete xint;
-  fl_finish();
-  return 0;
+    perfPrint();        //!< do performance printing (if applicable)
+    if(xint != NULL)    //!< cleanup xint and friends
+    {   
+        delete xint;
+        fl_finish();
+    }
+    return 0;
 }

@@ -1,0 +1,20 @@
+--- Makefile	2006-12-15 10:44:22.000000000 +0100
++++ Make_old	2006-12-15 10:43:31.000000000 +0100
+@@ -3,7 +3,7 @@
+ DEFS = h/const.h Makefile
+ 
+ CFLAGS = -O2 -ansi -pedantic -Wall -c
+-LDFLAGS =  -T ../support/elf32ltsmip.h.umpscore.x 
++LDFLAGS =  -T ../elf32ltsmip.h.umpscore.x 
+ CC = /home/mh/dipl/toolchain/bin/mipsel-linux-gcc 
+ LD = /home/mh/dipl/toolchain/bin/mipsel-linux-ld
+ 
+@@ -22,7 +22,7 @@
+ 	ln -sf example.stab.umps kernel.stab.umps
+ 
+ example: example.o module.o
+-	$(LD) $(LDFLAGS) ../support/crtso.o example.o module.o ../support/libumps.o -o $@
++	$(LD) $(LDFLAGS) ../../../lib/uMPS/crtso.o example.o module.o ../../../lib/uMPS/libumps.o -o $@
+ 
+ module.o: module.c $(DEFS) 
+ 	$(CC) $(CFLAGS) module.c

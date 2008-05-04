@@ -1,4 +1,4 @@
-/* File: $Id: const.h,v 1.1 2007-08-29 09:19:38 ruckert Exp $ */
+/* File: $Id: const.h,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /**************************************************************************** 
  *
@@ -277,3 +277,11 @@
 
 // tests debugging conditions
 #define ASSERT(s) if (!(s)) exit(1)
+
+// performance stuff
+#define MAXPERF         1
+#define PERFARRAY       MAXPERF*2
+#define PERFOFFSET      MAXPERF
+
+#define PERF_PROCCYCLE  0
+

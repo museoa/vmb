@@ -22,6 +22,15 @@ extern "C" {
 #include "h/cache.h" /*!< The Class declaration of Cache class */
 
 
+/*!
+ * \fn void Cache::reset()
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief resets the cache contents
+ *
+ * This method resets the contents of the cache, cleares it.
+ */
+
 void Cache::reset()
 {
     int i,k;
@@ -33,23 +42,41 @@ void Cache::reset()
     }    
 }
 
-cache_line* Cache::lookup(Word address)
+
+
+/*!
+ * \fn cache_line* Cache::lookup(Word address)
+ * \author Martin Hauser <info@martin-hauser.net>
+ * \param wAddress The address a Cacheline is requested for
+ * \return a cache line if found, null otherwise
+ * \brief tries to locate the cacheline at address
+ * 
+ * This function uses the cache.h::CACHEINDEX macro to locate
+ * a matching cache-line bundle using the given address. It tries
+ * then to determine if any of the cachelines in the bundle matches
+ * the given address completely and if so returns it.
+ */
+
+cache_line* Cache::lookup(Word wAddress)
 { 
-  int i = CACHEINDEX(address);
-  cache_line *line = lines[i].line;
-  int w;
-  for (w=0; w<WAYS; w++)
-  {    
-    if (line[w].use != 0 && ((line[w].address&~CACHEMASK) == (address&~CACHEMASK)))
-    { 
-        if (++lines[i].access == 0) 
-          ++lines[i].access;
-        line[w].use = lines[i].access;
-        return line+w;
+    int i = CACHEINDEX(wAddress); //!< fetch cache-line bundle
+    cache_line *line = lines[i].line;
+    int w;
+
+    for (w=0; w<WAYS; w++)
+    {
+        //! check whether the cache line matches the given adress
+        if (line[w].use != 0 && ((line[w].wAddress&~CACHEMASK) == (wAddress&~CACHEMASK)))
+        { 
+          if (++lines[i].access == 0) 
+              ++lines[i].access;
+
+          line[w].use = lines[i].access; //!< update line
+          return line+w; //!< return matching line
+        }
     }
-  }
-  
-  return NULL;
+
+    return NULL;
 }
 /*
  * \fn cache_line* Cache::lru(Word address)  
@@ -98,6 +125,16 @@ cache_line* Cache::lru(Word address)
     return line+lru;
 }
 
+/*!
+ * \fn Word Cache::fetch_instr(Word wAddress)
+ * \author Martin Hauser <info@martin-hauser.net>
+ * 
+ * \brief fetches instruction either through cache or from memory
+ *
+ * This Method uses the given adresss to fetch a Word from the cache or 
+ * memory. It uses ::lookup to fetch a cache line.
+ */
+
 Word Cache::fetch_instr(Word wAddress)
 {
     cache_line* clLine = lookup(wAddress);
@@ -124,7 +161,7 @@ Word Cache::fetch_instr(Word wAddress)
                 fprintf(stderr,"Compensation worked.\nAlignment of Address 0x%x is of by %d bytes, please "
                                "fix if possible.\n",wAddress,LINESIZE-iSizeTest);
             else
-                fatal_error(__LINE__,"Failed to fix alignment problems, bailing out.\n");
+                fatal_error(__LINE__,"Failed to fix Cache alignment problems, bailing out.\n");
         }
         pthread_mutex_unlock(&pmtxBusAccess); /*!< we're done with the critic stuff */  
     }

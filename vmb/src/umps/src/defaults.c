@@ -26,7 +26,7 @@ int  port = 9002;                           /*!< The port to connect to */
 
 int debugflag = 0; /*!< Whether the simulator is in debug-mode or not */
 
-char version[]="$Revision: 1.1 $ $Date: 2007-08-29 09:19:37 $"; /*!< Version String for the simulator */
+char version[]="$Revision: 1.2 $ $Date: 2008-05-04 15:46:59 $"; /*!< Version String for the simulator */
 
 char howto[] =
  "\n"
@@ -41,6 +41,8 @@ unsigned int enableCache = 1;
 
 unsigned long ulRamSize = 0;
 unsigned int  enableRomFork = 1;
+
+unsigned int enablePerf = 0;
 
 #define ARGCMP(i,str) (strcmp(argv[i],str) == 0)
 #define argEnd(i) (i == argc)
@@ -73,10 +75,13 @@ unsigned int  enableRomFork = 1;
          "\t                           make sure that you specify this either   \n"
          "\t                           via this switch or via RAMPAGESIZE of    \n"
          "\t                           the .umpsrc files!                       \n"
-         "\t-dr, --diable-rom-fork     Disable the BOOTROM and EXECROM settings \n"
+         "\t-dr, --disable-rom-fork    Disable the BOOTROM and EXECROM settings \n"
          "\t                           and the resulting fork/exec calls. You   \n"
          "\t                           have to take care of the presence of the \n"
          "\t                           rom executeables yourself then!          \n"
+         "\t     --enable-perf-tests   Enables performance measuring. It'll     \n"
+         "\t                           print the resulting data to stderr with  \n"
+         "\t                           a prefix of PERF:.                       \n"
          );
      clean_argv();
      exit(-1);
@@ -102,8 +107,9 @@ void printDefaults()
            "program-name   = %s\n"
            "debug-flag     = %d\n"
            "cache-flag     = %d\n"
-           "rom-fork-flag  = %d\n",
-           host,port,ulRamSize,interrupts,programname,debugflag,enableCache,enableRomFork);
+           "rom-fork-flag  = %d\n"
+           "perf-tests     = %d\n",
+           host,port,ulRamSize,interrupts,programname,debugflag,enableCache,enableRomFork,enablePerf);
        clean_argv();
        exit(-1);
 }
@@ -121,11 +127,11 @@ void printDefaults()
 int parseArgv(int argc, char **argv)
 {
     int i;
-    for(i=1; i < argc; i++)
+    for(i=1; i < argc; i++) //!< loop through all arguments
     {
-        if(ARGCMP(i,"--help") || ARGCMP(i,"-h"))
+        if(ARGCMP(i,"--help") || ARGCMP(i,"-h")) //!< printing usage
             printUsage();
-        else if(ARGCMP(i,"--host") || ARGCMP(i,"-B"))
+        else if(ARGCMP(i,"--host") || ARGCMP(i,"-B")) //!< set hostname
         {
             if(argEnd(i))
             {
@@ -135,7 +141,7 @@ int parseArgv(int argc, char **argv)
             host = malloc(strlen(argv[i+1]));
             strcpy(host,argv[i+1]);
         }
-        else if(ARGCMP(i,"-p") || ARGCMP(i,"--port"))
+        else if(ARGCMP(i,"-p") || ARGCMP(i,"--port")) //!< deal with port settings
         {
             if(argEnd(i))
             {
@@ -148,9 +154,9 @@ int parseArgv(int argc, char **argv)
                 fatal_error(__LINE__,"Failed to parse portnumber from given argument!\n");
             }
         }
-        else if(ARGCMP(i,"--disable-interrupts") || ARGCMP(i,"-di"))
+        else if(ARGCMP(i,"--disable-interrupts") || ARGCMP(i,"-di")) //!< interrupts?
             interrupts = 0;
-        else if(ARGCMP(i,"--interrupt-mask"))
+        else if(ARGCMP(i,"--interrupt-mask")) //!< interrupt mask setting
         {
             if(argEnd(i))
             {
@@ -163,7 +169,7 @@ int parseArgv(int argc, char **argv)
                 fatal_error(__LINE__,"interrupt mask is out of bounds (1 < interruptmask < 0xFFFFFFFC)\n");
             }
         }
-        else if(ARGCMP(i,"--program-name"))
+        else if(ARGCMP(i,"--program-name")) //!< change program name
         {
             if(argEnd(i))
             {
@@ -173,25 +179,27 @@ int parseArgv(int argc, char **argv)
             programname = malloc(strlen(argv[i+1]));
             strcpy(programname,argv[i+1]);
         }
-        else if(ARGCMP(i,"-dic") || ARGCMP(i,"--disable-icache"))
+        else if(ARGCMP(i,"-dic") || ARGCMP(i,"--disable-icache")) //!< instruction cache
             enableCache = 0;
-        else if(ARGCMP(i,"--defaults"))
+        else if(ARGCMP(i,"--defaults")) //!< print default values
             printDefaults();
-        else if(ARGCMP(i,"--debug") || ARGCMP(i,"-d"))
+        else if(ARGCMP(i,"--debug") || ARGCMP(i,"-d")) //!< debug switch
             debugflag = 1;
-        else if (ARGCMP(i,"--disable-rom-fork") || ARGCMP(i,"-dr"))
+        else if (ARGCMP(i,"--disable-rom-fork") || ARGCMP(i,"-dr")) //!< rom fork controll
             enableRomFork = 0;
-        else if(ARGCMP(i,"--ram-size"))
+        else if (ARGCMP(i,"--enable-perf-tests")) //!< performance testing for caches
+            enablePerf = 1;
+        else if(ARGCMP(i,"--ram-size")) //!< control ram size
         {
             if(argEnd(i))
             {
                 clean_argv();
                 fatal_error(__LINE__,"ram size argument needs name given!\n");
             } 
-            if(sscanf(argv[i+1],"%x",&interrupts) != 1 || interrupts > 0xFFFFFFC || interrupts < 1)
+            if(sscanf(argv[i+1],"%x",&ulRamSize) != 1 || ulRamSize <= 4)
             {
                 clean_argv();
-                fatal_error(__LINE__,"interrupt mask is out of bounds (1 < interruptmask < 0xFFFFFFFC)\n");
+                fatal_error(__LINE__,"Rammsize too small!\n");
             }
         }
     }

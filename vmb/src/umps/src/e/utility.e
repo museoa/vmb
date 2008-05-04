@@ -1,4 +1,4 @@
-/* File: $Id: utility.e,v 1.1 2007-08-29 09:19:37 ruckert Exp $ */
+/* File: $Id: utility.e,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /****************************************************************************
  *
@@ -75,6 +75,9 @@ void trace(char *format, ...);
 // Returns TRUE if conversion was successful, FALSE otherwise
 Boolean StrToWord(const char * str, Word * value);
 
+void perfStat(unsigned int uiSlot,Boolean bIsLeaving);
+void perfPrint();
+void perfReset();
 
 /****************************************************************************/
 

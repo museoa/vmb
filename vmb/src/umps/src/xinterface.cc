@@ -1,4 +1,4 @@
-/* File: $Id: xinterface.cc,v 1.1 2007-08-29 09:19:37 ruckert Exp $ */
+/* File: $Id: xinterface.cc,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /****************************************************************************
  *
@@ -256,7 +256,7 @@ XInterface::~XInterface(void)
 Boolean XInterface::Reset(Boolean toDefaults, const char * message)
 {
 	Boolean ret;
-	
+    perfReset();
 	FreezeAllVForms();
 	
 	if ((setup  != NULL && setup->getExpertMode()) || message == NULL || SAMESTRING(message, EMPTYSTR) || \

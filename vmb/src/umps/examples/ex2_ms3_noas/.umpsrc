@@ -1,0 +1,3 @@
+STABFILE=./example.stab.umps
+COREFILE=./example.core.umps
+LOADCOREFILE=1

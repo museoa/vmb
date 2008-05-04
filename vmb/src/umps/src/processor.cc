@@ -1,4 +1,4 @@
-/* File: $Id: processor.cc,v 1.1 2007-08-29 09:19:37 ruckert Exp $ */
+/* File: $Id: processor.cc,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /****************************************************************************
  *
@@ -33,16 +33,6 @@
 extern "C" {
   #include <stdio.h>
   #include "../../bus-arith.h"
-}
-
-HIDDEN void printBitVal(Word w)
-{
-    int i;
-    for(i=0;i<32;i++)
-    {
-        printf("%d",(w & (1 << (31 - i))) ? 1 :0 );
-    }
-    printf("\n");
 }
 
 
@@ -432,6 +422,7 @@ Processor::~Processor(void)
 // Other MIPS-specific minor tasks are performed at proper points.
 void Processor::Cycle(void)
 {
+    perfStat(PERF_PROCCYCLE,false);
 	// decode & exec instruction
 	if (execInstr(currInstr))
 		// exception caused from instruction execution
@@ -471,7 +462,7 @@ void Processor::Cycle(void)
 		}
 
 
-
+    perfStat(PERF_PROCCYCLE,true);    
 }
 
 
@@ -741,9 +732,6 @@ void Processor::popKUIEVMStack(void)
 			cpreg[STATUS] = SetBit(cpreg[STATUS], bitp);
 		else
 			cpreg[STATUS] = ResetBit(cpreg[STATUS], bitp);
-
-    printBitVal(cpreg[STATUS]);
-    printf("%x\n",cpreg[STATUS]);
 }
 
 

@@ -1,4 +1,4 @@
-/* File: $Id: setup.cc,v 1.1 2007-08-29 09:19:37 ruckert Exp $ */
+/* File: $Id: setup.cc,v 1.2 2008-05-04 15:46:59 mbbh Exp $ */
 
 /****************************************************************************
  *
@@ -698,7 +698,7 @@ HIDDEN long forkNexecROM(char* cpAddress, char* cpFileName)
 {
     long ulPid;
     int iStatus;
-    char* cpArgs[] = {"rom","-a",0,"-d","1","-f",0,(char*)0};
+    char* cpArgs[] = {"rom","-a",0,"-d","0","-f",0,(char*)0};
     cpArgs[6] = cpFileName;
     cpArgs[2] = cpAddress;
     ulPid = fork(); // we just do fork n exec, use vfork for faster stuff
@@ -721,6 +721,9 @@ HIDDEN long forkNexecROM(char* cpAddress, char* cpFileName)
             ulPid = -1;
             fprintf(stderr,"%s:(%d): failed to exec child!\n",__FILE__,__LINE__);
         }
+        else
+            sleep(1);
+        
     }
     return(ulPid);
 }
