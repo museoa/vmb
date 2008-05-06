@@ -279,6 +279,7 @@ tetra obj_time; /* when the object file was created */
 
 @ @<Load object file@>=
 cur_loc.h=cur_loc.l=0;
+postamble=0;
 @<Load the preamble@>;
 do @<Load the next item@>@;@+while (!postamble);
 @<Load the postamble@>;
@@ -776,6 +777,10 @@ if (!l) panic("No room for the local registers");
 @.No room...@>
 
 @ @<Boot the machine@>=
+clear_all_data_vtc();
+clear_all_instruction_vtc();
+clear_all_data_cache();
+clear_all_instruction_cache();
 g[rK].h=g[rK].l=0;
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
 g[rN].l=ABSTIME; /* see comment and warning above */
@@ -1781,13 +1786,19 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
 int main(argc,argv)
   int argc;
   char *argv[];
-{ 
+{ char **boot_cur_arg;
+  int boot_argc;
   @<Local registers@>;
   @<Process the command line@>;
 
   if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(bushost,busport,"MMIX CPU");
+ 
+  boot_cur_arg = cur_arg;
+  boot_argc = argc;
 boot:
+  argc = boot_argc;
+  cur_arg = boot_cur_arg;
   @<Initialize everything@>;
   fprintf(stderr,"Power...");
   while (!vmb_power)
@@ -1796,7 +1807,6 @@ boot:
   }
   fprintf(stderr,"ON\n");
   vmb_reset_flag = 0;
-  @<Boot the machine@>;
   @<Load object file@>;
   @<Load the command line arguments@>;
   while (1) {
