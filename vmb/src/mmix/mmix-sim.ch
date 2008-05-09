@@ -26,10 +26,11 @@ is equivalent to \.{-eff}, tracing all eight exceptions.
 is equivalent to \.{-eff}, tracing all eight exceptions.
 
 \bull \.{-B[host:]port}\quad Connect to the bus on the given host and port.
-This option is required. Without a bus, the processor has no power suply, no
+Without a bus, the processor has no power suply, no
 memory and no other devices. It will not function. The hostname is separated with
 a colon from the port number. The hostname, together with the colon,
 can be ommited; in this case the simulator will try a connection to localhost.
+If the option is omited altogether, localhost is contacted at port 9002.
 @z
 
 
@@ -158,13 +159,13 @@ before all of |p|'s nodes.
 @y  
 @* Simulated memory. 
 We now read memory using some external simulator.
-We provide |extern| function defined in a separate files
+We provide |extern| functions defined in a separate file.
 The functions we use are partly concerned with virtual
 to physical address translation and contained in the
 file address.h and address.c 
 and with access to the virtual bus contained in
 mmix-bus.h and mmix-bus.c. 
-At a later point these
+At a later point the interface 
 should be included here as a literate program.
 
 @<Type...@>=
@@ -195,7 +196,7 @@ implement \.{MMIXAL}-style expressions for interactive debugging,
 but such enhancements are left to the interested reader.)
 
 @<Load object file@>=
-if (mmo_file_name!=NULL)
+if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 { mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
   register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
@@ -309,9 +310,6 @@ case lop_fixo:@+if (zbyte==2) {
 @z
 
 @x
-@ The space for file names isn't allocated until we are sure we need it.
-
-@<Cases for lopcodes...@>=
 case lop_file:@+if (file_info[ybyte].name) {
    if (zbyte) mmo_err;
    cur_file=ybyte;
@@ -332,9 +330,6 @@ case lop_file:@+if (file_info[ybyte].name) {
 case lop_line:@+if (cur_file<0) mmo_err;
  cur_line=yzbytes;@+continue;
 @y
-@ The space for file names isn't allocated until we are sure we need it.
-
-@<Cases for lopcodes...@>=
 case lop_file:
    for (j=zbyte; j>0; j--) {/* skip file name */
      read_tet();
@@ -370,7 +365,39 @@ for (j=G+G;j<256+256;j++,ll++,aux.l+=4) read_tet(), ll->tet=tet;
 inst_ptr.h=(ll-2)->tet, inst_ptr.l=(ll-1)->tet; /* \.{Main} */
 (ll+2*12)->tet=G<<24;
 g[255]=incr(aux,12*8); /* we will |UNSAVE| from here, to get going */
+@y
+@ We load the postamble into the beginning
+of segment~3, also known as \.{Stack\_Segment}).
+@:Stack_Segment}\.{Stack\_Segment@>
+@:Pool_Segment}\.{Pool\_Segment@>
+The stack segment is set up to be used with an unsave instruction.
+On the stack, we have, the local registers (argc and argv) and the value of rL, then the global 
+registers and the special registers rB, rD, rE, rH, rJ, rM, rR, rP, rW, rX, rY, and rZ,
+followed by rG and rA packed into eight byte.
 
+@<Load the postamble@>=
+aux.h=0x60000000;
+{ octa x;
+  x.h=0;@+x.l=argc;@+aux.l=0x00;@+store_data(8,x,aux); /* and $\$0=|argc|$ */
+  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;@+store_data(8,x,aux); /* and $\$1=\.{Pool\_Segment}+8$ */
+  x.h=0;@+x.l=2;@+aux.l=0x10;@+store_data(8,x,aux); /* this will ultimately set |rL=2| */
+  G=zbyte;@+ L=0;
+  aux.l=0x18;
+  for (j=G;j<256;j++,aux.l+=8) 
+  { read_tet(); x.h=tet;
+    read_tet(), x.l=tet;
+    store_data(8,x,aux);
+  }
+  g[rWW] = x;  /* last octa stored is address of \.{Main} */
+  if (interacting) set_break(x,exec_bit);
+  g[rXX].h = 0; g[rXX].l = 0xFB0000FF; /* |UNSAVE| \$255 */
+  g[rBB]=aux=incr(aux,12*8); /* we can |UNSAVE| from here, to get going */
+  x.h=G<<24; x.l=0 /* rA */; 
+  store_data(8,x,aux);
+}
+@z
+
+@x
 @* Loading and printing source lines.
 The loaded program generally contains cross references to the lines
 of symbolic source files, so that the context of each instruction
@@ -582,104 +609,50 @@ bool profile_started; /* have we printed at least one frequency count? */
   print_freqs(mem_root);
 }
 @y
-@ We load the postamble into the beginning
-of segment~3, also known as \.{Stack\_Segment}).
-@:Stack_Segment}\.{Stack\_Segment@>
-@:Pool_Segment}\.{Pool\_Segment@>
-The stack segment is set up to be used with an unsave instruction.
-On the stack, we have, the local registers (argc and argv) and the value of rL, then the global 
-registers and the special registers rB, rD, rE, rH, rJ, rM, rR, rP, rW, rX, rY, and rZ,
-followed by rG and rA packed into eight byte
-
-@<Load the postamble@>=
-aux.h=0x60000000;
-{ octa x;
-  x.h=0;@+x.l=argc;@+aux.l=0x00;@+store_data(8,x,aux); /* and $\$0=|argc|$ */
-  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;@+store_data(8,x,aux); /* and $\$1=\.{Pool\_Segment}+8$ */
-  x.h=0;@+x.l=2;@+aux.l=0x10;@+store_data(8,x,aux); /* this will ultimately set |rL=2| */
-  G=zbyte;@+ L=0;
-  aux.l=0x18;
-  for (j=G;j<256;j++,aux.l+=8) 
-  { read_tet(); x.h=tet;
-    read_tet(), x.l=tet;
-    store_data(8,x,aux);
-  }
-  g[rWW] = x;  /* last octa stored is address of \.{Main} */
-  g[rXX].h = 0; g[rXX].l = 0xFB0000FF; /* |UNSAVE| \$255 */
-  g[rBB]=aux=incr(aux,12*8); /* we can |UNSAVE| from here, to get going */
-  x.h=G<<24; x.l=0 /* rA */; 
-  store_data(8,x,aux);
-}
 @z
 
 
 @x
-@* The main loop. Now let's plunge in to the guts of the simulator,
-the master switch that controls most of the action.
-
-@<Perform one instruction@>=
-{
   if (resuming) loc=incr(inst_ptr,-4), inst=g[rX].l;
   else @<Fetch the next instruction@>;
-  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
-  f=info[op].flags;@+yz=inst&0xffff;
-  x=y=z=a=b=zero_octa;@+ exc=0;@+ old_L=L;
-  if (f&rel_addr_bit) @<Convert relative address to absolute address@>;
-  @<Install operand fields@>;
-  if (f&X_is_dest_bit) @<Install register~X as the destination,
-          adjusting the register stack if necessary@>;
-  w=oplus(y,z);
+@y
+  if (resuming) loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
+  else @<Fetch the next instruction@>;
+@z
+
+@x
   if (loc.h>=0x20000000) goto privileged_inst;
-  switch(op) {
-  @t\4@>@<Cases for individual \MMIX\ instructions@>;
-  }
+@y
+@z
+
+
+@x
   @<Check for trip interrupt@>;
   @<Update the clocks@>;
   @<Trace the current instruction, if requested@>;
-  if (resuming && op!=RESUME) resuming=false;
-}
-
 @y
-@* The main loop. Now let's plunge in to the guts of the simulator,
-the master switch that controls most of the action.
-
-@<Perform one instruction@>=
-{
-  if (!resuming) @<Fetch the next instruction@>;
-  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
-  f=info[op].flags;@+yz=inst&0xffff;
-  x=y=z=a=b=zero_octa;@+ exc=0;@+ old_L=L;
-  if (f&rel_addr_bit) @<Convert relative address to absolute address@>;
-  {@+ @<Install operand fields@>;@+}
-  if (f&X_is_dest_bit){ @<Install register~X as the destination,
-          adjusting the register stack if necessary@>; }
-  w=oplus(y,z);
-  switch(op) {
-  @t\4@>@<Cases for individual \MMIX\ instructions@>;
-  }
-  @<Check for trap and trip interrupt@>;
   @<Update the clocks@>;
   @<Trace the current instruction, if requested@>;
-  if (resuming && op!=RESUME) resuming=false;
-}
-
-
+  @<Check for trap and trip interrupt@>;
 @z
 
 @x
 bool interacting; /* are we in interactive mode? */
 @y
 static bool interacting; /* are we in interactive mode? */
-static int busport=-1; /* on which port to connect to the bus */
-static char *bushost=NULL; /* on which host to connect to the bus */
+static bool show_operating_system = false; /* do we show negative addresses */
+static int busport=9002; /* on which port to connect to the bus */
+static char localhost[]="localhost";     
+static char *bushost=localhost; /* on which host to connect to the bus */
 @z
 
 
 @x
-register int i,j,k; /* miscellaneous indices */
 register mem_tetra *ll; /* current place in the simulated memory */
-register char *p; /* current place in a string */
+@y
+@z
 
+@x
 @ @<Fetch the next instruction@>=
 {
   loc=inst_ptr;
@@ -693,9 +666,6 @@ register char *p; /* current place in a string */
   inst_ptr=incr(inst_ptr,4);
 }
 @y
-register int i,j,k; /* miscellaneous indices */
-register char *p; /* current place in a string */
-
 @ @<Fetch the next instruction@>=
 { unsigned char b;
   loc=inst_ptr;
@@ -708,10 +678,14 @@ register char *p; /* current place in a string */
 @z
 
 @x
+{"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
+{"SAVE",0x20,0,20,1,"%l = %#x"},@|
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,""},@|
 {"SWYM",0x00,0,0,1,""},@|
 @y
+{"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
+{"SAVE",0x20,0,20,1,"%l = %#x"},@|
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,"%z"},@|
 {"SWYM",0x01,0,0,1,"%z"},@|
@@ -719,33 +693,14 @@ register char *p; /* current place in a string */
 
 
 @x
-@ @<Set |b| from register X@>=
-{
-  if (xx>=G) b=g[xx];
-  else if (xx<L) b=l[(O+xx)&lring_mask];
-}
-  
 @ @<Local...@>=
 register int G,L,O; /* accessible copies of key registers */
-
-@ @<Glob...@>=
-octa g[256]; /* global registers */
 @y
-@ @<Set |b| from register X@>=
-{
-  if (xx>=G) b=g[xx];
-  else if (xx<L) b=l[(O+xx)&lring_mask];
-}
-  
-
 @ @<Glob...@>=
 int G=1,L=0,O=0; /* accessible copies of key registers */
-octa g[256]; /* global registers */
 @z
 
 @x
-@d SUBSUBVERSION 1 /* further qualification to version number */
-
 @<Initialize...@>=
 g[rK]=neg_one;
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
@@ -763,8 +718,6 @@ if (!l) panic("No room for the local registers");
 @.No room...@>
 cur_round=ROUND_NEAR;
 @y
-@d SUBSUBVERSION 1 /* further qualification to version number */
-
 @<Initialize...@>=
 @<Boot the machine@>@;
 if (lring_size<256) lring_size=256;
@@ -892,56 +845,6 @@ case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:
  goto check_ld;
 case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
  x=load_sf(ll->tet);@+ goto check_ld;
-
-@ @<Cases for ind...@>=
-case STB: case STBI: case STBU: case STBUI:@/
- i=56;@+j=(w.l&0x3)<<3; goto fin_pst;
-case STW: case STWI: case STWU: case STWUI:@/
- i=48;@+j=(w.l&0x2)<<3; goto fin_pst;
-case STT: case STTI: case STTU: case STTUI:@/
- i=32;@+j=0;
-fin_pst: ll=mem_find(w);
- if ((op&0x2)==0) {
-   a=shift_right(shift_left(b,i),i,0);
-   if (a.h!=b.h || a.l!=b.l) exc|=V_BIT;
- }
- ll->tet^=(ll->tet^(b.l<<(i-32-j))) & ((((tetra)-1)<<(i-32))>>j);
- goto fin_st;
-case STSF: case STSFI: ll=mem_find(w);
- ll->tet=store_sf(b);@+exc=exceptions;
- goto fin_st;
-case STHT: case STHTI: ll=mem_find(w);@+ ll->tet=b.h;
-fin_st: test_store_bkpt(ll);
- w.l&=-8;@+ll=mem_find(w);
- a.h=ll->tet;@+ a.l=(ll+1)->tet; /* for trace output */
- goto check_st; 
-case STCO: case STCOI: b.l=xx;
-case STO: case STOI: case STOU: case STOUI: case STUNC: case STUNCI:
- w.l&=-8;@+ll=mem_find(w);
- test_store_bkpt(ll);@+ test_store_bkpt(ll+1);
- ll->tet=b.h;@+ (ll+1)->tet=b.l;
-check_st:@+if (w.h&sign_bit) goto privileged_inst;
- break;
-
-@ The |CSWAP| operation has elements of both loading and storing.
-We shuffle some of
-the operands around so that they will appear correctly in the trace output.
-
-@<Cases for ind...@>=
-case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
- test_load_bkpt(ll);@+test_load_bkpt(ll+1);
- a=g[rP];
- if (ll->tet==a.h && (ll+1)->tet==a.l) {
-   x.h=0, x.l=1;
-   test_store_bkpt(ll);@+test_store_bkpt(ll+1);
-   ll->tet=b.h, (ll+1)->tet=b.l;
-   strcpy(rhs,"M8[%#w]=%#b");
- }@+else {
-   b.h=ll->tet, b.l=(ll+1)->tet;
-   g[rP]=b;
-   strcpy(rhs,"rP=%#b");
- }
- goto check_ld;
 @y
 case LDB: case LDBI:
  if (!load_data(1,&x,w,1)) goto page_fault;
@@ -985,7 +888,39 @@ page_fault:
    inst_ptr=g[rTT];
  }
  break;
+@z
 
+@x
+@ @<Cases for ind...@>=
+case STB: case STBI: case STBU: case STBUI:@/
+ i=56;@+j=(w.l&0x3)<<3; goto fin_pst;
+case STW: case STWI: case STWU: case STWUI:@/
+ i=48;@+j=(w.l&0x2)<<3; goto fin_pst;
+case STT: case STTI: case STTU: case STTUI:@/
+ i=32;@+j=0;
+fin_pst: ll=mem_find(w);
+ if ((op&0x2)==0) {
+   a=shift_right(shift_left(b,i),i,0);
+   if (a.h!=b.h || a.l!=b.l) exc|=V_BIT;
+ }
+ ll->tet^=(ll->tet^(b.l<<(i-32-j))) & ((((tetra)-1)<<(i-32))>>j);
+ goto fin_st;
+case STSF: case STSFI: ll=mem_find(w);
+ ll->tet=store_sf(b);@+exc=exceptions;
+ goto fin_st;
+case STHT: case STHTI: ll=mem_find(w);@+ ll->tet=b.h;
+fin_st: test_store_bkpt(ll);
+ w.l&=-8;@+ll=mem_find(w);
+ a.h=ll->tet;@+ a.l=(ll+1)->tet; /* for trace output */
+ goto check_st; 
+case STCO: case STCOI: b.l=xx;
+case STO: case STOI: case STOU: case STOUI: case STUNC: case STUNCI:
+ w.l&=-8;@+ll=mem_find(w);
+ test_store_bkpt(ll);@+ test_store_bkpt(ll+1);
+ ll->tet=b.h;@+ (ll+1)->tet=b.l;
+check_st:@+if (w.h&sign_bit) goto privileged_inst;
+ break;
+@y
 @ @<Cases for ind...@>=
 case STB: case STBI: case STBU: case STBUI:@/
  i=56;@+j=1; goto fin_pst;
@@ -1015,7 +950,29 @@ case STO: case STOI: case STOU: case STOUI:
 case STUNC: case STUNCI:
  j = 8;
  goto fin_st;
+@z
 
+@x
+@ The |CSWAP| operation has elements of both loading and storing.
+We shuffle some of
+the operands around so that they will appear correctly in the trace output.
+
+@<Cases for ind...@>=
+case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
+ test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+ a=g[rP];
+ if (ll->tet==a.h && (ll+1)->tet==a.l) {
+   x.h=0, x.l=1;
+   test_store_bkpt(ll);@+test_store_bkpt(ll+1);
+   ll->tet=b.h, (ll+1)->tet=b.l;
+   strcpy(rhs,"M8[%#w]=%#b");
+ }@+else {
+   b.h=ll->tet, b.l=(ll+1)->tet;
+   g[rP]=b;
+   strcpy(rhs,"rP=%#b");
+ }
+ goto check_ld;
+@y
 @ The |CSWAP| operation has elements of both loading and storing.
 We shuffle some of
 the operands around so that they will appear correctly in the trace output.
@@ -1248,49 +1205,6 @@ else if (zz==1) {
   if (loc.h || loc.l>=0x90) goto privileged_inst;
   print_trip_warning(loc.l>>4,incr(g[rW],-4));
 }@+else goto privileged_inst;
-
-@ @<Glob...@>=
-char arg_count[]={1,3,1,3,3,3,3,2,2,2,1};
-char *trap_format[]={
-"Halt(%z)",
-"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fclose(%!z) = %x",
-"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
-"$255 = Fputs(%!z,%#b) = %x",
-"$255 = Fputws(%!z,%#b) = %x",
-"$255 = Fseek(%!z,%b) = %x",
-"$255 = Ftell(%!z) = %x"};
-
-@ @<Prepare memory arguments...@>=
-if (arg_count[yy]==3) {
-  ll=mem_find(b);@+test_load_bkpt(ll);@+test_load_bkpt(ll+1);
-  mb.h=ll->tet, mb.l=(ll+1)->tet;
-  ll=mem_find(a);@+test_load_bkpt(ll);@+test_load_bkpt(ll+1);
-  ma.h=ll->tet, ma.l=(ll+1)->tet;
-}
-
-@ The input/output operations invoked by \.{TRAP}s are
-done by subroutines in an auxiliary program module called {\mc MMIX-IO}.
-Here we need only declare those subroutines, and write three primitive
-interfaces on which they depend.
-
-@ @<Glob...@>=
-extern void mmix_io_init @,@,@[ARGS((void))@];
-extern octa mmix_fopen @,@,@[ARGS((unsigned char,octa,octa))@];
-extern octa mmix_fclose @,@,@[ARGS((unsigned char))@];
-extern octa mmix_fread @,@,@[ARGS((unsigned char,octa,octa))@];
-extern octa mmix_fgets @,@,@[ARGS((unsigned char,octa,octa))@];
-extern octa mmix_fgetws @,@,@[ARGS((unsigned char,octa,octa))@];
-extern octa mmix_fwrite @,@,@[ARGS((unsigned char,octa,octa))@];
-extern octa mmix_fputs @,@,@[ARGS((unsigned char,octa))@];
-extern octa mmix_fputws @,@,@[ARGS((unsigned char,octa))@];
-extern octa mmix_fseek @,@,@[ARGS((unsigned char,octa))@];
-extern octa mmix_ftell @,@,@[ARGS((unsigned char))@];
-extern void print_trip_warning @,@,@[ARGS((int,octa))@];
-extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
 @y
 The |TRAP| instruction prints nicely for some system calls.
 
@@ -1312,27 +1226,45 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
  @<Initiate a trap interrupt@>
  inst_ptr=g[rT];
  break;
+@z
 
-@ @<Glob...@>=
-char arg_count[]={1,3,1,3,3,3,3,2,2,2,1};
-char *trap_format[]={
-"Halt(%z) $255 = %b",
-"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
-"$255 = Fclose(%!z)",
-"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
-"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
-"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
-"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p)",
-"$255 = Fputs(%!z,%#b)",
-"$255 = Fputws(%!z,%#b)",
-"$255 = Fseek(%!z,%b)",
-"$255 = Ftell(%!z)"};
-
+@x
+@ @<Prepare memory arguments...@>=
+if (arg_count[yy]==3) {
+  ll=mem_find(b);@+test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+  mb.h=ll->tet, mb.l=(ll+1)->tet;
+  ll=mem_find(a);@+test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+  ma.h=ll->tet, ma.l=(ll+1)->tet;
+}
+@y
 @ @<Prepare memory arguments...@>=
 if (arg_count[yy]==3) {
    load_data(8,&mb,b,0);
    load_data(8,&ma,a,0);
 }
+@z
+
+@x
+@ The input/output operations invoked by \.{TRAP}s are
+done by subroutines in an auxiliary program module called {\mc MMIX-IO}.
+Here we need only declare those subroutines, and write three primitive
+interfaces on which they depend.
+
+@ @<Glob...@>=
+extern void mmix_io_init @,@,@[ARGS((void))@];
+extern octa mmix_fopen @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fclose @,@,@[ARGS((unsigned char))@];
+extern octa mmix_fread @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgets @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgetws @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fwrite @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fputs @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fputws @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fseek @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_ftell @,@,@[ARGS((unsigned char))@];
+extern void print_trip_warning @,@,@[ARGS((int,octa))@];
+extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
+@y
 @z
 
 @x
@@ -1503,10 +1435,6 @@ void mmputchars(buf,size,addr)
 @z
 
 @x
-@ Just after executing each instruction, we do the following.
-Underflow that is exact and not enabled is ignored. (This applies
-also to underflow that was triggered by |RESUME_SET|.)
-
 @<Check for trip interrupt@>=
 if ((exc&(U_BIT+X_BIT))==U_BIT && !(g[rA].l&U_BIT)) exc &=~U_BIT;
 if (exc) {
@@ -1516,11 +1444,6 @@ if (exc) {
   g[rA].l |= exc>>8;
 }
 @y
-@ Just after executing each instruction, we do the following.
-Underflow that is exact and not enabled is ignored. (This applies
-also to underflow that was triggered by |RESUME_SET|.)
-
-
 @<Check for trap and trip interrupt@>=
 if (!resuming)
 { vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
@@ -1563,14 +1486,39 @@ inst_ptr=z=g[rW];
 b=g[rX];
 if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
 break;
+@y
+case RESUME:@+if (xx || yy) goto illegal_inst;
+if ( zz == 0)
+{ inst_ptr=z=g[rW];
+  b=g[rX];
+}
+else if ( zz == 1)
+{ 
+  if (!(loc.h&sign_bit)) goto privileged_inst;
+  inst_ptr=z=g[rWW];
+  b=g[rXX];
+  g[rK]=g[255];
+  g[255]=g[rBB];
+}
+else goto illegal_inst;
+if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
+break;
+@z
 
-@ Here we check to see if the ropcode restrictions hold.
-If so, the ropcode will actually be obeyed on the next fetch phase.
 
+@x
 @d RESUME_AGAIN 0 /* repeat the command in rX as if in location $\rm rW-4$ */
 @d RESUME_CONT 1 /* same, but substitute rY and rZ for operands */
 @d RESUME_SET 2 /* set r[X] to rZ */
+@y
+@d RESUME_AGAIN 0 /* repeat the command in rX as if in location $\rm rW-4$ */
+@d RESUME_CONT 1 /* same, but substitute rY and rZ for operands */
+@d RESUME_SET 2 /* set r[X] to rZ */
+@d RESUME_TRANS 3 /* install $\rm(rY,rZ)$ into IT-cache or DT-cache,
+        then |RESUME_AGAIN| */
+@z
 
+@x
 @<Prepare to perform a ropcode@>=
 {
   rop=b.h>>24; /* the ropcode is the leading byte of rX */
@@ -1596,39 +1544,7 @@ if (rop==RESUME_SET) {
   y=g[rY];
   z=g[rZ];
 }
-
 @y
-case RESUME:@+if (xx || yy) goto illegal_inst;
-if ( zz == 0)
-{ inst_ptr=z=g[rW];
-  loc=incr(inst_ptr,-4);
-  b=g[rX];
-  inst=g[rX].l;
-}
-else if ( zz == 1)
-{ 
-  if (!(loc.h&sign_bit)) goto privileged_inst;
-  inst_ptr=z=g[rWW];
-  loc=incr(inst_ptr,-4);
-  b=g[rXX];
-  inst=g[rXX].l;
-  g[rK]=g[255];
-  g[255]=g[rBB];
-  resuming=(b.h<0);
-}
-else goto illegal_inst;
-if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
-break;
-
-@ Here we check to see if the ropcode restrictions hold.
-If so, the ropcode will actually be obeyed on the next fetch phase.
-
-@d RESUME_AGAIN 0 /* repeat the command in rX as if in location $\rm rW-4$ */
-@d RESUME_CONT 1 /* same, but substitute rY and rZ for operands */
-@d RESUME_SET 2 /* set r[X] to rZ */
-@d RESUME_TRANS 3 /* install $\rm(rY,rZ)$ into IT-cache or DT-cache,
-        then |RESUME_AGAIN| */
-
 @<Prepare to perform a ropcode@>=
 {
   rop=b.h>>24; /* the ropcode is the leading byte of rX */
@@ -1677,10 +1593,9 @@ else
 }
 @z
 
-
-
-
 @x
+@<Trace...@>=
+if (tracing) {
   if (showing_source && cur_line) show_line();
   @<Print the frequency count, the location, and the instruction@>;
   @<Print a stream-of-consciousness description of the instruction@>;
@@ -1692,6 +1607,8 @@ else
   shown_line=-gap-1; /* gap will not be filled */
 }
 @y
+@<Trace...@>=
+if (tracing && (!(loc.h&0x80000000) || show_operating_system)) {
   @<Print the frequency count, the location, and the instruction@>;
   @<Print a stream-of-consciousness description of the instruction@>;
   if (showing_stats || breakpoint) show_stats(breakpoint);
@@ -1770,23 +1687,12 @@ int main(argc,argv)
   if (interacting || profiling || showing_stats) show_stats(true);
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
-
-@ Here we process the command-line options; when we finish, |*cur_arg|
-should be the name of the object file to be loaded and simulated.
-
-@d mmo_file_name *cur_arg
-
-@<Process the command line@>=
-myself=argv[0];
-for (cur_arg=argv+1;*cur_arg && (*cur_arg)[0]=='-'; cur_arg++)
-  scan_option(*cur_arg+1,true);
-if (!*cur_arg) scan_option("?",true); /* exit with usage note */
-argc -= cur_arg-argv; /* this is the |argc| of the user program */
 @y
 int main(argc,argv)
   int argc;
   char *argv[];
-{ char **boot_cur_arg;
+{
+  char **boot_cur_arg;
   int boot_argc;
   @<Local registers@>;
   @<Process the command line@>;
@@ -1799,7 +1705,9 @@ int main(argc,argv)
 boot:
   argc = boot_argc;
   cur_arg = boot_cur_arg;
+
   @<Initialize everything@>;
+
   fprintf(stderr,"Power...");
   while (!vmb_power)
   {  vmb_wait_for_power();
@@ -1807,13 +1715,18 @@ boot:
   }
   fprintf(stderr,"ON\n");
   vmb_reset_flag = 0;
+
   @<Load object file@>;
   @<Load the command line arguments@>;
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {
       breakpoint=false;
-      if (interacting) @<Interact with the user@>;
+      if (interacting && 
+         (!(inst_ptr.h&0x80000000) || 
+          show_operating_system || 
+          (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
+        @<Interact with the user@>;
     }
     if (halted) break;
     do @<Perform one instruction@>@;
@@ -1825,22 +1738,15 @@ boot:
   if (interacting || profiling || showing_stats) show_stats(true);
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
+@z
 
-@ Here we process the command-line options; when we finish, |*cur_arg|
-should be the name of the object file to be loaded and simulated.
-
-@d mmo_file_name *cur_arg
-
-@<Process the command line@>=
-myself=argv[0];
-for (cur_arg=argv+1;*cur_arg && (*cur_arg)[0]=='-'; cur_arg++)
-  scan_option(*cur_arg+1,true);
-argc -= cur_arg-argv; /* this is the |argc| of the user program */
+@x
+if (!*cur_arg) scan_option("?",true); /* exit with usage note */
+@y
 @z
 
 
 @x
- case 's': showing_stats=true;@+return;
  case 'l':@+if (!*(arg+1)) gap=3;
   else if (sscanf(arg+1,"%d",&gap)!=1) gap=0;
   showing_source=true;@+return;
@@ -1848,26 +1754,33 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
   else if (sscanf(arg+1,"%d",&profile_gap)!=1) profile_gap=0;
   profile_showing_source=true;
  case 'P': profiling=true;@+return;
- case 'v': trace_threshold=0xffffffff;@+ tracing_exceptions=0xff;
-  stack_tracing=true; @+ showing_stats=true;
+@y
+@z
+
+@x
   gap=10, showing_source=true;
   profile_gap=10, profile_showing_source=true, profiling=true;
-  return;
- case 'q': trace_threshold=tracing_exceptions=0;
+@y
+  profiling=true;
+@z
+
+@x
   stack_tracing=showing_stats=showing_source=false;
   profiling=profile_showing_source=false;
-  return;
- case 'i': interacting=true;@+return;
- case 'I': interact_after_break=true;@+return;
+@y
+  stack_tracing=showing_stats=false;
+  profiling=false;
+@z
+
+
+@x
  case 'b':@+if (sscanf(arg+1,"%d",&buf_size)!=1) buf_size=0;@+return;
 @y
- case 's': showing_stats=true;@+return;
  case 'B': 
   { char *p;
     p = strchr(arg+1,':');
     if (p==NULL)
-    { static char localhost[]="localhost";
-      bushost=localhost;
+    { bushost=localhost;
       busport = atoi(arg+1);
     }   
     else
@@ -1879,17 +1792,7 @@ argc -= cur_arg-argv; /* this is the |argc| of the user program */
     }
     return;
   } 
- case 'P': profiling=true;@+return;
- case 'v': trace_threshold=0xffffffff;@+ tracing_exceptions=0xff;
-  stack_tracing=true; @+ showing_stats=true;
-  profiling=true;
-  return;
- case 'q': trace_threshold=tracing_exceptions=0;
-  stack_tracing=showing_stats=false;
-  profiling=false;
-  return;
- case 'i': breakpoint=interacting=true;@+return;
- case 'I': interact_after_break=true;@+return;
+ case 'O': show_operating_system=true;@+return;
 @z
 
 @x
@@ -1901,13 +1804,13 @@ static bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
-"-r    trace hidden details of the register stack\n",@|
 "-l<n> list source lines when tracing, filling gaps <= n\n",@|
 "-s    show statistics after each traced instruction\n",@|
 "-P    print a profile when simulation ends\n",@|
 "-L<n> list source lines with the profile\n",@|
 @y
 "-r    trace hidden details of the register stack\n",@|
+"-O    trace inside the operating system\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z
@@ -1923,7 +1826,9 @@ static bool profiling=0; /* should we print the profile at the end? */
 "P         set current segment to Pool_Segment\n",@|
 "S         set current segment to Stack_Segment\n",@|
 "N         set current segment to Negative Addresses\n",@|
+"O         toggle tracing inside the operating system\n",@|
 @z
+
 @x
 else mmix_fake_stdin(fake_stdin);
 @y
@@ -1975,13 +1880,40 @@ case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
    ll->bkpt=(ll->bkpt&-8)|k;
  }
  break;
-case 'T': cur_seg.h=0;@+goto passit;
-case 'D': cur_seg.h=0x20000000;@+goto passit;
-case 'P': cur_seg.h=0x40000000;@+goto passit;
-case 'S': cur_seg.h=0x60000000;@+goto passit;
-case 'B': show_breaks(mem_root);
-passit: p++;@+break;
+@y
+@ @<Type...@>=
+extern unsigned char get_break(octa a);
+extern void set_break(octa a, unsigned char b);
+extern void show_breaks(void);
 
+@ @<Cases that set and clear tracing and breakpoints@>=
+case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
+ halted=false;@+break;
+case 't': case 'u': k=*p;
+ val=scan_hex(p+1,cur_seg);@+ p=next_char;
+ if (val.h<0x20000000) {
+   if (k=='t') set_break(val,get_break(val)|trace_bit);
+   else set_break(val,get_break(val)&~trace_bit);
+ }
+ break;
+case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
+   if (*p=='r') k|=read_bit;
+   else if (*p=='w') k|=write_bit;
+   else if (*p=='x') k|=exec_bit;
+ val=scan_hex(p,cur_seg);@+ p=next_char;
+ set_break(val,k);
+ break;
+@z
+
+@x
+case 'B': show_breaks(mem_root);
+@y
+case 'N': cur_seg.h=0x80000000;@+goto passit;
+case 'B': show_breaks();
+case 'O': show_operating_system=!show_operating_system;@+goto passit;
+@z
+
+@x
 @ @<Sub...@>=
 void show_breaks @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
 void show_breaks(p)
@@ -2000,15 +1932,10 @@ void show_breaks(p)
   }
   if (p->right) show_breaks(p->right);
 }
+@y
+@z
 
-@ We put pointers to the command-line strings in
-M$[\.{Pool\_Segment}+8*(k+1)]_8$ for $0\le k<|argc|$;
-the strings themselves are octabyte-aligned, starting at
-M$[\.{Pool\_Segment}+8*(|argc|+2)]_8$. The location of the first free
-octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
-@:Pool_Segment}\.{Pool\_Segment@>
-@^command line arguments@>
-
+@x
 @<Load the command line arguments@>=
 x.h=0x40000000, x.l=0x8;
 loc=incr(x,8*(argc+1));
@@ -2020,7 +1947,19 @@ for (k=0; k<argc; k++,cur_arg++) {
   x.l+=8, loc.l+=8+(strlen(*cur_arg)&-8);
 }
 x.l=0;@+ll=mem_find(x);@+ll->tet=loc.h, (ll+1)->tet=loc.l;
+@y
+@<Load the command line arguments@>=
+x.h=0x40000000, x.l=0x8;
+aux=incr(x,8*(argc+1));
+for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
+  store_data(8,aux,x);
+  mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
+  x.l+=8, aux.l+=8+(strlen(*cur_arg)&-8);
+}
+x.l=0;@+ store_data(8,aux,x);
+@z
 
+@x
 @ @<Get ready to \.{UNSAVE} the initial context@>=
 x.h=0, x.l=0x90;
 ll=mem_find(x);
@@ -2036,7 +1975,18 @@ if (dump_file) {
   dump_tet(0),dump_tet(0);
   exit(0);
 }
+@y
+@ We make sure that the processor boots properly.
+A user porgram (if loaded) can be started with UNSAVE \$255.
 
+@<Boot the machine@>=
+loc.h=inst_ptr.h=0x80000000;
+loc.l=inst_ptr.l=0x00000000;
+g[rJ].h=g[rJ].l =0xFFFFFFFF;
+resuming=false;
+@z
+
+@x
 @ The special option `\.{-D<filename>}' can be used to prepare binary files
 needed by the \MMIX-in-\MMIX\ simulator of Section 1.4.3\'{}. This option
 puts big-endian octa\-bytes into a given file; a location~$l$ is followed
@@ -2077,63 +2027,5 @@ void dump_tet(t)
   fputc(t&0xff,dump_file);
 }
 @y
-@ @<Type...@>=
-extern unsigned char get_break(octa a);
-extern void set_break(octa a, unsigned char b);
-extern void show_breaks(void);
-
-@ @<Cases that set and clear tracing and breakpoints@>=
-case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
- halted=false;@+break;
-case 't': case 'u': k=*p;
- val=scan_hex(p+1,cur_seg);@+ p=next_char;
- if (val.h<0x20000000) {
-   if (k=='t') set_break(val,get_break(val)|trace_bit);
-   else set_break(val,get_break(val)&~trace_bit);
- }
- break;
-case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
-   if (*p=='r') k|=read_bit;
-   else if (*p=='w') k|=write_bit;
-   else if (*p=='x') k|=exec_bit;
- val=scan_hex(p,cur_seg);@+ p=next_char;
- set_break(val,k);
- break;
-case 'T': cur_seg.h=0;@+goto passit;
-case 'D': cur_seg.h=0x20000000;@+goto passit;
-case 'P': cur_seg.h=0x40000000;@+goto passit;
-case 'S': cur_seg.h=0x60000000;@+goto passit;
-case 'N': cur_seg.h=0x80000000;@+goto passit;
-case 'B': show_breaks();
-passit: p++;@+break;
-
-
-@ We put pointers to the command-line strings in
-M$[\.{Pool\_Segment}+8*(k+1)]_8$ for $0\le k<|argc|$;
-the strings themselves are octabyte-aligned, starting at
-M$[\.{Pool\_Segment}+8*(|argc|+2)]_8$. The location of the first free
-octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
-@:Pool_Segment}\.{Pool\_Segment@>
-@^command line arguments@>
-
-@<Load the command line arguments@>=
-x.h=0x40000000, x.l=0x8;
-aux=incr(x,8*(argc+1));
-for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
-  store_data(8,aux,x);
-  mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
-  x.l+=8, aux.l+=8+(strlen(*cur_arg)&-8);
-}
-x.l=0;@+ store_data(8,aux,x);
-
-
-@ We make sure that the processor boots properly.
-A user porgram (if loaded) can be started with UNSAVE \$255.
-
-@<Boot the machine@>=
-loc.h=inst_ptr.h=0x80000000;
-loc.l=inst_ptr.l=0x00000000;
-g[rJ].h=g[rJ].l =0xFFFFFFFF;
-resuming=false;
 @z
 
