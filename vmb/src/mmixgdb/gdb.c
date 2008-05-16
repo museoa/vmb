@@ -27,11 +27,11 @@
 #include <math.h>
 #include <ctype.h>
 #include <signal.h>
+#include "mmix-internals.h"
 #include "address.h"
 #include "gdb.h"
 #include "bus-arith.h"
 #include "breaks.h"
-#include "bus-util.h"
 #include "message.h"
 
 
@@ -103,7 +103,7 @@ static void exit_msg(void)
 
 static void termination_msg(void)
 { char *p;
-  char n;
+  unsigned char n;
   unsigned char sig;
   if (gdb_signal>=0)
     sig=gdb_signal; 
@@ -358,7 +358,7 @@ static int ocmp(octa x, octa y)
 void readMemory(void)
 {     /* format maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToRead = 0;
-	char tmpBuffer[PBUFSIZ/2];
+	unsigned char tmpBuffer[PBUFSIZ/2];
 	octa srcAddr;
 
 	hextoint(hextoocta(buffer+1, &srcAddr,1)+1,&bytesToRead);
@@ -425,7 +425,7 @@ void readMemory(void)
 void writeMemory(void)
 {   /* format Maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToWrite = 0;
-	char tmpBuffer[PBUFSIZ/2];
+	unsigned char tmpBuffer[PBUFSIZ/2];
 	octa dstAddr;
 	char *buffPtr = buffer;
 
@@ -468,11 +468,13 @@ void write_binary_memory(void)
 {
 	int bytesToWrite = 0;
 	octa dstAddr;
-	char *buffPtr = buffer;
+	char *buffPtr;
+  
+        buffPtr = buffer;
 
 	buffPtr=hextoint(hextoocta(buffer+1, &dstAddr,1)+1,&bytesToWrite);
-        remove_escape(buffPtr+1, bytesToWrite);
-	mmputchars(buffPtr+1, bytesToWrite, dstAddr);
+        remove_escape((unsigned char *)buffPtr+1, bytesToWrite);
+	mmputchars((unsigned char *)buffPtr+1, bytesToWrite, dstAddr);
 	OK_msg();
 }
 

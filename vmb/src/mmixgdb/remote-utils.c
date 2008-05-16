@@ -46,7 +46,6 @@
 #include <signal.h>
 #include <ctype.h>
 #include "bus-arith.h"
-#include "bus-util.h"
 
 #ifdef WIN32	
 /* needed for nonblocking events */
@@ -70,8 +69,14 @@ void wsa_init(void)
 
 static int remote_debug = 0;
 
-int remote_fd=-1;
-int server_fd=-1;
+#if !defined(INVALID_SOCKET)
+#define INVALID_SOCKET  (~0)
+#endif
+
+#define valid_socket(socket)  ((socket) != INVALID_SOCKET)
+
+int remote_fd=INVALID_SOCKET;
+int server_fd=INVALID_SOCKET;
 int gdb_connected = 0;
 static struct sockaddr_in sockaddr;
 
@@ -152,9 +157,9 @@ void single_wait(int s)
 int
 remote_open (void)
 {
-  int tmp;
+  socklen_t tmp;
   tmp = sizeof (sockaddr);
-  remote_fd = accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
+  remote_fd = (int)accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
   if (remote_fd < 0 )
   {  perror ("Accept failed");
      return 0;

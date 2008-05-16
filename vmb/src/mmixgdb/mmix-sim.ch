@@ -637,10 +637,12 @@ bool profile_started; /* have we printed at least one frequency count? */
 bool interacting; /* are we in interactive mode? */
 @y
 static bool interacting; /* are we in interactive mode? */
+bool stepping; /* should we pause after the next instruction? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
 static char *bushost=localhost; /* on which host to connect to the bus */
+int gdbport = 2331; /* port for the remot gdb to connect, with some default */
 @z
 
 
@@ -1721,6 +1723,7 @@ boot:
     do @<Perform one instruction@>@;
     while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) interacting=true, interact_after_break=false;
+    if (stepping) breakpoint=true,stepping=false;
     if (!vmb_power) goto boot;
   }
   end_simulation:
