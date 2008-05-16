@@ -40,6 +40,7 @@ extern int vmb_get_interrupt(unsigned int *hi, unsigned int *lo);
 extern void vmb_raise_interrupt(unsigned char interrupt);
 extern void vmb_raise_reset(void);
 extern void vmb_wait_for_event(void);
+extern void vmb_cancel_wait_for_event(void);
 extern void vmb_wait_for_power(void);
 
 
@@ -60,6 +61,7 @@ extern void vmb_init_data_address(data_address *da, int size);
 
 extern void vmb_load(data_address *da);
 extern void vmb_wait_for_valid(data_address *da);
+extern void vmb_cancel_all_loads(void);
 extern void vmb_store(data_address *da);
 
 #include "cache.h"

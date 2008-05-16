@@ -91,6 +91,8 @@ void vmb_raise_interrupt(unsigned char i)
    send_msg(vmb_fd, TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
 }
 
+static unsigned int cancel_wait_for_event = 0;
+
 void vmb_wait_for_event(void)
 /* waits for a  power off, reset, disconnect, or an interrupt
 */
@@ -108,14 +110,18 @@ void vmb_wait_for_event(void)
   while (vmb_power &&
          !vmb_reset_flag && 
          vmb_connected &&
-	 vmb_interrupt_lo == 0 && vmb_interrupt_hi ==0)
+	 vmb_interrupt_lo == 0 && vmb_interrupt_hi ==0 &&
+         !cancel_wait_for_event)
 #ifdef WIN32
      WaitForSingleObject(hevent,INFINITE);
 #else
      pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
 #endif
+  cancel_wait_for_event=0;
 }
+
+
 
 void vmb_wait_for_power(void)
 /* waits for a  power on or for a disconnect */
@@ -186,6 +192,11 @@ static void change_event(unsigned int *event, unsigned int value)
   }
 #endif
 }
+
+extern void vmb_cancel_wait_for_event(void)
+{ change_event(&cancel_wait_for_event,1);
+}
+
 #ifdef WIN32
 static DWORD dwReadThreadId;
 static HANDLE hReadThread;
@@ -349,7 +360,6 @@ static void deliver_answer(data_address *da, int size, unsigned char *payload)
   }
 #endif
 }
-
 static void flush_pending_read_queue(void)
 {  data_address *da;
    while (!empty_pending_read())
@@ -357,6 +367,11 @@ static void flush_pending_read_queue(void)
       remove_queue_entry(pending_first); 
       deliver_answer(da,0,NULL);
     }
+}
+
+
+void vmb_cancel_all_loads(void)
+{ flush_pending_read_queue();
 }
 
 static void reply_payload(unsigned char address[8],int size, unsigned char *payload)
@@ -620,7 +635,7 @@ void vmb_disconnect(void)
 #ifdef WIN32
 	  bus_disconnect(vmb_fd);
 #else
-	  /* should not be used. Kills the thread immediately without cleaning up. */
+    /* should not be used. Kills the thread immediately without cleaning up. */
     pthread_cancel(read_thr);
   rc = pthread_mutex_unlock(&event_mutex);
   if (rc) 
