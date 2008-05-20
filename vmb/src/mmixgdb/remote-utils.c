@@ -48,9 +48,6 @@
 #include "bus-arith.h"
 
 #ifdef WIN32	
-/* needed for nonblocking events */
-HWND hMainWnd = 0;
-
 static void wsa_close(void)
 { WSACleanup();
 }
@@ -59,7 +56,7 @@ void wsa_init(void)
 {
   static int wsa_ready=0;
   WSADATA wsadata;
-    if (wsa_ready) return;
+  if (wsa_ready) return;
   if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
     perror("Unable to initialize Winsock dll");
   wsa_ready = 1;
@@ -83,10 +80,9 @@ static struct sockaddr_in sockaddr;
 /* Open a connection to a remote debugger.
    NAME is the filename used for communication.  */
 
-int remote_server (int port)
+int connect_to_gdb (int port)
 {
- 
-  int tmp;
+  socklen_t tmp;
 #ifdef WIN32
   wsa_init();
 #endif
@@ -104,60 +100,15 @@ int remote_server (int port)
   sockaddr.sin_family = PF_INET;
   sockaddr.sin_port = htons ((unsigned short)port);
   sockaddr.sin_addr.s_addr = INADDR_ANY;
-  fprintf(stderr,"Connecting to gdb ...\n");
+  fprintf(stderr,"Connecting to gdb ...");
   if (bind (server_fd, (struct sockaddr *) &sockaddr, sizeof (sockaddr))
 	|| listen (server_fd, 1))
-  { perror ("Can't bind address");
-    server_fd=-1;
+  { perror ("Can't bind address\n");
+    server_fd=INVALID_SOCKET;
     return 0;
   }
-  return 1;
-}
-
-
-
-int dual_wait(int s1, int s2)
-     /* return 0 if s1 is ready, 1 if s2 is ready */
-{   fd_set readfs;    /* file descriptor set for read */
-    int max_fd;
-    struct timeval t;
-    do {
-      t.tv_usec=t.tv_sec=0;
-      FD_ZERO(&readfs);
-      if (s1>=0) FD_SET(s1, &readfs); 
-      if (s1>=0) FD_SET(s2, &readfs); 
-      if (s1>s2) max_fd = s1; else max_fd=s2;
-      if (s1<0 || s2<0)
-        select(max_fd+1, &readfs, NULL, NULL, &t);
-      else
-        select(max_fd+1, &readfs, NULL, NULL, NULL);
-      if (FD_ISSET(s1, &readfs)) return 0;
-      else if (FD_ISSET(s2, &readfs)) return 1;
-      else if (s1<0) return 0;
-      else if (s2<0) return 1;
-    } while (1);
-}
-
-
-void single_wait(int s)
-     /* return  if s is ready */
-{   fd_set readfs;    /* file descriptor set for read */
-    if (s<0) return;
-    FD_ZERO(&readfs);
-    FD_SET(s, &readfs); 
-    do 
-      select(s+1, &readfs, NULL, NULL,NULL);
-    while (!FD_ISSET(s, &readfs));
-}
-
-
-
-
-
-int
-remote_open (void)
-{
-  socklen_t tmp;
+  else
+    fprintf(stderr,"Done\n");
   tmp = sizeof (sockaddr);
   remote_fd = (int)accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
   if (remote_fd < 0 )
@@ -168,26 +119,23 @@ remote_open (void)
   { 
 #ifdef WIN32
     closesocket(server_fd);
-	server_fd = INVALID_SOCKET;
-
+    server_fd = INVALID_SOCKET;
 #else
     close(server_fd);
-	server_fd=-1;
-	
+    server_fd=INVALID_SOCKET;	
     signal (SIGPIPE, SIG_IGN);	/* If we don't do this, then gdbserver simply
 					   exits when the remote side dies.  */
-
-#endif  
-
+#endif
     /* Tell TCP not to delay small packets.  This greatly speeds up
        interactive response. */
     tmp = 1;
     setsockopt (remote_fd, IPPROTO_TCP, TCP_NODELAY,
 	       (char *) &tmp, sizeof (tmp));
 
-        /* Convert IP address to string.  */
+        /* Convert IP address to string. 
     fprintf (stderr, "Remote debugging from host %s\n", 
     inet_ntoa (sockaddr.sin_addr));
+	*/
     fprintf(stderr,"Connected\n");
     gdb_connected = 1;
   }
@@ -199,13 +147,11 @@ remote_close (void)
 {
 #ifdef WIN32
     closesocket(remote_fd);
-	remote_fd = INVALID_SOCKET;
 #else
     close(remote_fd);
-	remote_fd=-1;
 #endif 
-	gdb_connected = 0;
-
+    remote_fd = INVALID_SOCKET;
+    gdb_connected = 0;
 }
 
 /* flush output to gdb */
@@ -319,11 +265,6 @@ readchar (void)
   return *read_bufp++;
 }
 
-int remote_interrupt(int s)
-     /* check the remote side (non blocking) for an interrupt */
-{
-  return 0;
-}
 /* Read a packet from the remote machine, with error checking,
    and store it in BUF.  Returns length of packet, or negative if error. */
 

@@ -35,9 +35,93 @@
 #include "message.h"
 
 
+/* we need only two buffers because we deal only with two threads
+   and one thread will need at most one buffer */
+
+static char bufferA[PBUFSIZ];
+static char bufferB[PBUFSIZ];
+/* initialy both buffers are free */
+static char *free_buffers[2] = {bufferA,bufferB};
+static char *buffer; /*the buffer for the simulator to work with */
 
 
-void
+static char get_free_buffer(void)
+{ char *p = NULL; 
+  if (free_buffer[0]!=NULL) 
+  { p=free_buffer[0];
+    free_buffer[0] = NULL;
+  }
+  else if (free_buffer[1]!=NULL) 
+  { p=free_buffer[1];
+    free_buffer[1] = NULL;
+  }
+  else 
+    p = NULL;
+  return p;
+}
+
+static void put_free_buffer(char *p)
+{ 
+  if (free_buffer[0]==NULL) 
+  { free_buffer[0] = p;
+  }
+  else if (free_buffer[1]==NULL) 
+  { free_buffer[1] = p;
+  }
+  else 
+    fprintf("error unable to return free gdb buffer");
+}
+
+
+static int direct_command(char *buffer)
+/* somme commands are handled by the read loop
+   independent of the simulator. In this case this functions
+   takes necessary actions and returns true. Else it returns false.
+*/  
+{ return 0;
+}
+
+
+static wait_for_empty_buffer(void)
+{
+}
+
+static void gdb_readloop(void)
+{ char *read_buffer;
+  read_buffer = get_free_buffer(); 
+  while (1)
+  { if (read_buffer==NULL)
+    { perror("No free buffer available for gdb command");
+      remote_close();
+      return;
+    }
+    if (getpkt(read_buffer)<=0)
+    { perror("connection to gdb broken");
+      remote_close();
+      return;
+    }
+    if (!direct_command(read_buffer))
+    { if (buffer!=NULL) wait_for_empty_buffer();
+      buffer = read_buffer;
+      read_buffer = get_free_buffer();
+    }
+  }
+  remote_close();
+}
+
+
+int gdb_init(int port)
+     /* initialize the connection to gdb,
+        return 1 on success, 0 on failure
+     */
+{ if (!connect_to_gdb(port)) return 0;
+  /* start the read loop */
+  return 1;
+}
+
+/* now functions for the simulator to interact with gdb */
+
+static void
 octatohex (octa *from, char *to, int n)
 {
     while (n--)
@@ -53,7 +137,7 @@ octatohex (octa *from, char *to, int n)
 }
 
 
-char *hextoocta(char *from, octa *to, int n)
+static char *hextoocta(char *from, octa *to, int n)
      /* puts the value of the hex string into *to.
         use at most 16 hex digits
         repeates for n octas.
@@ -79,8 +163,7 @@ char *hextoocta(char *from, octa *to, int n)
 
 
 
-static char buffer[PBUFSIZ];
-
+/* messages to return to gdb */
 
 static void OK_msg(void)
 {
@@ -90,15 +173,26 @@ static void OK_msg(void)
 }
 
 
-int gdb_signal = 0;
+static int gdb_signal = 0;
 
 #define rBB 7
+
 static void exit_msg(void)
 { buffer[0]='W';
   buffer[1]= tohex((g[rBB].l>>4)&0x0F);
   buffer[2]= tohex(g[rBB].l&0x0F);
   buffer[3]=0;
    
+}
+
+void gdb_exit(void)
+{ if (buffer==NULL) buffer=get_free_buffer();
+  if (buffer==NULL) 
+  { perror("Unable to get free gdb buffer");
+    return;
+  }
+  exit_msg();
+  putpkt (buffer)
 }
 
 static void termination_msg(void)
@@ -143,6 +237,9 @@ static void termination_msg(void)
   p[0]=0;
 }
 
+/* handling requests from gdb */
+
+
 static void general_query(char *query)
 {
 
@@ -184,7 +281,7 @@ static void general_query(char *query)
 
 
 
-void getRegisters(void)
+static void getRegisters(void)
 {
 	/*
 	The structure of the m-Packet payload looks as follows:
@@ -226,7 +323,7 @@ void getRegisters(void)
 	}
 }
 
-void setRegisters(void)
+static void setRegisters(void)
 {
 	/*
 	The structure of the M-Packet payload looks as follows:
@@ -268,7 +365,7 @@ void setRegisters(void)
 	OK_msg();
 }
 
-void setSingleRegister(void)
+static void setSingleRegister(void)
 {
 
 	int reg = 0;
@@ -306,7 +403,7 @@ L,reg,G);
 }
 
 
-void getSingleRegister(void)
+static void getSingleRegister(void)
 {
 	int reg = 0;
 	char *buffPtr = buffer;
@@ -346,6 +443,7 @@ void getSingleRegister(void)
 extern octa ominus(octa x, octa y);
 extern octa incr(octa x, int d);
 extern int lring_mask;
+
 static int ocmp(octa x, octa y)
 { octa d;
   d = ominus(x,y);
@@ -355,7 +453,7 @@ static int ocmp(octa x, octa y)
 }
 
 
-void readMemory(void)
+static void readMemory(void)
 {     /* format maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToRead = 0;
 	unsigned char tmpBuffer[PBUFSIZ/2];
@@ -422,7 +520,7 @@ void readMemory(void)
 }
 
 
-void writeMemory(void)
+static void writeMemory(void)
 {   /* format Maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToWrite = 0;
 	unsigned char tmpBuffer[PBUFSIZ/2];
@@ -436,7 +534,7 @@ void writeMemory(void)
 	OK_msg();
 }
 
-void remove_escape(unsigned char * from, int size)
+static void remove_escape(unsigned char * from, int size)
 { unsigned char * to = from;
   while (size-- > 0)
   { if (*from != 0x7D)
@@ -448,7 +546,7 @@ void remove_escape(unsigned char * from, int size)
   }
 }
 
-void write_binary_memory(void)
+static void write_binary_memory(void)
 	/*
 	  Xaddr,length:XX\x{2026} -- write mem (binary)
 
@@ -478,13 +576,7 @@ void write_binary_memory(void)
 	OK_msg();
 }
 
-
-    
-void killMmixProcess(void)
-{ buffer[0]=0;  
-}
-
-void removeBreakPoint(void)
+static void removeBreakPoint(void)
 {
 	char sep = ',';
 	char *buffPtr = buffer;
@@ -503,7 +595,7 @@ void removeBreakPoint(void)
 }
 
 
-void setBreakPoint(void)
+static void setBreakPoint(void)
 {
 	char sep = ',';
 	char *buffPtr = buffer;
@@ -532,51 +624,30 @@ void setBreakPoint(void)
 }
 
 
-/* gdb_wait(int s) is actually a coroutine 
-   it can be called whenever the mmix simulator has to 
-   wait for a socket s, or if it wants to transfer control
-   to gdb  (with s<0).
-   To exit the coroutine use: state=i; return; case i: 
 
-*/
 
-static int state = 0;
-
-void gdb_wait(int s)
-{ 
-   switch (state) {
-   case 0:
-   start:
-     state = 0;
-     if (!remote_server(gdbport)) goto start;
-   case 1:
-     state = 1;
-     if (s>=0 && dual_wait(server_fd,s)) return;
-     if (!remote_open()) goto start;
-   case 2:
-   loop:
-     state = 2;
-     if (s>=0 && dual_wait(remote_fd,s)) return;
-     if (getpkt(buffer)<=0) goto stop;
-     state=3;
-     gdb_signal = 5;
-     switch(buffer[0]) {
+void handle_gdb_commands(void)
+/* the command is in the buffer,
+   the command is handled and the answer is supplied 
+   to gdb. If the simulator should continue,
+   the function exits.
+*/    
+{while (1)
+ { if (buffer==NULL)
+   wait_for_gdb_command();
+   switch(buffer[0]) {
      case 'B':
-	/*
-	  Baddr,mode -- set breakpoint (deprecated)
-
-	  Set (mode is S) or clear (mode is C) a breakpoint at addr.
-	  */
+	/* Baddr,mode -- set breakpoint (deprecated)
+ 	   Set (mode is S) or clear (mode is C) a breakpoint at addr.
+	*/
        break;
      case 'C':
 	  /* continue with signal, addr  (signal, addr ignored)*/
      case 'c':
           /* continue with the simulator addr ignored */
-       single_wait(s);
        return;
      case 's':
-       stepping= true;
-       single_wait(s);
+       breakpoint = true;
        return;
      case 'g':
        getRegisters();
@@ -591,39 +662,28 @@ void gdb_wait(int s)
        writeMemory();
        break;
      case 'k':
-       killMmixProcess();
-       state = 0;
-       goto start;
+       /* not implemented */
+       break;
      case '?':
          termination_msg();
        break;
      case 'p':
-	/*
-	  pn... -- read reg (reserved)
-
-	  Reply:
-
+	/* pn... -- read reg (reserved)
+ 	  Reply:
 	  r....
-
 	  The hex encoded value of the register in target byte order.
 	*/
-       getSingleRegister();
+        getSingleRegister();
 	break;
      case 'P':
-	/*
-	  Pn\x{2026}=r\x{2026} -- write register
-
+	/* Pn\x{2026}=r\x{2026} -- write register
 	  Write register n\x{2026} with value r\x{2026}, which
 	  contains two hex digits for each byte in the register
 	  (target byte order).
-
 	  Reply:
-
 	  OK
-
 	  for success
 	  ENN
-
 	  for an error
 	*/
        setSingleRegister();
@@ -636,16 +696,8 @@ void gdb_wait(int s)
 	   operations. The thread designator t... may be -1, meaning
 	   all the threads, a thread number, or zero which means pick
 	   any thread.
-
-	   Reply:
-
-  	   OK
-
-           for success
-
-	   ENN
-
-	   for an error */
+	   Reply: OK   for success
+	          ENN  for an error */
        OK_msg();
        break;
      case 'q':
@@ -681,20 +733,23 @@ void gdb_wait(int s)
        buffer[0]=0;
        break;
    }
-   if (putpkt(buffer)>0) goto loop; else goto stop;
-   case 3:
-     termination_msg();
-     if (putpkt(buffer)>0) goto loop;
-   default:
-   stop:
-     state = 4;
-     remote_close();
-     goto start;
-   }
+   putpkt (buffer);
+   put_free_buffer(buffer);
+   buffer = NULL;
+ }
 }
 
-int gdb_interrupt(int s)
-{ if (state<2 || state > 3)
-    return 0;
-  else return remote_interrupt(s);
+
+void interact_with_gdb(void)
+  /* this function should be called when the simulator stops */
+{ if (buffer==NULL) buffer=get_free_buffer();
+  if (buffer==NULL) 
+  { perror("Unable to get free gdb buffer");
+    return;
+  }
+  termination_msg();
+  putpkt (buffer);
+  put_free_buffer(buffer);
+  buffer = NULL;
+  handle_gdb_commands();
 }
