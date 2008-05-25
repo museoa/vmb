@@ -15,29 +15,6 @@
 #define _CACHE_H_
 
 
-#define WAYS     2                    /* a n-way cache */
-#define LINEBITS 5                    /* bits to index a cache line */
-#define LINESIZE (1<<LINEBITS)        /* bytes per cache line */
-#define LINEMASK (LINESIZE-1)         /* mask to get line bits */
-#define CACHEBITS 13                  /* bits to index the cache */
-#define CACHEMASK ((1<<CACHEBITS)-1)  /* mask to get cache bits */
-#define CACHEOFFSET(address) (address & LINEMASK)
-#define CACHEINDEX(address)  ((address & CACHEMASK)>>LINEBITS)
-#define CACHESIZE (1<<(CACHEBITS-LINEBITS))
-
-typedef struct {
-  unsigned char data[LINESIZE]; 
-  Word address;  
-  unsigned int use;
-  unsigned int dirty;
-} cache_line;
-
-typedef struct {
-  unsigned int access;
-  cache_line line[WAYS];
-} cache_t[CACHESIZE];
-
-
 /*!
  * \class Cache
  * \author Martin Hauser <info@martin-hauser.net>
@@ -53,13 +30,8 @@ typedef struct {
 class Cache
 {
   public:
-    cache_line* lookup(Word address);
-    cache_line* lru(Word address);
     void reset();
     Word fetch_instr(Word wAddress);
-    
-  private:
-      cache_t lines;
 };
 
 #endif /* _CACHE_H_ */
