@@ -14,10 +14,11 @@ task :bootstrap do |t|
   sh 'aclocal'
   sh 'autoconf'
   sh 'automake --add-missing'
-  sh './configure --with-cross=/home/mh/dipl/toolchain/bin'
+  sh 'libtoolize --force'
+  sh './configure --with-cross=/home/mh/bin'
   sh 'make distclean'
   #rm_r "src/.deps/"
-  sh './configure --with-cross=/home/mh/dipl/toolchain/bin'
+  sh './configure --with-cross=/home/mh/bin'
 end
 
 task :build do |t|
