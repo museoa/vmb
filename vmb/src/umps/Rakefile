@@ -13,8 +13,8 @@ end
 task :bootstrap do |t|
   sh 'aclocal'
   sh 'autoconf'
-  sh 'automake --add-missing'
   sh 'libtoolize --force'
+  sh 'automake --add-missing'
   sh './configure --with-cross=/home/mh/bin'
   sh 'make distclean'
   #rm_r "src/.deps/"
