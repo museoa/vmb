@@ -49,6 +49,7 @@ extern "C" {
   #include "../../bus-arith.h"
   #include "h/defaults.h"
   #include <string.h>
+  #include "h/main.h"
 }
 
 #include <h/const.h>
