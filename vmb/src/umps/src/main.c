@@ -35,7 +35,7 @@
 
 pthread_mutex_t pmtxBusAccess;  //!< mutex to control bus access
 pthread_mutex_t pmtxGuiRefresh; //!< mutex to control gui refreshment
-
+int bus_fd;
 
 /*!
  * \fn void clean_up(void)

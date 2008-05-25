@@ -25,5 +25,6 @@ extern void init_device(void);
 extern void process_input(unsigned char c);
 extern char version[];
 extern char howto[];
+extern int bus_fd;
 extern int read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p[256*8]);
 extern int write_request(unsigned char a[8], int s, unsigned char p[256*8]);
