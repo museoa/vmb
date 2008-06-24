@@ -23,6 +23,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.  */
 
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +52,104 @@
 #endif
 #include <signal.h>
 #include <ctype.h>
-#include "bus-arith.h"
+#include "bus-arith.h" 
+#include "buffers.h"
+#include "gdb.h"
+
+static int connect_to_gdb (int port);
+
+/* we need only two buffers because we deal only with two threads
+   and one thread will need at most one buffer.
+*/
+
+static queue free_buffers;
+static queue cmd_buffers;
+
+char *get_free_buffer(void)
+{ return (char *)dequeue(&free_buffers);}
+void put_free_buffer(char *buffer)
+{ enqueue(&free_buffers,buffer);}
+char *get_gdb_command(void)
+{ return dequeue(&cmd_buffers);}
+
+
+#ifdef WIN32
+static DWORD WINAPI gdb_read_loop(LPVOID dummy)
+#else
+static void *gdb_read_loop(void *_dummy)
+#endif
+{ char *read_buffer;
+  read_buffer = (char *)dequeue(&free_buffers); 
+  while (1)
+  { if (read_buffer==NULL)
+    { perror("No free buffer available for gdb command");
+      remote_close();
+      return 0;
+    }
+    if (getpkt(read_buffer)<=0)
+    { remote_close();
+      return 0;
+    }
+    if (!async_gdb_command(read_buffer))
+    { 
+#ifdef DEBUG
+  fprintf(stderr, "New command: >%s<\n",read_buffer);
+#endif
+      enqueue(&cmd_buffers,read_buffer);
+      read_buffer = (char *)dequeue(&free_buffers); 
+    }
+  }
+  remote_close();
+  return 0;
+}
+
+#ifdef WIN32
+static DWORD dwReadThreadId;
+static HANDLE hReadThread;
+#else
+static int read_tid;
+static pthread_t read_thr;
+#endif
+
+
+static char bufferA[PBUFSIZ];
+static char bufferB[PBUFSIZ];
+
+int gdb_init(int port)
+     /* initialize the connection to gdb,
+        return 1 on success, 0 on failure
+     */
+{ if (!connect_to_gdb(port)) return 0;
+  /* start the read loop */
+ init_queue(&free_buffers);
+ init_queue(&cmd_buffers);
+ enqueue(&free_buffers,bufferA);
+ enqueue(&free_buffers,bufferB);
+#ifdef WIN32
+  { DWORD dwReadThreadId;
+    hbuffer =CreateEvent(NULL,FALSE,FALSE,NULL);
+    InitializeCriticalSection (&buffer_section);
+    hReadThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            gdb_read_loop,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwReadThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hReadThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of bus thread failed");
+/* in the moment, I really dont use the handle */
+    CloseHandle(hReadThread);
+  }
+#else
+   read_tid = pthread_create(&read_thr,NULL,gdb_read_loop,NULL);
+#endif
+  return 1;
+}
+
+
+
 
 #ifdef WIN32	
 static void wsa_close(void)
@@ -64,7 +168,7 @@ void wsa_init(void)
 }
 #endif
 
-static int remote_debug = 0;
+static int remote_debug = 1;
 
 #if !defined(INVALID_SOCKET)
 #define INVALID_SOCKET  (~0)
@@ -107,8 +211,6 @@ int connect_to_gdb (int port)
     server_fd=INVALID_SOCKET;
     return 0;
   }
-  else
-    fprintf(stderr,"Done\n");
   tmp = sizeof (sockaddr);
   remote_fd = (int)accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
   if (remote_fd < 0 )
@@ -145,6 +247,7 @@ int connect_to_gdb (int port)
 void
 remote_close (void)
 {
+  if (valid_socket(remote_fd))
 #ifdef WIN32
     closesocket(remote_fd);
 #else
@@ -159,8 +262,15 @@ static char writebuf[BUFSIZ];
 static int writebufcnt = 0;
 
 static int flush(void)
-{ int i=0;
+{ int i;
  int error;
+#ifdef DEBUG
+  fprintf(stderr, "To gdb:>");
+  for (i=0;i<writebufcnt;i++)
+    fprintf(stderr, "%c",writebuf[i]);
+  fprintf(stderr, "<\n");
+#endif
+  i=0;
   while (i <writebufcnt)
   { error = send (remote_fd, writebuf+i, writebufcnt - i,0);
     if (error<0)
@@ -194,14 +304,9 @@ writechar (char c)
 int
 putpkt (char *buf)
 {
-  int i;
+  int i, ok;
   unsigned char csum = 0;
-  char plus;
-  int cc;
-
-#if 1
-  fprintf(stderr, "sending packet: $%s#\n",buf);
-#endif
+  char *plus;
 
   writechar('$');
 
@@ -216,20 +321,18 @@ putpkt (char *buf)
   flush();
 
   /* Send it over and get a positive ack.  */
-
-  cc = recv (remote_fd,&plus, 1,0);
-  if (cc <= 0)
-	{
-	  if (cc == 0)
-	  {  fprintf (stderr, "putpkt: Got EOF\n");
-	     remote_close();
-      }
-	  else
-	    perror ("putpkt");
-
-	  return -1;
-	}
-  return (plus == '+');
+  plus = dequeue(&cmd_buffers);
+  if (plus == NULL)
+  {
+     remote_close();
+     return 0;
+  }
+  else if (*plus != '+')
+  {  fprintf (stderr, "putpkt: Got %c (%2x)\n",*plus,*plus);
+  }
+  ok = (*plus== '+');
+  put_free_buffer(plus);
+  return ok;
 }
 
 
@@ -246,19 +349,25 @@ readchar (void)
   if (read_bufcnt-- > 0)
     return *read_bufp++;
 
-  read_bufcnt = recv (remote_fd, read_buf, sizeof (read_buf),0);
+  read_bufcnt = recv (remote_fd, read_buf, BUFSIZ,0);
 
   if (read_bufcnt <= 0)
     {
-      if (read_bufcnt == 0)
-	  {  fprintf (stderr, "readchar: Got EOF\n");
-         remote_close();
-          }
-      else
-	perror ("readchar");
-
+      remote_close();
+#ifdef DEBUG
+      perror ("readchar");
+#endif
       return -1;
     }
+#ifdef DEBUG
+  else
+  { int i;
+    fprintf(stderr, "From gdb:>");
+    for (i=0;i<read_bufcnt;i++)
+      fprintf(stderr, "%c(%2X)",read_buf[i],read_buf[i]);
+    fprintf(stderr, "<\n");
+  }
+#endif
 
   read_bufp = read_buf;
   read_bufcnt--;
@@ -275,11 +384,6 @@ getpkt (char *buf)
   unsigned char csum, c1, c2;
   int c;
 
-#ifdef DEBUG
-  fprintf(stderr, "receiving packet: ");
-#endif
-
-
   while (1)
     {
       csum = 0;
@@ -289,14 +393,13 @@ getpkt (char *buf)
 	  c = readchar ();
 	  if (c == '$')
 	    break;
-	  if (remote_debug)
-	    {
-	      fprintf (stderr, "[getpkt: discarding char '%c']\n", c);
-	      fflush (stderr);
-	    }
-
-	  if (c < 0)
+          else if (c < 0)
 	    return -1;
+          else
+	    { buf[0] = c; 
+              buf[1]=0; 
+              return 1;
+	    }
 	}
 
       bp = buf;
@@ -320,28 +423,12 @@ getpkt (char *buf)
 
       fprintf (stderr, "Bad checksum, sentsum=0x%x, csum=0x%x, buf=%s\n",
 	       (c1 << 4) + c2, csum, buf);
-      send (remote_fd, "-", 1,0);
+      writechar('-');
+      flush();
     }
 
-  if (remote_debug)
-    {
-      fprintf (stderr, "getpkt (\"%s\");  [sending ack] \n", buf);
-      fflush (stderr);
-    }
-
-#ifdef DEBUG
-  fprintf(stderr, "$%s#\n",buf);
-#endif
-
-
-  send (remote_fd, "+", 1,0);
-  if (remote_debug)
-
-    {
-      fprintf (stderr, "[sent ack]\n");
-      fflush (stderr);
-    }
-
+  writechar('+');
+  flush();
   return bp - buf;
 }
 

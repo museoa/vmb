@@ -71,7 +71,9 @@ void remote_close (void);
 int server_fd;
 int remote_fd;
 void wsa_init(void);
-
+extern char *get_free_buffer(void);
+extern void put_free_buffer(char *buffer);
+extern char *get_gdb_command(void);
 
 /* from mmix-sim.c */
 
@@ -80,5 +82,8 @@ extern int gdbport;
 extern bool breakpoint;
 extern bool stepping;
 
+/* from gdb.c */
+
+extern int async_gdb_command(char *buffer);
 
 #endif

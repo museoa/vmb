@@ -35,7 +35,9 @@
 
 static void load_uncached_memory(unsigned char *data, int size, octa address)
      /* load size byte from the given physical address
-        into the memory pointed to by data */
+        into the memory pointed to by data 
+        size must be 1,2,4, or n*8 byte, with 1<=n<=256.
+*/
 
 { data_address da;
   da.address_hi = address.h;
@@ -48,7 +50,9 @@ static void load_uncached_memory(unsigned char *data, int size, octa address)
 
 static void store_uncached_memory(unsigned char *data, int size, octa address)
      /* store size byte to the given physical address
-        from the memory pointed to by data */
+        from the memory pointed to by data
+        size must be 1,2,4, or n*8 byte, with 1<=n<=256.
+     */
 { data_address da;
   da.address_hi = address.h;
   da.address_lo = address.l;
@@ -80,6 +84,7 @@ static void char_to_octa(int size, const unsigned char *d,octa *data, int signex
       }
    }
 }
+
 
 /* Functions used in mmix-sim.ch */
 

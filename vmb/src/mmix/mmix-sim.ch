@@ -627,13 +627,10 @@ bool profile_started; /* have we printed at least one frequency count? */
 
 
 @x
-  @<Check for trip interrupt@>;
-  @<Update the clocks@>;
   @<Trace the current instruction, if requested@>;
 @y
-  @<Update the clocks@>;
   @<Trace the current instruction, if requested@>;
-  @<Check for trap and trip interrupt@>;
+  @<Check for trap interrupt@>;
 @z
 
 @x
@@ -645,6 +642,8 @@ static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
 static char *bushost=localhost; /* on which host to connect to the bus */
 @z
+
+
 
 
 @x
@@ -677,6 +676,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 }
 @z
 
+
 @x
 {"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
@@ -684,7 +684,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 {"SYNC",0x01,0,0,1,""},@|
 {"SWYM",0x00,0,0,1,""},@|
 @y
-{"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
+{"RESUME",0x00,0,0,5,"{%#b}, $255 = %x, -> %#z"},@|
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,"%z"},@|
@@ -885,7 +885,7 @@ page_fault:
  if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
  { x.h=0, x.l=inst;
    @<Initiate a trap interrupt@>
-   inst_ptr=g[rTT];
+   inst_ptr=y=g[rTT];
  }
  break;
 @z
@@ -1215,7 +1215,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
         a=incr(b,8);
         @<Prepare memory arguments $|ma|={\rm M}[a]$ and $|mb|={\rm M}[b]$ if needed@>;
       }
-     else strcpy(rhs, "%#x, $255=%#b");
+     else strcpy(rhs, "%#x -> %#y");
  if (inst == 0) /* Halt */
  {  if (interacting)
       tracing=breakpoint=true, interrupt=false;
@@ -1224,9 +1224,36 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
  }
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
- inst_ptr=g[rT];
+ inst_ptr=y=g[rT];
  break;
 @z
+
+
+@x
+"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fclose(%!z) = %x",
+"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p) = %x",
+"$255 = Fputs(%!z,%#b) = %x",
+"$255 = Fputws(%!z,%#b) = %x",
+"$255 = Fseek(%!z,%b) = %x",
+"$255 = Ftell(%!z) = %x"};
+@y
+"$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
+"$255 = Fclose(%!z) -> %#y",
+"$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
+"$255 = Fgets(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
+"$255 = Fgetws(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
+"$255 = Fwrite(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
+"$255 = Fputs(%!z,%#b) -> %#y",
+"$255 = Fputws(%!z,%#b) -> %#y",
+"$255 = Fseek(%!z,%b) -> %#y",
+"$255 = Ftell(%!z) -> %#y"};
+@z
+
+
 
 @x
 @ @<Prepare memory arguments...@>=
@@ -1435,16 +1462,11 @@ void mmputchars(buf,size,addr)
 @z
 
 @x
-@<Check for trip interrupt@>=
-if ((exc&(U_BIT+X_BIT))==U_BIT && !(g[rA].l&U_BIT)) exc &=~U_BIT;
-if (exc) {
-  if (exc&tracing_exceptions) tracing=true;
-  j=exc&(g[rA].l|H_BIT); /* find all exceptions that have been enabled */
-  if (j) @<Initiate a trip interrupt@>;
-  g[rA].l |= exc>>8;
-}
+@ We are finally ready for the last case.
 @y
-@<Check for trap and trip interrupt@>=
+@ We do similar things for a trap interrupt.
+
+@<Check for trap interrupt@>=
 if (!resuming)
 { vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
   if (!vmb_connected)  goto end_simulation;
@@ -1453,17 +1475,7 @@ if (!resuming)
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
     @<Initiate a trap interrupt@>
-    inst_ptr=g[rTT];
-  }
-  else
-  {
-    if ((exc&(U_BIT+X_BIT))==U_BIT && !(g[rA].l&U_BIT)) exc &=~U_BIT;
-    if (exc) {
-      if (exc&tracing_exceptions) tracing=true;
-      j=exc&(g[rA].l|H_BIT); /* find all exceptions that have been enabled */
-      if (j) @<Initiate a trip interrupt@>;
-      g[rA].l |= exc>>8;
-    }
+    inst_ptr=y=g[rTT];
   }
 }
 
@@ -1478,6 +1490,8 @@ if (!resuming)
  g[rK].h = g[rK].l = 0;
  g[rBB]=g[255];
  g[255]=g[rJ];
+
+@ We are finally ready for the last case.
 @z
 
 @x
@@ -1498,7 +1512,7 @@ else if ( zz == 1)
   inst_ptr=z=g[rWW];
   b=g[rXX];
   g[rK]=g[255];
-  g[255]=g[rBB];
+  x=g[255]=g[rBB];
 }
 else goto illegal_inst;
 if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
@@ -1620,34 +1634,10 @@ if (tracing && (!(loc.h&0x80000000) || show_operating_system)) {
 @z
 
 @x
-@ @<Print the frequency count, the location, and the instruction@>=
-if (resuming && op!=RESUME) {
-  switch (rop) {
- case RESUME_AGAIN: printf("           (%08x%08x: %08x (%s)) ",
-                     loc.h,loc.l,inst,info[op].name);@+break;
- case RESUME_CONT: printf("           (%08x%08x: %04xrYrZ (%s)) ",
-                     loc.h,loc.l,inst>>16,info[op].name);@+break;
- case RESUME_SET: printf("           (%08x%08x: ..%02x..rZ (SET)) ",
-                     loc.h,loc.l,(inst>>16)&0xff);@+break;
-  }
-}@+else {
   ll=mem_find(loc);
   printf("%10d. %08x%08x: %08x (%s) ",ll->freq,loc.h,loc.l,inst,info[op].name);
-}
 @y
-@ @<Print the frequency count, the location, and the instruction@>=
-if (resuming && op!=RESUME) {
-  switch (rop) {
- case RESUME_AGAIN: printf("           (%08x%08x: %08x (%s)) ",
-                     loc.h,loc.l,inst,info[op].name);@+break;
- case RESUME_CONT: printf("           (%08x%08x: %04xrYrZ (%s)) ",
-                     loc.h,loc.l,inst>>16,info[op].name);@+break;
- case RESUME_SET: printf("           (%08x%08x: ..%02x..rZ (SET)) ",
-                     loc.h,loc.l,(inst>>16)&0xff);@+break;
-  }
-}@+else {
   printf("%08x%08x: %08x (%s) ",loc.h,loc.l,inst,info[op].name);
-}
 @z
 
 @x
@@ -1659,7 +1649,6 @@ if (lhs[0]=='!') { printf("%s instruction!\n",lhs+1); /* privileged or illegal *
   lhs[0]='\0';
 }
 @z
-
 
 @x
 int main(argc,argv)

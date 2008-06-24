@@ -32,23 +32,26 @@ MLDFLAGS=--entry=_start.
 #MLDFLAGS=--section-start .text=0x8000000000000000 
 
 
-#OBJECTS= bios.o io.o
 
-#.o: %.mms
-#	$(MAS) -gdwarf2 --linker-allocated-gregs $^ -o $@
+.o: %.mms
+	$(MAS) -gdwarf2 --linker-allocated-gregs $^ -o $@
 
-#bios.o: bios.s
-#	$(MCC) $(CFLAGS) -c  $^ -o $@
+bios.o: bios.s
+	$(MCC) $(CFLAGS) -c  $^ -o $@
 
 #io.o: io.c
 #	$(MCC) $(CFLAGS) -mabi=mmixware -mno-base-addresses -O2 -c $^
 
 
-#bios.rom: $(OBJECTS)
-#	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.rom
 
-#bios.elf: $(OBJECTS)
-#	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -o bios.elf
+OBJECTS= bios.o 
+
+bios.rom: $(OBJECTS)
+	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.rom
+
+
+bios.elf: $(OBJECTS)
+	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -o bios.elf
 
 %.mmo: %.mms
 	mmixal $<

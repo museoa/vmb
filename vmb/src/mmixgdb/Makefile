@@ -23,7 +23,7 @@ all: mmix
 utilities:
 	$(MAKE) -C  $(UTILDIR)
 
-OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o remote-utils.o gdb.o
+OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o remote-utils.o buffers.o gdb.o
 abstime.h: abstime
 	./abstime > abstime.h
 

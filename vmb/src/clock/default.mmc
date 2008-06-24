@@ -1,0 +1,11 @@
+# default.mmc configuration file for  the MMIX hardware
+
+
+port 9002
+host localhost
+debug
+
+
+#if clock
+address 0x0004000000000000
+#endif

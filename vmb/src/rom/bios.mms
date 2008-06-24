@@ -463,8 +463,22 @@ ScreenC	SETH    $1,#8000
 
 
 %       The ROM Page Table
+%       the table maps each segement with up to 1024 pages
+%	currently, the first page is system rom, the next four pages are for
+%       text, data, pool, and stack. then there is mor bios code.
+%       The page tables imply the following RAM Layout
+
+%	The RAM Layout
+
+%       the ram layout uses the small memmory model (see memory.howto)
+%       8000000100000000    first page for OS, layout see below
+%       Next the  pages for the user programm
+
+
+%       free space starts at 8000000100032000
 
 	LOC	#8000000000002000	%The start is fixed in mmix-sim.ch
+%       Text Segment 10 pages = 80kByte
 PageTab OCTA	#0000000100002007	%text, should be ...001 for execute only
    	OCTA	#0000000100004007 
    	OCTA	#0000000100006007 
@@ -478,6 +492,7 @@ PageTab OCTA	#0000000100002007	%text, should be ...001 for execute only
 	OCTA	#0000000100016007 
 	OCTA	#0000000100018007  
    	 
+%       Data Segment 8 pages = 80 kByte
 	LOC     (@&~#1FFF)+#2000	%data
 	OCTA	#000000010001a006  
 	OCTA	#000000010001c006  
@@ -488,10 +503,12 @@ PageTab OCTA	#0000000100002007	%text, should be ...001 for execute only
 	OCTA	#0000000100026006  
 	OCTA	#0000000100028006  
 
+%	Pool Segment 2 pages = 16 kByte
 	LOC	(@&~#1FFF)+#2000
 	OCTA	#000000010002a006	%pool
 	OCTA	#000000010002c006  
 	
+%	Stack Segment 2+2 pages = 32 kByte
 	LOC	(@&~#1FFF)+#2000
 	OCTA	#000000010002e006	%stack
 	OCTA	#0000000100030006  
@@ -502,46 +519,6 @@ PageTab OCTA	#0000000100002007	%text, should be ...001 for execute only
 
 	LOC	(@&~#1FFF)+#2000
 	
-%       the table maps each segement with up to 1024 pages
-%	currently, the first page is system rom, the next four pages are for
-%       text, data, pool, and stack.
-%       The page tables imply the following RAM Layout
-
-%	The RAM Layout
-
-%       ram layout the small memmory model (see memory.howto)
-%       8000000100000000    first page for OS, layout see below
-%       Next the following pages for the user programm
-%       Text Segment 10 pages = 80kByte
-%       8000000100002000    text segment 0
-%       8000000100004000    text segment 1
-%       8000000100006000    text segment 2
-%       8000000100008000    text segment 3
-%       800000010000a000    text segment 4
-%       800000010000c000    text segment 5
-%       800000010000e000    text segment 6
-%       8000000100010000    text segment 7
-%       8000000100012000    text segment 8
-%       8000000100014000    text segment 9
-%       Data Segment 10 pages = 80 kByte
-%       8000000100016000    data segment 0
-%       8000000100018000    data segment 1
-%       800000010001a000    data segment 2
-%       800000010001c000    data segment 3
-%       800000010001e000    data segment 4
-%       8000000100020000    data segment 5
-%       8000000100022000    data segment 6
-%       8000000100024000    data segment 7
-%       8000000100026000    data segment 8
-%       8000000100028000    data segment 9
-%	Pool Segment 2 pages = 16 kByte
-%       800000010002a000    pool segment 0
-%       800000010002c000    pool segment 1
-%	Stack Segment 2 pages = 16 kByte
-%       800000010002e000    stack segment 0
-%       8000000100030000    stack segment 1
-
-%       free space starts at 8000000100032000
 
 %       initialize the memory management
 memory	SETH    $0,#1234	%set rV register

@@ -652,6 +652,9 @@ static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
 static char *bushost=localhost; /* on which host to connect to the bus */
 int gdbport = 2331; /* port for the remot gdb to connect, with some default */
+extern int gdb_init(int port);
+extern int interact_with_gdb(int signal);
+extern void handle_gdb_commands(void);
 @z
 
 @x
@@ -674,12 +677,8 @@ register mem_tetra *ll; /* current place in the simulated memory */
 }
 @y
 @ @<Fetch the next instruction@>=
-{ unsigned char b;
-  loc=inst_ptr;
+{ loc=inst_ptr;
   load_instruction(&inst,loc);
-  b = get_break(loc);
-  if (b&exec_bit) breakpoint=true;
-  tracing=breakpoint||(b&trace_bit);
   inst_ptr=incr(inst_ptr,4);
 }
 @z
@@ -1227,6 +1226,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
  if (inst == 0) /* Halt */
  {  if (interacting)
       tracing=breakpoint=true, interrupt=false;
+      /* or  interact_with_gdb(17) */
     else
       tracing=true, interrupt=false;
  }
@@ -1381,92 +1381,6 @@ void mmputchars(buf,size,addr)
   p+=4,m+=4,a=incr(a,4);
 }
 @y
-int mmgetchars(buf,size,addr,stop)
-  unsigned char *buf;
-  int size;
-  octa addr;
-  int stop;
-{
-  register unsigned char *p;
-  register int m;
-  octa x;
-  octa a;
-  for (p=buf,m=0,a=addr; m<size;) {
-    if ((a.l&0x7) || m+8>size) @<Read and store one byte; |return| if done@>@;
-    else @<Read and store eight bytes; |return| if done@>@;
-  }
-  return size;
-}
-
-@ @<Read and store one byte...@>=
-{ load_data(1,&x,a,0);
-    *p=x.l&0xff;
-  if (!*p && stop>=0) {
-    if (stop==0) return m;
-    if ((a.l&0x1) && *(p-1)=='\0') return m-1;
-  }
-  p++,m++,a=incr(a,1);
-}
-
-@ @<Read and store eight bytes...@>=
-{ load_data(8,&x,a,0);
-  *p=x.h>>24;
-  if (!*p && (stop==0 || (stop>0 && x.h<0x10000))) return m;
-  *(p+1)=(x.h>>16)&0xff;
-  if (!*(p+1) && stop==0) return m+1;
-  *(p+2)=(x.h>>8)&0xff;
-  if (!*(p+2) && (stop==0 || (stop>0 && (x.h&0xffff)==0))) return m+2;
-  *(p+3)=x.h&0xff;
-  if (!*(p+3) && stop==0) return m+3;
-  p+=4,m+=4,a=incr(a,4);
-  *p=x.l>>24;
-  if (!*p && (stop==0 || (stop>0 && x.l<0x10000))) return m;
-  *(p+1)=(x.l>>16)&0xff;
-  if (!*(p+1) && stop==0) return m+1;
-  *(p+2)=(x.l>>8)&0xff;
-  if (!*(p+2) && (stop==0 || (stop>0 && (x.l&0xffff)==0))) return m+2;
-  *(p+3)=x.l&0xff;
-  if (!*(p+3) && stop==0) return m+3;
-  p+=4,m+=4,a=incr(a,4);
-}
-      
-@ The subroutine |mmputchars(buf,size,addr)| puts |size| characters
-into the simulated memory starting at address |addr|.
-
-@<Sub...@>=
-void mmputchars @,@,@[ARGS((unsigned char*,int,octa))@];@+@t}\6{@>
-void mmputchars(buf,size,addr)
-  unsigned char *buf;
-  int size;
-  octa addr;
-{
-  register unsigned char *p;
-  register int m;
-  octa x;
-  octa a;
-  for (p=buf,m=0,a=addr; m<size;) {
-    test_store_bkpt(a);
-    if ((a.l&0x7) || m+8>size) @<Load and write one byte@>@;
-    else @<Load and write eight bytes@>;
-  }
-}
-
-@ @<Load and write one byte@>=
-{
-  x.l=*p;
-  x.h=0;
-  store_data(1,x,a);
-  p++,m++,a=incr(a,1);
-}
-
-@ @<Load and write eight bytes@>=
-{ x.h=(*p<<24)+(*(p+1)<<16)+(*(p+2)<<8)+*(p+3);
-  p+=4;
-  x.l=(*p<<24)+(*(p+1)<<16)+(*(p+2)<<8)+*(p+3);
-  p+=4;
-  store_data(8,x,a);
-  m+=8,a=incr(a,8);
-}
 @z
 
 @x
@@ -1706,7 +1620,7 @@ boot:
   }
   fprintf(stderr,"ON\n");
   vmb_reset_flag = 0;
-
+  if (interacting && gdb_init(gdbport)) breakpoint = true;
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {
@@ -1715,11 +1629,18 @@ boot:
          (!(inst_ptr.h&0x80000000) || 
           show_operating_system || 
           (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
-        @<Interact with gdb@>;
+            if (!interact_with_gdb(5)) goto end_simulation;
     }
     if (halted) break;
-    do @<Perform one instruction@>@;
-    while ((!interrupt && !breakpoint) || resuming);
+    do
+    {
+      @<Perform one instruction@>@;
+      { unsigned char b;
+        b = get_break(inst_ptr);
+        if (b&exec_bit) breakpoint=true;
+        tracing=breakpoint||(b&trace_bit);
+      }
+    } while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) interacting=true, interact_after_break=false;
     if (stepping) breakpoint=true,stepping=false;
     if (!vmb_power) goto boot;
@@ -1895,7 +1816,6 @@ if (!dump_file) fprintf(stderr,"Sorry, I can't open file %s!\n",arg+1);
 resume_simulation:;
 }
 @y
-@ @<Interact with gdb@>=
 @z
 
 @x
