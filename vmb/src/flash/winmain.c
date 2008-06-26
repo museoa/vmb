@@ -137,6 +137,8 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 extern void open_file(void);
+extern void write_file(void);
+
 
 
 INT_PTR CALLBACK  
@@ -145,6 +147,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
   switch ( message )
   { case WM_INITDIALOG:
+      write_file();
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
       SetDlgItemText(hDlg,IDC_FILE,filename);
@@ -272,6 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 
   case WM_DESTROY:
+    write_file();
     PostQuitMessage(0);
     return 0;
   default:

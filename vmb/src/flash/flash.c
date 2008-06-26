@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:38 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-06-26 10:12:47 $";
 
 char howto[] =
 "\n"
@@ -57,12 +57,15 @@ static unsigned char *flash=NULL;
 
 #define PAGESIZE (1<<13) /*  8 kbyte */
 
+static int image_changed = 0;
+
 void open_file(void)
 { FILE *f;
   struct stat fs;
   int rc;
   if (filename==NULL)
     vmb_fatal_error(__LINE__,"No filename");
+  vmb_debug("reading image file...");
   f = fopen(filename,"rb");
   if (f==NULL) vmb_fatal_error(__LINE__,"Unable to open file");
   if (fstat(fileno(f),&fs)<0) vmb_fatal_error(__LINE__,"Unable to get file size");
@@ -75,12 +78,16 @@ void open_file(void)
   if (rc<0) vmb_fatal_error(__LINE__,"Unable to read file");
   if (rc==0) vmb_fatal_error(__LINE__,"Empty file");
   fclose(f);
+  image_changed = 0;
+  vmb_debug("done reading image file");
 }
 
 
-static void write_file(void)
+void write_file(void)
 { FILE *f;
   int i;
+  if (!image_changed) return;
+  vmb_debug("writing image file...");
   if (filename==NULL|| filename[0]== 0)
   { vmb_errormsg("No filename");
     return;
@@ -97,6 +104,8 @@ static void write_file(void)
   i = (int)fwrite(flash,1,vmb_size,f);
   if (i<(int)vmb_size) vmb_errormsg("Unable to write file");
   else fclose(f);
+  vmb_debug("done writing image file");
+  image_changed = 0;
 }
 
 /* Interface to the virtual motherboard */
@@ -110,6 +119,7 @@ unsigned char *vmb_get_payload(unsigned int offset,int size)
 
 void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 {    memmove(flash+offset,payload,size);
+     image_changed = 1;
 }
 
 
@@ -135,7 +145,7 @@ void vmb_reset(void)
 
 void vmb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
-{ 
+{  write_file();
 #ifdef WIN32
    PostMessage(hMainWnd,WM_QUIT,0,0);
 #endif
@@ -145,6 +155,7 @@ void vmb_terminate(void)
 void vmb_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { /* do nothing */
+	write_file();
 #ifdef WIN32
    SendMessage(hMainWnd,WM_USER+4,0,0);
 #endif
