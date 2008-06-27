@@ -23,6 +23,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <io.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #include <winsock2.h>
@@ -34,9 +36,10 @@ typedef int socklen_t;
 
 /* Windows needs a different main program (taken from win32main.c) */
 
-HWND hMainWnd, hpower, hDebug = NULL;
-
+HWND hMainWnd, hpower;
 HBITMAP hon, hoff, hconnect;
+
+static int debugging = 0;
 
 #define WM_SOCKET (WM_USER+1)
 
@@ -58,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.10 $ $Date: 2008-04-29 10:49:55 $";
+char version[] = "$Revision: 1.11 $ $Date: 2008-06-27 09:22:11 $";
 
 char howto[] =
   "\n"
@@ -703,42 +706,70 @@ void win32_message(char *msg)
 }
 
 void win32_debug(char *msg)
-{ static char nl[] ="\r\n";	
-  LRESULT  n;
-  if (hDebug == NULL) return;
-  n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_GETLINECOUNT,0,0);
-  if (n>100)
-  { n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_LINELENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,0,n+2);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
-    n = SendDlgItemMessage(hDebug,IDC_DEBUG,WM_GETTEXTLENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,n,n);
-  }
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)msg);
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)nl);
+{ if (debugging) printf("%s\n",msg);
 }
 
 
-INT_PTR CALLBACK 
-DebugDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
-{
-  switch (message)
-  {
-  case WM_SYSCOMMAND:
-    if (wparam == SC_CLOSE)
-    {
-      hDebug = NULL;
-      EndDialog (hDlg, TRUE);
-      return TRUE;
-    }
-    break;
-  case WM_SIZE:
-    MoveWindow (GetDlgItem (hDebug, IDC_DEBUG), 5, 5, LOWORD (lparam) - 10,
-		HIWORD (lparam) - 10, TRUE);
-    return TRUE;
-    break;
-  }
-  return FALSE;
+#define MAX_DEBUG_LINES 500
+#define MAX_DEBUG_COLUMNS 500
+static FILE orig_stdout, orig_stdin, orig_stderr;
+
+static void debug_on(void)
+{ int hConHandle;
+  HANDLE hStd;
+  CONSOLE_SCREEN_BUFFER_INFO coninfo;
+  FILE *fp;
+  
+  if (debugging) return;
+
+  if (!AllocConsole()) return;
+  hStd = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  GetConsoleScreenBufferInfo(hStd, &coninfo);
+  coninfo.dwSize.Y = MAX_DEBUG_LINES;
+  coninfo.dwSize.X = MAX_DEBUG_COLUMNS;
+  SetConsoleScreenBufferSize(hStd, coninfo.dwSize);
+
+  /* redirect unbuffered STDOUT to the console */
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "w" );
+  orig_stdout = *stdout;
+  *stdout = *fp;
+  setvbuf( stdout, NULL, _IONBF, 0 );
+
+  /* redirect unbuffered STDERR to the console */
+
+  hStd = GetStdHandle(STD_ERROR_HANDLE);
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "w" );
+  orig_stderr = *stderr;
+  *stderr = *fp;
+  setvbuf( stderr, NULL, _IONBF, 0 );
+
+#ifdef REDIRECT_STDIN
+  /* redirect unbuffered STDIN to the console */
+  hStd = GetStdHandle(STD_INPUT_HANDLE);
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "r" );
+  orig_stdin = *stdin;
+  *stdin = *fp;
+  setvbuf( stdin, NULL, _IONBF, 0 );
+#endif	
+
+	debugging = 1;
+}
+
+static void debug_off(void)
+{ 
+  if (!debugging) return;
+  if (!FreeConsole()) return;
+
+  *stdout = orig_stdout;
+  *stderr = orig_stderr;
+#ifdef REDIRECT_STDIN
+  *stdin = orig_stdin;
+#endif
+  debugging = 0;
 }
 
 INT_PTR CALLBACK 
@@ -882,13 +913,11 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	DialogBox (hInst, MAKEINTRESOURCE (IDD_INFO), hMainWnd,
 		   InfoDialogProc);
 	return 0;
-      case ID_DEBUG:
-	if (hDebug == NULL)
-	  hDebug =
-	    CreateDialog (hInst, MAKEINTRESOURCE (IDD_DEBUG), hWnd,
-			  DebugDialogProc);
+  case ID_DEBUG:
+    if (debugging) debug_off(); else debug_on();
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(debugging?MF_CHECKED:MF_UNCHECKED));
 	return 0;
-      case ID_HELP_ABOUT:
+  case ID_HELP_ABOUT:
 	DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUT), hWnd, AboutDialogProc);
 	return 0;
       }
