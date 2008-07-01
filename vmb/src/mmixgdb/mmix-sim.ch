@@ -1225,10 +1225,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
      else strcpy(rhs, "%#x -> %#y");
  if (inst == 0) /* Halt */
  {  if (interacting)
-      tracing=breakpoint=true, interrupt=false;
-      /* or  interact_with_gdb(17) */
-    else
-      tracing=true, interrupt=false;
+      interact_with_gdb(17);
  }
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
