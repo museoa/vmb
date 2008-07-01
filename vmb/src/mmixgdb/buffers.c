@@ -44,7 +44,7 @@ void init_queue(queue *q)
   #define LOCK   EnterCriticalSection (&(q->buffer_section))
   #define UNLOCK LeaveCriticalSection (&(q->buffer_section))
   #define WAIT   WaitForSingleObject(&(q->hbuffer),INFINITE)
-  #define SIGNAL SetEvent (q->hevent);
+  #define SIGNAL SetEvent (q->hbuffer);
 #else
   static void clean_up_queue_mutex(void *q)
   { pthread_mutex_unlock(&(((queue*)q)->buffer_mutex)); 

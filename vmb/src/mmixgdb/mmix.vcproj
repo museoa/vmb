@@ -192,6 +192,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\buffers.c"
+				>
+			</File>
+			<File
+				RelativePath=".\gdb.c"
+				>
+			</File>
+			<File
 				RelativePath=".\mmix-arith.c"
 				>
 			</File>
@@ -203,6 +211,10 @@
 				RelativePath=".\mmix-sim.c"
 				>
 			</File>
+			<File
+				RelativePath=".\remote-utils.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -210,7 +222,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\abstime.h"
+				>
+			</File>
+			<File
 				RelativePath=".\address.h"
+				>
+			</File>
+			<File
+				RelativePath=".\breaks.h"
+				>
+			</File>
+			<File
+				RelativePath=".\buffers.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gdb.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mmix-bus.h"
 				>
 			</File>
 		</Filter>

@@ -23,20 +23,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.  */
 
-
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
+#define DEBUG
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #ifdef WIN32
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock.h>
 #else
+#include <pthread.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
 #include <netinet/in.h>
@@ -53,6 +50,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include "bus-arith.h" 
+#include "error.h"
 #include "buffers.h"
 #include "gdb.h"
 
@@ -127,9 +125,7 @@ int gdb_init(int port)
  enqueue(&free_buffers,bufferB);
 #ifdef WIN32
   { DWORD dwReadThreadId;
-    hbuffer =CreateEvent(NULL,FALSE,FALSE,NULL);
-    InitializeCriticalSection (&buffer_section);
-    hReadThread = CreateThread( 
+     hReadThread = CreateThread( 
             NULL,              // default security attributes
             0,                 // use default stack size  
             gdb_read_loop,        // thread function 
@@ -176,8 +172,8 @@ static int remote_debug = 1;
 
 #define valid_socket(socket)  ((socket) != INVALID_SOCKET)
 
-int remote_fd=INVALID_SOCKET;
-int server_fd=INVALID_SOCKET;
+SOCKET remote_fd=INVALID_SOCKET;
+SOCKET server_fd=INVALID_SOCKET;
 int gdb_connected = 0;
 static struct sockaddr_in sockaddr;
 
@@ -186,10 +182,14 @@ static struct sockaddr_in sockaddr;
 
 int connect_to_gdb (int port)
 {
-  socklen_t tmp;
+ 
 #ifdef WIN32
+  int tmp;
   wsa_init();
+#else
+  socklen_t tmp;
 #endif
+
   server_fd = socket (PF_INET, SOCK_STREAM, 0);
   if (server_fd < 0)
   {  perror ("Can't open socket");
@@ -263,7 +263,7 @@ static int writebufcnt = 0;
 
 static int flush(void)
 { int i;
- int error;
+ int error=0;
 #ifdef DEBUG
   fprintf(stderr, "To gdb:>");
   for (i=0;i<writebufcnt;i++)
@@ -364,7 +364,10 @@ readchar (void)
   { int i;
     fprintf(stderr, "From gdb:>");
     for (i=0;i<read_bufcnt;i++)
-      fprintf(stderr, "%c(%2X)",read_buf[i],read_buf[i]);
+		if (read_buf[i]<=0x20 || read_buf[i]>=0x7F)
+		   fprintf(stderr, "%c(%2X)",read_buf[i],read_buf[i]);
+		else
+		   fprintf(stderr, "%c",read_buf[i]);
     fprintf(stderr, "<\n");
   }
 #endif
@@ -429,7 +432,7 @@ getpkt (char *buf)
 
   writechar('+');
   flush();
-  return bp - buf;
+  return (int)(bp - buf);
 }
 
 

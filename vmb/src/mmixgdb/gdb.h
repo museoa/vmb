@@ -23,9 +23,12 @@
 
 #ifndef GDB_H
 #define GDB_H
+
 #ifdef WIN32
+
 #include <windows.h>
 #endif
+
 
 /* this is taken from tm-mmix.h in gdb/config/mmix/ it must agree with the values given there
  */
@@ -48,8 +51,11 @@
 
 
 /* This should be a 64 bit integer type */
+
 #ifdef WIN32
+
 typedef LONGLONG CORE_ADDR;
+
 #else
 typedef long long CORE_ADDR;
 #endif
@@ -68,9 +74,11 @@ int dual_wait(int s1, int s2);
 void single_wait(int s);
 int remote_interrupt(int s);
 void remote_close (void);
-int server_fd;
-int remote_fd;
+SOCKET server_fd;
+SOCKET remote_fd;
+
 void wsa_init(void);
+
 extern char *get_free_buffer(void);
 extern void put_free_buffer(char *buffer);
 extern char *get_gdb_command(void);
