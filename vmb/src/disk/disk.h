@@ -24,8 +24,5 @@
 #define DISK_DELAY	10	/* seek start/settle + rotational delay */
 #define DISK_SEEK	50	/* full disk seek time */
 
-void diskInit(void);
-void diskExit(void);
-
 
 #endif /* _DISK_H_ */
