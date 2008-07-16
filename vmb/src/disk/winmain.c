@@ -499,15 +499,13 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 
-extern void init_device(void);
-
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR     lpCmdLine,
                      int       nCmdShow)
 {
 	HACCEL hAccelTable;
-    MSG msg;
+        MSG msg;
 	LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
@@ -531,7 +529,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_device();
  	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
-    SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
+        SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 	if (vmb_debug_flag)
 	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);
 
