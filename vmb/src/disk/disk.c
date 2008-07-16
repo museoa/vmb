@@ -23,7 +23,7 @@
 #include "disk.h"
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-07-14 12:02:23 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-07-16 15:33:24 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -401,6 +401,8 @@ void vmb_terminate(void)
 }
 
 
+#ifdef WIN32
+#else
 
 
 int main(int argc, char *argv[])
@@ -427,3 +429,5 @@ int main(int argc, char *argv[])
   }
   return 0;
 }
+
+#endif
