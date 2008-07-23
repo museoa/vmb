@@ -25,7 +25,7 @@ extern HWND hMainWnd;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-07-23 08:14:45 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-07-23 09:45:04 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -48,15 +48,18 @@ char howto[] =
 "boundary.\n"
 "\n"
 "a) Control register: 5 bits of this register are used to control the disk\n"
-"and get current status information from it. IEN is read-write and enables\n"
-"or disables interrupts from the disk. WRT is read-write and must be set to\n"
-"0 to read from the disk, or set to 1 to write to the disk. As soon as the\n"
-"software writes a 1 to the STRT bit (which is write-only), the next command\n"
-"is carried out. BUSY is set by the hardware during command execution. When\n"
-"the command is completed (or cannot be completed due to an error), BUSY\n"
-"is reset. This condition also raises the disk interrupt if it is enabled.\n"
-"The ERR bit is set by the hardware if any error prevented the successful\n"
-"completion of the last command. Both BUSY and ERR are read-only.\n"
+"and get current status information from it. \n"
+"These bits are from low order to high order:\n"
+"STRT is write-only. As soon as a 1 is written to this bit,\n"
+"    the next command is carried out. \n"
+"IEN is read-write and enables or disables interrupts from the disk.\n"
+"WRT is read-write and must be set to 0 to read from the disk,\n"
+"    or set to 1 to write to the disk.\n"
+"ERR is set by the hardware if any error prevented the successful\n"
+"    completion of the last command. Both BUSY and ERR are read-only.\n"
+"BUSY is set by the hardware during command execution. When\n"
+"    the command is completed (or cannot be completed due to an error), BUSY\n"
+"    is reset. This condition also raises the disk interrupt if it is enabled.\n"
 "\n"
 "b) Count register: this register holds the number of disk\n"
 "sectors to be transferred in the next command.\n"
@@ -103,8 +106,7 @@ static void clean_up_action_mutex(void *_dummy)
 
 void set_diskCtrl(int value)
 { int start;
-  if (diskImage==NULL) return;
-  vmb_debugi("Setting diskCtrl %X",value);
+  vmb_debugi("Setting diskCtrl 0x%X",value);
   start = 0;
 #ifdef WIN32
   EnterCriticalSection (&action_section);
@@ -138,7 +140,7 @@ void set_diskCtrl(int value)
 }
 
 
-static unsigned int cancel_wait_for_action = 0;
+static unsigned int disk_server_shutdown = 0;
 
 void wait_for_action(void)
 /* waits for setting the start bit or a cancelation
@@ -155,34 +157,44 @@ void wait_for_action(void)
 #endif
   /* in the meantime the action might have happend */
   while (!(diskCtrl & DISK_STRT) &&
-         !cancel_wait_for_action)
+           !disk_server_shutdown)
 #ifdef WIN32
      WaitForSingleObject(haction,INFINITE);
 #else
      pthread_cond_wait(&action_cond,&action_mutex);
   pthread_cleanup_pop(1);
 #endif
-  cancel_wait_for_action=0;
-  set_diskCtrl(diskCtrl & ~DISK_STRT);
 }
 
 
+/* the thread serving dma requests is started when we 
+   open the disk image and closed, when we close the disk Image */
+
 static void diskWrite(void);
 static void diskRead(void);
+
+static int disk_server_running = 0;
+
 #ifdef WIN32
 static DWORD WINAPI disk_server(LPVOID dummy)
 #else
 static void *disk_server(void *_dummy)
 #endif
-{  while (diskImage!=NULL)
+{  disk_server_running = 1;
+   while (disk_server_running)
    { wait_for_action();
+     if (disk_server_shutdown) break;
      if (diskCtrl & DISK_STRT) 
-	 { if (diskCtrl & DISK_WRT)
+     {
+      set_diskCtrl(diskCtrl & ~DISK_STRT);
+      if (diskCtrl & DISK_WRT)
            diskWrite();
        else
            diskRead();
      }
    }
+  disk_server_shutdown=0;
+  disk_server_running = 0;
   return 0;
 }
 
@@ -190,12 +202,12 @@ void init_device(void)
 {	
 #ifdef WIN32	
     haction =CreateEvent(NULL,FALSE,FALSE,NULL);
-	InitializeCriticalSection (&action_section);
+    InitializeCriticalSection (&action_section);
 #endif
 }
 
 void start_disk_server(void)
-{
+{  if (diskImage == NULL) return;
 #ifdef WIN32
     DWORD dwDiskThreadId;
     HANDLE hDiskThread;
@@ -218,6 +230,32 @@ void start_disk_server(void)
 #endif
 }
 
+void stop_disk_server(void)
+{ 
+  vmb_debug("stopping disk server");
+  disk_server_shutdown = 1;
+  while (disk_server_running)
+  {
+#ifdef WIN32
+    SetEvent (haction);
+#else
+  { int rc = pthread_mutex_lock(&action_mutex);
+    if (rc) 
+    { vmb_error(__LINE__,"Locking action mutex failed");
+      pthread_exit(NULL);
+    }
+    pthread_cond_signal(&action_cond);
+    rc = pthread_mutex_unlock(&action_mutex);
+    if (rc) 
+    { vmb_error(__LINE__,"Unlocking action mutex failed");
+      pthread_exit(NULL);
+    }
+  }
+#endif
+  }
+}
+
+/* Utilities to manage the virtual registers */
 
 static void register_to_mem(void)
 {  memset(mem,0,sizeof(mem));
@@ -260,7 +298,6 @@ static void diskReset(void)
   diskSct = 0;
   diskDma_lo = 0;
   diskDma_hi = 0;
-  cancel_wait_for_action=1;
   set_diskCtrl(0);
 }
 
@@ -274,17 +311,16 @@ static void diskInit(void) {
   if (filename != NULL) {
     /* try to install disk */
     diskImage = fopen(filename, "r+b");
-    if (diskImage == NULL) {
+    if (diskImage == NULL)
       vmb_error(__LINE__,"cannot open disk image");
-    }
-	else
-	{ fseek(diskImage, 0, SEEK_END);
+    else
+    { fseek(diskImage, 0, SEEK_END);
       numBytes = ftell(diskImage);
       fseek(diskImage, 0, SEEK_SET);
       diskCap = numBytes / SECTOR_SIZE;
       vmb_debugi("Disk of size %ld sectors installed.", diskCap);
-	  start_disk_server();
-	}
+      start_disk_server();
+    }
   }
 }
 
@@ -299,6 +335,7 @@ static void diskExit(void) {
   diskImage = NULL;
   diskCap = 0;
   diskReset();
+  stop_disk_server();
 }
 
 static void diskBussy(void)
@@ -445,7 +482,7 @@ void vmb_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { diskExit();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
+  SendMessage(hMainWnd,WM_USER+4,0,0);
 #endif
 }
 
@@ -454,13 +491,9 @@ void vmb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { diskExit();
 #ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+  PostMessage(hMainWnd,WM_QUIT,0,0);
 #endif
 }
-
-
-#ifdef WIN32
-#else
 
 #ifndef WIN32
 int main(int argc, char *argv[])
@@ -477,7 +510,6 @@ int main(int argc, char *argv[])
   vmb_connect(host,port); 
   vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
                0, 0, vmb_program_name);
-
   vmb_wait_for_disconnect();
  
   return 0;
