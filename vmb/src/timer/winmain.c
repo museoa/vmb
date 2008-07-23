@@ -16,6 +16,7 @@ static TCHAR szTitle[MAX_LOADSTRING];
 static HBITMAP hBmp;
 static HMENU hMenu;
 static HBITMAP hon,hoff,hconnect;
+static int counter;
 
 /* Global Variables for important Windows */
 static HWND hpower;
@@ -26,12 +27,6 @@ static HINSTANCE hInst;
 /* Global variables defining the properties of the device */
 #define MAXHOST 1024
 
-static unsigned int counter;
-
-void win32_message(char *msg)
-{
-	MessageBox(NULL,msg,"Message",MB_OK);
-}
 
 void win32_debug(char *msg)
 { static char nl[] ="\r\n";	
@@ -601,8 +596,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	UpdateWindow(hMainWnd);
 	param_init();
 	vmb_size = 8;
-    vmb_message_hook = win32_message;
-	vmb_debug_hook = win32_debug;
 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
@@ -619,7 +612,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 
-char version[]="$Revision: 1.2 $ $Date: 2008-03-13 10:30:31 $";
+char version[]="$Revision: 1.3 $ $Date: 2008-07-23 08:22:46 $";
 
 char howto[] =
 "\n"

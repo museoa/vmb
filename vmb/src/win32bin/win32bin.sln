@@ -25,6 +25,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flash", "..\flash\flash.vcp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winvram", "..\winvram\winvram.vcproj", "{FE9C2409-0EFD-4BF9-9F00-D917910EF3D9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sevensegment", "..\sevensegment\sevensegment.vcproj", "{1961A4CD-9F87-4E25-80C7-6109EB901107}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timer", "..\timer\timer.vcproj", "{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +83,14 @@ Global
 		{FE9C2409-0EFD-4BF9-9F00-D917910EF3D9}.Debug|Win32.Build.0 = Debug|Win32
 		{FE9C2409-0EFD-4BF9-9F00-D917910EF3D9}.Release|Win32.ActiveCfg = Release|Win32
 		{FE9C2409-0EFD-4BF9-9F00-D917910EF3D9}.Release|Win32.Build.0 = Release|Win32
+		{1961A4CD-9F87-4E25-80C7-6109EB901107}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1961A4CD-9F87-4E25-80C7-6109EB901107}.Debug|Win32.Build.0 = Debug|Win32
+		{1961A4CD-9F87-4E25-80C7-6109EB901107}.Release|Win32.ActiveCfg = Release|Win32
+		{1961A4CD-9F87-4E25-80C7-6109EB901107}.Release|Win32.Build.0 = Release|Win32
+		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Debug|Win32.Build.0 = Debug|Win32
+		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Release|Win32.ActiveCfg = Release|Win32
+		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -116,7 +116,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-12 16:49:38 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-07-23 08:22:45 $";
 
 char howto[] =
 "\n"
@@ -200,7 +200,7 @@ static void execute_command(int cmd)
      p = p+8;
      count = chartoint(p+4);
      if (count > HD_PARAM_SIZE)
-       vmb_errormsg("Parameter count of read too large");
+       vmb_error(__LINE__,"Parameter count of read too large");
      else   
        { result = read(fd, mem+HD_PARAM, count);
        inttochar(result,mem+HD_RESULT+4);
@@ -214,7 +214,7 @@ static void execute_command(int cmd)
      count = chartoint(p+4);
      p = p+8;
      if (count > HD_PARAM_SIZE-16)
-       vmb_errormsg("Parameter count of write too large");
+       vmb_error(__LINE__,"Parameter count of write too large");
      else   
        { vmb_debugi("write to %d",fd);
          vmb_debugi("%d byte", count);
@@ -243,7 +243,7 @@ static void execute_command(int cmd)
      }
      break;
    default:
-     vmb_errormsg("Undefined command.");
+     vmb_error(__LINE__,"Undefined command.");
    }
 }
 

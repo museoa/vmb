@@ -41,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.7 $ $Date: 2008-03-27 15:40:42 $";
+char version[]="$Revision: 1.8 $ $Date: 2008-07-23 08:22:45 $";
 
 char howto[] =
 "\n"
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     if (i == 0) 
       continue;
     if (i < 0)
-    { vmb_errormsg("Read Error");
+    { vmb_error(__LINE__,"Read Error");
       break;
     }
     vmb_debugi("got %02X",c&0xFF);

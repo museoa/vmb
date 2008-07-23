@@ -216,7 +216,7 @@ int bus_connect(char *hostname,int port)
 #ifdef WIN32
   {	WSADATA wsadata;
 	if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
-    {  vmb_errormsg("Unable to initialize Winsock dll");
+    {  vmb_error(__LINE__,"Unable to initialize Winsock dll");
 	   return INVALID_SOCKET;
 	}
   }

@@ -23,6 +23,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#if defined(WIN32)
+#pragma warning(disable : 4996)
+#include <windows.h>
+#include <fcntl.h>
+#include <io.h>
+#endif
+
 #include "string.h"
 #include "bus-arith.h"
 #include "message.h"
@@ -31,33 +38,106 @@
 unsigned int vmb_debug_flag = 0;
 char *vmb_program_name = "Unknown";
 
-
-/* these two hooks can be used to change the apperance of messages and debug output */
+#if defined(WIN32)
+void win32_message(char *msg)
+{
+	MessageBox(NULL,msg,"Message",MB_OK);
+}
+void (*vmb_message_hook)(char *msg) = win32_message;
+#else
 void (*vmb_message_hook)(char *msg) = NULL;
+#endif
+
+
+/* thhooks can be used to change the apperance of messages and debug output */
 void (*vmb_debug_hook)(char *msg) = NULL;
 
 #if defined(WIN32)
-#pragma warning(disable : 4996)
+#define MAX_DEBUG_LINES 500
+#define MAX_DEBUG_COLUMNS 500
+static FILE orig_stdout, orig_stdin, orig_stderr;
+
+/* two functions to switch on and off debugging by creating a console window */
+void vmb_debug_on(void)
+{ int hConHandle;
+  HANDLE hStd;
+  CONSOLE_SCREEN_BUFFER_INFO coninfo;
+  FILE *fp;
+  
+  if (vmb_debug_flag) return;
+
+  if (!AllocConsole()) return;
+
+  hStd = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  GetConsoleScreenBufferInfo(hStd, &coninfo);
+  coninfo.dwSize.Y = MAX_DEBUG_LINES;
+  coninfo.dwSize.X = MAX_DEBUG_COLUMNS;
+  SetConsoleScreenBufferSize(hStd, coninfo.dwSize);
+
+  /* redirect unbuffered STDOUT to the console */
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "w" );
+  orig_stdout = *stdout;
+  *stdout = *fp;
+  setvbuf( stdout, NULL, _IONBF, 0 );
+
+  /* redirect unbuffered STDERR to the console */
+
+  hStd = GetStdHandle(STD_ERROR_HANDLE);
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "w" );
+  orig_stderr = *stderr;
+  *stderr = *fp;
+  setvbuf( stderr, NULL, _IONBF, 0 );
+
+#ifdef REDIRECT_STDIN
+  /* redirect unbuffered STDIN to the console */
+  hStd = GetStdHandle(STD_INPUT_HANDLE);
+  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+  fp = _fdopen( hConHandle, "r" );
+  orig_stdin = *stdin;
+  *stdin = *fp;
+  setvbuf( stdin, NULL, _IONBF, 0 );
+#endif	
+
+	vmb_debug_flag = 1;
+}
+
+void vmb_debug_off(void)
+{ 
+  if (!vmb_debug_flag) return;
+  if (!FreeConsole()) return;
+
+  *stdout = orig_stdout;
+  *stderr = orig_stderr;
+#ifdef REDIRECT_STDIN
+  *stdin = orig_stdin;
+#endif
+  vmb_debug_flag = 0;
+}
 #endif
 
 
 void vmb_message(char *message)
-{  vmb_debug(message);
-   if (vmb_message_hook != NULL)
+{  if (vmb_message_hook != NULL)
      vmb_message_hook(message);
+   else
+ 	 fprintf(stderr,"%s\r\n", message);
 }
 
 void vmb_fatal_error(int line, char *message)
-{   vmb_debugi("ERROR (%d):",line);
-    vmb_message(message);
+{   vmb_error(line, message);
     exit(1);
 }
 
 
-void vmb_errormsg(char *message)
-{   vmb_debug("ERROR:");
-    vmb_message(message);
+void vmb_error(int line, char *message)
+{ static char tmp[1000];
+  sprintf(tmp,"ERROR (%s, %d): %s\r\n",vmb_program_name,line,message);
+  vmb_message(tmp);
 }
+
 
 void vmb_debug(char *msg)
 { 

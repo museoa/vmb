@@ -29,11 +29,6 @@ int port = 9002;
 unsigned int address_hi=0;
 unsigned int address_lo=0;
 
-void win32_message(char *msg)
-{
-	MessageBox(NULL,msg,"Message",MB_OK);
-}
-
 void win32_debug(char *msg)
 { static char nl[] ="\r\n";	
   LRESULT  n;
@@ -511,8 +506,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 	ShowWindow(hMainWnd, nCmdShow);
 	UpdateWindow(hMainWnd);
-    vmb_message_hook = win32_message;
-	vmb_debug_hook = win32_debug;
 	vmb_connect(host,port);
 	vmb_register(0,0,ramsize,0,0,"Simple RAM");
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */

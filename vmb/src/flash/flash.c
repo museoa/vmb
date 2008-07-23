@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.5 $ $Date: 2008-06-26 10:12:47 $";
+char version[]="$Revision: 1.6 $ $Date: 2008-07-23 08:22:45 $";
 
 char howto[] =
 "\n"
@@ -89,20 +89,20 @@ void write_file(void)
   if (!image_changed) return;
   vmb_debug("writing image file...");
   if (filename==NULL|| filename[0]== 0)
-  { vmb_errormsg("No filename");
+  { vmb_error(__LINE__,"No filename");
     return;
   }
   if (flash==NULL)
-  {  vmb_errormsg("No flash memory");
+  {  vmb_error(__LINE__,"No flash memory");
      return;
   }
   f = fopen(filename,"wb");
   if (f==NULL) 
-  { vmb_errormsg("Unable to open file");
+  { vmb_error(__LINE__,"Unable to open file");
     return;
   }
   i = (int)fwrite(flash,1,vmb_size,f);
-  if (i<(int)vmb_size) vmb_errormsg("Unable to write file");
+  if (i<(int)vmb_size) vmb_error(__LINE__,"Unable to write file");
   else fclose(f);
   vmb_debug("done writing image file");
   image_changed = 0;

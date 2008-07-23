@@ -61,7 +61,7 @@ int vmb_get_interrupt(unsigned int *hi, unsigned int *lo)
 #else
   { int rc = pthread_mutex_lock(&event_mutex);
     if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -75,7 +75,7 @@ int vmb_get_interrupt(unsigned int *hi, unsigned int *lo)
 #else
   { int rc = pthread_mutex_unlock(&event_mutex);
     if (rc) 
-    { vmb_errormsg("Unlocking event mutex failed");
+    { vmb_error(__LINE__,"Unlocking event mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -100,7 +100,7 @@ void vmb_wait_for_event(void)
 #ifndef WIN32
   { int rc = pthread_mutex_lock(&event_mutex);
     if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -129,7 +129,7 @@ void vmb_wait_for_power(void)
 #ifndef WIN32
   { int rc = pthread_mutex_lock(&event_mutex);
     if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -151,7 +151,7 @@ void vmb_wait_for_disconnect(void)
  #ifndef WIN32
   { int rc;rc = pthread_mutex_lock(&event_mutex);
     if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
     pthread_cleanup_push(clean_up_event_mutex,NULL);
@@ -175,7 +175,7 @@ static void change_event(unsigned int *event, unsigned int value)
 #else
   int rc = pthread_mutex_lock(&event_mutex);
   if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
 #endif 
@@ -187,7 +187,7 @@ static void change_event(unsigned int *event, unsigned int value)
   rc = pthread_cond_signal(&event_cond);
   rc = pthread_mutex_unlock(&event_mutex);
   if (rc) 
-  { vmb_errormsg("Unlocking event mutex failed");
+  { vmb_error(__LINE__,"Unlocking event mutex failed");
     pthread_exit(NULL);
   }
 #endif
@@ -247,7 +247,7 @@ static void wait_not_full_pending_read(void)
   int rc;
   rc = pthread_mutex_lock(&pending_mutex);
   if (rc) 
-    { vmb_errormsg("Locking pending mutex failed");
+    { vmb_error(__LINE__,"Locking pending mutex failed");
       pthread_exit(NULL);
     }
   pthread_cleanup_push(clean_up_pending_mutex,NULL);
@@ -284,13 +284,13 @@ static void remove_queue_entry(int i)
   { int rc;
     rc = pthread_mutex_lock(&pending_mutex);
     if (rc) 
-    { vmb_errormsg("Locking pending mutex failed");
+    { vmb_error(__LINE__,"Locking pending mutex failed");
       pthread_exit(NULL);
     }
     rc = pthread_cond_signal(&pending_cond);
     rc = pthread_mutex_unlock(&pending_mutex);
     if (rc) 
-    { vmb_errormsg("Unlocking pending mutex failed");
+    { vmb_error(__LINE__,"Unlocking pending mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -334,7 +334,7 @@ static void deliver_answer(data_address *da, int size, unsigned char *payload)
   int rc;
   rc = pthread_mutex_lock(&valid_mutex);
   if (rc) 
-  { vmb_errormsg("Locking valid mutex failed");
+  { vmb_error(__LINE__,"Locking valid mutex failed");
     pthread_exit(NULL);
   }
 #endif
@@ -355,7 +355,7 @@ static void deliver_answer(data_address *da, int size, unsigned char *payload)
   rc = pthread_cond_signal(&valid_cond);
   rc = pthread_mutex_unlock(&valid_mutex);
   if (rc) 
-  { vmb_errormsg("Unlocking valid mutex failed");
+  { vmb_error(__LINE__,"Unlocking valid mutex failed");
     pthread_exit(NULL);
   }
 #endif
@@ -398,7 +398,7 @@ void vmb_wait_for_valid(data_address *da)
   int rc;
   rc = pthread_mutex_lock(&valid_mutex);
   if (rc) 
-    { vmb_errormsg("Locking valid mutex failed");
+    { vmb_error(__LINE__,"Locking valid mutex failed");
       pthread_exit(NULL);
     }
   pthread_cleanup_push(clean_up_valid_mutex,NULL);
@@ -627,7 +627,7 @@ void vmb_disconnect(void)
   void *exitcode;
   int rc = pthread_mutex_lock(&event_mutex);
   if (rc) 
-    { vmb_errormsg("Locking event mutex failed");
+    { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
 #endif 
@@ -639,7 +639,7 @@ void vmb_disconnect(void)
     pthread_cancel(read_thr);
   rc = pthread_mutex_unlock(&event_mutex);
   if (rc) 
-  { vmb_errormsg("Unlocking event mutex failed");
+  { vmb_error(__LINE__,"Unlocking event mutex failed");
     pthread_exit(NULL);
   }
   pthread_join(read_thr,&exitcode);

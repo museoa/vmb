@@ -54,14 +54,14 @@ static void ram_clean(void)
     ram[i] = 0;
   { int rc = pthread_mutex_lock(&ms_mutex);
     if (rc) 
-    { vmb_errormsg("Locking ms mutex failed");
+    { vmb_error(__LINE__,"Locking ms mutex failed");
       pthread_exit(NULL);
     }
   }
   ms = 0;
   { int rc = pthread_mutex_unlock(&ms_mutex);
     if (rc) 
-    { vmb_errormsg("Unlocking ms mutex failed");
+    { vmb_error(__LINE__,"Unlocking ms mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -71,7 +71,7 @@ static void wait_for_non_zero_ram(void)
 { vmb_debug("waiting for non zero");
   { int rc = pthread_mutex_lock(&ms_mutex);
     if (rc) 
-    { vmb_errormsg("Locking ms mutex failed");
+    { vmb_error(__LINE__,"Locking ms mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -100,7 +100,7 @@ void vmb_terminate(void)
 { vmb_debug("signal end of waiting"); 
   int rc = pthread_cond_signal(&ms_cond);
      if (rc) 
-     { vmb_errormsg("Locking ms mutex failed");
+     { vmb_error(__LINE__,"Locking ms mutex failed");
        pthread_exit(NULL);
      }
      vmb_disconnect();
@@ -118,7 +118,7 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
    /* protect ms by mutex and set up condition variable */
   { int rc = pthread_mutex_lock(&ms_mutex);
     if (rc) 
-    { vmb_errormsg("Locking ms mutex failed");
+    { vmb_error(__LINE__,"Locking ms mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -127,13 +127,13 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
   if (ms != 0)
   {  int rc = pthread_cond_signal(&ms_cond);
      if (rc) 
-     { vmb_errormsg("Locking ms mutex failed");
+     { vmb_error(__LINE__,"Locking ms mutex failed");
        pthread_exit(NULL);
      }
   }
   { int rc = pthread_mutex_unlock(&ms_mutex);
     if (rc) 
-    { vmb_errormsg("Unlocking ms mutex failed");
+    { vmb_error(__LINE__,"Unlocking ms mutex failed");
       pthread_exit(NULL);
     }
   }

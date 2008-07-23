@@ -75,7 +75,7 @@ void store_command(char *command)
       { set_option(&commands[i],command);
         return;
       }
-  vmb_errormsg("Too many commands");
+  vmb_error(__LINE__,"Too many commands");
 }
 
 
@@ -120,7 +120,7 @@ static int mk_argv(char *argv[MAXARG],char *command)
       command = str+1;
     }
   }
-  vmb_errormsg("Too many arguments in command");
+  vmb_error(__LINE__,"Too many arguments in command");
   return 0;
 }
 
@@ -138,16 +138,16 @@ void do_commands(void)
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
 		  {  vmb_debugi("could not start %d",errno);
-	          vmb_errormsg("Unable to execute command");
+	          vmb_error(__LINE__,"Unable to execute command");
 		  }
 		}
 #else
         { pid_t p;
           p = fork();
-          if (p<0) vmb_errormsg("Unable to create new process");
+          if (p<0) vmb_error(__LINE__,"Unable to create new process");
           else if (p==0) /* child */
 		  { execvp(argv[0],argv);
-	        vmb_errormsg("Unable to execute command");
+	        vmb_error(__LINE__,"Unable to execute command");
 		  }
 		}
 #endif

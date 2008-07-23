@@ -106,7 +106,7 @@ extern void vmb_fatal_error(int line, char *message);
 /* a function to call if something goes wrong (should not return)*/
 extern void vmb_debug(char *msg);
 /* a function to call to display messages */
-extern void vmb_errormsg(char *message);
+extern void vmb_error(int line, char *message);
 /* a function to call to display errormessages */
 
 /* the argument handler */

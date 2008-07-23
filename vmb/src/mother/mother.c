@@ -23,8 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <io.h>
+
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #include <winsock2.h>
@@ -39,7 +38,7 @@ typedef int socklen_t;
 HWND hMainWnd, hpower;
 HBITMAP hon, hoff, hconnect;
 
-static int debugging = 0;
+
 
 #define WM_SOCKET (WM_USER+1)
 
@@ -61,7 +60,7 @@ static int debugging = 0;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.11 $ $Date: 2008-06-27 09:22:11 $";
+char version[] = "$Revision: 1.12 $ $Date: 2008-07-23 08:22:45 $";
 
 char howto[] =
   "\n"
@@ -214,7 +213,7 @@ write_to_slot (int i)
       (slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,
        mpayload) <= 0)
   {
-    vmb_errormsg ("Unable to deliver message");
+    vmb_error (__LINE__, "Unable to deliver message");
     remove_slot (i);
     return 1;
   }
@@ -242,7 +241,7 @@ power_on (int i)
   if (!bus_msg (ID_POWERON, i))
     vmb_debugi ("Sent Power On to Slot %d", i);
   else
-    vmb_errormsg ("Unable to send Power On");
+    vmb_error(__LINE__,"Unable to send Power On");
 }
 
 static void
@@ -251,7 +250,7 @@ power_off (int i)
   if (!bus_msg (ID_POWEROFF, i))
     vmb_debugi ("Sent Power Off to Slot %d", i);
   else
-    vmb_errormsg ("Unable to send Power Off");
+    vmb_error(__LINE__,"Unable to send Power Off");
 }
 
 static void
@@ -260,7 +259,7 @@ reset (int i)
   if (!bus_msg (ID_RESET, i))
     vmb_debugi ("Sent Reset to Slot %d", i);
   else
-    vmb_errormsg ("Unable to send Reset");
+    vmb_error(__LINE__,"Unable to send Reset");
 }
 static void
 terminate (int i)
@@ -268,7 +267,7 @@ terminate (int i)
   if (!bus_msg (ID_TERMINATE, i))
     vmb_debugi ("Sent Terminate to Slot %d", i);
   else
-    vmb_errormsg ("Unable to send Terminate");
+    vmb_error(__LINE__,"Unable to send Terminate");
 }
 
 static void
@@ -281,7 +280,7 @@ send_dummy_answer (int dest_slot)
     if (!write_to_slot (dest_slot))
       vmb_debugi ("Sent dummy answer to Slot %d", dest_slot);
     else
-      vmb_errormsg ("Unable to send dummy answer");
+      vmb_error(__LINE__,"Unable to send dummy answer");
   }
 }
 
@@ -296,7 +295,7 @@ disconnect_device (int slotnr)
    if (!bus_unregister (slot[slotnr].fd))
     vmb_debugi ("Shutdown of Slot %d", slotnr);
   else
-    vmb_errormsg ("Unable to shut down slot");
+    vmb_error(__LINE__,"Unable to shut down slot");
 
   if (bus_disconnect (slot[slotnr].fd) >= 0)
     vmb_debugi ("Closed socket from Slot %d : Successful", slotnr);
@@ -365,7 +364,7 @@ send_interrupt_to (int i)
     if (!write_to_slot (i))
       vmb_debugi ("Sent Interrupt to Slot %d", i);
     else
-      vmb_errormsg ("Unable to send Interrupt");
+      vmb_error(__LINE__,"Unable to send Interrupt");
   }
 }
 
@@ -446,7 +445,7 @@ interpret_message (int source_slot)
 	n = (int)strlen((char *)mpayload + 24) + 1;
 	slot[source_slot].name = malloc (n);
 	if (slot[source_slot].name == NULL)
-	  vmb_errormsg ("Out of memory");
+	  vmb_error(__LINE__,"Out of memory");
 	else
 	  strcpy ((char *)slot[source_slot].name, (char *)mpayload + 24);
       }
@@ -497,7 +496,7 @@ close_slot (int i)
   if (i >= 0 && i < SLOTS && valid_socket (slot[i].fd))
     disconnect_device (i);
   else
-    vmb_errormsg ("Invalid slot number");
+    vmb_error(__LINE__,"Invalid slot number");
 }
 
 static void
@@ -527,7 +526,7 @@ connect_new_device ()
       }
       return;
     }
-  vmb_errormsg ("Can't connect any more client's");
+  vmb_error(__LINE__,"Can't connect any more client's");
 }
 #ifdef WIN32
 static void
@@ -700,77 +699,6 @@ InfoDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
   return FALSE;
 }
 
-void win32_message(char *msg)
-{
-	MessageBox(NULL,msg,"Message",MB_OK);
-}
-
-void win32_debug(char *msg)
-{ if (debugging) printf("%s\n",msg);
-}
-
-
-#define MAX_DEBUG_LINES 500
-#define MAX_DEBUG_COLUMNS 500
-static FILE orig_stdout, orig_stdin, orig_stderr;
-
-static void debug_on(void)
-{ int hConHandle;
-  HANDLE hStd;
-  CONSOLE_SCREEN_BUFFER_INFO coninfo;
-  FILE *fp;
-  
-  if (debugging) return;
-
-  if (!AllocConsole()) return;
-  hStd = GetStdHandle(STD_OUTPUT_HANDLE);
-
-  GetConsoleScreenBufferInfo(hStd, &coninfo);
-  coninfo.dwSize.Y = MAX_DEBUG_LINES;
-  coninfo.dwSize.X = MAX_DEBUG_COLUMNS;
-  SetConsoleScreenBufferSize(hStd, coninfo.dwSize);
-
-  /* redirect unbuffered STDOUT to the console */
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  orig_stdout = *stdout;
-  *stdout = *fp;
-  setvbuf( stdout, NULL, _IONBF, 0 );
-
-  /* redirect unbuffered STDERR to the console */
-
-  hStd = GetStdHandle(STD_ERROR_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  orig_stderr = *stderr;
-  *stderr = *fp;
-  setvbuf( stderr, NULL, _IONBF, 0 );
-
-#ifdef REDIRECT_STDIN
-  /* redirect unbuffered STDIN to the console */
-  hStd = GetStdHandle(STD_INPUT_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "r" );
-  orig_stdin = *stdin;
-  *stdin = *fp;
-  setvbuf( stdin, NULL, _IONBF, 0 );
-#endif	
-
-	debugging = 1;
-}
-
-static void debug_off(void)
-{ 
-  if (!debugging) return;
-  if (!FreeConsole()) return;
-
-  *stdout = orig_stdout;
-  *stderr = orig_stderr;
-#ifdef REDIRECT_STDIN
-  *stdin = orig_stdin;
-#endif
-  debugging = 0;
-}
 
 INT_PTR CALLBACK 
 AboutDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
@@ -914,8 +842,8 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		   InfoDialogProc);
 	return 0;
   case ID_DEBUG:
-    if (debugging) debug_off(); else debug_on();
-	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(debugging?MF_CHECKED:MF_UNCHECKED));
+    if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	return 0;
   case ID_HELP_ABOUT:
 	DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUT), hWnd, AboutDialogProc);
@@ -1131,7 +1059,7 @@ InitInstance (HINSTANCE hInstance)
     return FALSE;
   GetObject (hBmp, sizeof (bm), &bm);
   hMainWnd = CreateWindow (szClassName, szTitle, WS_POPUP,
-			   0, 0, bm.bmWidth, bm.bmHeight,
+			   CW_USEDEFAULT,CW_USEDEFAULT , bm.bmWidth, bm.bmHeight,
 			   NULL, NULL, hInstance, NULL);
   if (hMainWnd)
   {
@@ -1164,7 +1092,7 @@ WinMain (HINSTANCE hInstance,
     return FALSE;
   if (WSAStartup (MAKEWORD (1, 1), &wsadata) != 0)
   {
-    vmb_errormsg ("Unable to initialize Winsock dll");
+    vmb_error(__LINE__,"Unable to initialize Winsock dll");
     return FALSE;
   }
   InitCommonControls ();
@@ -1175,8 +1103,6 @@ WinMain (HINSTANCE hInstance,
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
   ShowWindow (hMainWnd, nCmdShow);
   UpdateWindow (hMainWnd);
-  vmb_message_hook = win32_message;
-  vmb_debug_hook = win32_debug;
 
   if (vmb_debug_flag)
     SendMessage (hMainWnd, WM_COMMAND, (WPARAM) ID_DEBUG, 0);
@@ -1235,7 +1161,7 @@ slot_info (int i)
 	    (unsigned) slot[i].low_mask);
   }
   else
-    vmb_errormsg ("Invalid slot number");
+    vmb_error(__LINE__,"Invalid slot number");
 }
 
 static void

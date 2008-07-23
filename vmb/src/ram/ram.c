@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-03-04 17:22:32 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-07-23 08:22:45 $";
 
 char howto[] =
 "\n"
@@ -66,7 +66,7 @@ static int ram_write_page(unsigned char *page[], int j, int offset,int size,unsi
 { if (page[j]==NULL) {
     page[j] = calloc(PAGESIZE,sizeof(unsigned char));
     if (page[j]==NULL) {
-      vmb_errormsg("Out of memory");
+      vmb_error(__LINE__,"Out of memory");
       return size;
     }
   }
@@ -112,7 +112,7 @@ static int ram_write_mid(int i, int offset,int size,unsigned char *payload)
   if (root[i]==NULL) {
     root[i] = calloc(MIDSIZE,sizeof(unsigned char *));
     if (root[i]==NULL) { 
-      vmb_errormsg("Out of memory");
+      vmb_error(__LINE__,"Out of memory");
       return size;
     }
   }

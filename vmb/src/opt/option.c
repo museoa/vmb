@@ -116,7 +116,7 @@ int do_option(option_spec *p, char *arg)
       if (*(p->handler.str)!=NULL)
         free(*(p->handler.str));
       if (arg==NULL)
-	  { vmb_errormsg("Argument expected");
+	  { vmb_error(__LINE__,"Argument expected");
 	    return 1;
 	  }
 	  n = (int)strlen(arg);
@@ -125,7 +125,7 @@ int do_option(option_spec *p, char *arg)
 	  if (n>0)
       { *(p->handler.str) =  malloc(n+1);
 	    if (*(p->handler.str)==NULL)
-			vmb_errormsg("Out of memory"); 
+			vmb_error(__LINE__,"Out of memory"); 
 		else
 	        strcpy(*(p->handler.str), arg);
 	  }
@@ -134,19 +134,19 @@ int do_option(option_spec *p, char *arg)
       return 1;
   case int_arg:
 	  if (arg==NULL)
-		  vmb_errormsg("Argument expected");
+		  vmb_error(__LINE__,"Argument expected");
 	  else
           *(p->handler.i)=atoi(arg);
       return 1;
    case uint64_arg:
       if (arg==NULL)
-		  vmb_errormsg("Argument expected");
+		  vmb_error(__LINE__,"Argument expected");
 	  else
           *(p->handler.u)=strtouint64(arg);
       return 1;
     case tgl_arg:
       if (arg==NULL)
-	vmb_errormsg("Argument expected");
+	vmb_error(__LINE__,"Argument expected");
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
@@ -161,7 +161,7 @@ int do_option(option_spec *p, char *arg)
       return 0;
     case on_arg:
       if (arg==NULL)
-	 vmb_errormsg("Argument expected");
+	 vmb_error(__LINE__,"Argument expected");
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
@@ -173,7 +173,7 @@ int do_option(option_spec *p, char *arg)
       return 0;
     case off_arg:
       if (arg==NULL)
-	 vmb_errormsg("Argument expected");
+	 vmb_error(__LINE__,"Argument expected");
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
@@ -285,14 +285,14 @@ int write_configfile(char *filename)
   option_spec *p;
 
   if (filename==NULL)
-  { vmb_errormsg("Filename expected");
+  { vmb_error(__LINE__,"Filename expected");
     return 0;
   }
   vmb_debug("writing configfile");
   vmb_debug(filename);
   out=fopen(filename,"w");
   if (out==NULL) 
-	  {  vmb_errormsg("Could not write configuration file");
+	  {  vmb_error(__LINE__,"Could not write configuration file");
 	     return 0;
 	  }
   fprintf(out,"#m3w configfile: %s\n\n",filename);
@@ -348,7 +348,7 @@ int parse_configfile(char *filename)
   int i;
 
   if(filename==NULL)
-  { vmb_errormsg("Argument expected");
+  { vmb_error(__LINE__,"Argument expected");
     return 0;
   }
   vmb_debug("reading configfile");
