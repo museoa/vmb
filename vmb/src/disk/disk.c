@@ -10,20 +10,22 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef WIN32
+#pragma warning(disable : 4996)
 #include <windows.h>
 #include "resource.h"
-#include "win32main.h"
+extern HWND hMainWnd;
 #else
 #include <pthread.h>
 #include <unistd.h>
 #endif
 #include "vmb.h"
+#include "error.h"
 #include "bus-arith.h"
 #include "param.h"
 #include "disk.h"
 
 
-char version[]="$Revision: 1.5 $ $Date: 2008-07-16 15:33:24 $";
+char version[]="$Revision: 1.6 $ $Date: 2008-07-23 08:14:45 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -101,6 +103,7 @@ static void clean_up_action_mutex(void *_dummy)
 
 void set_diskCtrl(int value)
 { int start;
+  if (diskImage==NULL) return;
   vmb_debugi("Setting diskCtrl %X",value);
   start = 0;
 #ifdef WIN32
@@ -108,7 +111,7 @@ void set_diskCtrl(int value)
 #else
   { int rc = pthread_mutex_lock(&action_mutex);
     if (rc) 
-    { vmb_errormsg("Locking action mutex failed");
+    { vmb_error(__LINE__,"Locking action mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -125,7 +128,7 @@ void set_diskCtrl(int value)
   { int rc;
     rc = pthread_mutex_unlock(&action_mutex);
     if (rc) 
-    { vmb_errormsg("Unlocking action mutex failed");
+    { vmb_error(__LINE__,"Unlocking action mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -144,7 +147,7 @@ void wait_for_action(void)
 #ifndef WIN32
   { int rc = pthread_mutex_lock(&action_mutex);
     if (rc) 
-    { vmb_errormsg("Locking action mutex failed");
+    { vmb_error(__LINE__,"Locking action mutex failed");
       pthread_exit(NULL);
     }
   }
@@ -161,6 +164,58 @@ void wait_for_action(void)
 #endif
   cancel_wait_for_action=0;
   set_diskCtrl(diskCtrl & ~DISK_STRT);
+}
+
+
+static void diskWrite(void);
+static void diskRead(void);
+#ifdef WIN32
+static DWORD WINAPI disk_server(LPVOID dummy)
+#else
+static void *disk_server(void *_dummy)
+#endif
+{  while (diskImage!=NULL)
+   { wait_for_action();
+     if (diskCtrl & DISK_STRT) 
+	 { if (diskCtrl & DISK_WRT)
+           diskWrite();
+       else
+           diskRead();
+     }
+   }
+  return 0;
+}
+
+void init_device(void)
+{	
+#ifdef WIN32	
+    haction =CreateEvent(NULL,FALSE,FALSE,NULL);
+	InitializeCriticalSection (&action_section);
+#endif
+}
+
+void start_disk_server(void)
+{
+#ifdef WIN32
+    DWORD dwDiskThreadId;
+    HANDLE hDiskThread;
+    hDiskThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            disk_server,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwDiskThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hDiskThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of disk thread failed");
+/* in the moment, I really dont use the handle */
+    CloseHandle(hDiskThread);
+#else
+   int disk_tid;
+   pthread_t disk_thr;
+   disk_tid = pthread_create(&disk_thr,NULL,disk_server,NULL);
+#endif
 }
 
 
@@ -214,20 +269,23 @@ static void diskInit(void) {
 
   diskImage = NULL;
   diskCap = 0;
+  diskReset();
   vmb_debug("Initializing Disk");
   if (filename != NULL) {
     /* try to install disk */
     diskImage = fopen(filename, "r+b");
     if (diskImage == NULL) {
-      vmb_errormsg("cannot open disk image");
+      vmb_error(__LINE__,"cannot open disk image");
     }
-    fseek(diskImage, 0, SEEK_END);
-    numBytes = ftell(diskImage);
-    fseek(diskImage, 0, SEEK_SET);
-    diskCap = numBytes / SECTOR_SIZE;
-    vmb_debugi("Disk of size %ld sectors installed.", diskCap);
+	else
+	{ fseek(diskImage, 0, SEEK_END);
+      numBytes = ftell(diskImage);
+      fseek(diskImage, 0, SEEK_SET);
+      diskCap = numBytes / SECTOR_SIZE;
+      vmb_debugi("Disk of size %ld sectors installed.", diskCap);
+	  start_disk_server();
+	}
   }
-  diskReset();
 }
 
 
@@ -269,7 +327,7 @@ static int diskPosition(void)
          diskSct < diskCap &&
          diskSct + diskCnt <= diskCap) {
          if (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) != 0) {
-           vmb_errormsg("cannot position to sector in disk image");
+           vmb_error(__LINE__,"cannot position to sector in disk image");
            set_diskCtrl(diskCtrl | DISK_ERR);
            return 0;
          }
@@ -293,7 +351,7 @@ static void diskRead(void)
   diskBussy();
   while(diskCnt>0) {
     if (fread(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
-          vmb_errormsg("cannot read from disk");
+          vmb_error(__LINE__,"cannot read from disk");
            set_diskCtrl(diskCtrl | DISK_ERR);
           break;
     }
@@ -321,12 +379,12 @@ static void diskWrite(void)
     vmb_load(&da);
     vmb_wait_for_valid(&da);
     if (da.status!=STATUS_VALID) {
-          vmb_errormsg("cannot read memory");
+          vmb_error(__LINE__,"cannot read memory");
           set_diskCtrl(diskCtrl | DISK_ERR);
           break;
     }
     if (fwrite(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
-          vmb_errormsg("cannot write to disk");
+          vmb_error(__LINE__,"cannot write to disk");
           set_diskCtrl(diskCtrl | DISK_ERR);
           break;
     }
@@ -404,7 +462,7 @@ void vmb_terminate(void)
 #ifdef WIN32
 #else
 
-
+#ifndef WIN32
 int main(int argc, char *argv[])
 { param_init(argc, argv);
   vmb_debugs("%s ",vmb_program_name);
@@ -415,18 +473,13 @@ int main(int argc, char *argv[])
   vmb_debugi("address hi: %x",vmb_address_hi);
   vmb_debugi("address lo: %x",vmb_address_lo);
   vmb_debugi("size: %x ",vmb_size);
-
+  init_device();
   vmb_connect(host,port); 
   vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
                0, 0, vmb_program_name);
 
-  while (vmb_connected)
-  {  wait_for_action();
-     if (diskCtrl & DISK_WRT)
-           diskWrite();
-     else
-           diskRead();
-  }
+  vmb_wait_for_disconnect();
+ 
   return 0;
 }
 

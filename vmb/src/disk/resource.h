@@ -4,6 +4,8 @@
 //
 #define IDS_CLASS                       1
 #define IDS_TITLE                       2
+#define IDOK2                           3
+#define IDC_BROWSE                      3
 #define IDB_BITMAP                      101
 #define IDR_MENU                        104
 #define IDR_ACCELERATOR                 106
@@ -23,6 +25,7 @@
 #define IDC_DEBUG                       1003
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
+#define IDC_FILE                        1006
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_EXIT                         40012

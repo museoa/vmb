@@ -130,10 +130,6 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 }
 
 
-
-extern void open_file(void);
-
-
 INT_PTR CALLBACK  
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
@@ -156,7 +152,6 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         vmb_address = strtouint64(tmp_option);
         GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
 	    set_option(&filename,tmp_option);
-		open_file();
       }
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
 	  { OPENFILENAME ofn;       /* common dialog box structure */
@@ -166,7 +161,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         ofn.hwndOwner = hMainWnd;
         ofn.lpstrFile = tmp_option;
         ofn.nMaxFile = MAXTMPOPTION;
-        ofn.lpstrFilter = "All\0*.*\0Rom\0*.rom\0";
+        ofn.lpstrFilter = "All\0*.*\0Image\0*.img\0";
         ofn.nFilterIndex = 1;
         ofn.lpstrFileTitle = NULL;
         ofn.nMaxFileTitle = 0;
@@ -211,7 +206,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
 	return 0;
   case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,270,70,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
   case WM_PAINT:
@@ -498,6 +493,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 }
 
 
+extern void init_device(void);
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
