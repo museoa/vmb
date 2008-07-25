@@ -27,6 +27,7 @@
 #define PARAM_H 
 extern char *host;
 extern int port;
+exterb int x,y;
 
 #ifdef WIN32
 #include <windows.h>

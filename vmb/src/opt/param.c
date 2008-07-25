@@ -47,6 +47,7 @@ char *host=NULL;
 char *filename=NULL;
 int port = 9002;
 int interrupt = 16;
+int x=0, y=0; /* Window position */
 
 #ifdef WIN32
 #include <windows.h>

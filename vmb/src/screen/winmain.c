@@ -21,7 +21,6 @@ static HBITMAP hon,hoff,hconnect;
 
 /* Global Variables for important Windows */
 static HWND hpower;
-static HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
 HWND hMainWnd;
 HWND hwndEdit;
 static HINSTANCE hInst;
@@ -30,44 +29,6 @@ static HINSTANCE hInst;
 #define MAXHOST 1024
 unsigned int address_hi=0;
 unsigned int address_lo=0;
-
-
-void win32_debug(char *msg)
-{ static char nl[] ="\r\n";	
-  LRESULT  n;
-  if (hDebug == NULL) return;
-  n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_GETLINECOUNT,0,0);
-  if (n>100)
-  { n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_LINELENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,0,n+2);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
-    n = SendDlgItemMessage(hDebug,IDC_DEBUG,WM_GETTEXTLENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,n,n);
-  }
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)msg);
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)nl);
-}
-
-
-INT_PTR CALLBACK   
-DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-  switch ( message )
-  { case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { vmb_debug_flag = 0;
-	    hDebug = NULL;
-		EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-	case WM_SIZE: 
-      MoveWindow(GetDlgItem(hDebug,IDC_DEBUG),5,5,LOWORD(lparam)-10,HIWORD(lparam)-10,TRUE); 
-       return TRUE;
-    break;
-  }
-  return FALSE;
-}
 
 INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -275,11 +236,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
 	  return 0; 
 	case ID_DEBUG:
-	  if (hDebug==NULL)
-	  {  vmb_debug_flag = 1;
-	     hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
-	  }
-	  return 0; 
+          if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
+	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	  return 0;
 	case ID_HEXOUTPUT:
 	  hexoutput = !hexoutput;
 	  CheckMenuItem( hMenu,ID_HEXOUTPUT,

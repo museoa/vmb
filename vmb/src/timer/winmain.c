@@ -20,50 +20,11 @@ static int counter;
 
 /* Global Variables for important Windows */
 static HWND hpower;
-static HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
 HWND hMainWnd;
 static HINSTANCE hInst;
 
 /* Global variables defining the properties of the device */
 #define MAXHOST 1024
-
-
-void win32_debug(char *msg)
-{ static char nl[] ="\r\n";	
-  LRESULT  n;
-  if (hDebug == NULL) return;
-  n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_GETLINECOUNT,0,0);
-  if (n>100)
-  { n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_LINELENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,0,n+2);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
-    n = SendDlgItemMessage(hDebug,IDC_DEBUG,WM_GETTEXTLENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,n,n);
-  }
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)msg);
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)nl);
-}
-
-
-INT_PTR CALLBACK   
-DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-  switch ( message )
-  { case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { vmb_debug_flag = 0;
-	    hDebug = NULL;
-		EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-	case WM_SIZE: 
-      MoveWindow(GetDlgItem(hDebug,IDC_DEBUG),5,5,LOWORD(lparam)-10,HIWORD(lparam)-10,TRUE); 
-       return TRUE;
-    break;
-  }
-  return FALSE;
-}
 
 INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -318,11 +279,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
 	  return 0; 
 	case ID_DEBUG:
-	  if (hDebug==NULL)
-	  {  vmb_debug_flag = 1;
-	     hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
-	  }
-	  return 0; 
+          if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
+	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	  return 0;
 	case ID_HELP_ABOUT:
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
 	  return 0; 
@@ -612,7 +571,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 
-char version[]="$Revision: 1.3 $ $Date: 2008-07-23 08:22:46 $";
+char version[]="$Revision: 1.4 $ $Date: 2008-07-25 12:57:37 $";
 
 char howto[] =
 "\n"
