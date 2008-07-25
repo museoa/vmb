@@ -198,8 +198,8 @@ IDB_DOT                 BITMAP                  "dot.bmp"
 
 STRINGTABLE 
 BEGIN
-    IDS_CLASS               "sevensegemnt"
-    IDS_TITLE               "Seven Segment Display"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB Seven Segment Display"
 END
 
 #endif    // German (Germany) resources

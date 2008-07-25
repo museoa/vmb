@@ -192,7 +192,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_CLASS               "VMBTimer"
+    IDS_CLASS               "VMB"
     IDS_TITLE               "VMB Timer"
 END
 

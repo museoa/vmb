@@ -441,6 +441,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 {
 	HACCEL hAccelTable;
     MSG msg;
+
+
 	LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
@@ -453,14 +455,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     hoff = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_OFF), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
 	if (hBmp==NULL) return FALSE;
- 
+
+	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 
 	if (!InitInstance (hInstance)) return FALSE;
 
-	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
-	ShowWindow(hMainWnd, nCmdShow);
-	UpdateWindow(hMainWnd);
 	param_init();
+
+	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	UpdateWindow(hMainWnd);
+
 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */

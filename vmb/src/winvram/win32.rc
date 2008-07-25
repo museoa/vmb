@@ -167,8 +167,8 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_CLASS               "vram"
-    IDS_TITLE               "VideoRam"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB VideoRam"
 END
 
 #endif    // German (Germany) resources

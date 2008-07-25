@@ -194,8 +194,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_CLASS               "MMIXmother"
-    IDS_TITLE               "MMIX Mother"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB Mother"
 END
 
 #endif    // German (Germany) resources

@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sevensegment", "..\sevenseg
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timer", "..\timer\timer.vcproj", "{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "disk", "..\disk\disk.vcproj", "{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -91,6 +93,10 @@ Global
 		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Debug|Win32.Build.0 = Debug|Win32
 		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Release|Win32.ActiveCfg = Release|Win32
 		{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}.Release|Win32.Build.0 = Release|Win32
+		{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}.Debug|Win32.Build.0 = Debug|Win32
+		{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}.Release|Win32.ActiveCfg = Release|Win32
+		{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

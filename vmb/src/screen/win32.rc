@@ -178,8 +178,8 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_CLASS               "MMIXHardware"
-    IDS_TITLE               "MMIX Hardware"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB Screen"
 END
 
 #endif    // German (Germany) resources

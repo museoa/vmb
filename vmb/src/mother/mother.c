@@ -60,7 +60,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.12 $ $Date: 2008-07-23 08:22:45 $";
+char version[] = "$Revision: 1.13 $ $Date: 2008-07-25 15:08:11 $";
 
 char howto[] =
   "\n"
@@ -842,8 +842,11 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		   InfoDialogProc);
 	return 0;
   case ID_DEBUG:
-    if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
-	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	  { static int debug_on = 0;
+        if (debug_on) vmb_debug_off(); else vmb_debug_on();
+		debug_on = !debug_on;
+    	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(debug_on?MF_CHECKED:MF_UNCHECKED));
+	  }
 	return 0;
   case ID_HELP_ABOUT:
 	DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUT), hWnd, AboutDialogProc);
@@ -1098,11 +1101,14 @@ WinMain (HINSTANCE hInstance,
   InitCommonControls ();
   if (!InitInstance (hInstance))
     return FALSE;
-  param_init ();
+
   hAccelTable =
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
-  ShowWindow (hMainWnd, nCmdShow);
-  UpdateWindow (hMainWnd);
+
+  param_init ();
+
+  SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+  UpdateWindow(hMainWnd);
 
   if (vmb_debug_flag)
     SendMessage (hMainWnd, WM_COMMAND, (WPARAM) ID_DEBUG, 0);
@@ -1172,9 +1178,9 @@ process_stdin ()
   if (strncmp (buffer, "help", 4) == 0)
     vmb_debugs ("%s", howto);
   else if (strncmp (buffer, "debug", 5) == 0)
-    vmb_debug_flag = 1;
+    vmb_debug_on();
   else if (strncmp (buffer, "nodebug", 7) == 0)
-    vmb_debug_flag = 0;
+    vmb_debug_off();
   else if (strncmp (buffer, "quit", 4) == 0)
     exitflag = 1;
   else if (strncmp (buffer, "on", 2) == 0 && !powerflag)

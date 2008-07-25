@@ -182,8 +182,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_CLASS               "MMIXram"
-    IDS_TITLE               "MMIX RAM"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB RAM"
 END
 
 #endif    // German (Germany) resources

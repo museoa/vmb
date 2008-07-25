@@ -178,8 +178,8 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_CLASS               "MMIXkeyboard"
-    IDS_TITLE               "MMIX Keyboard"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB Keyboard"
 END
 
 #endif    // German (Germany) resources

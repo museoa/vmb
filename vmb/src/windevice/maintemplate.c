@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
   /* the vmb library uses debuging output, that we need to switch on if we
      want to see it. It will use the variable vmb_program_name to mark the output
      as comming from this program.*/
-  vmb_debug_flag = 1;
+  vmb_debug_on();
   vmb_program_name = "Device Template";
 
   /* establish a connection to the virtual bus on the localhost

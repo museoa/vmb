@@ -29,15 +29,15 @@ option_spec options[] = {
 /* description short long kind default handler */
 {"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
-{"the x position of the window",        'X', "X",       "x position",    int_arg, "0", {&x}},
-{"the y position of the window",        'Y', "Y",       "y position",    int_arg, "0", {&y}},
+{"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&x}},
+{"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&y}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x8000000000000000", {&vmb_address}},
 {"size of address range in octas",      's', "size",    "size in octas", int_arg, "1", {&vmb_size}},
 {"interrupt send by device",            'i', "interrupt", "interrupt number", int_arg, "8", {&interrupt}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
-{"command to execute",                   'x', "exec",    "command line",     fun_arg, NULL, {store_command}},
+{"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}

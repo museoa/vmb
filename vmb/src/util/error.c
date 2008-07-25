@@ -56,6 +56,7 @@ void (*vmb_debug_hook)(char *msg) = NULL;
 #define MAX_DEBUG_LINES 500
 #define MAX_DEBUG_COLUMNS 500
 static FILE orig_stdout, orig_stdin, orig_stderr;
+static int debug_on = 0;
 
 /* two functions to switch on and off debugging by creating a console window */
 void vmb_debug_on(void)
@@ -64,7 +65,7 @@ void vmb_debug_on(void)
   CONSOLE_SCREEN_BUFFER_INFO coninfo;
   FILE *fp;
   
-  if (vmb_debug_flag) return;
+  if (debug_on) return;
 
   if (!AllocConsole()) return;
 
@@ -102,12 +103,13 @@ void vmb_debug_on(void)
 #endif	
 
 	vmb_debug_flag = 1;
+	debug_on = 1;
 }
 
 void vmb_debug_off(void)
 { 
-  if (!vmb_debug_flag) return;
-  if (!FreeConsole()) return;
+  if (!debug_on) return;
+  FreeConsole();
 
   *stdout = orig_stdout;
   *stderr = orig_stderr;
@@ -115,6 +117,7 @@ void vmb_debug_off(void)
   *stdin = orig_stdin;
 #endif
   vmb_debug_flag = 0;
+  debug_on = 0;
 }
 #endif
 

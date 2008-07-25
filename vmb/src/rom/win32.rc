@@ -183,8 +183,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_CLASS               "MMIXrom"
-    IDS_TITLE               "MMIX ROM"
+    IDS_CLASS               "VMB"
+    IDS_TITLE               "VMB ROM"
 END
 
 #endif    // German (Germany) resources

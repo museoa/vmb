@@ -185,8 +185,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
 	  return 0; 
 	case ID_DEBUG:
-          if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
-	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	  { static int debug_on = 0;
+        if (debug_on) vmb_debug_off(); else vmb_debug_on();
+		debug_on = !debug_on;
+    	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(debug_on?MF_CHECKED:MF_UNCHECKED));
+	  }
 	  return 0;
 	case ID_HELP_ABOUT:
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
@@ -257,13 +260,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 
-	param_init();
 	vmb_size = frameheight*framewidth*4;
 
 	if (!InitInstance (hInstance)) return FALSE;
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
-	ShowWindow(hMainWnd, nCmdShow);
+	param_init();
+	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);

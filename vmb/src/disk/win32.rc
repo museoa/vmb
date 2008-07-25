@@ -180,7 +180,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_CLASS               "VMB"
-    IDS_TITLE               "VMBdisk"
+    IDS_TITLE               "VMB Disk"
 END
 
 #endif    // German (Germany) resources
