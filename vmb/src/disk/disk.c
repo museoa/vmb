@@ -25,7 +25,7 @@ extern HWND hMainWnd;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.7 $ $Date: 2008-07-23 09:45:04 $";
+char version[]="$Revision: 1.8 $ $Date: 2008-07-25 12:35:40 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -207,7 +207,7 @@ void init_device(void)
 }
 
 void start_disk_server(void)
-{  if (diskImage == NULL) return;
+{  if (diskImage != NULL) {
 #ifdef WIN32
     DWORD dwDiskThreadId;
     HANDLE hDiskThread;
@@ -228,6 +228,7 @@ void start_disk_server(void)
    pthread_t disk_thr;
    disk_tid = pthread_create(&disk_thr,NULL,disk_server,NULL);
 #endif
+}
 }
 
 void stop_disk_server(void)
@@ -341,13 +342,21 @@ static void diskExit(void) {
 static void diskBussy(void)
 { if ( diskCtrl & DISK_BUSY)
      return;
+#ifdef WIN32
+  SendMessage(hMainWnd,WM_USER+5,0,0);
+#endif
   vmb_debug("Disk is Bussy");
   set_diskCtrl((diskCtrl | DISK_BUSY) & ~DISK_ERR);
 }
 
 
 static void diskDone(void)
-{ vmb_debug("Disk is Idle");
+{ if ( !(diskCtrl & DISK_BUSY))
+     return;
+#ifdef WIN32
+  SendMessage(hMainWnd,WM_USER+1,0,0);
+#endif
+  vmb_debug("Disk is Idle");
   set_diskCtrl(diskCtrl & ~DISK_BUSY);
   if (diskCtrl & DISK_IEN) {
     vmb_raise_interrupt(interrupt);

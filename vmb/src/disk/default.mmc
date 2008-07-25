@@ -2,7 +2,7 @@
 
 
 port 9002
-host localhost
+host math.cs.hm.edu
 debug
 
 #if disk

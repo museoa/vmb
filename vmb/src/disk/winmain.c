@@ -15,7 +15,7 @@ static TCHAR szClassName[MAX_LOADSTRING];
 static TCHAR szTitle[MAX_LOADSTRING];
 static HBITMAP hBmp;
 static HMENU hMenu;
-static HBITMAP hon,hoff,hconnect;
+static HBITMAP hon,hoff,hconnect,hbussy;
 
 /* Global Variables for important Windows */
 static HWND hpower;
@@ -205,7 +205,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  DrawMenuBar(hMainWnd);
 	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
 	return 0;
-  case WM_CREATE: 
+ case WM_USER+5: /* Disk bussy */
+    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hbussy);
+	return 0;
+   case WM_CREATE: 
 	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,270,70,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
@@ -513,6 +516,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
     hoff = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_OFF), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
+    hbussy = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BUSSY), 
+				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
 	if (hBmp==NULL) return FALSE;
  
 
@@ -522,6 +527,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	ShowWindow(hMainWnd, nCmdShow);
 	UpdateWindow(hMainWnd);
 	param_init();
+	vmb_size = 8*5;
 	init_device();
  	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
