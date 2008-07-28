@@ -1,24 +1,7 @@
-#include <winsock2.h>
+
 #include <windows.h>
-#include <afxres.h>
-#include "vmb.h"
-#include "bus-arith.h"
-#include "resource.h"
 
 
-
-/* Global Variables loaded form the Resourcefile*/
-#define MAX_LOADSTRING 100			
-static TCHAR szClassName[MAX_LOADSTRING];
-static TCHAR szTitle[MAX_LOADSTRING];
-static HBITMAP hBmp;
-static HMENU hMenu;
-static HBITMAP hon,hoff,hconnect;
-
-/* Global Variables for important Windows */
-static HWND hpower;
-HWND hMainWnd;
-static HINSTANCE hInst;
 
 
 

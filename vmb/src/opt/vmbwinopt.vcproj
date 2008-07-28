@@ -161,6 +161,10 @@
 				RelativePath=".\param.c"
 				>
 			</File>
+			<File
+				RelativePath=".\winbitmap.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
