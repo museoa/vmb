@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-07-23 08:22:45 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-09-15 13:52:04 $";
 
 char howto[] =
 "\n"
@@ -58,10 +58,10 @@ char howto[] =
 #define PAGEMASK (PAGESIZE-1)
 
 
-/* simulated ram as 0x100 * 0x100 * 0x10000 byte */
+/* simulated 32bit ram (4GByte) as 0x100 * 0x100 * 0x10000 byte */
 /* page level functions */
 static int ram_write_page(unsigned char *page[], int j, int offset,int size,unsigned char *payload)
-/* write size byte from payload into the ith root entry at offset.
+/* write size byte from payload into the jth page at offset.
    return the number of byte written */
 { if (page[j]==NULL) {
     page[j] = calloc(PAGESIZE,sizeof(unsigned char));
@@ -70,45 +70,35 @@ static int ram_write_page(unsigned char *page[], int j, int offset,int size,unsi
       return size;
     }
   }
+  if (offset>=PAGESIZE)
+    return 0;
   if (size+offset > PAGESIZE)
     size = PAGESIZE-offset;
   memmove(page[j]+offset,payload,size);
   return size;
 }
 
-static int ram_read_page(unsigned char *page, int offset,int size,unsigned char *payload)
-/* read size byte from the page at offset into payload.
+static int ram_read_page(unsigned char *page[], int j, int offset,int size,unsigned char *payload)
+/* read size byte from the jth page at offset into payload.
    return the number of byte read */
-{ if (size+offset > PAGESIZE)
+{ if (offset>=PAGESIZE)
+    return 0;
+  if (size+offset > PAGESIZE)
     size = PAGESIZE-offset;
-  if (page==NULL)
+  if (page==NULL || page[j]==NULL)
     memset(payload,0,size);
   else
-    memmove(payload,page+offset,size);
+    memmove(payload,page[j]+offset,size);
   return size;
 }
 
-
-
-static unsigned char **root[ROOTSIZE];
-
-
 /* mid level functions */
-static int ram_read_mid(int i, int offset,int size,unsigned char *payload)
-/* read size byte from the ith root entry at offset into payload
-   return the number of byte read */
-{ int j;
-  j = (offset>>(BITS-ROOTBITS-MIDBITS))&MIDMASK;
-  offset = offset & PAGEMASK;
-  if (root[i]==NULL) 
-    return ram_read_page(NULL,offset,size,payload);
-  return ram_read_page(root[i][j],offset,size,payload);
-}
+static unsigned char **root[ROOTSIZE];
 
 static int ram_write_mid(int i, int offset,int size,unsigned char *payload)
 /* write size byte from payload into the ith root entry at offset.
    return the number of byte written */
-{ int j;
+{ int j,n;
   if (root[i]==NULL) {
     root[i] = calloc(MIDSIZE,sizeof(unsigned char *));
     if (root[i]==NULL) { 
@@ -118,34 +108,48 @@ static int ram_write_mid(int i, int offset,int size,unsigned char *payload)
   }
   j = (offset>>(BITS-ROOTBITS-MIDBITS))&MIDMASK;
   offset = offset & PAGEMASK;
-  return ram_write_page(root[i],j,offset,size,payload);
+  n = ram_write_page(root[i],j,offset,size,payload);
+  if (n<size && j+1 < MIDSIZE)
+    n = n + ram_write_page(root[i],j+1,0,size-n,payload+n); 
+  return n;
 }
 
-
+static int ram_read_mid(int i, int offset,int size,unsigned char *payload)
+/* read size byte from the ith root entry at offset into payload
+   return the number of byte read */
+{ int j,n;
+  j = (offset>>(BITS-ROOTBITS-MIDBITS))&MIDMASK;
+  offset = offset & PAGEMASK;
+  n = ram_read_page(root[i],j,offset,size,payload);
+  if (n<size && j+1 < MIDSIZE)
+    n = n + ram_read_page(root[i],j+1,0,size-n,payload+n); 
+  return n;
+}
 
 /* root level functions */
 
-static void ram_read(unsigned int offset,int size,unsigned char *payload)
-/* read size byte from the ram at offset into payload */
-{ int n;
-  int i,k;
+static int ram_write(unsigned int offset,int size,unsigned char *payload)
+/* write size byte from payload at offset into the ram */
+{ int i,n;
   i = (offset>>(BITS-ROOTBITS))&ROOTMASK;
-  k = offset & ((MIDMASK<<PAGEBITS)|PAGEMASK);
-  n = ram_read_mid(i,k,size,payload);
-  if (n<size)
-    ram_read_mid(i+1,0,size-n,payload+n);
+  offset = offset &  ((MIDMASK<<PAGEBITS)|PAGEMASK);
+  n = ram_write_mid(i,offset,size,payload);
+  if (n<size && i+1 < ROOTSIZE)
+    n = n + ram_write_mid(i+1,0,size-n,payload+n);
+  return n;
 }
 
-static void ram_write(unsigned int offset,int size,unsigned char *payload)
-/* write size byte from payload at offset into the ram */
-{ int n;
-  int i,k;
+static int ram_read(unsigned int offset,int size,unsigned char *payload)
+/* read size byte from the ram at offset into payload */
+{ int i,n;
   i = (offset>>(BITS-ROOTBITS))&ROOTMASK;
-  k = offset &  ((MIDMASK<<PAGEBITS)|PAGEMASK);
-  n = ram_write_mid(i,k,size,payload);
-  if (n<size)
-    ram_write_mid(i+1,0,size-n,payload+n);
+  offset = offset & ((MIDMASK<<PAGEBITS)|PAGEMASK);
+  n = ram_read_mid(i,offset,size,payload);
+  if (n<size && i+1 < ROOTSIZE)
+    n = n + ram_read_mid(i+1,0,size-n,payload+n);
+  return n;
 }
+
 
 static void ram_clean(void)
 { int i,j;
@@ -164,12 +168,14 @@ static void ram_clean(void)
 
 unsigned char *vmb_get_payload(unsigned int offset,int size){
   static unsigned char payload[258*8];
-  ram_read(offset,size,payload);
+  if (ram_read(offset,size,payload)<size)
+    vmb_debugi("Inclomplete read from ram at offset %08X",offset);
   return payload;
 }
 
 void vmb_put_payload(unsigned int offset,int size, unsigned char *payload){
-    ram_write(offset,size,payload);
+  if (ram_write(offset,size,payload)<size)
+    vmb_debugi("Inclomplete write to ram at offset %08X",offset);
 }
 
 void vmb_poweron(void)
