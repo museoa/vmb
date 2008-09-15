@@ -25,7 +25,7 @@ extern HWND hMainWnd;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.8 $ $Date: 2008-07-25 12:35:40 $";
+char version[]="$Revision: 1.9 $ $Date: 2008-09-15 13:51:26 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -368,21 +368,20 @@ static int diskPosition(void)
 { vmb_debugi("Positioning to sector %d",diskSct);
 
   if (diskCap > 0 &&
-         diskCnt > 0 &&
-         diskSct >= 0 &&
-         diskSct < diskCap &&
-         diskSct + diskCnt <= diskCap) {
-         if (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) != 0) {
-           vmb_error(__LINE__,"cannot position to sector in disk image");
-           set_diskCtrl(diskCtrl | DISK_ERR);
-           return 0;
-         }
-	 else
-	 { vmb_debug("Positioned");
-           return 1;
-	 }
-   }
-   return 0;
+      diskCnt > 0 &&
+      diskSct >= 0 &&
+      diskSct < diskCap &&
+      diskSct + diskCnt <= diskCap &&
+      (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) == 0))
+    { vmb_debug("Positioned");
+      return 1;
+    }
+  else
+    {
+      vmb_error(__LINE__,"cannot position to sector in disk image");
+      set_diskCtrl(diskCtrl | DISK_ERR);
+      return 0;
+    }
 }
 
 
@@ -392,52 +391,52 @@ data_address da ={sector_buffer,0,0,SECTOR_SIZE,STATUS_INVALID};
 static void diskRead(void) 
 { 
   /* disk --> memory */
-  if (!diskPosition())
-    return;
   diskBussy();
-  while(diskCnt>0) {
-    if (fread(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
+  if (diskPosition())
+  { while(diskCnt>0) {
+      if (fread(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
           vmb_error(__LINE__,"cannot read from disk");
            set_diskCtrl(diskCtrl | DISK_ERR);
           break;
+      }
+      da.address_lo = diskDma_lo;
+      da.address_hi = diskDma_hi;
+      da.status = STATUS_VALID;
+      vmb_store(&da);
+      vmb_debugi("Read sector %d",diskSct);
+      inc_DiskDma(SECTOR_SIZE);
+      diskCnt--;
+      diskSct++;
     }
-    da.address_lo = diskDma_lo;
-    da.address_hi = diskDma_hi;
-    da.status = STATUS_VALID;
-    vmb_store(&da);
-    vmb_debugi("Read sector %d",diskSct);
-    inc_DiskDma(SECTOR_SIZE);
-    diskCnt--;
-    diskSct++;
   }       
   diskDone();
 }
 
 static void diskWrite(void) 
 { /* memory --> disk */
-  if (!diskPosition())
-    return;
   diskBussy();
-  while(diskCnt>0) {
-    da.address_lo = diskDma_lo;
-    da.address_hi = diskDma_hi;
-    da.status = STATUS_INVALID;
-    vmb_load(&da);
-    vmb_wait_for_valid(&da);
-    if (da.status!=STATUS_VALID) {
+  if (diskPosition())
+  { while(diskCnt>0) {
+      da.address_lo = diskDma_lo;
+      da.address_hi = diskDma_hi;
+      da.status = STATUS_INVALID;
+      vmb_load(&da);
+      vmb_wait_for_valid(&da);
+      if (da.status!=STATUS_VALID) {
           vmb_error(__LINE__,"cannot read memory");
           set_diskCtrl(diskCtrl | DISK_ERR);
           break;
-    }
-    if (fwrite(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
+      }
+      if (fwrite(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
           vmb_error(__LINE__,"cannot write to disk");
           set_diskCtrl(diskCtrl | DISK_ERR);
           break;
+      }
+      vmb_debugi("Wrote sector %d",diskSct);
+      inc_DiskDma(SECTOR_SIZE);
+      diskCnt--;
+      diskSct++;
     }
-    vmb_debugi("Wrote sector %d",diskSct);
-    inc_DiskDma(SECTOR_SIZE);
-    diskCnt--;
-    diskSct++;
   }
   diskDone();
 }
