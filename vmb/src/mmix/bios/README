@@ -1,0 +1,21 @@
+The BIOS development was moved from the rom subdirectory to
+the bios subdirectory of the mmix subdirectory.
+It is mmix specific!
+
+It contains different bios variations
+that can be generated using the Makefile
+
+Here is a list of subdirectories and a short description
+
+plain
+-----
+contains a plain selfcontained bios.mms file
+that is made into an mmo file using the standard mmixal
+and than made into an imagefile using mmoboot (from the mmix directory)
+
+simple
+------
+contains a simple bios.s file equivalent to the plain
+bios. This bios is however split in separate files
+and the gnu binutils are used to make the bios.img file
+
