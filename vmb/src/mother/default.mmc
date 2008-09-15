@@ -3,15 +3,16 @@
 
 port 9002
 host localhost
-debug
+
 
 #if mother
 debug
-#exec /home/vmb/example3/rom.exe
-#exec /home/vmb/example3/ram.exe
-#exec /home/vmb/example3/keyboard.exe
-#exec /home/vmb/example3/screen.exe
-#exec /home/vmb/example3/mmix.exe -i -B:9002 /home/vmb/example3/hello.mmo 
+exec /home/ruckert/vmb/src/rom/rom
+exec /home/ruckert/vmb/src/ram/ram
+exec xterm -geometry 40x10 -fn 7x13 -e ../keyboard/keyboard
+exec xterm -geometry 40x10 -fn 7x13 -e ../screen/screen
+
+#exec /home/ruckert/vmb/src/mmix/mmix -i -B:9002 
 #endif
 
 
@@ -27,7 +28,7 @@ interrupt 18
 
 #if rom
 address 0x0000000000000000
-file /home/vmb/example3/bios.img
+file /home/ruckert/vmb/src/mmix/bios/simple/bios.img
 #endif
 
 #if ram

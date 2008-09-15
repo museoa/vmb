@@ -33,7 +33,7 @@ extern void vmb_fatal_error(int line,char *msg); /* no return */
 extern void vmb_debug(char *msg);
 extern void vmb_debugi(char *msg,int i);
 extern void vmb_debugs(char *msg, char *s);
-extern void vmb_debugx(char *msg, unsigned char *s, int n); /* message wit hex info */
+extern void vmb_debugx(char *msg, unsigned char *s, int n); /* message with hex info */
 extern void vmb_debugm(unsigned char mtype,unsigned char msize, 
                        unsigned char mslot,unsigned char mid,
 		       unsigned char maddress[8], unsigned char *mpayload);
@@ -42,10 +42,10 @@ extern void vmb_debugm(unsigned char mtype,unsigned char msize,
 extern void (*vmb_message_hook)(char *msg);
 extern void (*vmb_debug_hook)(char *msg);
 
-#ifdef WIN32
-/* two functions to switch on and off debugging by creating a console window */
-void vmb_debug_on(void);
-void vmb_debug_off(void);
-#endif
+
+/* two functions to switch on and off debugging */
+extern void vmb_debug_on(void);
+extern void vmb_debug_off(void);
+
 
 #endif

@@ -25,7 +25,6 @@
 #define GDB_H
 
 #ifdef WIN32
-
 #include <windows.h>
 #endif
 
@@ -74,8 +73,6 @@ int dual_wait(int s1, int s2);
 void single_wait(int s);
 int remote_interrupt(int s);
 void remote_close (void);
-SOCKET server_fd;
-SOCKET remote_fd;
 
 void wsa_init(void);
 

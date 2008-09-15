@@ -50,6 +50,7 @@ static int write_socket(int socket, unsigned char *msg, int size)
   while(snd < size)
   { int i;
     i = send(socket, &msg[snd], size-snd,0);
+
     if (i<=0)
     { bus_disconnect(socket);
       return -1;

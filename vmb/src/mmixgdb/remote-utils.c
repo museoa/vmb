@@ -164,7 +164,9 @@ void wsa_init(void)
 }
 #endif
 
-static int remote_debug = 1;
+#if !defined(SOCKET)
+#define SOCKET int
+#endif
 
 #if !defined(INVALID_SOCKET)
 #define INVALID_SOCKET  (~0)

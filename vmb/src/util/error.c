@@ -119,6 +119,16 @@ void vmb_debug_off(void)
   vmb_debug_flag = 0;
   debug_on = 0;
 }
+#else
+void vmb_debug_on(void)
+{  vmb_debug_flag = 1;
+}
+
+void vmb_debug_off(void)
+{  vmb_debug_flag = 0;
+}
+
+
 #endif
 
 
@@ -174,7 +184,7 @@ void vmb_debugs(char *msg, char *s)
 void vmb_debugx(char *msg, unsigned char *s, int n)
      /* a function to call to display debug messages */
 { int i; 
-#define HEXMAX 256
+#define HEXMAX (256*8) 
  
  static char hex[HEXMAX*2+ HEXMAX/8 +1];/*each character 2 hex digits,
                                           one space every eight' digit, 
