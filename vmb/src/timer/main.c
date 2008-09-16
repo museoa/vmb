@@ -68,7 +68,7 @@ static void ram_clean(void)
 }
 
 static void wait_for_non_zero_ram(void)
-{ vmb_debug("waiting for non zero");
+{ vmb_debug(0, "waiting for non zero");
   { int rc = pthread_mutex_lock(&ms_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking ms mutex failed");
@@ -80,7 +80,7 @@ static void wait_for_non_zero_ram(void)
   if (ms == 0)
      pthread_cond_wait(&ms_cond,&ms_mutex);
   pthread_cleanup_pop(1);
-  vmb_debug("starting timer");
+  vmb_debug(0, "starting timer");
 }
 
 
@@ -97,7 +97,7 @@ void vmb_reset(void)
 
 void vmb_terminate(void)
 /* this function is called when the motherboard asks the client to terminate */
-{ vmb_debug("signal end of waiting"); 
+{ vmb_debug(0, "signal end of waiting"); 
   int rc = pthread_cond_signal(&ms_cond);
      if (rc) 
      { vmb_error(__LINE__,"Locking ms mutex failed");
@@ -163,14 +163,14 @@ int main(int argc, char *argv[])
 {
  param_init(argc, argv);
  vmb_size = 8;
- vmb_debugs("%s ",vmb_program_name);
- vmb_debugs("%s ", version);
- vmb_debugs("host: %s ",host);
- vmb_debugi("port: %d ",port);
+ vmb_debugs(0, "%s ",vmb_program_name);
+ vmb_debugs(0, "%s ", version);
+ vmb_debugs(0, "host: %s ",host);
+ vmb_debugi(0, "port: %d ",port);
  close(0);
- vmb_debugi("address hi: %x",vmb_address_hi);
- vmb_debugi("address lo: %x",vmb_address_lo);
- vmb_debugi("size: %x ",vmb_size);
+ vmb_debugi(0, "address hi: %x",vmb_address_hi);
+ vmb_debugi(0, "address lo: %x",vmb_address_lo);
+ vmb_debugi(0, "size: %x ",vmb_size);
 
  vmb_connect(host,port); 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
@@ -180,9 +180,9 @@ int main(int argc, char *argv[])
    { if (ms == 0) 
        wait_for_non_zero_ram();
      else 
-     { vmb_debug("sleeping ...");
+     { vmb_debug(0, "sleeping ...");
        sleep_ms(ms);
-       vmb_debug("done");
+       vmb_debug(0, "done");
        if (ms != 0 && vmb_connected)
          vmb_raise_interrupt(interrupt);  
      }

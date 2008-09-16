@@ -41,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.8 $ $Date: 2008-07-23 08:22:45 $";
+char version[]="$Revision: 1.9 $ $Date: 2008-09-16 09:11:03 $";
 
 char howto[] =
 "\n"
@@ -96,7 +96,7 @@ unsigned char *vmb_get_payload(unsigned int offset,int size)
 	  { data[DATA] = input_buffer[input_buffer_first++];
         data[COUNT] = 1;
         vmb_raise_interrupt(interrupt);
-        vmb_debug("Raised interrupt");  
+        vmb_debug(0, "Raised interrupt");  
 	  }
 	}
     return payload+offset;
@@ -140,36 +140,36 @@ void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
   f = fopen(filename,"rb");
-  if (f==NULL) {vmb_debug("Uble to open input file"); return;}
+  if (f==NULL) {vmb_debug(0, "Uble to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
-  if (input_buffer_last<0)  vmb_debug("Uble to read input file");
-  if (input_buffer_last==0) {vmb_debug("Empty file"); return;}
+  if (input_buffer_last<0)  vmb_debug(0, "Uble to read input file");
+  if (input_buffer_last==0) {vmb_debug(0, "Empty file"); return;}
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
   vmb_raise_interrupt(interrupt);
-  vmb_debug("Raised interrupt");
+  vmb_debug(0, "Raised interrupt");
 }
 
 void process_input(unsigned char c) 
 { /* The keyboard Interface */
   if (c<0x20 || c >= 0x7F)
-    vmb_debugi("input (#%x)\n",c);
+    vmb_debugi(0, "input (#%x)\n",c);
   else
-    vmb_debugi("input %c",c);
+    vmb_debugi(0, "input %c",c);
   if (input_buffer_first < input_buffer_last)
-	  vmb_debugi("Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
+	  vmb_debugi(0, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
   else if (vmb_power)
   { data[DATA] = c;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
     vmb_raise_interrupt(interrupt);
-    vmb_debug("Raised interrupt");
+    vmb_debug(0, "Raised interrupt");
   }
   else
-  { vmb_debug("no power character ignored");
+  { vmb_debug(0, "no power character ignored");
 #ifdef WIN32
    Beep(800,100);
 #else
@@ -220,14 +220,14 @@ void init_device(void)
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);
-  vmb_debugs("%s ",vmb_program_name);
-  vmb_debugs("%s ", version);
-  vmb_debugs("host: %s ",host);
-  vmb_debugi("port: %d ",port);
+  vmb_debugs(0, "%s ",vmb_program_name);
+  vmb_debugs(0, "%s ", version);
+  vmb_debugs(0, "host: %s ",host);
+  vmb_debugi(0, "port: %d ",port);
   init_device();
-  vmb_debugi("address hi: %x",vmb_address_hi);
-  vmb_debugi("address lo: %x",vmb_address_lo);
-  vmb_debugi("size: %x ",vmb_size);
+  vmb_debugi(0, "address hi: %x",vmb_address_hi);
+  vmb_debugi(0, "address lo: %x",vmb_address_lo);
+  vmb_debugi(0, "size: %x ",vmb_size);
   
   vmb_connect(host,port); 
 
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
   while (vmb_connected)
   { unsigned char c;
     int i;
-    vmb_debug("reading character:");
+    vmb_debug(0, "reading character:");
     i = read(0,&c,1);
     if (i == 0) 
       continue;
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
     { vmb_error(__LINE__,"Read Error");
       break;
     }
-    vmb_debugi("got %02X",c&0xFF);
+    vmb_debugi(0, "got %02X",c&0xFF);
     process_input(c);
   }
   vmb_disconnect();

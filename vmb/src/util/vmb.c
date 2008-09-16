@@ -378,18 +378,18 @@ static void reply_payload(unsigned char address[8],int size, unsigned char *payl
 { unsigned int address_hi = chartoint(address);
   unsigned int address_lo = chartoint(address+4);
   data_address *da;
-  vmb_debugx("Searching for read request matching %s",address,8);
+  vmb_debugx(0, "Searching for read request matching %s",address,8);
   da = dequeue_read_request(address_hi,address_lo);
   if (da!=NULL)
-  { vmb_debug("Matching read request found");
+  { vmb_debug(0, "Matching read request found");
     deliver_answer(da,size,payload);
   }
   else if (size == 0) /* this was a dummy answer, we drop all pending requests */
-  { vmb_debug("No matching request for dummy answer");
+  { vmb_debug(0, "No matching request for dummy answer");
     flush_pending_read_queue();
   }
   else
-     vmb_debug("No matching read request found");
+     vmb_debug(0, "No matching read request found");
 }
 
 void vmb_wait_for_valid(data_address *da)
@@ -449,14 +449,14 @@ static void read_request( unsigned char a[8], int s, unsigned char slot, unsigne
   if (hi_offset || overflow_offset || offset + s > device_info.size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    vmb_debugs("Read request out of range %s",hex);
-    vmb_debug("Sending empty answer");
+    vmb_debugs(0, "Read request out of range %s",hex);
+    vmb_debug(0, "Sending empty answer");
     answer_readrequest(slot, a,0,NULL);
-    vmb_debug("raising interrupt");
+    vmb_debug(0, "raising interrupt");
     vmb_raise_interrupt(INT_NOMEM);
     return;
   }
-  vmb_debug("sending answer");
+  vmb_debug(0, "sending answer");
   data = vmb_get_payload(offset,s);
   answer_readrequest(slot,a,s,data);
 }
@@ -467,15 +467,15 @@ static void write_request(unsigned char a[8], int s, unsigned char p[])
   if (hi_offset || overflow_offset || offset + s > device_info.size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    vmb_debugs("Write request out of range %s",hex);
-    vmb_debugx("Address: %s",device_info.address,8);
-    vmb_debugi("Size:    %d",device_info.size);
-    vmb_debugi("Offset:  %ud", offset);
-    vmb_debug("raising interrupt");
+    vmb_debugs(0, "Write request out of range %s",hex);
+    vmb_debugx(0, "Address: %s",device_info.address,8);
+    vmb_debugi(0, "Size:    %d",device_info.size);
+    vmb_debugi(0, "Offset:  %ud", offset);
+    vmb_debug(0, "raising interrupt");
     vmb_raise_interrupt(INT_NOMEM);
     return;
   }
-  vmb_debug("Writing");
+  vmb_debug(0, "Writing");
   vmb_put_payload(offset,s,p);
 }
 
@@ -570,7 +570,7 @@ static int get_request(unsigned char *type,
   i=receive_msg(vmb_fd,type,size,slot,id,&time,address,payload);
   if (i<0) 
 	return 0;
-  vmb_debugm(*type,*size,*slot,*id,address,payload);
+  vmb_debugm(0, *type,*size,*slot,*id,address,payload);
   return 1;
 }
 
@@ -749,7 +749,7 @@ void vmb_load(data_address *da)
   inttochar(da->address_hi,address);
   inttochar(da->address_lo,address+4);
   enqueue_read_request(da);
-  vmb_debugx("Pending read request added for address %s",address,8);
+  vmb_debugx(0, "Pending read request added for address %s",address,8);
   send_msg(vmb_fd,
            (unsigned char)(TYPE_ADDRESS|TYPE_REQUEST),
            size,0,id,0,address,NULL);

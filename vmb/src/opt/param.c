@@ -64,7 +64,7 @@ char *commands[MAX_EXEC]={0};
 
 void store_command(char *command)
 { int i;
-  vmb_debugs("storing command %s",command);
+  vmb_debugs(0, "storing command %s",command);
   for (i=0; i<MAX_EXEC ;i++)
     if (commands[i]!=NULL)
     {  if (strcmp(commands[i],command)==0) 
@@ -131,14 +131,14 @@ void do_commands(void)
     if (commands[i]!=NULL)
       { 
         char *argv[MAXARG] = {0};
-        vmb_debugs("executing command %s",commands[i]);
+        vmb_debugs(0, "executing command %s",commands[i]);
         if (!mk_argv(argv,commands[i]))
           continue;
 #ifdef WIN32
 		{ intptr_t p;
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
-		  {  vmb_debugi("could not start %d",errno);
+		  {  vmb_debugi(0, "could not start %d",errno);
 	          vmb_error(__LINE__,"Unable to execute command");
 		  }
 		}
@@ -161,7 +161,7 @@ void do_commands(void)
 
 void do_argument(int pos, char * arg)
 { 
-  vmb_debug("too many arguments"); 
+  vmb_debug(0, "too many arguments"); 
 }
 
 

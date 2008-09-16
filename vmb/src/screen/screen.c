@@ -39,7 +39,7 @@ extern HWND hMainWnd;
 static void display_char(char c);
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:40 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:05 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -76,9 +76,9 @@ static unsigned char data[8];
 
 
 void init_device(void)
-{ vmb_debugi("address hi: %x",vmb_address_hi);
-  vmb_debugi("address lo: %x",vmb_address_lo);
-  vmb_debugi("interrupt: %d",interrupt);
+{ vmb_debugi(0, "address hi: %x",vmb_address_hi);
+  vmb_debugi(0, "address lo: %x",vmb_address_lo);
+  vmb_debugi(0, "interrupt: %d",interrupt);
   vmb_size = 8;
 #ifndef WIN32
    setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
@@ -117,7 +117,7 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (data[COUNT]<0xFF) data[COUNT]++;
     else data[ERROR]=0x80;
     data[DATA] = payload[7-offset];
-    vmb_debugi("(%02X)",data[DATA]);
+    vmb_debugi(0, "(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
     vmb_raise_interrupt(interrupt);
@@ -168,15 +168,15 @@ void vmb_reset(void)
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs("%s ",vmb_program_name);
- vmb_debugs("%s ", version);
- vmb_debugs("host: %s ",host);
- vmb_debugi("port: %d ",port);
+ vmb_debugs(0, "%s ",vmb_program_name);
+ vmb_debugs(0, "%s ", version);
+ vmb_debugs(0, "host: %s ",host);
+ vmb_debugi(0, "port: %d ",port);
  close(0); /* stdin */
  init_device();
- vmb_debugi("address hi: %x",vmb_address_hi);
- vmb_debugi("address lo: %x",vmb_address_lo);
- vmb_debugi("size: %x ",vmb_size);
+ vmb_debugi(0, "address hi: %x",vmb_address_hi);
+ vmb_debugi(0, "address lo: %x",vmb_address_lo);
+ vmb_debugi(0, "size: %x ",vmb_size);
  vmb_connect(host,port); 
 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);

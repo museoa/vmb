@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-07-23 08:22:45 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-09-16 09:11:02 $";
 
 char howto[] =
 "\n"
@@ -65,7 +65,7 @@ void open_file(void)
   int rc;
   if (filename==NULL)
     vmb_fatal_error(__LINE__,"No filename");
-  vmb_debug("reading image file...");
+  vmb_debug(0, "reading image file...");
   f = fopen(filename,"rb");
   if (f==NULL) vmb_fatal_error(__LINE__,"Unable to open file");
   if (fstat(fileno(f),&fs)<0) vmb_fatal_error(__LINE__,"Unable to get file size");
@@ -79,7 +79,7 @@ void open_file(void)
   if (rc==0) vmb_fatal_error(__LINE__,"Empty file");
   fclose(f);
   image_changed = 0;
-  vmb_debug("done reading image file");
+  vmb_debug(0, "done reading image file");
 }
 
 
@@ -87,7 +87,7 @@ void write_file(void)
 { FILE *f;
   int i;
   if (!image_changed) return;
-  vmb_debug("writing image file...");
+  vmb_debug(0, "writing image file...");
   if (filename==NULL|| filename[0]== 0)
   { vmb_error(__LINE__,"No filename");
     return;
@@ -104,7 +104,7 @@ void write_file(void)
   i = (int)fwrite(flash,1,vmb_size,f);
   if (i<(int)vmb_size) vmb_error(__LINE__,"Unable to write file");
   else fclose(f);
-  vmb_debug("done writing image file");
+  vmb_debug(0, "done writing image file");
   image_changed = 0;
 }
 
@@ -125,7 +125,7 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 
 void vmb_poweron(void)
 { open_file();
-  vmb_debugi("size: %d",vmb_size);
+  vmb_debugi(0, "size: %d",vmb_size);
   #ifdef WIN32
    SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
@@ -166,14 +166,14 @@ void vmb_disconnected(void)
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs("%s ",vmb_program_name);
- vmb_debugs("%s ", version);
- vmb_debugs("host: %s ",host);
- vmb_debugi("port: %d ",port);
+ vmb_debugs(0, "%s ",vmb_program_name);
+ vmb_debugs(0, "%s ", version);
+ vmb_debugs(0, "host: %s ",host);
+ vmb_debugi(0, "port: %d ",port);
  close(0); /* stdin */
- vmb_debugi("address hi: %x ",vmb_address>>32);
- vmb_debugi("address lo: %x ",vmb_address&0xFFFFFFFF);
- vmb_debugi("size: %x ",vmb_size);
+ vmb_debugi(0, "address hi: %x ",vmb_address>>32);
+ vmb_debugi(0, "address lo: %x ",vmb_address&0xFFFFFFFF);
+ vmb_debugi(0, "size: %x ",vmb_size);
  
  vmb_connect(host,port); 
 

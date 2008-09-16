@@ -137,12 +137,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_NCHITTEST:
     return HTCAPTION;
   case WM_SETFOCUS:
-    vmb_debug("got focus");
+    vmb_debug(0, "got focus");
 	hBmp = hBmpActive;
     RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
     break;
   case WM_KILLFOCUS:
-    vmb_debug("lost focus");
+    vmb_debug(0, "lost focus");
 	hBmp = hBmpInactive;
 	RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
 	break;

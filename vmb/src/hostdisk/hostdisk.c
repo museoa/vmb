@@ -116,7 +116,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.4 $ $Date: 2008-07-23 08:22:45 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:02 $";
 
 char howto[] =
 "\n"
@@ -169,7 +169,7 @@ static void execute_command(int cmd)
 { unsigned char *p;
  int result;
  int fd;
- vmb_debugi("Command %d received", cmd);
+ vmb_debugi(0, "Command %d received", cmd);
  p = mem+HD_PARAM;
  switch(cmd)
    { case HD_IGNORE :
@@ -216,10 +216,10 @@ static void execute_command(int cmd)
      if (count > HD_PARAM_SIZE-16)
        vmb_error(__LINE__,"Parameter count of write too large");
      else   
-       { vmb_debugi("write to %d",fd);
-         vmb_debugi("%d byte", count);
+       { vmb_debugi(0, "write to %d",fd);
+         vmb_debugi(0, "%d byte", count);
          result = write(fd, p, count);
-         vmb_debugi("got result %d",result);
+         vmb_debugi(0, "got result %d",result);
          inttochar(result,mem+HD_RESULT+4);
        }
      }
@@ -255,8 +255,8 @@ unsigned char *get_payload(unsigned int offset,int size)
 
 void put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(mem+offset,payload,size);
- vmb_debugi("writing to %d",offset);
- vmb_debugi(" %d bytes", size);
+ vmb_debugi(0, "writing to %d",offset);
+ vmb_debugi(0, " %d bytes", size);
   if (offset+size > HD_COMMAND && offset <  HD_COMMAND+8)
    execute_command(disk_command);
 }
@@ -269,9 +269,9 @@ int reply_payload(unsigned char address[8], int size,unsigned char *payload)
 
 void init_device(void)
 {  vmb_size = HD_SIZE;
-   vmb_debugi("address hi: %x",vmb_address_hi);
-   vmb_debugi("address lo: %x",vmb_address_lo);
-   vmb_debugi("size: %d",vmb_size);
+   vmb_debugi(0, "address hi: %x",vmb_address_hi);
+   vmb_debugi(0, "address lo: %x",vmb_address_lo);
+   vmb_debugi(0, "size: %d",vmb_size);
    close(0);
 }
 

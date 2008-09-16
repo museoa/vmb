@@ -26,15 +26,17 @@
 
 extern char *vmb_program_name;
 extern unsigned int vmb_debug_flag;
+extern unsigned int vmb_verbose_level;
+
 
 extern void vmb_message(char *msg);
 extern void vmb_error(int line, char *msg);
 extern void vmb_fatal_error(int line,char *msg); /* no return */
-extern void vmb_debug(char *msg);
-extern void vmb_debugi(char *msg,int i);
-extern void vmb_debugs(char *msg, char *s);
-extern void vmb_debugx(char *msg, unsigned char *s, int n); /* message with hex info */
-extern void vmb_debugm(unsigned char mtype,unsigned char msize, 
+extern void vmb_debug(int level, char *msg);
+extern void vmb_debugi(int level, char *msg,int i);
+extern void vmb_debugs(int level, char *msg, char *s);
+extern void vmb_debugx(int level, char *msg, unsigned char *s, int n); /* message with hex info */
+extern void vmb_debugm(int level, unsigned char mtype,unsigned char msize, 
                        unsigned char mslot,unsigned char mid,
 		       unsigned char maddress[8], unsigned char *mpayload);
 

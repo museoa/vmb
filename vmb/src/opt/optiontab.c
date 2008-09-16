@@ -32,6 +32,7 @@ option_spec options[] = {
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&x}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&y}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
+{"the verbosity level (0= all, 1= less, ...)",   'v', "verbosity",    "verbosity level", int_arg, "1", {&vmb_verbose_level}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x8000000000000000", {&vmb_address}},
 {"size of address range in octas",      's', "size",    "size in octas", int_arg, "1", {&vmb_size}},

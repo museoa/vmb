@@ -39,7 +39,7 @@
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-03-12 16:49:40 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:05 $";
 
 char howto[] =
 "\n"
@@ -417,9 +417,9 @@ void show_vram(unsigned int offset,int size)
     r =  vram[offset+1];
     g =  vram[offset+2];
     b =  vram[offset+3];
-    vmb_debugi("x = %d",x);
-    vmb_debugi("y = %d",y);
-    vmb_debugx("rgb = %s",vram+offset+1,3);
+    vmb_debugi(0, "x = %d",x);
+    vmb_debugi(0, "y = %d",y);
+    vmb_debugx(0, "rgb = %s",vram+offset+1,3);
     vram_write(x,y,r,g,b);
     size = size-4;
     offset = offset +4;
@@ -463,14 +463,14 @@ void vmb_reset(void)
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs("%s ",vmb_program_name);
- vmb_debugs("%s ", version);
- vmb_debugs("host: %s ",host);
- vmb_debugi("port: %d ",port);
+ vmb_debugs(0, "%s ",vmb_program_name);
+ vmb_debugs(0, "%s ", version);
+ vmb_debugs(0, "host: %s ",host);
+ vmb_debugi(0, "port: %d ",port);
  init_device();
- vmb_debugi("address hi: %x",vmb_address_hi);
- vmb_debugi("address lo: %x",vmb_address_lo);
- vmb_debugi("size: %x ",vmb_size);
+ vmb_debugi(0, "address hi: %x",vmb_address_hi);
+ vmb_debugi(0, "address lo: %x",vmb_address_lo);
+ vmb_debugi(0, "size: %x ",vmb_size);
  
  vmb_connect(host,port); 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);

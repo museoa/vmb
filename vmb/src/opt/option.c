@@ -109,8 +109,8 @@ uint64_t strtouint64(char *arg)
 static 
 int do_option(option_spec *p, char *arg)
 { unsigned int n;
-  vmb_debug("processing option:");
-  vmb_debug(p->longopt);
+  vmb_debug(0, "processing option:");
+  vmb_debug(0, p->longopt);
   switch (p->kind)
   { case str_arg: 
       if (*(p->handler.str)!=NULL)
@@ -184,7 +184,7 @@ int do_option(option_spec *p, char *arg)
       *(p->handler.i)= 0;
       return 0;
     case fun_arg:
-      vmb_debug("calling handler");
+      vmb_debug(0, "calling handler");
       return (p->handler.f)(arg);
     default:
       /* ignore unknown options */
@@ -197,14 +197,14 @@ int  do_option_long(char *cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
    static char msg[100];
-   vmb_debug("searching for option:");
-   vmb_debug(cmd);
+   vmb_debug(0, "searching for option:");
+   vmb_debug(0, cmd);
    i=0;
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug("option ignored:");
+      { vmb_debug(0, "option ignored:");
         strncpy(msg,cmd,99);
-        vmb_debug(msg);
+        vmb_debug(0, msg);
         return 0;
       }
       if (cmd[strlen(options[i].longopt)] == '=')
@@ -227,13 +227,13 @@ int  do_option_short(char cmd,char *arg)
 
    i=0;   
    cmdstr[1] = cmd;
-   vmb_debug("searching for option:");
-   vmb_debug(cmdstr);
+   vmb_debug(0, "searching for option:");
+   vmb_debug(0, cmdstr);
    
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug("option ignored:");
-        vmb_debug(cmdstr);
+      { vmb_debug(0, "option ignored:");
+        vmb_debug(0, cmdstr);
         return 0;
       }
       if (cmd==options[i].shortopt)
@@ -288,8 +288,8 @@ int write_configfile(char *filename)
   { vmb_error(__LINE__,"Filename expected");
     return 0;
   }
-  vmb_debug("writing configfile");
-  vmb_debug(filename);
+  vmb_debug(0, "writing configfile");
+  vmb_debug(0, filename);
   out=fopen(filename,"w");
   if (out==NULL) 
 	  {  vmb_error(__LINE__,"Could not write configuration file");
@@ -336,7 +336,7 @@ int write_configfile(char *filename)
       continue;
   }
   fclose(out);
-  vmb_debug("done writing configfile");
+  vmb_debug(0, "done writing configfile");
   return 1;
 }
 
@@ -351,8 +351,8 @@ int parse_configfile(char *filename)
   { vmb_error(__LINE__,"Argument expected");
     return 0;
   }
-  vmb_debug("reading configfile");
-  vmb_debug(filename);
+  vmb_debug(0, "reading configfile");
+  vmb_debug(0, filename);
   in=fopen(filename,"r");
   if (in==NULL)
 	return 0;
@@ -400,7 +400,7 @@ int parse_configfile(char *filename)
      { if (conditional ==1) 
          conditional=0;
        else
-         vmb_debug("Unmatched #endif"); 
+         vmb_debug(0, "Unmatched #endif"); 
        continue;
      }
   
@@ -433,7 +433,7 @@ int parse_configfile(char *filename)
      do_option_long(cmd,arg);
   }
   fclose(in);
-  vmb_debug("done configfile");
+  vmb_debug(0, "done configfile");
   return 1;
 }
 
@@ -536,7 +536,7 @@ static void do_configfile(void)
 void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;    
-  vmb_debug("reading commandstr");
+  vmb_debug(0, "reading commandstr");
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
   arguments++;
@@ -590,13 +590,13 @@ void parse_commandstr(char *p)
      else
        do_argument(arguments++, parse_argument(&p));
   }
-  vmb_debug("done commandstr");
+  vmb_debug(0, "done commandstr");
 }
 
 void parse_commandline(int argc, char *argv[])
 { int i,j;
 
-  vmb_debug("parsing commandline");
+  vmb_debug(0, "parsing commandline");
   do_program(argv[0]);
   i=do_define(argv[1]);
   do_configfile();
@@ -614,6 +614,6 @@ void parse_commandline(int argc, char *argv[])
       do_argument(i, argv[i]);
 
   }
-  vmb_debug("done commandline");
+  vmb_debug(0, "done commandline");
 }
 

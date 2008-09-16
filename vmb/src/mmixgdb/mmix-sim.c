@@ -553,7 +553,7 @@ int S;
 char arg_count[]= {1,3,1,3,3,3,3,2,2,2,1};
 char*trap_format[]= {
 "Halt(%z)",
-#line 1252 "mmix-sim.ch"
+#line 1249 "mmix-sim.ch"
 "$255 = Fopen(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
 "$255 = Fclose(%!z) -> %#y",
 "$255 = Fread(%!z,M8[%#b]=%#q,M8[%#a]=%p) -> %#y",
@@ -566,7 +566,7 @@ char*trap_format[]= {
 "$255 = Ftell(%!z) -> %#y"};
 #line 2421 "mmix-sim.w"
 
-#line 1275 "mmix-sim.ch"
+#line 1272 "mmix-sim.ch"
 /*:75*//*79:*/
 #line 2568 "mmix-sim.w"
 
@@ -595,7 +595,7 @@ int good_guesses,bad_guesses;
 
 char*myself;
 char**cur_arg;
-#line 1719 "mmix-sim.ch"
+#line 1716 "mmix-sim.ch"
 static bool interrupt= 0;
 static bool profiling= 0;
 #line 2986 "mmix-sim.w"
@@ -604,7 +604,7 @@ char*usage_help[]= {
 "-t<n> trace each instruction the first n times\n",
 "-e<x> trace each instruction with an exception matching x\n",
 "-r    trace hidden details of the register stack\n",
-#line 1729 "mmix-sim.ch"
+#line 1726 "mmix-sim.ch"
 "-r    trace hidden details of the register stack\n",
 "-O    trace inside the operating system\n",
 "-B<n> connect to Bus on port <n>\n",
@@ -878,19 +878,19 @@ case's':showing_stats= true;return;
 #line 2953 "mmix-sim.w"
 case'v':trace_threshold= 0xffffffff;tracing_exceptions= 0xff;
 stack_tracing= true;showing_stats= true;
-#line 1675 "mmix-sim.ch"
+#line 1672 "mmix-sim.ch"
 profiling= true;
 #line 2957 "mmix-sim.w"
 return;
 case'q':trace_threshold= tracing_exceptions= 0;
-#line 1682 "mmix-sim.ch"
+#line 1679 "mmix-sim.ch"
 stack_tracing= showing_stats= false;
 profiling= false;
 #line 2961 "mmix-sim.w"
 return;
 case'i':interacting= true;return;
 case'I':interact_after_break= true;return;
-#line 1693 "mmix-sim.ch"
+#line 1690 "mmix-sim.ch"
 case'c':if(sscanf(arg+1,"%d",&lring_size)!=1)lring_size= 0;return;
 case'B':
 {char*p;
@@ -938,12 +938,12 @@ signal(SIGINT,catchint);
 
 #line 3369 "mmix-sim.w"
 
-#line 2122 "mmix-sim.ch"
+#line 2119 "mmix-sim.ch"
 /*:107*/
 #line 2882 "mmix-sim.w"
 
 
-#line 1602 "mmix-sim.ch"
+#line 1599 "mmix-sim.ch"
 int main(argc,argv)
 int argc;
 char*argv[];
@@ -960,7 +960,7 @@ register char*p;
 
 #line 679 "mmix-sim.ch"
 /*:27*/
-#line 1606 "mmix-sim.ch"
+#line 1603 "mmix-sim.ch"
 ;
 /*103:*/
 #line 2915 "mmix-sim.w"
@@ -972,7 +972,7 @@ scan_option(*cur_arg+1,true);
 argc-= cur_arg-argv;
 
 /*:103*/
-#line 1607 "mmix-sim.ch"
+#line 1604 "mmix-sim.ch"
 ;
 
 if(bushost==NULL)panic("No Bus given. Use Option -B[host:]port");
@@ -1009,7 +1009,7 @@ cur_round= ROUND_NEAR;
 #line 1820 "mmix-sim.w"
 
 /*:43*//*108:*/
-#line 2125 "mmix-sim.ch"
+#line 2122 "mmix-sim.ch"
 
 loc.h= inst_ptr.h= 0x80000000;
 loc.l= inst_ptr.l= 0x00000000;
@@ -1037,7 +1037,7 @@ if(!l)panic("No room for the local registers");
 signal(SIGINT,catchint);
 
 /*:106*/
-#line 1614 "mmix-sim.ch"
+#line 1611 "mmix-sim.ch"
 ;
 
 fprintf(stderr,"Power...");
@@ -1100,7 +1100,7 @@ y= inst_ptr;z= incr(loc,yz<<2);
 
 if(resuming&&rop!=RESUME_AGAIN)
 /*87:*/
-#line 1500 "mmix-sim.ch"
+#line 1497 "mmix-sim.ch"
 
 if(zz==0)
 {if(rop==RESUME_SET){
@@ -1436,7 +1436,7 @@ page_fault:
 if((g[rK].h&g[rQ].h)!=0||(g[rK].l&g[rQ].l)!=0)
 {x.h= 0,x.l= inst;
 /*84:*/
-#line 1406 "mmix-sim.ch"
+#line 1403 "mmix-sim.ch"
 
 g[rWW]= inst_ptr;
 g[rXX]= x;
@@ -1752,7 +1752,7 @@ case TRAP:if(xx==0&&yy<=max_sys_call)
 {strcpy(rhs,trap_format[yy]);
 a= incr(b,8);
 /*76:*/
-#line 1275 "mmix-sim.ch"
+#line 1272 "mmix-sim.ch"
 
 if(arg_count[yy]==3){
 load_data(8,&mb,b,0);
@@ -1769,14 +1769,11 @@ load_data(8,&ma,a,0);
 else strcpy(rhs,"%#x -> %#y");
 if(inst==0)
 {if(interacting)
-tracing= breakpoint= true,interrupt= false;
-
-else
-tracing= true,interrupt= false;
+interact_with_gdb(17);
 }
 x.h= sign_bit,x.l= inst;
 /*84:*/
-#line 1406 "mmix-sim.ch"
+#line 1403 "mmix-sim.ch"
 
 g[rWW]= inst_ptr;
 g[rXX]= x;
@@ -1788,7 +1785,7 @@ g[rBB]= g[255];
 g[255]= g[rJ];
 
 /*:84*/
-#line 1234 "mmix-sim.ch"
+#line 1231 "mmix-sim.ch"
 
 inst_ptr= y= g[rT];
 break;
@@ -1797,7 +1794,7 @@ break;
 /*:74*//*85:*/
 #line 2603 "mmix-sim.w"
 
-#line 1426 "mmix-sim.ch"
+#line 1423 "mmix-sim.ch"
 case RESUME:if(xx||yy)goto illegal_inst;
 if(zz==0)
 {inst_ptr= z= g[rW];
@@ -1813,7 +1810,7 @@ x= g[255]= g[rBB];
 }
 else goto illegal_inst;
 if(!(b.h&sign_bit))/*86:*/
-#line 1484 "mmix-sim.ch"
+#line 1481 "mmix-sim.ch"
 
 {
 rop= b.h>>24;
@@ -1831,7 +1828,7 @@ resuming= true;
 }
 
 /*:86*/
-#line 1440 "mmix-sim.ch"
+#line 1437 "mmix-sim.ch"
 ;
 break;
 #line 2609 "mmix-sim.w"
@@ -1864,7 +1861,7 @@ g[255]= g[rJ];
 if(op==TRIP)w= g[rW],x= g[rX],a= g[255];
 }
 
-#line 1389 "mmix-sim.ch"
+#line 1386 "mmix-sim.ch"
 /*:81*/
 #line 2582 "mmix-sim.w"
 ;
@@ -1890,7 +1887,7 @@ if(g[rI].l==0&&g[rI].h==0)tracing= breakpoint= true;
 ;
 #line 641 "mmix-sim.ch"
 /*89:*/
-#line 1546 "mmix-sim.ch"
+#line 1543 "mmix-sim.ch"
 
 if(tracing&&(!(loc.h&0x80000000)||show_operating_system)){
 /*91:*/
@@ -1906,16 +1903,16 @@ case RESUME_SET:printf("           (%08x%08x: ..%02x..rZ (SET)) ",
 loc.h,loc.l,(inst>>16)&0xff);break;
 }
 }else{
-#line 1562 "mmix-sim.ch"
+#line 1559 "mmix-sim.ch"
 printf("%08x%08x: %08x (%s) ",loc.h,loc.l,inst,info[op].name);
 #line 2688 "mmix-sim.w"
 }
 
 /*:91*/
-#line 1548 "mmix-sim.ch"
+#line 1545 "mmix-sim.ch"
 ;
 /*92:*/
-#line 1569 "mmix-sim.ch"
+#line 1566 "mmix-sim.ch"
 
 if(lhs[0]=='!'){printf("%s instruction!\n",lhs+1);
 lhs[0]= '\0';
@@ -1990,7 +1987,7 @@ printf("\n");
 }
 
 /*:92*/
-#line 1549 "mmix-sim.ch"
+#line 1546 "mmix-sim.ch"
 ;
 if(showing_stats||breakpoint)show_stats(breakpoint);
 just_traced= true;
@@ -2004,7 +2001,7 @@ just_traced= false;
 #line 641 "mmix-sim.ch"
 ;
 /*82:*/
-#line 1391 "mmix-sim.ch"
+#line 1388 "mmix-sim.ch"
 
 if(!resuming)
 {vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
@@ -2014,7 +2011,7 @@ if((g[rK].h&g[rQ].h)!=0||(g[rK].l&g[rQ].l)!=0)
 {
 x.h= sign_bit,x.l= inst;
 /*84:*/
-#line 1406 "mmix-sim.ch"
+#line 1403 "mmix-sim.ch"
 
 g[rWW]= inst_ptr;
 g[rXX]= x;
@@ -2026,7 +2023,7 @@ g[rBB]= g[255];
 g[255]= g[rJ];
 
 /*:84*/
-#line 1399 "mmix-sim.ch"
+#line 1396 "mmix-sim.ch"
 
 inst_ptr= y= g[rTT];
 }
@@ -2040,7 +2037,7 @@ if(resuming&&op!=RESUME)resuming= false;
 }
 
 /*:25*/
-#line 1637 "mmix-sim.ch"
+#line 1634 "mmix-sim.ch"
 
 {unsigned char b;
 b= get_break(inst_ptr);

@@ -60,7 +60,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.14 $ $Date: 2008-07-28 14:27:30 $";
+char version[] = "$Revision: 1.15 $ $Date: 2008-09-16 09:11:03 $";
 
 char howto[] =
   "\n"
@@ -74,6 +74,8 @@ char howto[] =
   "help\t\tdisplay this help message\n"
   "debug\t\tswitch on debugging output\n"
   "nodebug\t\tswitch off debugging output\n"
+  "verbose++\t\tincrease verbosity level (less output)\n"
+  "verbose--\t\tdecrease verbosity level (more output)\n"
   "quit\t\tterminte all slots and the motherboard\n"
   "on\t\tsend all slots the power on message\n"
   "off\t\tsend all slots the power off message\n"
@@ -187,7 +189,7 @@ create_server ()
     bus_disconnect (mother_fd);
     vmb_fatal_error (__LINE__, "Can't listen");
   }
-  vmb_debugi ("Created server at Port %d", port);
+  vmb_debugi(0,"Created server at Port %d", port);
 }
 
 void
@@ -202,7 +204,7 @@ remove_slot (int slotnr)
   }
   while (max_slot > 0 && !valid_socket (slot[max_slot - 1].fd))
     max_slot--;
-  vmb_debugi ("Removed Slot %d", slotnr);
+  vmb_debugi(0,"Removed Slot %d", slotnr);
 }
 
 
@@ -219,10 +221,10 @@ write_to_slot (int i)
   }
   if (mtype & TYPE_ROUTE)
     slot[i].answers_pending--;
-  vmb_debugs ("Send to %s:", (char *)slot[i].name);
-  vmb_debugm(mtype, msize, mslot, mid, maddress, mpayload);
+  vmb_debugs(0,"Send to %s:", (char *)slot[i].name);
+  vmb_debugm(0, mtype, msize, mslot, mid, maddress, mpayload);
   if (slot[i].answers_pending > 0)
-    vmb_debugi ("\tpending answers:    %d", slot[i].answers_pending);
+    vmb_debugi(1,"\tpending answers:    %d", slot[i].answers_pending);
   write_ops++;
   return 0;
 }
@@ -239,7 +241,7 @@ static void
 power_on (int i)
 {
   if (!bus_msg (ID_POWERON, i))
-    vmb_debugi ("Sent Power On to Slot %d", i);
+    vmb_debugi(0,"Sent Power On to Slot %d", i);
   else
     vmb_error(__LINE__,"Unable to send Power On");
 }
@@ -248,7 +250,7 @@ static void
 power_off (int i)
 {
   if (!bus_msg (ID_POWEROFF, i))
-    vmb_debugi ("Sent Power Off to Slot %d", i);
+    vmb_debugi(0,"Sent Power Off to Slot %d", i);
   else
     vmb_error(__LINE__,"Unable to send Power Off");
 }
@@ -257,7 +259,7 @@ static void
 reset (int i)
 {
   if (!bus_msg (ID_RESET, i))
-    vmb_debugi ("Sent Reset to Slot %d", i);
+    vmb_debugi(0,"Sent Reset to Slot %d", i);
   else
     vmb_error(__LINE__,"Unable to send Reset");
 }
@@ -265,7 +267,7 @@ static void
 terminate (int i)
 {
   if (!bus_msg (ID_TERMINATE, i))
-    vmb_debugi ("Sent Terminate to Slot %d", i);
+    vmb_debugi(0,"Sent Terminate to Slot %d", i);
   else
     vmb_error(__LINE__,"Unable to send Terminate");
 }
@@ -278,7 +280,7 @@ send_dummy_answer (int dest_slot)
     mtype =  TYPE_ADDRESS | TYPE_ROUTE; /* mark it as an answer with address */
     mid = ID_NOREPLY;     /* this is a dummy reply */
     if (!write_to_slot (dest_slot))
-      vmb_debugi ("Sent dummy answer to Slot %d", dest_slot);
+      vmb_debugi(1,"Sent dummy answer to Slot %d", dest_slot);
     else
       vmb_error(__LINE__,"Unable to send dummy answer");
   }
@@ -293,14 +295,14 @@ disconnect_device (int slotnr)
     power_off (slotnr);
   terminate(slotnr);
    if (!bus_unregister (slot[slotnr].fd))
-    vmb_debugi ("Shutdown of Slot %d", slotnr);
+    vmb_debugi(0,"Shutdown of Slot %d", slotnr);
   else
     vmb_error(__LINE__,"Unable to shut down slot");
 
   if (bus_disconnect (slot[slotnr].fd) >= 0)
-    vmb_debugi ("Closed socket from Slot %d : Successful", slotnr);
+    vmb_debugi(0,"Closed socket from Slot %d : Successful", slotnr);
   else
-    vmb_debugi ("Closed socket from Slot %d : Failed", slotnr);
+    vmb_debugi(1,"Closed socket from Slot %d : Failed", slotnr);
 
   remove_slot (slotnr);
 }
@@ -329,7 +331,7 @@ static void
 terminate_all (void)
 {
   for_all_slots (terminate);
-  vmb_debug ("All slots terminated");
+  vmb_debug (0, "All slots terminated");
 }
 
 static void
@@ -337,7 +339,7 @@ shutdown_server ()
 { terminate_all();
   for_all_slots (disconnect_device);
   if (bus_unregister (mother_fd) >= 0 && bus_disconnect (mother_fd) >= 0)
-    vmb_debugi ("Shutdown server at Port %d : Successful", port);
+    vmb_debugi(0,"Shutdown server at Port %d : Successful", port);
 }
 
 static void
@@ -362,7 +364,7 @@ send_interrupt_to (int i)
       ((mslot >= 32) && (slot[i].hi_mask & BIT (mslot - 32))))
   {
     if (!write_to_slot (i))
-      vmb_debugi ("Sent Interrupt to Slot %d", i);
+      vmb_debugi(0,"Sent Interrupt to Slot %d", i);
     else
       vmb_error(__LINE__,"Unable to send Interrupt");
   }
@@ -375,7 +377,7 @@ interrupt_all (int i)
   msize = 0;
   mslot = i;
   mid = ID_INTERRUPT;
-  vmb_debugi ("Sending Interrupt %d", mslot);
+  vmb_debugi(0,"Sending Interrupt %d", mslot);
   for_all_slots (send_interrupt_to);
 }
 
@@ -385,7 +387,7 @@ power_all (int state)
   if (powerflag == state)
     return;
   powerflag = state;
-  vmb_debugs ("All slots  power %s", state ? "on" : "off");
+  vmb_debugs(0,"All slots  power %s", state ? "on" : "off");
   if (powerflag)
     for_all_slots (power_on);
   else
@@ -402,15 +404,15 @@ static void
 reset_all (void)
 {
   for_all_slots (reset);
-  vmb_debug ("All slots reset");
+  vmb_debug (0, "All slots reset");
 }
 
 
 static void
 interpret_message (int source_slot)
 { read_ops++;
-  vmb_debugs ("Received from %s.",(char *)slot[source_slot].name);
-  vmb_debugm(mtype, msize, mslot, mid, maddress, mpayload);
+  vmb_debugs(0,"Received from %s.",(char *)slot[source_slot].name);
+  vmb_debugm(0, mtype, msize, mslot, mid, maddress, mpayload);
   if (mtype & TYPE_REQUEST)
     slot[source_slot].answers_pending++;
   if (mtype & TYPE_REQUEST)
@@ -461,7 +463,7 @@ interpret_message (int source_slot)
     int dest_slot = mslot;
     if (mslot >= max_slot)
     {
-      vmb_debugi ("Slot number %d not available", mslot);
+      vmb_debugi(1,"Slot number %d not available", mslot);
       if (mtype & TYPE_REQUEST)
 	send_dummy_answer (source_slot);
       return;
@@ -476,7 +478,7 @@ interpret_message (int source_slot)
     int dest_slot = find_slot (maddress);
     if (dest_slot < 0)
     {
-      vmb_debugx ("Address #%s not available", maddress, 8);
+      vmb_debugx(1,"Address #%s not available", maddress, 8);
       if (mtype & TYPE_REQUEST)
 	send_dummy_answer (source_slot);
       //raise interrupt for non existing memory
@@ -517,7 +519,7 @@ connect_new_device ()
 	max_slot = i + 1;
       if (slot[i].fd > max_fd)
 	max_fd = slot[i].fd;
-      vmb_debugi ("Connected device at Slot %d", i);
+      vmb_debugi(0,"Connected device at Slot %d", i);
       {				/* Tell TCP not to delay small packets.  This greatly speeds up
 				   interactive response. */
 	int tmp = 1;
@@ -792,8 +794,8 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
       int error = WSAGETSELECTERROR (lParam);
       int event = WSAGETSELECTEVENT (lParam);
-      vmb_debugi ("Socket event %d", event);
-      vmb_debugi ("Socket error %d", error);
+      vmb_debugi(0,"Socket event %d", event);
+      vmb_debugi(0,"Socket error %d", error);
       if (event == FD_CLOSE || error != 0)
       {
 	close_socket ((int)wParam);
@@ -1002,11 +1004,19 @@ process_stdin ()
   char buffer[300] = { 0 };
   read (0, buffer, 300);
   if (strncmp (buffer, "help", 4) == 0)
-    vmb_debugs ("%s", howto);
+    vmb_message(howto);
   else if (strncmp (buffer, "debug", 5) == 0)
     vmb_debug_on();
   else if (strncmp (buffer, "nodebug", 7) == 0)
     vmb_debug_off();
+  else if (strncmp (buffer, "verbose++", 9) == 0)
+    { vmb_verbose_level++;
+      vmb_debugi(vmb_verbose_level,"verbosity level is now %d",vmb_verbose_level);
+    }
+  else if (strncmp (buffer, "verbose--", 9) == 0)
+    { if (vmb_verbose_level> 0) vmb_verbose_level--;
+      vmb_debugi(vmb_verbose_level,"verbosity level is now %d",vmb_verbose_level);
+    }
   else if (strncmp (buffer, "quit", 4) == 0)
     exitflag = 1;
   else if (strncmp (buffer, "on", 2) == 0 && !powerflag)
@@ -1026,7 +1036,9 @@ process_stdin ()
   else if (strncmp (buffer, "signal", 6) == 0)
     interrupt_all (atoi (&buffer[6]));
   else
-    vmb_debugs("Unknown command (try \"help\"): %s", buffer);
+    { vmb_debugs(1, "Unknown command %s", buffer);
+      vmb_message("Type \"help\" to get a list of commands");
+    }
 }
 
 int
