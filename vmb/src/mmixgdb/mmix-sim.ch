@@ -1596,12 +1596,18 @@ int main(argc,argv)
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
 @y
+#ifdef WIN32
+int mmix_main(void)
+{
+  @<Local registers@>;
+#else
 int main(argc,argv)
   int argc;
   char *argv[];
 {
   @<Local registers@>;
   @<Process the command line@>;
+#endif
 
   if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(bushost,busport,"MMIX CPU");

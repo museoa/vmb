@@ -595,7 +595,7 @@ int good_guesses,bad_guesses;
 
 char*myself;
 char**cur_arg;
-#line 1716 "mmix-sim.ch"
+#line 1722 "mmix-sim.ch"
 static bool interrupt= 0;
 static bool profiling= 0;
 #line 2986 "mmix-sim.w"
@@ -604,7 +604,7 @@ char*usage_help[]= {
 "-t<n> trace each instruction the first n times\n",
 "-e<x> trace each instruction with an exception matching x\n",
 "-r    trace hidden details of the register stack\n",
-#line 1726 "mmix-sim.ch"
+#line 1732 "mmix-sim.ch"
 "-r    trace hidden details of the register stack\n",
 "-O    trace inside the operating system\n",
 "-B<n> connect to Bus on port <n>\n",
@@ -878,19 +878,19 @@ case's':showing_stats= true;return;
 #line 2953 "mmix-sim.w"
 case'v':trace_threshold= 0xffffffff;tracing_exceptions= 0xff;
 stack_tracing= true;showing_stats= true;
-#line 1672 "mmix-sim.ch"
+#line 1678 "mmix-sim.ch"
 profiling= true;
 #line 2957 "mmix-sim.w"
 return;
 case'q':trace_threshold= tracing_exceptions= 0;
-#line 1679 "mmix-sim.ch"
+#line 1685 "mmix-sim.ch"
 stack_tracing= showing_stats= false;
 profiling= false;
 #line 2961 "mmix-sim.w"
 return;
 case'i':interacting= true;return;
 case'I':interact_after_break= true;return;
-#line 1690 "mmix-sim.ch"
+#line 1696 "mmix-sim.ch"
 case'c':if(sscanf(arg+1,"%d",&lring_size)!=1)lring_size= 0;return;
 case'B':
 {char*p;
@@ -938,12 +938,30 @@ signal(SIGINT,catchint);
 
 #line 3369 "mmix-sim.w"
 
-#line 2119 "mmix-sim.ch"
+#line 2125 "mmix-sim.ch"
 /*:107*/
 #line 2882 "mmix-sim.w"
 
 
 #line 1599 "mmix-sim.ch"
+#ifdef WIN32
+int mmix_main(void)
+{
+/*27:*/
+#line 1404 "mmix-sim.w"
+
+register mmix_opcode op;
+register int xx,yy,zz,yz;
+register tetra f;
+register int i,j,k;
+#line 1410 "mmix-sim.w"
+register char*p;
+
+#line 679 "mmix-sim.ch"
+/*:27*/
+#line 1602 "mmix-sim.ch"
+;
+#else
 int main(argc,argv)
 int argc;
 char*argv[];
@@ -960,7 +978,7 @@ register char*p;
 
 #line 679 "mmix-sim.ch"
 /*:27*/
-#line 1603 "mmix-sim.ch"
+#line 1608 "mmix-sim.ch"
 ;
 /*103:*/
 #line 2915 "mmix-sim.w"
@@ -972,8 +990,9 @@ scan_option(*cur_arg+1,true);
 argc-= cur_arg-argv;
 
 /*:103*/
-#line 1604 "mmix-sim.ch"
+#line 1609 "mmix-sim.ch"
 ;
+#endif
 
 if(bushost==NULL)panic("No Bus given. Use Option -B[host:]port");
 init_mmix_bus(bushost,busport,"MMIX CPU");
@@ -1009,7 +1028,7 @@ cur_round= ROUND_NEAR;
 #line 1820 "mmix-sim.w"
 
 /*:43*//*108:*/
-#line 2122 "mmix-sim.ch"
+#line 2128 "mmix-sim.ch"
 
 loc.h= inst_ptr.h= 0x80000000;
 loc.l= inst_ptr.l= 0x00000000;
@@ -1037,7 +1056,7 @@ if(!l)panic("No room for the local registers");
 signal(SIGINT,catchint);
 
 /*:106*/
-#line 1611 "mmix-sim.ch"
+#line 1617 "mmix-sim.ch"
 ;
 
 fprintf(stderr,"Power...");
@@ -2037,7 +2056,7 @@ if(resuming&&op!=RESUME)resuming= false;
 }
 
 /*:25*/
-#line 1634 "mmix-sim.ch"
+#line 1640 "mmix-sim.ch"
 
 {unsigned char b;
 b= get_break(inst_ptr);
