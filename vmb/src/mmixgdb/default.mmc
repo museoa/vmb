@@ -2,8 +2,8 @@
 
 
 port 9002
-host localhost
-#host lbox.priv.cs.fhm.edu
+#host localhost
+host math.cs.fhm.edu
 #debug
 
 

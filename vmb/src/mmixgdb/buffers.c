@@ -20,7 +20,7 @@
 
 #define DEBUG
 
-
+#include <stdio.h>
 #include "buffers.h"
 
 void init_queue(queue *q)
@@ -30,6 +30,10 @@ void init_queue(queue *q)
   q-> in = q->out = 0;
 #ifdef WIN32
   q->hbuffer =CreateEvent(NULL,FALSE,FALSE,NULL);
+  if (!q->hbuffer) 
+  { fprintf(stderr, "Unable to create event for gdb command queue\n");
+    exit(1);
+  }
   InitializeCriticalSection (&(q->buffer_section));
 #else
   pthread_mutex_init(&(q->buffer_mutex),NULL);
@@ -43,7 +47,7 @@ void init_queue(queue *q)
 #ifdef WIN32
   #define LOCK   EnterCriticalSection (&(q->buffer_section))
   #define UNLOCK LeaveCriticalSection (&(q->buffer_section))
-  #define WAIT   WaitForSingleObject(&(q->hbuffer),INFINITE)
+  #define WAIT   WaitForSingleObject(q->hbuffer,INFINITE)
   #define SIGNAL SetEvent (q->hbuffer);
 #else
   static void clean_up_queue_mutex(void *q)
@@ -137,8 +141,13 @@ void *dequeue(queue *q)
 #ifdef WIN32
  LOCK;
   while (q->in==q->out)
-  { UNLOCK;
-    WAIT;
+  { int r;
+	UNLOCK;
+    r = WAIT;
+	if (r < 0) {
+	   r = GetLastError();
+       fprintf(stderr,"Error while waiting for command %d\n",r);
+	}
     LOCK;
   }
   b = q->buffer[q->out];

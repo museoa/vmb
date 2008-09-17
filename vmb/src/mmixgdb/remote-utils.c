@@ -192,7 +192,7 @@ int connect_to_gdb (int port)
   socklen_t tmp;
 #endif
 
-  server_fd = socket (PF_INET, SOCK_STREAM, 0);
+  server_fd = (SOCKET)socket (PF_INET, SOCK_STREAM, 0);
   if (server_fd < 0)
   {  perror ("Can't open socket");
      return 0;
