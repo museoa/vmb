@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../util"
+				AdditionalIncludeDirectories="../util;../opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,6 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="ws2_32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -169,6 +170,14 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
+			RelativePathToProject="..\util\vmbwin.vcproj"
+		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{5A384688-86B5-439D-B700-C52330851681}"
+			RelativePathToProject="..\opt\vmbwinopt.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -244,6 +253,10 @@
 			</File>
 			<File
 				RelativePath=".\mmix-internals.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

@@ -104,7 +104,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-      SetDlgItemText(hDlg,IDC_FILE,filename);
+/*      SetDlgItemText(hDlg,IDC_FILE,filename); */
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -116,10 +116,11 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
-        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
+/*        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
 	    set_option(&filename,tmp_option);
 		open_file();
-      }
+  */    }
+#if 0
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
 	  { OPENFILENAME ofn;       /* common dialog box structure */
          /* Initialize OPENFILENAME */
@@ -139,6 +140,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         if (GetOpenFileName(&ofn)==TRUE) 
 		   SetDlgItemText(hDlg,IDC_FILE,tmp_option);
 	  }
+#endif
      if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
         return TRUE;
@@ -281,7 +283,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 
-extern void init_device(void);
+
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -311,7 +313,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
-	init_device();
  	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
