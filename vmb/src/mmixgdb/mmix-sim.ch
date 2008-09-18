@@ -1597,7 +1597,7 @@ int main(argc,argv)
 }
 @y
 #ifdef WIN32
-int mmix_main(void)
+DWORD WINAPI mmix_main(LPVOID dummy)
 {
   @<Local registers@>;
 #else

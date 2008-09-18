@@ -945,7 +945,7 @@ signal(SIGINT,catchint);
 
 #line 1599 "mmix-sim.ch"
 #ifdef WIN32
-int mmix_main(void)
+DWORD WINAPI mmix_main(LPVOID dummy)
 {
 /*27:*/
 #line 1404 "mmix-sim.w"
