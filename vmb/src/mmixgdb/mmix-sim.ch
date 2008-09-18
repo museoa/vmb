@@ -650,7 +650,7 @@ bool stepping; /* should we pause after the next instruction? */
 static bool show_operating_system = false; /* do we show negative addresses */
 #if defined(WIN32)
 extern int port;
-extern *char *host;
+extern char *host;
 #else
 static int port=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     

@@ -230,7 +230,7 @@ bool stepping;
 static bool show_operating_system= false;
 #if defined(WIN32)
 extern int port;
-extern*char*host;
+extern char*host;
 #else
 static int port= 9002;
 static char localhost[]= "localhost";
