@@ -648,9 +648,14 @@ bool interacting; /* are we in interactive mode? */
 static bool interacting; /* are we in interactive mode? */
 bool stepping; /* should we pause after the next instruction? */
 static bool show_operating_system = false; /* do we show negative addresses */
-static int busport=9002; /* on which port to connect to the bus */
+#if defined(WIN32)
+extern int port;
+extern *char *host;
+#else
+static int port=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
-static char *bushost=localhost; /* on which host to connect to the bus */
+static char *host=localhost; /* on which host to connect to the bus */
+#endif
 int gdbport = 2331; /* port for the remot gdb to connect, with some default */
 extern int gdb_init(int port);
 extern int interact_with_gdb(int signal);
@@ -1609,8 +1614,8 @@ int main(argc,argv)
   @<Process the command line@>;
 #endif
 
-  if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
-  init_mmix_bus(bushost,busport,"MMIX CPU");
+  if (host==NULL) panic("No Bus given. Use Option -B[host:]port");
+  init_mmix_bus(host,port,"MMIX CPU");
  
 boot:
 
@@ -1698,15 +1703,15 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
   { char *p;
     p = strchr(arg+1,':');
     if (p==NULL)
-    { bushost=localhost;
-      busport = atoi(arg+1);
+    { host=localhost;
+      port = atoi(arg+1);
     }   
     else
-    { busport = atoi(p+1);
-      bushost = malloc(p+1-arg+1);
-      if (bushost==NULL) panic("No room for hostname");
-      strncpy(bushost,arg+1,p-arg-1);
-      bushost[p-arg-1]=0;
+    { port = atoi(p+1);
+      host = malloc(p+1-arg+1);
+      if (host==NULL) panic("No room for hostname");
+      strncpy(host,arg+1,p-arg-1);
+      host[p-arg-1]=0;
     }
     return;
   } 
