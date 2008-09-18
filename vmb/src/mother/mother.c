@@ -60,7 +60,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.15 $ $Date: 2008-09-16 09:11:03 $";
+char version[] = "$Revision: 1.16 $ $Date: 2008-09-18 13:38:26 $";
 
 char howto[] =
   "\n"
@@ -302,7 +302,7 @@ disconnect_device (int slotnr)
   if (bus_disconnect (slot[slotnr].fd) >= 0)
     vmb_debugi(0,"Closed socket from Slot %d : Successful", slotnr);
   else
-    vmb_debugi(1,"Closed socket from Slot %d : Failed", slotnr);
+    vmb_debugi(1,"Closing socket from Slot %d : Failed", slotnr);
 
   remove_slot (slotnr);
 }

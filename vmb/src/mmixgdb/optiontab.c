@@ -27,14 +27,15 @@
 
 extern int interacting;
 extern int show_operating_system;
+int xpos, ypos
 
 
 option_spec options[] = {
 /* description short long kind default handler */
 {"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
-{"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&x}},
-{"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&y}},
+{"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
+{"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
 {"to run interactively with gdb",       'i', "interacting",   "interactiveflag",     off_arg, NULL, {&interacting}},
 {"to show operating system code",       's', "system",   "systemflag",     on_arg, NULL, {&show_operating_system}},

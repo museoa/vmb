@@ -29,8 +29,8 @@ option_spec options[] = {
 /* description short long kind default handler */
 {"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
-{"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&x}},
-{"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&y}},
+{"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
+{"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
 {"the verbosity level (0= all, 1= less, ...)",   'v', "verbosity",    "verbosity level", int_arg, "1", {&vmb_verbose_level}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},

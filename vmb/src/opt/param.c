@@ -47,7 +47,7 @@ char *host=NULL;
 char *filename=NULL;
 int port = 9002;
 int interrupt = 16;
-int x=0, y=0; /* Window position */
+int xpos=0, ypos=0; /* Window position */
 
 #ifdef WIN32
 #include <windows.h>
@@ -138,8 +138,8 @@ void do_commands(void)
 		{ intptr_t p;
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
-		  {  vmb_debugi(0, "could not start %d",errno);
-	          vmb_error(__LINE__,"Unable to execute command");
+		  {  vmb_debugi(1, "could not start %d",errno);
+	             vmb_error(__LINE__,"Unable to execute command");
 		  }
 		}
 #else
@@ -161,7 +161,7 @@ void do_commands(void)
 
 void do_argument(int pos, char * arg)
 { 
-  vmb_debug(0, "too many arguments"); 
+  vmb_debug(1, "too many arguments"); 
 }
 
 

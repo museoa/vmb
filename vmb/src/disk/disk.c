@@ -25,7 +25,7 @@ extern HWND hMainWnd;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.10 $ $Date: 2008-09-16 09:11:02 $";
+char version[]="$Revision: 1.11 $ $Date: 2008-09-18 13:38:26 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -456,7 +456,7 @@ void vmb_put_payload(unsigned int offset, int size, unsigned char *payload)
      /* write an octabyte  (one of the five registers)*/
 {  
    if ( diskCtrl &DISK_BUSY)
-   {  vmb_debug(0, "Write ignored, disk bussy");
+   {  vmb_debug(1, "Write ignored, disk bussy");
       return; /* no writing while we are bussy */
    }
    register_to_mem();

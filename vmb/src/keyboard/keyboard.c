@@ -41,7 +41,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.9 $ $Date: 2008-09-16 09:11:03 $";
+char version[]="$Revision: 1.10 $ $Date: 2008-09-18 13:38:26 $";
 
 char howto[] =
 "\n"
@@ -140,11 +140,11 @@ void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
   f = fopen(filename,"rb");
-  if (f==NULL) {vmb_debug(0, "Uble to open input file"); return;}
+  if (f==NULL) {vmb_debug(1, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
-  if (input_buffer_last<0)  vmb_debug(0, "Uble to read input file");
-  if (input_buffer_last==0) {vmb_debug(0, "Empty file"); return;}
+  if (input_buffer_last<0)  vmb_debug(1, "Unable to read input file");
+  if (input_buffer_last==0) {vmb_debug(1, "Empty file"); return;}
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;
@@ -169,7 +169,7 @@ void process_input(unsigned char c)
     vmb_debug(0, "Raised interrupt");
   }
   else
-  { vmb_debug(0, "no power character ignored");
+  { vmb_debug(1, "no power character ignored");
 #ifdef WIN32
    Beep(800,100);
 #else

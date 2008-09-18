@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-09-16 09:11:04 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-09-18 13:38:27 $";
 
 char howto[] =
 "\n"
@@ -169,13 +169,13 @@ static void ram_clean(void)
 unsigned char *vmb_get_payload(unsigned int offset,int size){
   static unsigned char payload[258*8];
   if (ram_read(offset,size,payload)<size)
-    vmb_debugi(0, "Inclomplete read from ram at offset %08X",offset);
+    vmb_debugi(1, "Inclomplete read from ram at offset %08X",offset);
   return payload;
 }
 
 void vmb_put_payload(unsigned int offset,int size, unsigned char *payload){
   if (ram_write(offset,size,payload)<size)
-    vmb_debugi(0, "Inclomplete write to ram at offset %08X",offset);
+    vmb_debugi(1, "Inclomplete write to ram at offset %08X",offset);
 }
 
 void vmb_poweron(void)

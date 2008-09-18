@@ -202,9 +202,9 @@ int  do_option_long(char *cmd,char *arg)
    i=0;
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(0, "option ignored:");
+      { vmb_debug(1, "option ignored:");
         strncpy(msg,cmd,99);
-        vmb_debug(0, msg);
+        vmb_debug(1, msg);
         return 0;
       }
       if (cmd[strlen(options[i].longopt)] == '=')
@@ -232,8 +232,8 @@ int  do_option_short(char cmd,char *arg)
    
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(0, "option ignored:");
-        vmb_debug(0, cmdstr);
+      { vmb_debug(1, "option ignored:");
+        vmb_debug(1, cmdstr);
         return 0;
       }
       if (cmd==options[i].shortopt)
@@ -400,7 +400,7 @@ int parse_configfile(char *filename)
      { if (conditional ==1) 
          conditional=0;
        else
-         vmb_debug(0, "Unmatched #endif"); 
+         vmb_debug(1, "Unmatched #endif"); 
        continue;
      }
   
