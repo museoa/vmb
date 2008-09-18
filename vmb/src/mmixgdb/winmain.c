@@ -15,17 +15,49 @@ static TCHAR szClassName[MAX_LOADSTRING];
 static TCHAR szTitle[MAX_LOADSTRING];
 static HBITMAP hBmp;
 static HMENU hMenu;
-static HBITMAP hon,hoff,hconnect;
+static HBITMAP hon,hoff,hconnect,hwait;
 
 /* Global Variables for important Windows */
 static HWND hpower;
 HWND hMainWnd;
 static HINSTANCE hInst;
 
-/* Global variables defining the properties of the device */
 #define MAXHOST 1024
-unsigned int address_hi=0;
-unsigned int address_lo=0;
+
+
+char version[]="$Revision: 1.4 $ $Date: 2008-09-18 11:06:14 $";
+
+char howto[] =
+"\n"
+"The program will contact the motherboard at host:port\n"
+"and register itself as MMIX CPU.\n"
+"Then, the program will expect a connection from gdb over TCP/IP.\n"
+"\n"
+;
+
+
+void vmb_poweron(void)
+{ 
+   SendMessage(hMainWnd,WM_USER+1,0,0);
+}
+
+void vmb_poweroff(void)
+{  
+   SendMessage(hMainWnd,WM_USER+2,0,0);
+}
+
+void vmb_terminate(void)
+/* this function is called when the motherboard politely asks the device to terminate.*/
+{ 
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+}
+
+
+void vmb_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ /* do nothing */
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+}
 
 INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -93,18 +125,17 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 
-extern void open_file(void);
-
-
 INT_PTR CALLBACK  
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
 
   switch ( message )
   { case WM_INITDIALOG:
+#if 0
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-/*      SetDlgItemText(hDlg,IDC_FILE,filename); */
+      SetDlgItemText(hDlg,IDC_FILE,filename);
+#endif
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -113,14 +144,14 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       }
       break;
     case WM_COMMAND:
+#if 0
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
-/*        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
+        GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
 	    set_option(&filename,tmp_option);
 		open_file();
-  */    }
-#if 0
+      }
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
 	  { OPENFILENAME ofn;       /* common dialog box structure */
          /* Initialize OPENFILENAME */
@@ -174,8 +205,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  DrawMenuBar(hMainWnd);
 	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
 	return 0;
-  case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
+ case WM_USER+5: /* waiting for gdb */
+    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hwait);
+ case WM_CREATE: 
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,115,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
   case WM_PAINT:
@@ -282,7 +315,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 }
 
 
-
+extern void mmix_main(void);
 
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -299,6 +332,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
     hon = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_ON), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
+    hwait = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_WAIT), 
+				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
     hconnect = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_CONNECT), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
     hoff = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_OFF), 
@@ -312,6 +347,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	param_init();
 	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
+
+
+  { DWORD dwMMIXThreadId;
+    HANDLE hMMIXThread;
+     hMMIXThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            mmix_main,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwMMIXThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hMMIXThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of mmix thread failed");
+    /* in the moment, I really dont use the handle */
+    CloseHandle(hMMIXThread);
+  }
 
  	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);

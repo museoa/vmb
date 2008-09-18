@@ -24,6 +24,8 @@
 #define IDB_VERT                        127
 #define IDB_HOR1                        128
 #define IDB_DOT                         128
+#define IDB_BITMAP3                     128
+#define IDB_WAIT                        128
 #define IDC_THE_SERVER                  1001
 #define IDC_THE_PORT                    1002
 #define IDC_DEBUG                       1003
@@ -50,7 +52,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        128
+#define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40017
 #define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="mmix"
-	ProjectGUID="{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
+	ProjectGUID="{5517BA05-32AF-42D6-A69B-26BA7F0F4090}"
 	RootNamespace="mmix"
 	Keyword="Win32Proj"
 	>
@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="..\util; ..\opt"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -72,7 +72,6 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				UseUnicodeResponseFiles="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -98,7 +97,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -118,8 +117,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="..\util; ..\opt"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -137,10 +136,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -175,6 +174,10 @@
 		<ProjectReference
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
 			RelativePathToProject="..\util\vmbwin.vcproj"
+		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{5A384688-86B5-439D-B700-C52330851681}"
+			RelativePathToProject="..\opt\vmbwinopt.vcproj"
 		/>
 	</References>
 	<Files>
@@ -215,6 +218,10 @@
 				RelativePath=".\remote-utils.c"
 				>
 			</File>
+			<File
+				RelativePath=".\winmain.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -245,12 +252,44 @@
 				RelativePath=".\mmix-bus.h"
 				>
 			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\connect.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\icon.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\main.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\off.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\on.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\wait.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\win32.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
