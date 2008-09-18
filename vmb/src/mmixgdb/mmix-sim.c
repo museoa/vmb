@@ -225,9 +225,9 @@ bool breakpoint;
 bool tracing;
 bool stack_tracing;
 #line 648 "mmix-sim.ch"
-static bool interacting;
+bool interacting;
 bool stepping;
-static bool show_operating_system= false;
+bool show_operating_system= false;
 static char localhost[]= "localhost";
 #if defined(WIN32)
 extern int port;

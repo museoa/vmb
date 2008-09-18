@@ -13,9 +13,10 @@ LD=$(MMIXDIR)/mmix-ld
 CFLAGS = -ggdb -D_REENTRANT -Wall 
 PROG= mmix
 UTILDIR = ../util
+OPTDIR = ../opt
 CC = gcc
-INCDIRS = -I$(UTILDIR)
-LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread
+INCDIRS = -I$(UTILDIR) -I$(OPTDIR) 
+LIBS    = -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lm -lvmb -lpthread
 
 
 all: mmix
@@ -23,7 +24,9 @@ all: mmix
 utilities:
 	$(MAKE) -C  $(UTILDIR)
 
-OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o remote-utils.o buffers.o gdb.o
+OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o \
+        remote-utils.o buffers.o gdb.o optiontab.o
+
 abstime.h: abstime
 	./abstime > abstime.h
 

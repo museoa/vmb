@@ -645,9 +645,9 @@ bool profile_started; /* have we printed at least one frequency count? */
 @x
 bool interacting; /* are we in interactive mode? */
 @y
-static bool interacting; /* are we in interactive mode? */
+bool interacting; /* are we in interactive mode? */
 bool stepping; /* should we pause after the next instruction? */
-static bool show_operating_system = false; /* do we show negative addresses */
+bool show_operating_system = false; /* do we show negative addresses */
 static char localhost[]="localhost";
 #if defined(WIN32)
 extern int port;
