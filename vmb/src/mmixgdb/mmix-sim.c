@@ -228,12 +228,12 @@ bool stack_tracing;
 static bool interacting;
 bool stepping;
 static bool show_operating_system= false;
+static char localhost[]= "localhost";
 #if defined(WIN32)
 extern int port;
 extern char*host;
 #else
 static int port= 9002;
-static char localhost[]= "localhost";
 static char*host= localhost;
 #endif
 int gdbport= 2331;
