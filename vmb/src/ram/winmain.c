@@ -245,7 +245,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 	GetObject(hBmp, sizeof(bm), &bm);
 
     hMainWnd = CreateWindow(szClassName, szTitle ,WS_POPUP,
-                            x, y, bm.bmWidth, bm.bmHeight,
+                            xpos, ypos, bm.bmWidth, bm.bmHeight,
 	                        NULL, NULL, hInstance, NULL);
 
     if (hMainWnd) 
@@ -287,7 +287,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	param_init();
 
-	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
 	vmb_connect(host,port);

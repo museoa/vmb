@@ -60,7 +60,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.16 $ $Date: 2008-09-18 13:38:26 $";
+char version[] = "$Revision: 1.17 $ $Date: 2008-09-18 14:38:26 $";
 
 char howto[] =
   "\n"
@@ -935,7 +935,7 @@ WinMain (HINSTANCE hInstance,
 
   param_init ();
 
-  SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+  SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
 
   if (vmb_debug_flag)

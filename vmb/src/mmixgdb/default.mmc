@@ -18,6 +18,12 @@ exec xterm -e ./mmix -B9002 -g12345
 #exec xterm -e ./mmix -B9002 -i
 #endif
 
+
+#if mmix
+interacting on
+system on
+#endif
+
 #if keyboard
 address 0x0001000000000000
 interrupt 17

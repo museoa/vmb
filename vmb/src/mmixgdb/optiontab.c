@@ -27,7 +27,7 @@
 
 extern int interacting;
 extern int show_operating_system;
-int xpos, ypos
+int xpos, ypos;
 
 
 option_spec options[] = {

@@ -26,7 +26,7 @@
 
 extern char *vmb_program_name;
 extern unsigned int vmb_debug_flag;
-extern unsigned int vmb_verbose_level;
+extern int vmb_verbose_level;
 
 
 extern void vmb_message(char *msg);

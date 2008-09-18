@@ -24,8 +24,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #if defined(WIN32)
+#define _WIN32_WINNT 0x0500 
 #pragma warning(disable : 4996)
 #include <windows.h>
+#include <wincon.h>
 #include <fcntl.h>
 #include <io.h>
 #endif
@@ -36,7 +38,7 @@
 #include "error.h"
 
 unsigned int vmb_debug_flag = 0;
-unsigned int vmb_verbose_level = 1;
+int vmb_verbose_level = 1;
 char *vmb_program_name = "Unknown";
 
 #if defined(WIN32)
@@ -65,10 +67,15 @@ void vmb_debug_on(void)
   HANDLE hStd;
   CONSOLE_SCREEN_BUFFER_INFO coninfo;
   FILE *fp;
-  
+  HWND hC;
+
   if (debug_on) return;
 
   if (!AllocConsole()) return;
+
+  hC = GetConsoleWindow();
+  SetWindowLongPtr(hC,GWL_STYLE,WS_POPUP );
+ 
 
   hStd = GetStdHandle(STD_OUTPUT_HANDLE);
 

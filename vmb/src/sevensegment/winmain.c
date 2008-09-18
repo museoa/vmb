@@ -121,8 +121,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 static HWND hBits[64];
 static HBITMAP hhor,hvert,hdot;
-static int xpos[8] = {39,25,11,  20, 5, 80,65,  82};
-static int ypos[8] = {5,53,101,   10,59,  12,61, 101};
+static int xpixelpos[8] = {39,25,11,  20, 5, 80,65,  82};
+static int ypixelpos[8] = {5,53,101,   10,59,  12,61, 101};
 #define DIGITLENGTH 100
 #define WINHEIGHT 111
 #define WINLENGTH (DIGITLENGTH*8)
@@ -147,7 +147,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    for (k=0;k<8;k++)
      	  for (i=0;i<8;i++)
 		  {	hBits[i+k*8] = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,
-		                    xpos[i]+k*DIGITLENGTH,ypos[i],0,0,hWnd,NULL,hInst,0);
+		                    xpixelpos[i]+k*DIGITLENGTH,ypixelpos[i],0,0,hWnd,NULL,hInst,0);
             if (bittyp[i] ==vert)
 		      SendMessage(hBits[i+k*8],STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hvert);
             else if (bittyp[i] == hor)
@@ -265,7 +265,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	param_init();
 	vmb_size = 8;
 
-	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
 	vmb_connect(host,port);

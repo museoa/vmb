@@ -25,7 +25,7 @@ static HINSTANCE hInst;
 #define MAXHOST 1024
 
 
-char version[]="$Revision: 1.4 $ $Date: 2008-09-18 11:06:14 $";
+char version[]="$Revision: 1.5 $ $Date: 2008-09-18 14:38:26 $";
 
 char howto[] =
 "\n"
@@ -315,8 +315,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 }
 
 
-extern void mmix_main(void);
-
+extern DWORD WINAPI mmix_main(LPVOID lpParameter);
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -345,7 +344,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 	param_init();
-	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
 
@@ -364,10 +363,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     /* in the moment, I really dont use the handle */
     CloseHandle(hMMIXThread);
   }
-
+#if 0
  	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
-    SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
+#endif
+
+	SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 	if (vmb_debug_flag)
 	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);
 

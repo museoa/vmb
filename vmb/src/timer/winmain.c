@@ -376,7 +376,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	param_init();
 	vmb_size = 8;
-	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
 	vmb_connect(host,port);
@@ -395,7 +395,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-07-28 14:27:30 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-09-18 14:38:26 $";
 
 char howto[] =
 "\n"

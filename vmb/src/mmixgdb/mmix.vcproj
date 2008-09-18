@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\optiontab.c"
+				>
+			</File>
+			<File
 				RelativePath=".\remote-utils.c"
 				>
 			</File>
