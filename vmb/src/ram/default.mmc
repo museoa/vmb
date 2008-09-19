@@ -36,8 +36,6 @@ file bios.rom
 #endif
 
 #if ram
-X 300
-Y 200
 size 3145728
 address 0x0000000100000000
 #endif
