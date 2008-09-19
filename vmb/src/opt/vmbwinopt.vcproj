@@ -162,7 +162,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winabout.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winbitmap.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winconnect.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winmain.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winpos.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winproc.c"
 				>
 			</File>
 		</Filter>
@@ -179,12 +199,24 @@
 				RelativePath=".\param.h"
 				>
 			</File>
+			<File
+				RelativePath=".\winopt.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\win32class.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\win32connect.rc"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

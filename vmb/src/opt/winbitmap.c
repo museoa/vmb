@@ -1,9 +1,6 @@
 
 #include <windows.h>
-
-
-
-
+#include "winopt.h"
 
 //
 //	BitmapToRegion :	Create a region from the "non-transparent" pixels of a bitmap
