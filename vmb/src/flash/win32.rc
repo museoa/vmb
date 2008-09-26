@@ -158,6 +158,7 @@ END
 
 STRINGTABLE 
 BEGIN
+    IDS_CLASS               "VMB"
     IDS_TITLE               "VMB Flash"
 END
 
