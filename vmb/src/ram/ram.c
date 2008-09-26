@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.7 $ $Date: 2008-09-18 13:38:27 $";
+char version[]="$Revision: 1.8 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
 "\n"
@@ -216,3 +216,6 @@ void vmb_reset(void)
   ram_clean();
 }
 
+void init_device()
+{ ram_clean();
+}

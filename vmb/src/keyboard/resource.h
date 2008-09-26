@@ -31,8 +31,8 @@
 #define ID_ABOUT                        40013
 #define ID_HELP_ABOUT                   40013
 #define ID_SETTINGS                     40015
-#define ID_ALL_MINIMIZE                 40016
-#define ID_MINIMIZE                     40017
+#define ID_ALL_MINIMIZE                 40017
+#define ID_MINIMIZE                     40016
 
 // Next default values for new objects
 // 

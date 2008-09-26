@@ -12,8 +12,10 @@
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #include <windows.h>
+#include "winopt.h"
 #include "resource.h"
 extern HWND hMainWnd;
+extern HBITMAP hbussy;
 #else
 #include <pthread.h>
 #include <unistd.h>
@@ -25,7 +27,7 @@ extern HWND hMainWnd;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.11 $ $Date: 2008-09-18 13:38:26 $";
+char version[]="$Revision: 1.12 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -199,10 +201,12 @@ static void *disk_server(void *_dummy)
 }
 
 void init_device(void)
-{	
+{	vmb_size = 8*5;
 #ifdef WIN32	
     haction =CreateEvent(NULL,FALSE,FALSE,NULL);
     InitializeCriticalSection (&action_section);
+	hbussy = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BUSSY), 
+				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
 #endif
 }
 

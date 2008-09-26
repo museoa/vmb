@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.6 $ $Date: 2008-09-16 09:11:05 $";
+char version[]="$Revision: 1.7 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
 "\n"
@@ -211,6 +211,7 @@ void vmb_disconnected(void)
    SendMessage(hMainWnd,WM_USER+4,0,0);
 #endif
 }
+
 #ifdef WIN32
 #else
 int main(int argc, char *argv[])

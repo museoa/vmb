@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by win32.rc
 //
 #define IDS_CLASS                       1
@@ -16,11 +16,8 @@
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
 #define IDD_ABOUT                       121
-#define IDD_CONNECT                     122
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-#define IDC_THE_SERVER                  1002
-#define IDC_THE_PORT                    1003
 #define IDC_DEBUG                       1004
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006

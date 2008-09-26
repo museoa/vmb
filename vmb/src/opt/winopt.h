@@ -3,7 +3,9 @@ extern HINSTANCE hInst;
 extern HBITMAP hBmp;
 extern HMENU hMenu;
 extern HBITMAP hon,hoff,hconnect;
+extern HWND hpower;
 
+extern void init_device(void);
 
 extern HRGN BitmapToRegion (HBITMAP hBmp);
 

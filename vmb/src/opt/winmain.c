@@ -12,7 +12,7 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 
 
-static BOOL InitInstance(HINSTANCE hInstance)
+BOOL InitInstance(HINSTANCE hInstance)
 {
   WNDCLASSEX wcex;
   BITMAP bm;
@@ -90,7 +90,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	}
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
-
+    init_device();
 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */

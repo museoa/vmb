@@ -27,7 +27,8 @@
 #include <windows.h>
 #pragma warning(disable : 4996)
 #include "resource.h"
-extern HWND hMainWnd;
+#include "winopt.h"
+extern HBITMAP hBmpActive, hBmpInactive;
 #else
 #include <unistd.h>
 #include <termios.h>
@@ -41,7 +42,7 @@ extern HWND hMainWnd;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.10 $ $Date: 2008-09-18 13:38:26 $";
+char version[]="$Revision: 1.11 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
 "\n"
@@ -209,6 +210,10 @@ static void prepare_input(void)
 void init_device(void)
 { vmb_size = 8;
 #ifdef WIN32
+  hBmpActive = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPACTIVE), 
+                                IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+  hBmpInactive=hBmp;
+
 #else
    prepare_input();
 #endif

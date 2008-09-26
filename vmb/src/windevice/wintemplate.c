@@ -259,6 +259,17 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 
+HKEY get_pos_key(void)
+{ HKEY k;
+  LONG r;
+  r = RegOpenCurrentUser(KEY_ALL_ACCESS ,&k);
+  REGSAM samDesired,
+  PHKEY phkResult
+);
+
+  return k;
+}
+
 extern int ramsize;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -268,6 +279,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 {
 	HACCEL hAccelTable;
     MSG msg;
+	HKEY poskey;
 	LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
 	LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
@@ -286,6 +298,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	poskey = get_pos_key();
 	UpdateWindow(hMainWnd);
 	vmb_connect(host,port);
 	vmb_register(0,0,ramsize,0,0,"Simple RAM");

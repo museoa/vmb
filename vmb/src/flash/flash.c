@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.7 $ $Date: 2008-09-16 09:11:02 $";
+char version[]="$Revision: 1.8 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
 "\n"
@@ -161,6 +161,11 @@ void vmb_disconnected(void)
 #endif
 }
 
+void init_device(void)
+{ open_file();
+}
+
+
 #ifdef WIN32
 #else
 int main(int argc, char *argv[])
@@ -171,6 +176,7 @@ int main(int argc, char *argv[])
  vmb_debugs(0, "host: %s ",host);
  vmb_debugi(0, "port: %d ",port);
  close(0); /* stdin */
+ init_device();
  vmb_debugi(0, "address hi: %x ",vmb_address>>32);
  vmb_debugi(0, "address lo: %x ",vmb_address&0xFFFFFFFF);
  vmb_debugi(0, "size: %x ",vmb_size);

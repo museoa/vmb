@@ -5,11 +5,10 @@
 #include "option.h"
 #include "vmb.h"
 
-
+HWND hpower;
 
 LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{ static HWND hpower;
-	
+{ 	
   switch (message) 
   {  
   case WM_NCHITTEST:

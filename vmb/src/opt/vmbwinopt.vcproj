@@ -39,16 +39,18 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\util"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
+				CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -111,6 +113,7 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -211,10 +214,6 @@
 			>
 			<File
 				RelativePath=".\win32class.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\win32connect.rc"
 				>
 			</File>
 		</Filter>

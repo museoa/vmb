@@ -30,6 +30,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include "resource.h"
+#include "winopt.h"
 
 typedef int socklen_t;
 
@@ -60,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.17 $ $Date: 2008-09-18 14:38:26 $";
+char version[] = "$Revision: 1.18 $ $Date: 2008-09-26 08:58:55 $";
 
 char howto[] =
   "\n"
@@ -595,8 +596,8 @@ process_read_fdset ()
 #define MAX_LOADSTRING 100
 /* Global Variables: */
 HINSTANCE hInst;
-TCHAR szClassName[MAX_LOADSTRING] = "WIN32HARDWARE";
-TCHAR szTitle[MAX_LOADSTRING] = "WIN32HARDWARE";
+TCHAR szClassName[MAX_LOADSTRING] = "VMB";
+TCHAR szTitle[MAX_LOADSTRING] = "mother";
 HBITMAP hBmp;
 HMENU hMenu;
 static int infoslot = -1;
@@ -828,6 +829,10 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       EndPaint (hWnd, &ps);
     }
     return 0;
+case WM_MOVE:
+	  xpos = (int)(short) LOWORD(lParam);   // horizontal position 
+      ypos = (int)(short) HIWORD(lParam);   // vertical position 
+	  break;
   case WM_NCRBUTTONDOWN:
     TrackPopupMenu (GetSubMenu (hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN,
 		    LOWORD (lParam), HIWORD (lParam), 0, hWnd, NULL);
@@ -934,7 +939,11 @@ WinMain (HINSTANCE hInstance,
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
 
   param_init ();
-
+	{ DWORD Xpos, Ypos;
+      get_pos_key(&Xpos,&Ypos,defined);
+	  if (xpos == 0 && Xpos != 0) xpos = Xpos;
+	  if (ypos == 0 && Ypos != 0) ypos = Ypos;
+	}
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
 
@@ -951,6 +960,7 @@ WinMain (HINSTANCE hInstance,
     }
   shutdown_server ();
   WSACleanup ();
+      set_pos_key(xpos,ypos,defined);
   return (int)msg.wParam;
 }
 #else
