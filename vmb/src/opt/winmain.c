@@ -16,16 +16,25 @@ BOOL InitInstance(HINSTANCE hInstance)
 {
   WNDCLASSEX wcex;
   BITMAP bm;
+  int r;
 
 #define MAX_LOADSTRING 100		
   static TCHAR szClassName[MAX_LOADSTRING];
   static TCHAR szTitle[MAX_LOADSTRING];
   hInst = hInstance; 
 
-  LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
-  LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
-
-   	ZeroMemory(&wcex, sizeof(wcex));
+  r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
+  if (r==0)
+  { r = GetLastError();
+    vmb_debugi(1,"Unable to load class name (%X)",r);
+	vmb_fatal_error(__LINE__,"Unable to load class name");
+  }
+  r = LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
+  if (r==0)
+  { r = GetLastError();
+    vmb_debugi(1,"Unable to load window title (%X)",r);
+  }
+  ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX); 
 	wcex.style			= CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc	= (WNDPROC)WndProc;
@@ -94,8 +103,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
-	if (vmb_debug_flag)
-	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);
+	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 

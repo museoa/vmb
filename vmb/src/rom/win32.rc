@@ -46,6 +46,7 @@ BEGIN
         MENUITEM "&Settings...",                ID_SETTINGS
         MENUITEM SEPARATOR
         MENUITEM "&Debug",                      ID_DEBUG
+        MENUITEM "&Verbose",                    ID_VERBOSE
         POPUP "&Help"
         BEGIN
             MENUITEM "&About",                      ID_HELP_ABOUT
@@ -157,6 +158,7 @@ END
 
 STRINGTABLE 
 BEGIN
+    IDS_CLASS               "VMB"
     IDS_TITLE               "VMB ROM"
 END
 

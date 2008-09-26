@@ -25,18 +25,20 @@
 #define IDC_BROWSE                      1007
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
+#define ID_VERBOSE                      40009
 #define ID_EXIT                         40012
 #define ID_ABOUT                        40013
 #define ID_HELP_ABOUT                   40013
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
+#define ID_ALL_VERBOSE                  40017
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
-#define _APS_NEXT_COMMAND_VALUE         40017
+#define _APS_NEXT_COMMAND_VALUE         40019
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
