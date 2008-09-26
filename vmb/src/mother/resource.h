@@ -87,7 +87,7 @@
 #define ID_CONNECT                      40007
 
 #define ID_DEBUG                        40008
-
+#define ID_VERBOSE                      40009
 #define ID_EXIT                         40012
 
 #define ID_ABOUT                        40013
