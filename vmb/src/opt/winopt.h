@@ -34,8 +34,8 @@ extern INT_PTR CALLBACK
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
                      
-extern void set_pos_key(DWORD Xpos, DWORD Ypos,char *name);
-extern void get_pos_key(DWORD *Xpos, DWORD *Ypos, char *name);
+extern void set_pos_key(int Xpos, int Ypos,char *name);
+extern void get_pos_key(int *Xpos, int *Ypos, char *name);
 
 
 #define IDS_CLASS                       1

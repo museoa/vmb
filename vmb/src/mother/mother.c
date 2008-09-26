@@ -61,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.18 $ $Date: 2008-09-26 08:58:55 $";
+char version[] = "$Revision: 1.19 $ $Date: 2008-09-26 15:44:16 $";
 
 char howto[] =
   "\n"
@@ -939,11 +939,7 @@ WinMain (HINSTANCE hInstance,
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
 
   param_init ();
-	{ DWORD Xpos, Ypos;
-      get_pos_key(&Xpos,&Ypos,defined);
-	  if (xpos == 0 && Xpos != 0) xpos = Xpos;
-	  if (ypos == 0 && Ypos != 0) ypos = Ypos;
-	}
+  get_pos_key(&xpos,&ypos,defined);
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
 

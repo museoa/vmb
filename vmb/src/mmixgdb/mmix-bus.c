@@ -206,7 +206,6 @@ void preload_data_cache(octa address, int size)
 
 void init_mmix_bus(char *host, int port, char *name)
 {
-  vmb_debug_flag = 0;
   vmb_program_name = "MMIX CPU";
   vmb_connect(host, port);
   vmb_register(0,0,0,-1,-1,name);

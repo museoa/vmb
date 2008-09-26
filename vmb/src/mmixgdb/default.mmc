@@ -2,13 +2,15 @@
 
 
 port 9002
-#host localhost
-host math.cs.fhm.edu
-#debug
+host localhost
+#host math.cs.fhm.edu
+debug
+verbosity 0
 
 
 #if mother
 debug
+verbose
 exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e keyboard
 # exec xterm -geometry 40x10 -fn -misc-fixed-*-*-*-*-*-100-*-*-*-*-*-* -e screen
 exec rom

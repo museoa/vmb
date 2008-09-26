@@ -12,8 +12,6 @@ extern int width, height, framewidth,frameheight;
 
 
 static HDC hCanvas;
-HBITMAP hBmp;
-HMENU hMenu;
 static CRITICAL_SECTION   bitmap_section;
 
 
@@ -51,6 +49,38 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
+case WM_USER+1: /* On */
+	return 0;
+	case WM_USER+2: /* Off */
+		return 0;
+	case WM_USER+3: /* Connected */
+	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
+	  DrawMenuBar(hMainWnd);
+ 	return 0;
+  case WM_USER+4: /* Disconnected */
+	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
+	  DrawMenuBar(hMainWnd);
+	return 0;
+case WM_CREATE:
+
+    return (DefWindowProc(hWnd, message, wParam, lParam));
+
+ case WM_PAINT:
+	{ PAINTSTRUCT ps;
+	  BOOL rc;
+	  DWORD dw;
+	  EnterCriticalSection (&bitmap_section);
+      BeginPaint(hWnd, &ps); 
+	  rc = BitBlt(ps.hdc, 
+		          ps.rcPaint.left,ps.rcPaint.top,ps.rcPaint.right-ps.rcPaint.left, ps.rcPaint.bottom-ps.rcPaint.top,
+                  hCanvas, ps.rcPaint.left,ps.rcPaint.top, SRCCOPY);
+      if (!rc)
+	    dw = GetLastError();
+	  EndPaint(hWnd, &ps); 
+	  LeaveCriticalSection (&bitmap_section);
+    }
+    return 0;
+
   case WM_DESTROY:
     DeleteDC(hCanvas); 
     DeleteObject(hBmp);
@@ -65,8 +95,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 void init_device(void)
-{	InitializeCriticalSection (&bitmap_section);
-	vmb_size = frameheight*framewidth*4;
+{	
+	HDC hdc; 
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_NOREDRAW);
+	hdc = GetDC(hMainWnd);
+	  hCanvas = CreateCompatibleDC(hdc);	 
+	  if (hCanvas==NULL) return;
+      hBmp = CreateCompatibleBitmap(hdc,framewidth,frameheight);
+      if (hBmp==NULL) return;
+      SelectObject(hCanvas, hBmp); 
+      ReleaseDC(hMainWnd, hdc); 
+   InitializeCriticalSection (&bitmap_section);
+   vmb_size = frameheight*framewidth*4;
 }
 
 

@@ -84,23 +84,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
     hoff = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_OFF), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
-	if (hBmp==NULL) return FALSE;
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 
 	if (!InitInstance (hInstance)) return FALSE;
 	
 	param_init();
+    get_pos_key(&xpos,&ypos,defined);
+    init_device();
 
-	{ DWORD Xpos, Ypos;
-      get_pos_key(&Xpos,&Ypos,defined);
-	  if (xpos == 0 && Xpos != 0) xpos = Xpos;
-	  if (ypos == 0 && Ypos != 0) ypos = Ypos;
-	}
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
-    init_device();
-	vmb_connect(host,port);
+ 	vmb_connect(host,port);
 	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
