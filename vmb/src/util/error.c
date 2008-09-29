@@ -38,6 +38,8 @@
 #include "error.h"
 
 unsigned int vmb_debug_flag = 0;
+static int debug_on = 0;
+
 int vmb_verbose_level = 1;
 char *vmb_program_name = "Unknown";
 
@@ -59,7 +61,7 @@ void (*vmb_debug_hook)(char *msg) = NULL;
 #define MAX_DEBUG_LINES 500
 #define MAX_DEBUG_COLUMNS 500
 static FILE orig_stdout, orig_stdin, orig_stderr;
-static int debug_on = 0;
+
 
 /* two functions to switch on and off debugging by creating a console window */
 void vmb_debug_on(void)

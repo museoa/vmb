@@ -61,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.19 $ $Date: 2008-09-26 15:44:16 $";
+char version[] = "$Revision: 1.20 $ $Date: 2008-09-29 15:09:04 $";
 
 char howto[] =
   "\n"
@@ -849,12 +849,13 @@ case WM_MOVE:
 		   InfoDialogProc);
 	return 0;
   case ID_DEBUG:
-	  { static int debug_on = 0;
-        if (debug_on) vmb_debug_off(); else vmb_debug_on();
-		debug_on = !debug_on;
-    	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(debug_on?MF_CHECKED:MF_UNCHECKED));
-	  }
-	return 0;
+      if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
+	  CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	  return 0;
+  case ID_VERBOSE:
+      if (vmb_verbose_level==0) vmb_verbose_level =1; else vmb_verbose_level = 0;
+	  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
+	  return 0;
   case ID_HELP_ABOUT:
 	DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUT), hWnd, AboutDialogProc);
 	return 0;
@@ -942,12 +943,13 @@ WinMain (HINSTANCE hInstance,
   get_pos_key(&xpos,&ypos,defined);
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
-
-  if (vmb_debug_flag)
-    SendMessage (hMainWnd, WM_COMMAND, (WPARAM) ID_DEBUG, 0);
   initialize_slots ();
   create_server ();
   do_commands ();
+  if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+  CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
+
   while (GetMessage (&msg, NULL, 0, 0))
     if (!TranslateAccelerator (msg.hwnd, hAccelTable, &msg))
     {
@@ -956,7 +958,7 @@ WinMain (HINSTANCE hInstance,
     }
   shutdown_server ();
   WSACleanup ();
-      set_pos_key(xpos,ypos,defined);
+  set_pos_key(xpos,ypos,defined);
   return (int)msg.wParam;
 }
 #else
