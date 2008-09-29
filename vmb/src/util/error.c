@@ -55,81 +55,69 @@ void (*vmb_message_hook)(char *msg) = NULL;
 
 
 /* thhooks can be used to change the apperance of messages and debug output */
-void (*vmb_debug_hook)(char *msg) = NULL;
-
 #if defined(WIN32)
-#define MAX_DEBUG_LINES 500
-#define MAX_DEBUG_COLUMNS 500
-static FILE orig_stdout, orig_stdin, orig_stderr;
+
+static HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
+
+void win32_debug(char *msg)
+{ static char nl[] ="\r\n";	
+  LRESULT  n;
+  if (hDebug == NULL) return;
+  n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_GETLINECOUNT,0,0);
+  if (n>100)
+  { n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_LINELENGTH,0,0);
+    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,0,n+2);
+    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
+    n = SendDlgItemMessage(hDebug,IDC_DEBUG,WM_GETTEXTLENGTH,0,0);
+    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,n,n);
+  }
+  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)msg);
+  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)nl);
+}
+
+void (*vmb_debug_hook)(char *msg) = win32_debug;
 
 
-/* two functions to switch on and off debugging by creating a console window */
+INT_PTR CALLBACK   
+DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
+{
+  switch ( message )
+  { case WM_SYSCOMMAND:
+      if( wparam == SC_CLOSE ) 
+      { vmb_debug_flag = 0;
+        debug_on = 0;
+	hDebug = NULL;
+	EndDialog(hDlg, TRUE);
+        return TRUE;
+      }
+      break;
+    case WM_SIZE: 
+      MoveWindow(GetDlgItem(hDebug,IDC_DEBUG),5,5,LOWORD(lparam)-10,HIWORD(lparam)-10,TRUE); 
+      return TRUE;
+  }
+  return FALSE;
+}
+
 void vmb_debug_on(void)
-{ int hConHandle;
-  HANDLE hStd;
-  CONSOLE_SCREEN_BUFFER_INFO coninfo;
-  FILE *fp;
-  HWND hC;
-
-  if (debug_on) return;
-
-  if (!AllocConsole()) return;
-
-  hC = GetConsoleWindow();
-  SetWindowLongPtr(hC,GWL_STYLE,WS_POPUP );
- 
-
-  hStd = GetStdHandle(STD_OUTPUT_HANDLE);
-
-  GetConsoleScreenBufferInfo(hStd, &coninfo);
-  coninfo.dwSize.Y = MAX_DEBUG_LINES;
-  coninfo.dwSize.X = MAX_DEBUG_COLUMNS;
-  SetConsoleScreenBufferSize(hStd, coninfo.dwSize);
-
-  /* redirect unbuffered STDOUT to the console */
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  orig_stdout = *stdout;
-  *stdout = *fp;
-  setvbuf( stdout, NULL, _IONBF, 0 );
-
-  /* redirect unbuffered STDERR to the console */
-
-  hStd = GetStdHandle(STD_ERROR_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  orig_stderr = *stderr;
-  *stderr = *fp;
-  setvbuf( stderr, NULL, _IONBF, 0 );
-
-#ifdef REDIRECT_STDIN
-  /* redirect unbuffered STDIN to the console */
-  hStd = GetStdHandle(STD_INPUT_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)hStd, _O_TEXT);
-  fp = _fdopen( hConHandle, "r" );
-  orig_stdin = *stdin;
-  *stdin = *fp;
-  setvbuf( stdin, NULL, _IONBF, 0 );
-#endif	
-
-	vmb_debug_flag = 1;
-	debug_on = 1;
+{ if (debug_on) return;
+  hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
+  vmb_debug_flag = 1;
+  debug_on = 1;
 }
 
 void vmb_debug_off(void)
 { 
   if (!debug_on) return;
-  FreeConsole();
-
-  *stdout = orig_stdout;
-  *stderr = orig_stderr;
-#ifdef REDIRECT_STDIN
-  *stdin = orig_stdin;
-#endif
+  if (hDebug!=NULL)
+    SendDlgItemMessage(hDebug,WM_SYSCOMMAND,SC_CLOSE,0);
   vmb_debug_flag = 0;
   debug_on = 0;
 }
 #else
+
+void (*vmb_debug_hook)(char *msg) = NULL;
+
+
 void vmb_debug_on(void)
 {  vmb_debug_flag = 1;
 }
@@ -137,8 +125,6 @@ void vmb_debug_on(void)
 void vmb_debug_off(void)
 {  vmb_debug_flag = 0;
 }
-
-
 #endif
 
 
