@@ -61,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.20 $ $Date: 2008-09-29 15:09:04 $";
+char version[] = "$Revision: 1.21 $ $Date: 2008-11-12 13:35:18 $";
 
 char howto[] =
   "\n"
@@ -224,8 +224,6 @@ write_to_slot (int i)
     slot[i].answers_pending--;
   vmb_debugs(0,"Send to %s:", (char *)slot[i].name);
   vmb_debugm(0, mtype, msize, mslot, mid, maddress, mpayload);
-  if (slot[i].answers_pending > 0)
-    vmb_debugi(1,"\tpending answers:    %d", slot[i].answers_pending);
   write_ops++;
   return 0;
 }
@@ -291,7 +289,10 @@ static void
 disconnect_device (int slotnr)
 {
   while (slot[slotnr].answers_pending > 0)
+  { vmb_debugs(1,"\tpending answers for %s", (char *)slot[slotnr].name);
+    vmb_debugi(1,"\tpending answers:    %d", slot[slotnr].answers_pending);
     send_dummy_answer (slotnr);
+  }
   if (powerflag)
     power_off (slotnr);
   terminate(slotnr);
