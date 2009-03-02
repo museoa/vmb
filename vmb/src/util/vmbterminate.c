@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #ifdef WIN32
 #include <windows.h>
+extern HWND hMainWnd;
 #endif
 #include "vmb.h"
 
@@ -47,5 +48,8 @@
 void vmb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { 
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_QUIT,0,0);
+#endif
 }
 

@@ -25,7 +25,7 @@
 #include "param.h"
 #include "vmb.h"
 
-int width,height,framewidth,frameheight;
+int width,height,framewidth,frameheight,zoom;
 
 option_spec options[] = {
 /* description short long kind default handler */
@@ -42,6 +42,7 @@ option_spec options[] = {
 {"the visible height",                  'h', "height",    "visible height",int_arg, "480", {&height}},
 {"the frame width",                     'q', "fwidth",    "frame width",int_arg, "640", {&framewidth}},
 {"the frame height",                    'r', "fheight",    "frame height",int_arg, "480", {&frameheight}},
+{"the zoom factor",                      'z', "zoom",    "zoom factor",int_arg, "1", {&zoom}},
 {"command to execute",                   'x', "exec",    "command line",     fun_arg, NULL, {store_command}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},

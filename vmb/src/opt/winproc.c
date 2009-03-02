@@ -72,11 +72,19 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
 	  return 0; 
 	case ID_DEBUG:
-          if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
+		if (vmb_debug_flag){
+		  vmb_debug_off();
+		  if (hDebug!=NULL)
+            SendMessage(hDebug,WM_SYSCOMMAND,SC_CLOSE,0);
+		}
+		else {
+		  hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
+		  vmb_debug_on();
+		}
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	  return 0;
 	case ID_VERBOSE:
-        if (vmb_verbose_level==0) vmb_verbose_level =1; else vmb_verbose_level = 0;
+        if (vmb_verbose_level==0) vmb_verbose_level = 1; else vmb_verbose_level = 0;
 	    CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
 	  return 0;
 	case ID_HELP_ABOUT:

@@ -92,7 +92,7 @@
 
 #define ID_ABOUT                        40013
 
-#define ID_HELP_ABOUT                   40013
+#define ID_HELP_ABOUT                   40014
 
 #define ID_SETTINGS                     40015
 

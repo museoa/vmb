@@ -32,7 +32,7 @@
 #define ID_VERBOSE                      40009
 #define ID_EXIT                         40012
 #define ID_ABOUT                        40013
-#define ID_HELP_ABOUT                   40013
+#define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
 

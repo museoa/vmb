@@ -51,13 +51,16 @@ BOOL InitInstance(HINSTANCE hInstance)
 */
 	if (!RegisterClassEx(&wcex)) return FALSE;
 
-	GetObject(hBmp, sizeof(bm), &bm);
+	if (hBmp)
+		GetObject(hBmp, sizeof(bm), &bm);
+	else
+		bm.bmWidth=bm.bmHeight=CW_USEDEFAULT;
 
     hMainWnd = CreateWindow(szClassName, szTitle ,WS_POPUP,
                             xpos, ypos, bm.bmWidth, bm.bmHeight,
 	                        NULL, NULL, hInstance, NULL);
 
-    if (hMainWnd) 
+    if (hMainWnd && hBmp) 
 	{ 
 	  HRGN h = BitmapToRegion(hBmp);
 	  if (h) SetWindowRgn(hMainWnd, h, TRUE);
@@ -74,6 +77,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 {
 	HACCEL hAccelTable;
     MSG msg;
+    vmb_message_hook = win32_message;
+	vmb_debug_hook = win32_debug;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 	hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP), 

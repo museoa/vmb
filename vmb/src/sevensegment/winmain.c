@@ -247,13 +247,6 @@ void vmb_disconnected(void)
 }
 
 
-void vmb_terminate(void)
-/* this function is called when the motherboard politely asks the device to terminate.*/
-{ 
-   PostMessage(hMainWnd,WM_QUIT,0,0);
-}
-
-
 void vmb_reset(void)
 { memset(segmentbits,0xFF,8);
   update_bits();

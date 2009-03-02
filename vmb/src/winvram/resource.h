@@ -16,13 +16,18 @@
 #define IDC_DEBUG                       1003
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
-#define IDC_RAMSIZE                     1006
+#define IDC_RAMSIZE                     1007
+#define IDC_FRAMEWIDTH                  1008
+#define IDC_FRAMEHEIGHT                 1009
+#define IDC_WIDTH                       1010
+#define IDC_HEIGHT                      1011
+#define IDC_ZOOM                        1012
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
-#define ID_VERBOSE                        40009
+#define ID_VERBOSE                      40009
 #define ID_EXIT                         40012
 #define ID_ABOUT                        40013
-#define ID_HELP_ABOUT                   40013
+#define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
 
@@ -31,8 +36,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
-#define _APS_NEXT_COMMAND_VALUE         40017
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_COMMAND_VALUE         40009
+#define _APS_NEXT_CONTROL_VALUE         10013
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

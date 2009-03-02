@@ -61,7 +61,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.21 $ $Date: 2008-11-12 13:35:18 $";
+char version[] = "$Revision: 1.22 $ $Date: 2009-03-02 08:53:41 $";
 
 char howto[] =
   "\n"
@@ -767,13 +767,16 @@ ResetDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
   return FALSE;
 }
 
+INT_PTR CALLBACK   
+SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
+{ return 0; /* dummy stub needed by OptWndProc */
+}
+
 LRESULT CALLBACK
 WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch (message)
   {
-  case WM_NCHITTEST:
-    return HTCAPTION;
   case WM_CREATE:
     { 
       HWND h;
@@ -813,63 +816,21 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	connect_new_device ();
     }
     return 0;
-  case WM_PAINT:
-    {
-      PAINTSTRUCT ps;
-      HDC hdc;
-      hdc = BeginPaint (hWnd, &ps);
-      if (hBmp)
-      {
-	HDC memdc = CreateCompatibleDC (NULL);
-	HBITMAP h = (HBITMAP) SelectObject (memdc, hBmp);
-	BITMAP bm;
-	GetObject (hBmp, sizeof (bm), &bm);
-	BitBlt (hdc, 0, 0, bm.bmWidth, bm.bmHeight, memdc, 0, 0, SRCCOPY);
-	SelectObject (memdc, h);
-      }
-      EndPaint (hWnd, &ps);
-    }
-    return 0;
-case WM_MOVE:
-	  xpos = (int)(short) LOWORD(lParam);   // horizontal position 
-      ypos = (int)(short) HIWORD(lParam);   // vertical position 
-	  break;
-  case WM_NCRBUTTONDOWN:
-    TrackPopupMenu (GetSubMenu (hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN,
-		    LOWORD (lParam), HIWORD (lParam), 0, hWnd, NULL);
-    return 0;
   case WM_COMMAND:
     if (HIWORD (wParam) == 0)	/* Menu */
       switch (LOWORD (wParam))
       {
-      case ID_EXIT:
-	PostQuitMessage (0);
-	return 0;
       case ID_INFO:
-	DialogBox (hInst, MAKEINTRESOURCE (IDD_INFO), hMainWnd,
+	       DialogBox (hInst, MAKEINTRESOURCE (IDD_INFO), hMainWnd,
 		   InfoDialogProc);
-	return 0;
-  case ID_DEBUG:
-      if (vmb_debug_flag) vmb_debug_off(); else vmb_debug_on();
-	  CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
-	  return 0;
-  case ID_VERBOSE:
-      if (vmb_verbose_level==0) vmb_verbose_level =1; else vmb_verbose_level = 0;
-	  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
-	  return 0;
-  case ID_HELP_ABOUT:
-	DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUT), hWnd, AboutDialogProc);
-	return 0;
+	       return 0;
       }
-    return 0;
-  case WM_DESTROY:
-    PostQuitMessage (0);
-    return 0;
-  default:
-    return (DefWindowProc (hWnd, message, wParam, lParam));
+    break;
   }
-  return (DefWindowProc (hWnd, message, wParam, lParam));
+  return (OptWndProc (hWnd, message, wParam, lParam));
 }
+
+
 extern HRGN BitmapToRegion (HBITMAP hBmp);
 
 
@@ -915,6 +876,10 @@ WinMain (HINSTANCE hInstance,
   HACCEL hAccelTable;
   MSG msg;
   WSADATA wsadata;
+  
+  vmb_message_hook = win32_message;
+  vmb_debug_hook = win32_debug;
+
   LoadString (hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   LoadString (hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
   hMenu = LoadMenu (hInstance, MAKEINTRESOURCE (IDR_MENU));
@@ -948,6 +913,7 @@ WinMain (HINSTANCE hInstance,
   create_server ();
   do_commands ();
   if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+  if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
   CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
 

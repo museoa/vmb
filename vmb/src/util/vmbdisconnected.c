@@ -28,6 +28,10 @@
 
 
 #include <stdlib.h>
+#ifdef WIN32
+#include <windows.h>
+extern HWND hMainWnd;
+#endif
 #include "vmb.h"
 
 
@@ -43,4 +47,7 @@
 void vmb_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+4,0,0);
+#endif
 }

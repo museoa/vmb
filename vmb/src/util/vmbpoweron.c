@@ -28,6 +28,10 @@
 
 
 #include <stdlib.h>
+#ifdef WIN32
+#include <windows.h>
+extern HWND hMainWnd;
+#endif
 #include "vmb.h"
 
 
@@ -43,4 +47,7 @@
 void vmb_poweron(void)
 /* this function is called when the virtual power is turned on */
 { /* do nothing */
+#ifdef WIN32
+   SendMessage(hMainWnd,WM_USER+1,0,0);
+#endif
 }

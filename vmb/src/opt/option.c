@@ -106,6 +106,32 @@ uint64_t strtouint64(char *arg)
 	  }
   return r;
 }
+
+int strtoint(char *arg)
+{ int r = 0;
+  while(isspace(*arg)) arg++;
+  if (strncmp(arg,"0x",2)==0 || strncmp(arg,"0X",2)==0) /* hex */
+  { arg = arg+2;
+	while (isxdigit(*arg))
+	{ unsigned int x;
+	  if (isdigit(*arg)) x = *arg - '0'; 
+	  else if (isupper(*arg)) x = *arg - 'A';
+	  else x = *arg -'a';
+	  r = (r<<4) + x;
+	  arg++;
+	}
+  }
+  else /* decimal */
+      while (isdigit(*arg))
+	  {unsigned int d;
+       d = *arg -'0';
+	   r = r*10+d;
+	   arg++;
+	  }
+  return r;
+}
+
+
 static 
 int do_option(option_spec *p, char *arg)
 { unsigned int n;
@@ -136,7 +162,7 @@ int do_option(option_spec *p, char *arg)
 	  if (arg==NULL)
 		  vmb_error(__LINE__,"Argument expected");
 	  else
-          *(p->handler.i)=atoi(arg);
+          *(p->handler.i)=strtoint(arg);
       return 1;
    case uint64_arg:
       if (arg==NULL)

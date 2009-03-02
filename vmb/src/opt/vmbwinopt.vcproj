@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windebug.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winmain.c"
 				>
 			</File>

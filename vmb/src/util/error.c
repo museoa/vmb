@@ -38,83 +38,11 @@
 #include "error.h"
 
 unsigned int vmb_debug_flag = 0;
-static int debug_on = 0;
+
 
 int vmb_verbose_level = 1;
 char *vmb_program_name = "Unknown";
-
-#if defined(WIN32)
-void win32_message(char *msg)
-{
-	MessageBox(NULL,msg,"Message",MB_OK);
-}
-void (*vmb_message_hook)(char *msg) = win32_message;
-#else
 void (*vmb_message_hook)(char *msg) = NULL;
-#endif
-
-
-/* thhooks can be used to change the apperance of messages and debug output */
-#if defined(WIN32)
-
-static HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
-
-void win32_debug(char *msg)
-{ static char nl[] ="\r\n";	
-  LRESULT  n;
-  if (hDebug == NULL) return;
-  n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_GETLINECOUNT,0,0);
-  if (n>100)
-  { n = SendDlgItemMessage(hDebug,IDC_DEBUG,EM_LINELENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,0,n+2);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)"");
-    n = SendDlgItemMessage(hDebug,IDC_DEBUG,WM_GETTEXTLENGTH,0,0);
-    SendDlgItemMessage(hDebug,IDC_DEBUG,EM_SETSEL,n,n);
-  }
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)msg);
-  SendDlgItemMessage(hDebug,IDC_DEBUG,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)nl);
-}
-
-void (*vmb_debug_hook)(char *msg) = win32_debug;
-
-
-INT_PTR CALLBACK   
-DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{
-  switch ( message )
-  { case WM_SYSCOMMAND:
-      if( wparam == SC_CLOSE ) 
-      { vmb_debug_flag = 0;
-        debug_on = 0;
-	hDebug = NULL;
-	EndDialog(hDlg, TRUE);
-        return TRUE;
-      }
-      break;
-    case WM_SIZE: 
-      MoveWindow(GetDlgItem(hDebug,IDC_DEBUG),5,5,LOWORD(lparam)-10,HIWORD(lparam)-10,TRUE); 
-      return TRUE;
-  }
-  return FALSE;
-}
-
-void vmb_debug_on(void)
-{ if (debug_on) return;
-  hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
-  vmb_debug_flag = 1;
-  debug_on = 1;
-}
-
-void vmb_debug_off(void)
-{ 
-  if (!debug_on) return;
-  if (hDebug!=NULL)
-    SendDlgItemMessage(hDebug,WM_SYSCOMMAND,SC_CLOSE,0);
-  vmb_debug_flag = 0;
-  debug_on = 0;
-}
-#else
-
 void (*vmb_debug_hook)(char *msg) = NULL;
 
 
@@ -125,7 +53,7 @@ void vmb_debug_on(void)
 void vmb_debug_off(void)
 {  vmb_debug_flag = 0;
 }
-#endif
+
 
 
 void vmb_message(char *message)
