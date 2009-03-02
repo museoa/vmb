@@ -1,5 +1,5 @@
 
-CFLAGS= -O3 -ggdb -D_REENTRANT -Wall -pg
+CFLAGS= -O3 -D_REENTRANT -Wall 
 CC= gcc
 AR = ar
 ARFLAGS = cru

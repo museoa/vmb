@@ -3,7 +3,7 @@
  * \file        FAT32_Access.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.c,v 1.1 2008-09-15 13:49:47 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_Access.c,v 1.2 2009-03-02 12:27:59 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, Access
  * \details     {
  * }
@@ -166,13 +166,13 @@ UINT32 FAT32_GetRootCluster( void )
 /*!
  * \fn      UINT32 FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry)
  * \brief   Find the file entry for a filename
- * \param   Cluster     Needs an unsigned integer (uint32) which represents a cluster on the Fat32 image
- * \param   nametofind  Needs a char pointer which represents the name for which to search
- * \param   sfEntry     Needs a FAT32_ShortEntry pointer of the sfEntry.
- * \return  Returns a unsigned integer (uint32) which represents the file entry for a given cluster
- * and name.
+ * \param   Cluster     An unsigned integer (uint32) which represents a cluster on the Fat32 image
+ * \param   nametofind  A char pointer which represents the name for which to search
+ * \param   sfEntry     A FAT32_ShortEntry pointer of the sfEntry, will contain the
+ *                      entry data if return is true.
+ * \return  Returns true if the file was found, false otherwise
  */
-UINT32 FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry)
+bool FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry)
 {
     LOGVARS( "LOG4C_PRIORITY_DEBUG", "FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, ..)", "uc", Cluster, nametofind );
     BYTE item           = 0;

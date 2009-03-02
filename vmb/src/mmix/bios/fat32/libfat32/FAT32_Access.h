@@ -3,7 +3,7 @@
  * \file        FAT32_Access.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_Access.h,v 1.2 2009-03-02 12:27:59 ruckert Exp $
  * \brief       FAT32 Library, Access functions
  * \details     {
  * }
@@ -37,7 +37,7 @@ bool FAT32_SectorReader( UINT32 Startcluster, UINT32 offset );
 bool FAT32_SectorWriter( UINT32 Startcluster, UINT32 offset );
 void FAT32_ShowFATDetails( void );
 UINT32 FAT32_GetRootCluster(  );
-UINT32 FAT32_GetFileEntry( UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry );
+bool FAT32_GetFileEntry( UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry );
 bool FAT32_SFNexists( UINT32 Cluster, char *shortname );
 bool FAT32_UpdateFileLength( UINT32 Cluster, char *shortname, UINT32 fileLength );
 bool FAT32_MarkFileDeleted( UINT32 Cluster, char *shortname );

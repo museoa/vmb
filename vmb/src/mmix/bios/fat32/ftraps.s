@@ -107,15 +107,30 @@ TrapFopen 	AND     $6,$0,#0FF	% get the Z value is the handle
 		.global	TrapFclose
 
 
-TrapFclose	NEG	$0,1
-		PUT	rBB,$1     %the error code is returned with resume 1
+TrapFclose	AND     $6,$0,#0FF	% get the Z value is the handle
+	        GET     $0,rJ		% the return address
+		SET	$1,$255		% save global registers destroyed by gcc
+		SET	$2,$254
+		SET	$3,$253
+		GET	$4,rG
+		PUT	rG,#e0           % allocate 32 global registers for gcc
+	
+		GETA	$254,OSStackStart
+		SET	$253,0
+		PUSHJ   $5,fat32_fclose
+		PUT	rBB,$5     %the error code is returned with resume 1
+		SET	$255,$1   % restore user gcc stack and globals
+		SET	$254,$2
+		SET	$253,$3
+		PUT	rG,$4
+		PUT	rJ,$0
 		POP	0,0
 
 		.global	TrapFread
 
 
-TrapFread	AND     $6,$0,#0FF    %get the Z value
-		CMP	$1,$6,3
+TrapFread	AND     $7,$0,#0FF    %get the Z value
+		CMP	$1,$7,3
 		BN	$1,TrapFgets	for stdin, stdout, stderr do like fgets
 
 		% this is a file handle
@@ -128,11 +143,13 @@ TrapFread	AND     $6,$0,#0FF    %get the Z value
 	
 		GETA	$254,OSStackStart
 		SET	$253,0
-	      	GET	$5,rBB    %get the $255 parameter
-		LDO	$7,$5,0   %the buffer
-		LDO	$8,$5,8	  %the size
-		PUSHJ   $5,fat32_fread
-		PUT	rBB,$5     %the error code is returned with resume 1
+	      	GET	$6,rBB    %get the $255 parameter
+		LDO	$8,$6,0   %the buffer
+		LDO	$9,$6,8	  %the size
+		SET	$5,$9
+		PUSHJ   $6,fat32_fread
+		SUB	$6,$6,$5
+		PUT	rBB,$6     %the error code is returned with resume 1
 		SET	$255,$1   % restore user gcc stack and globals
 		SET	$254,$2
 		SET	$253,$3
@@ -179,13 +196,34 @@ TrapFgetws 	NEG	$0,1
 
 		.global	TrapFwrite
 
-TrapFwrite AND     $0,$0,#0FF    %get the Z value 
-        BZ      $0,1F     %this is stdin
-        CMP     $1,$0,2
+TrapFwrite AND     $10,$0,#0FF    %get the Z value 
+        BZ      $10,1F     %this is stdin
+        CMP     $1,$10,2
         BNP     $1,4F     %this is stdout or stderr
-%       this is a file 
-	NEG	$0,1
-	PUT	rBB,$1     %the error code is returned with resume 1
+
+%       this is a file
+        GET     $0,rJ		% the return address
+	SET	$1,$255		% save global registers destroyed by gcc
+	SET	$2,$254
+	SET	$3,$253
+	GET	$4,rG
+	PUT	rG,#e0          % allocate 32 global registers for gcc
+	
+	GETA	$254,OSStackStart
+	SET	$253,0
+      	GET	$6,rBB    %get the $255 parameter
+	LDO	$7,$6,0   %the buffer
+	SET	$8,1      %the size
+	LDO	$9,$6,8	  %the count, in $10 is the handle
+	SET	$5,$9
+	PUSHJ   $6,fat32_fwrite
+	SUB	$6,$6,$5
+	PUT	rBB,$6     %the error code is returned with resume 1
+	SET	$255,$1   % restore user gcc stack and globals
+	SET	$254,$2
+	SET	$253,$3
+	PUT	rG,$4
+	PUT	rJ,$0
 	POP	0,0
 
 
@@ -235,7 +273,6 @@ TrapFseek 	NEG	$0,1
 		POP	0,0
 
 		.global	TrapFtell
-
 
 TrapFtell	NEG	$0,1
 		PUT	rBB,$1     %the error code is returned with resume 1

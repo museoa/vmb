@@ -169,6 +169,7 @@ At a later point the interface
 should be included here as a literate program.
 
 @<Type...@>=
+#include <time.h>
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
@@ -641,6 +642,7 @@ static bool show_operating_system = false; /* do we show negative addresses */
 static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
 static char *bushost=localhost; /* on which host to connect to the bus */
+static bool hostclock=false; /* take rC from the host */
 @z
 
 
@@ -999,6 +1001,9 @@ case CSWAP: case CSWAPI:
 
 
 @x
+case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
+  x=g[zz];
+  goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
@@ -1010,6 +1015,14 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   }
   g[xx]=z;@+zz=xx;@+break;
 @y
+case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
+  if (zz==rC && hostclock)
+  { x.l = clock();
+    x.h = 0;
+  }
+  else
+    x=g[zz];
+  goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
@@ -1782,6 +1795,7 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
     return;
   } 
  case 'O': show_operating_system=true;@+return;
+ case 'C': hostclock=true;@+return;
 @z
 
 @x
@@ -1800,6 +1814,7 @@ static bool profiling=0; /* should we print the profile at the end? */
 @y
 "-r    trace hidden details of the register stack\n",@|
 "-O    trace inside the operating system\n",@|
+"-C    use host clock for rC\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z

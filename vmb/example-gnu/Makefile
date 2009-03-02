@@ -8,7 +8,7 @@ MLDFLAGS=--entry=_start.
 #MLDFLAGS=--section-start .text=0x8000000000000000 
 
 
-all: hello.elf bios.elf bios.img
+all: hello.elf name.elf
 
 
 # to make mmo or elf files one can use the gnu binutils
@@ -28,6 +28,9 @@ all: hello.elf bios.elf bios.img
 %.elf: %.c
 	$(MCC) -g -melf -mabi=mmixware  $^ -o $@
 
+%.mmo: %.c
+	$(MCC) -g -mabi=mmixware  $^ -o $@
+
 
 BIOSFLAGS=  -t -T bios.x --section-start .BIOS=0x8000000000000000 --entry=0x8000000000000000
 
@@ -37,5 +40,14 @@ bios.elf: bios.o
 bios.img: bios.o
 	$(MLD)  $(BIOSFLAGS) --oformat binary $^ -o $@
 
+devices:
+	cp ../src/disk/disk disk
+	cp ../src/ram/ram ram 
+	cp ../src/rom/rom rom
+	cp ../src/mmixgdb/mmix mmix 
+	cp ../src/screen/screen screen 
+	cp ../src/keyboard/keyboard keyboard
+	cp ../src/mother/mother mother
+
 clean:
-	rm -f *.o *.elf *.img *~
+	rm -f *.o  *~

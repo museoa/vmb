@@ -1,11 +1,18 @@
 #include <stdio.h>
 
 int main(void)
-{  char name[100]; 
+{  char str[100]; 
+   FILE *f;
    register int i;
-   printf("Whats your name: ");
-   gets(name);
-   for (i=0; i<20; i++)
-     printf("Hello %s!\n",name);
+   printf("filename: ");
+   gets(str);
+   f = fopen(str,"r");
+   if (f==NULL)
+     printf("Unable to open file %s\n",str);
+   else
+   {  while (fgets(str,99,f)!=NULL)
+        printf("%s",str);
+     fclose(f);
+   }
    return 0;
 }

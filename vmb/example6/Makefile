@@ -1,5 +1,5 @@
 #   produce an object file from the assembler file
-BIN=/usr/local/bin
+BIN=/home/ruckert/mmixmb/bitrange/install/bin
 AFLAGS= -gdwarf2
 AS=$(BIN)/mmixal
 MAS=$(BIN)/mmix-as
@@ -24,9 +24,15 @@ all: hello.elf
 %.o: %.c
 	$(MCC) $(MCFLAGS) -c $^ -o $@
 
+%.elf: %.c
+	$(MCC) $(MCFLAGS) -melf $<  -o $@
+
 
 %.elf: %.o
 	$(MLD) $(MLDFLAGS) --oformat elf64-mmix $<  -o $@
+
+%.mmo: %.o
+	$(MLD) $(MLDFLAGS) --oformat mmo $<  -o $@
 
 
 
