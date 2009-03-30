@@ -11,34 +11,10 @@
 extern int width, height, framewidth, frameheight, zoom;
 
 
-static HDC hCanvas;
+static HDC hCanvas = NULL;
 static CRITICAL_SECTION   bitmap_section;
 
 
-
-static void init_bitmap(void)
-{	
-	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width*zoom,height*zoom,SWP_NOREDRAW);
-	{ unsigned int new_size = frameheight*framewidth*4;
-      if (vram==NULL)
-	  { vram= malloc(new_size);
-	    vmb_size = new_size;
-		memset(vram,0,new_size);
-	  }
-	  else
-	  { unsigned char * new_vram;
-	    new_vram = realloc(vram,new_size);
-		if (new_vram)
-		{ vram = new_vram;
-		  if (new_size> vmb_size)
-			memset(vram+vmb_size,0, new_size-vmb_size);
-		  vmb_size=new_size;
-		}
-	  }
-	}
-	if (vram == NULL)
-      vmb_fatal_error(__LINE__,"Out of memory initializing video memory");
-}
 
 INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -61,15 +37,19 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
+      { int newframewidth, newframeheight;
+	    GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
-		frameheight=GetDlgItemInt(hDlg,IDC_FRAMEHEIGHT,FALSE,FALSE);
-		framewidth=GetDlgItemInt(hDlg,IDC_FRAMEWIDTH,FALSE,FALSE);
+		newframeheight=GetDlgItemInt(hDlg,IDC_FRAMEHEIGHT,FALSE,FALSE);
+		newframewidth=GetDlgItemInt(hDlg,IDC_FRAMEWIDTH,FALSE,FALSE);
+
 		height=GetDlgItemInt(hDlg,IDC_HEIGHT,FALSE,FALSE);
 		width=GetDlgItemInt(hDlg,IDC_WIDTH,FALSE,FALSE);
 		zoom=GetDlgItemInt(hDlg,IDC_ZOOM,FALSE,FALSE);
-		init_bitmap();
-      }
+		if(newframeheight!=frameheight || newframewidth!=framewidth)
+		  init_device();
+		SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width*zoom,height*zoom,SWP_SHOWWINDOW);
+     }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
         return TRUE;
@@ -96,17 +76,28 @@ case WM_USER+1: /* On */
 	  DrawMenuBar(hMainWnd);
 	return 0;
 case WM_CREATE:
+	InitializeCriticalSection (&bitmap_section);
     return (DefWindowProc(hWnd, message, wParam, lParam));
 
  case WM_PAINT:
 	{ PAINTSTRUCT ps;
 	  BOOL rc;
 	  DWORD dw;
+	  int src_left, src_top,src_right,src_bottom;
 	  EnterCriticalSection (&bitmap_section);
       BeginPaint(hWnd, &ps); 
-	  rc = BitBlt(ps.hdc, 
-		          ps.rcPaint.left,ps.rcPaint.top,ps.rcPaint.right-ps.rcPaint.left, ps.rcPaint.bottom-ps.rcPaint.top,
-                  hCanvas, ps.rcPaint.left,ps.rcPaint.top, SRCCOPY);
+	  src_left = ps.rcPaint.left/zoom;
+	  src_right = (ps.rcPaint.right+zoom-1)/zoom;
+	  src_top = ps.rcPaint.top/zoom;
+	  src_bottom = (ps.rcPaint.bottom+zoom-1)/zoom;
+	  SetStretchBltMode(ps.hdc,COLORONCOLOR);
+	  rc = StretchBlt(ps.hdc, 
+		          src_left*zoom,src_top*zoom,
+				  (src_right-src_left)*zoom, (src_bottom-src_top)*zoom,
+                  hCanvas, 
+				  src_left,src_top, 
+				  src_right-src_left, src_bottom-src_top,
+				  SRCCOPY);
       if (!rc)
 	    dw = GetLastError();
 	  EndPaint(hWnd, &ps); 
@@ -115,8 +106,8 @@ case WM_CREATE:
     return 0;
 
   case WM_DESTROY:
-    DeleteDC(hCanvas); 
-    DeleteObject(hBmp);
+    if (hCanvas != NULL) DeleteDC(hCanvas); 
+    if (hBmp!=NULL) DeleteObject(hBmp);
 	DeleteCriticalSection(&bitmap_section);
     PostQuitMessage(0);
     return 0;
@@ -131,14 +122,17 @@ void init_device(void)
 	HDC hdc; 
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_NOREDRAW);
 	hdc = GetDC(hMainWnd);
-	  hCanvas = CreateCompatibleDC(hdc);	 
-	  if (hCanvas==NULL) return;
-      hBmp = CreateCompatibleBitmap(hdc,framewidth,frameheight);
-      if (hBmp==NULL) return;
-      SelectObject(hCanvas, hBmp); 
-      ReleaseDC(hMainWnd, hdc); 
-   InitializeCriticalSection (&bitmap_section);
-   vmb_size = frameheight*framewidth*4;
+	if (hCanvas!=NULL) DeleteDC(hCanvas); 
+	hCanvas = CreateCompatibleDC(hdc);	 
+	if (hCanvas==NULL) return;
+    if (hBmp!=NULL) DeleteObject(hBmp);
+    hBmp = CreateCompatibleBitmap(hdc,framewidth,frameheight);
+    if (hBmp==NULL) return;
+    SelectObject(hCanvas, hBmp); 
+    ReleaseDC(hMainWnd, hdc); 
+    vmb_size = frameheight*framewidth*4;
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width*zoom,height*zoom,SWP_NOREDRAW);
+	if (vmb_power) vmb_poweron(); else vmb_poweroff();
 }
 
 
@@ -228,7 +222,7 @@ void vmb_poweron(void)
   HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
   hbr = CreateSolidBrush(RGB(0,0,0));
-  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rect.top=0, rect.left=0, rect.bottom=frameheight*zoom, rect.right=framewidth*zoom;
   rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
@@ -241,7 +235,7 @@ void vmb_poweroff(void)
   HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
   hbr = CreateSolidBrush(RGB(127,127,127));
-  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rect.top=0, rect.left=0, rect.bottom=frameheight*zoom, rect.right=framewidth*zoom;
   rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
@@ -255,7 +249,7 @@ void vmb_disconnected(void)
   HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
   hbr = CreateSolidBrush(RGB(127,0,0));
-  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rect.top=0, rect.left=0, rect.bottom=frameheight*zoom, rect.right=framewidth*zoom;
   rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
