@@ -10,10 +10,11 @@
 
 extern int width, height, framewidth, frameheight, zoom;
 
+
+static HDC hCanvas;
 static CRITICAL_SECTION   bitmap_section;
 
 
-static unsigned char *vram=NULL;
 
 static void init_bitmap(void)
 {	
@@ -78,21 +79,6 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
-static void paint_pixel(HDC hdc, int x, int y)
-{ RECT rect;
-  HBRUSH color;
-  rect.top=y*zoom;
-  rect.bottom=y*zoom+zoom;
-  rect.left=x*zoom;
-  rect.right=x*zoom+zoom;
-
-  color = CreateSolidBrush(RGB(vram[(y*framewidth+x)*4+1],
-	                           vram[(y*framewidth+x)*4+2],
-							   vram[(y*framewidth+x)*4+3]));
-  FillRect(hdc,&rect,color);
-  DeleteObject(color);
-}
-
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
@@ -114,19 +100,23 @@ case WM_CREATE:
 
  case WM_PAINT:
 	{ PAINTSTRUCT ps;
-	  HDC hdc;
-	  int x, y;
-	  hdc =BeginPaint(hWnd,&ps);
+	  BOOL rc;
+	  DWORD dw;
 	  EnterCriticalSection (&bitmap_section);
-	  for (y=ps.rcPaint.top/zoom;y<=(ps.rcPaint.bottom-1)/zoom;y++)
-	    for (x=ps.rcPaint.left/zoom;x<=(ps.rcPaint.right-1)/zoom;x++)
-	     paint_pixel(hdc,x,y);	  
-	  LeaveCriticalSection (&bitmap_section);
+      BeginPaint(hWnd, &ps); 
+	  rc = BitBlt(ps.hdc, 
+		          ps.rcPaint.left,ps.rcPaint.top,ps.rcPaint.right-ps.rcPaint.left, ps.rcPaint.bottom-ps.rcPaint.top,
+                  hCanvas, ps.rcPaint.left,ps.rcPaint.top, SRCCOPY);
+      if (!rc)
+	    dw = GetLastError();
 	  EndPaint(hWnd, &ps); 
+	  LeaveCriticalSection (&bitmap_section);
     }
     return 0;
 
   case WM_DESTROY:
+    DeleteDC(hCanvas); 
+    DeleteObject(hBmp);
 	DeleteCriticalSection(&bitmap_section);
     PostQuitMessage(0);
     return 0;
@@ -138,8 +128,17 @@ case WM_CREATE:
 
 void init_device(void)
 {	
-   init_bitmap();
+	HDC hdc; 
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_NOREDRAW);
+	hdc = GetDC(hMainWnd);
+	  hCanvas = CreateCompatibleDC(hdc);	 
+	  if (hCanvas==NULL) return;
+      hBmp = CreateCompatibleBitmap(hdc,framewidth,frameheight);
+      if (hBmp==NULL) return;
+      SelectObject(hCanvas, hBmp); 
+      ReleaseDC(hMainWnd, hdc); 
    InitializeCriticalSection (&bitmap_section);
+   vmb_size = frameheight*framewidth*4;
 }
 
 
@@ -147,26 +146,76 @@ void init_device(void)
 
 unsigned char *vmb_get_payload(unsigned int offset,int size)
 { static unsigned char payload[258*8];
+  int i = 0;
   EnterCriticalSection (&bitmap_section);
-  memmove(payload,vram+offset,size);
+  while (size >= 4)
+  { int x, y;
+    COLORREF c;
+    y = offset / framewidth;
+	x = offset % framewidth;
+	c = GetPixel(hCanvas,x,y);
+    payload[i++]= 0;
+    payload[i++]= GetRValue(c);
+    payload[i++]= GetGValue(c);
+    payload[i++]= GetBValue(c);
+	offset = offset+4;
+	size = size-4;
+  }
+  if (size > 0)
+  { int x, y;
+    COLORREF c;
+    y = offset / framewidth;
+	x = offset % framewidth;
+	c = GetPixel(hCanvas,x,y);
+    payload[i++]= 0;
+    if (size>1) payload[i++]= GetRValue(c);
+    if (size>2) payload[i++]= GetGValue(c);
+    if (size>3) payload[i++]= GetBValue(c);
+  }
   LeaveCriticalSection (&bitmap_section);
   return payload;
 }
 
 void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 { RECT rect;
-  int minx, miny, maxx, maxy;
+  int i = 0;
+  int minx=framewidth-1,miny=frameheight-1,maxx=0,maxy=0;
   EnterCriticalSection (&bitmap_section);
-  memmove(vram+offset,payload,size);
-  miny=offset/(4*framewidth);
-  maxy=(offset+size-1)/(4*framewidth);
-  if (maxy>miny) 
-  { minx=0; 
-    maxx=width; 
+  while (size >= 4)
+  { int x, y;
+    COLORREF c;
+    y = (offset/4) / framewidth;
+	x = (offset/4) % framewidth;
+	if (x>maxx)maxx=x;
+	if (y>maxy)maxy=y;
+	if (x<minx)minx=x;
+	if (y<miny)miny=y;
+	c = RGB(payload[i+1],payload[i+2],payload[i+3]);
+	c = SetPixel(hCanvas,x,y,c);
+	i = i+4;
+	offset = offset+4;
+	size = size-4;
   }
-  else
-  { minx = (offset%(4*framewidth))/4;
-    maxx = ((offset+size-1)%(4*framewidth))/4;
+  if (size > 0)
+  { int x, y;
+    unsigned char r,g,b;
+    COLORREF c;
+    y = (offset/4) / framewidth;
+	x = (offset/4) % framewidth;
+	if (x>maxx)maxx=x;
+	if (y>maxy)maxy=y;
+	if (x<minx)minx=x;
+	if (y<miny)miny=y;
+	c = GetPixel(hCanvas,x,y);
+	r = GetRValue(c);
+    g = GetGValue(c);
+    b = GetBValue(c);
+
+	if (size > 1) r = payload[i+1];
+    if (size > 2) g = payload[i+2];
+	if (size > 3) b = payload[i+3];
+	c = RGB(r,g,b);
+ 	c = SetPixel(hCanvas,x,y,c);
   }
   rect.top=miny*zoom, rect.left=minx*zoom, rect.bottom=(maxy+1)*zoom, rect.right=(maxx+1)*zoom;
   InvalidateRect(hMainWnd,&rect,FALSE);
@@ -175,9 +224,12 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 
 void vmb_poweron(void)
 { RECT rect;
+  int rc;
+  HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
-  memset(vram,0,vmb_size);
-  rect.top=0, rect.left=0, rect.bottom=height*zoom, rect.right=width*zoom;
+  hbr = CreateSolidBrush(RGB(0,0,0));
+  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
 }
@@ -185,9 +237,12 @@ void vmb_poweron(void)
 
 void vmb_poweroff(void)
 { RECT rect;
+  int rc;
+  HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
-  memset(vram,0x7F,vmb_size);
-  rect.top=0, rect.left=0, rect.bottom=height*zoom, rect.right=width*zoom;
+  hbr = CreateSolidBrush(RGB(127,127,127));
+  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
 }
@@ -195,12 +250,13 @@ void vmb_poweroff(void)
 
 void vmb_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
-{  RECT rect;
-   unsigned int i;
+{ RECT rect;
+  int rc;
+  HBRUSH hbr;
   EnterCriticalSection (&bitmap_section);
-  for(i = 1; i < vmb_size; i= i+8)
-	  vram[i]= 0xFF;
-  rect.top=0, rect.left=0, rect.bottom=height*zoom, rect.right=width*zoom;
+  hbr = CreateSolidBrush(RGB(127,0,0));
+  rect.top=0, rect.left=0, rect.bottom=frameheight, rect.right=framewidth;
+  rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
   SendMessage(hMainWnd,WM_USER+4,0,0); /* the disconnect button */
