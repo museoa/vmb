@@ -43,17 +43,20 @@ size	IS	$0		parameter
 	PREFIX	:paint paint a single pixel 
 
 
-GPutPixel IS	10	
+GPutPixel IS	#10	Trap number	
+Gwidth	  IS	640	Physical length of a screen line
 
 x	IS	$0
 y	IS	$1
 color	IS	$2
+tmp	IS	$3
 
-:paint	MUL	y,y,:width
+:paint	SET	tmp,Gwidth
+	MUL	y,y,tmp
 	ADD	y,y,x
 	SL	y,y,32+2	times 4 and shift to hi tetra
 	OR	$255,y,color	pass parameter to TRAP
-	TRAP	0,GPutPixel
+	TRAP	0,GPutPixel,0
 	POP	0,0
 
 //	Basic list processing functions
