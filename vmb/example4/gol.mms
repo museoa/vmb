@@ -22,7 +22,7 @@ Counts	BYTE	0	Byte-Array of Neighbor Counts
 	LOC	Counts+height*width
 	GREG	@	
 Cells	BYTE	0	Byte-Array of cells 0 dead 1 alive
-	LOC	Counts+height*width
+	LOC	Cells+height*width
 
 	OCTA	0	ensure alignment of heap
 Free	GREG	@	End of used data, begin of heap
@@ -139,10 +139,14 @@ eptr	IS	$3
 	POP	1,0
 
 	PREFIX	:delete		return a list element to unused
-:delete	GET	$0,:rJ
-	LDA	$2,:Unused
-	PUSHJ	$1,:add
-	PUT	:rJ,$0
+eptr	IS	$0
+return	IS	$1
+tmp	IS 	$3
+:delete	GET	return,:rJ
+	LDA	tmp+1,:Unused
+	SET	tmp+2,eptr
+	PUSHJ	tmp,:add
+	PUT	:rJ,return
 	POP	1,0
 
 
@@ -150,7 +154,13 @@ eptr	IS	$3
 
 	PREFIX	:Init	Initialize the Create List
 
-pattern	BYTE	10,10,5,1,0,2,1,0,3,1,3,2,3 	x,y,n,dx1,dy1,...,dxn,dyn
+glider	BYTE	5,1,0,2,1,0,2,1,2,2,2 		n,dx1,dy1,...,dxn,dyn
+	TETRA	0				alignment
+
+pulse	BYTE	22,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0
+	BYTE	   0,1,2,1,3,1,4,1,5,1,7,1
+	BYTE	   0,2,1,2,2,2,3,2,4,2,5,2,6,2,7,2
+
 x	IS	$0
 y	IS	$1
 dx	IS	$2
@@ -161,20 +171,40 @@ return	IS	$6
 tmp	IS	$7
 
 :Init	GET	return,:rJ
-	GETA	p,pattern
-	LDB	x,p,0
-	LDB	y,p,1
-	LDB	n,p,2
-	ADDU	p,p,3
+
+	GETA	tmp+1,glider
+	SET	tmp+2,4
+	SET	tmp+3,4
+	PUSHJ	tmp,:pattern
+
+	GETA	tmp+1,pulse
+	SET	tmp+2,30
+	SET	tmp+3,10
+	PUSHJ	tmp,:pattern
+
+	PUT	:rJ,return
+	POP	0,0
+
+	PREFIX :pattern
+p	IS	$0
+x	IS	$1
+y	IS	$2
+dx	IS	$3
+dy	IS	$4
+n	IS	$5
+return	IS	$6
+tmp	IS	$7
+
+:pattern GET	return,:rJ
+	LDB	n,p,0
+	ADDU	p,p,1
 loop	BZ	n,end
 	LDB	dx,p,0
 	LDB	dy,p,1
 
-	ADD	tmp+3,x,dx
-	ADD	tmp+4,y,dy
-	PUSHJ	tmp+2,:new
-	LDA	tmp+1,:Create
-	PUSHJ	tmp,:add
+	ADD	tmp+1,x,dx
+	ADD	tmp+2,y,dy
+	PUSHJ	tmp,:docreate
 
 	ADDU	p,p,2
 	SUB	n,n,1
@@ -183,7 +213,10 @@ loop	BZ	n,end
 end	PUT	:rJ,return
 	POP	0,0
 
-	PREFIX	:Update		Update the screen and the count array
+
+
+
+	PREFIX	:Update		Update the count array
 
 return	IS	$0
 tmp	IS	$1
@@ -205,45 +238,31 @@ tmp	IS	$1
 
 eptr	IS	$0
 return	IS	$1
-x	IS	$2
-y	IS	$3
-tmp	IS	$4
+tmp	IS	$5
 
 :birth	GET	return,:rJ
-	LDT	x,eptr,:x
-	LDT	y,eptr,:y
-	SET	tmp+1,x
-	SET	tmp+2,y
-	LDTU	tmp+3,:CellColor
-	PUSHJ	tmp,:paint
-	SET	tmp+1,x
-	SET	tmp+2,y
+	LDT	tmp+1,eptr,:x
+	LDT	tmp+2,eptr,:y
 	SET	tmp+3,1
 	PUSHJ	tmp,:adjust
-	PUT	:rJ,return
+end	PUT	:rJ,return
 	POP	0,0
 
 	PREFIX	:death
 
 eptr	IS	$0
 return	IS	$1
-x	IS	$2
-y	IS	$3
-tmp	IS	$4
+tmp	IS	$5
 
 :death	GET	return,:rJ
-	LDT	x,eptr,:x
-	LDT	y,eptr,:y
-	SET	tmp+1,x
-	SET	tmp+2,y
-	SET	tmp+3,0
-	PUSHJ	tmp,:paint
-	SET	tmp+1,x
-	SET	tmp+2,y
+	LDT	tmp+1,eptr,:x
+	LDT	tmp+2,eptr,:y
 	ORN	tmp+3,tmp+3,tmp+3	minus one
 	PUSHJ	tmp,:adjust
-	PUT	:rJ,return
+end	PUT	:rJ,return
 	POP	0,0
+
+
 
 	PREFIX	:adjust adjust neighbour counts of x/y by diff
 
@@ -255,8 +274,8 @@ tmp	IS	$4
 
 :adjust	LDA	p,:Counts
 	ADDU	p,p,x
-	MUL	y,y,:width
-	ADDU	p,p,y		points to center element
+	MUL	tmp,y,:width
+	ADDU	p,p,tmp		points to center element
 
 	SUB	p,p,:width+1	top-left	
 	LDB	tmp,p,0
@@ -297,7 +316,8 @@ tmp	IS	$4
 
 	PREFIX	:NextGeneration
 //	iterate over neighbours of created or killed cells and
-//	make new lists of cells to create or kill
+//	make new lists of cells to create or kill, 
+//	set the cell array and the screen
 
 created	IS	$0
 killed	IS	$1
@@ -383,9 +403,16 @@ base	IS	$5
 return 	IS	$6
 tmp	IS	$7
 
-:decide GET	return,:rJ
-	MUL	y,y,:width
-	ADD	index,y,x
+:decide BN	x,quit		check for bounds
+	BN	y,quit
+	CMP	tmp,x,:width
+	BNN	tmp,quit
+	CMP	tmp,y,:height
+	BNN	tmp,quit
+	
+	GET	return,:rJ
+	MUL	tmp,y,:width
+	ADD	index,tmp,x
 	LDA	base,:Cells
 	LDB	state,base,index
 	LDA	base,:Counts
@@ -397,18 +424,44 @@ tmp	IS	$7
 	CMP	tmp,count,3
 	BZ	tmp,end
 
-	LDA	tmp+1,:Kill
-
-	SET	tmp+3,x
-	SET	tmp+4,y		
-	PUSHJ	tmp+2,:new
+	SET	tmp+1,x
+	SET	tmp+2,y		
+	PUSHJ	tmp,:dokill
 	
-	PUSHJ	tmp,:add
-
 	JMP	end
 
 dead	CMP	tmp,count,3
 	BNZ	tmp,end
+
+	SET	tmp+1,x
+	SET	tmp+2,y		
+	PUSHJ	tmp,:docreate
+	
+end	PUT	:rJ,return
+quit	POP	0,0
+
+	PREFIX :docreate create the cell, update cells, screen, add Created
+x	IS	$0
+y	IS	$1
+return	IS	$2
+base	IS	$3
+tmp	IS	$4
+
+
+:docreate GET	return,:rJ
+	LDA	base,:Cells
+	MUL	tmp,y,:width
+	ADD	tmp,tmp,x
+	ADD	base,base,tmp
+	LDB	tmp,base,0
+	BP	tmp,end		already alive
+	SET	tmp,1
+	STB	tmp,base,0
+
+	SET	tmp+1,x
+	SET	tmp+2,y
+	LDTU	tmp+3,:CellColor
+	PUSHJ	tmp,:paint
 	
 	LDA	tmp+1,:Create
 
@@ -421,11 +474,48 @@ dead	CMP	tmp,count,3
 end	PUT	:rJ,return
 	POP	0,0
 
+
+
+	PREFIX :dokill kill the cell, update cells and screen, add to kill
+x	IS	$0
+y	IS	$1
+return	IS	$2
+base	IS	$3
+tmp	IS	$4
+
+
+:dokill GET	return,:rJ
+	LDA	base,:Cells
+	MUL	tmp,y,:width
+	ADD	tmp,tmp,x
+	ADD	base,base,tmp
+	LDB	tmp,base,0
+	BZ	tmp,end		already dead
+	SET	tmp,0
+	STB	tmp,base,0
+
+	SET	tmp+1,x
+	SET	tmp+2,y
+	SET	tmp+3,0
+	PUSHJ	tmp,:paint
+	
+	LDA	tmp+1,:Kill
+
+	SET	tmp+3,x
+	SET	tmp+4,y		
+	PUSHJ	tmp+2,:new
+	
+	PUSHJ	tmp,:add
+
+end	PUT	:rJ,return
+	POP	0,0
+
+
+
 	PREFIX	:Wait
 
-:Wait	LDA	$255,:InArgs
-	TRAP	0,:Fgets,:StdIn
-	SET	$0,1
+:Wait	SYNC	4	go to powersave mode waiting for the next interrupt
+	SET	$0,1	dont terminate
 	POP	1,0
 
 	PREFIX	:
