@@ -7,7 +7,7 @@
 
 HINSTANCE hInst;
 HWND hMainWnd;
-HBITMAP hBmp;
+HBITMAP hBmp=NULL;
 HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 
@@ -113,7 +113,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	    DispatchMessage(&msg);
 	  }
 	vmb_disconnect();
-    set_pos_key(xpos,ypos,defined);
+    set_pos_key(hMainWnd,defined);
 	return (int)msg.wParam;
 }
 

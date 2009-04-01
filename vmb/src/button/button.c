@@ -164,8 +164,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
  
   case WM_NCLBUTTONDOWN:
-  {   int dx = xpos + 32 - LOWORD(lParam); 
-      int dy = ypos +32 - HIWORD(lParam);
+  {   int dx, dy;
+	  WINDOWPLACEMENT wndpl;
+      wndpl.length=sizeof(WINDOWPLACEMENT);
+      if(GetWindowPlacement(hWnd,&wndpl))
+	  { xpos = wndpl.rcNormalPosition.left;   // horizontal position 
+        ypos = wndpl.rcNormalPosition.top;   // vertical position 
+	  }
+	  dx = xpos + 32 - LOWORD(lParam); 
+      dy = ypos +32 - HIWORD(lParam);
       if (dx*dx+dy*dy>25*25) break;
 	  if (pushbutton && pushstate)
 	  { hBmp=hOff;
@@ -183,8 +190,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  return 0;
   }
   case WM_NCLBUTTONUP:
-  {   int dx = xpos + 32 - LOWORD(lParam); 
-      int dy = ypos +32 - HIWORD(lParam);
+  {   int dx, dy;
+	  WINDOWPLACEMENT wndpl;
+      wndpl.length=sizeof(WINDOWPLACEMENT);
+      if(GetWindowPlacement(hWnd,&wndpl))
+	  { xpos = wndpl.rcNormalPosition.left;   // horizontal position 
+        ypos = wndpl.rcNormalPosition.top;   // vertical position 
+	  }
+	  dx = xpos + 32 - LOWORD(lParam); 
+      dy = ypos +32 - HIWORD(lParam);
       if (dx*dx+dy*dy>20*20) break;
 	  if (pushbutton) return 0;
 	  hBmp=hOff;

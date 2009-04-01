@@ -185,10 +185,6 @@
 				RelativePath=".\devicetemplate.c"
 				>
 			</File>
-			<File
-				RelativePath=".\wintemplate.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

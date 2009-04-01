@@ -225,6 +225,26 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
+				RelativePath=".\connect.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\icon.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\main.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\off.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\on.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\win32.rc"
 				>
 			</File>

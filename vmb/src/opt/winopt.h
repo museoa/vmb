@@ -39,7 +39,7 @@ extern INT_PTR CALLBACK
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
                      
-extern void set_pos_key(int Xpos, int Ypos,char *name);
+extern void set_pos_key(HWND hWnd,char *name);
 extern void get_pos_key(int *Xpos, int *Ypos, char *name);
 
 

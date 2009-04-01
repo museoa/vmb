@@ -18,7 +18,7 @@
 #define IDD_ABOUT                       121
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-#define IDC_DEBUG                       1004
+#define IDC_DEBUG                       1003
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define IDC_FILE                        1006
@@ -28,7 +28,7 @@
 #define ID_VERBOSE                      40009
 #define ID_EXIT                         40012
 #define ID_ABOUT                        40013
-#define ID_HELP_ABOUT                   40013
+#define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
 

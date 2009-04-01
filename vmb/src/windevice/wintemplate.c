@@ -259,17 +259,6 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 
-HKEY get_pos_key(void)
-{ HKEY k;
-  LONG r;
-  r = RegOpenCurrentUser(KEY_ALL_ACCESS ,&k);
-  REGSAM samDesired,
-  PHKEY phkResult
-);
-
-  return k;
-}
-
 extern int ramsize;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -297,7 +286,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!InitInstance (hInstance)) return FALSE;
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
-	SetWindowPos(hMainWnd,HWND_TOP,x,y,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	poskey = get_pos_key();
 	UpdateWindow(hMainWnd);
 	vmb_connect(host,port);

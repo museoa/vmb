@@ -1,9 +1,17 @@
 #include <windows.h>
 #include "winopt.h"
 
-void set_pos_key(int xpos, int ypos,char *name)
-{ HKEY p=0,vmb=0, s=0;
+void set_pos_key(HWND hWnd,char *name)
+{ int xpos,ypos;
+  HKEY p=0,vmb=0, s=0;
   LONG r;
+  WINDOWPLACEMENT wndpl;
+  wndpl.length=sizeof(WINDOWPLACEMENT);
+  if(!GetWindowPlacement(hWnd,&wndpl))
+			return;
+
+  xpos = wndpl.rcNormalPosition.left;   // horizontal position 
+  ypos = wndpl.rcNormalPosition.top;   // vertical position 
   r = RegOpenKeyEx(HKEY_CURRENT_USER,"Software",0,KEY_ALL_ACCESS,&s);
   if (r==ERROR_SUCCESS)
   {  DWORD n;

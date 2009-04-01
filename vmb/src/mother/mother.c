@@ -38,6 +38,7 @@ typedef int socklen_t;
 
 HWND hMainWnd, hpower;
 HBITMAP hon, hoff, hconnect;
+static int server_terminating=0;
 
 
 
@@ -61,7 +62,7 @@ HBITMAP hon, hoff, hconnect;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.22 $ $Date: 2009-03-02 08:53:41 $";
+char version[] = "$Revision: 1.23 $ $Date: 2009-04-01 16:40:50 $";
 
 char howto[] =
   "\n"
@@ -267,7 +268,7 @@ terminate (int i)
 {
   if (!bus_msg (ID_TERMINATE, i))
     vmb_debugi(0,"Sent Terminate to Slot %d", i);
-  else
+  else if (!server_terminating)
     vmb_error(__LINE__,"Unable to send Terminate");
 }
 
@@ -298,12 +299,12 @@ disconnect_device (int slotnr)
   terminate(slotnr);
    if (!bus_unregister (slot[slotnr].fd))
     vmb_debugi(0,"Shutdown of Slot %d", slotnr);
-  else
+  else if (!server_terminating)
     vmb_error(__LINE__,"Unable to shut down slot");
 
   if (bus_disconnect (slot[slotnr].fd) >= 0)
     vmb_debugi(0,"Closed socket from Slot %d : Successful", slotnr);
-  else
+  else if (!server_terminating)
     vmb_debugi(1,"Closing socket from Slot %d : Failed", slotnr);
 
   remove_slot (slotnr);
@@ -338,7 +339,8 @@ terminate_all (void)
 
 static void
 shutdown_server ()
-{ terminate_all();
+{ server_terminating=1;
+  terminate_all();
   for_all_slots (disconnect_device);
   if (bus_unregister (mother_fd) >= 0 && bus_disconnect (mother_fd) >= 0)
     vmb_debugi(0,"Shutdown server at Port %d : Successful", port);
@@ -925,7 +927,7 @@ WinMain (HINSTANCE hInstance,
     }
   shutdown_server ();
   WSACleanup ();
-  set_pos_key(xpos,ypos,defined);
+  set_pos_key(hMainWnd,defined);
   return (int)msg.wParam;
 }
 #else

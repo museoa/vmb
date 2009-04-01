@@ -33,10 +33,6 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
-  case WM_MOVE:
-	  xpos = (int)(short) LOWORD(lParam);   // horizontal position 
-      ypos = (int)(short) HIWORD(lParam);   // vertical position 
-	  break;
   case WM_PAINT:
     { PAINTSTRUCT ps;
       HDC hdc;
