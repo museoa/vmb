@@ -1182,7 +1182,8 @@ case SWYM:
  {   char buf[256];
      int n;
      z.h=0, z.l=inst&0xFF;
-     tracing=breakpoint=interacting=true;
+     tracing=interacting;
+     breakpoint=true;
      interrupt=false;
      if (loc.h&sign_bit) show_operating_system=true;
      n=mmgetchars(buf,256,g[255],0);
@@ -1240,8 +1241,6 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
  if (inst == 0) /* Halt */
  {  if (interacting)
       tracing=breakpoint=true, interrupt=false;
-    else
-      tracing=true, interrupt=false;
  }
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
