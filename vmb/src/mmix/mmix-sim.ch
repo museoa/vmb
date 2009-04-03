@@ -1179,7 +1179,15 @@ break_inst: breakpoint=tracing=true;
  break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
-     z.h=0, z.l=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
+ {   char buf[256];
+     int n;
+     z.h=0, z.l=inst&0xFF;
+     tracing=breakpoint=interacting=true;
+     interrupt=false;
+     if (loc.h&sign_bit) show_operating_system=true;
+     n=mmgetchars(buf,256,g[255],0);
+     if (strncmp(buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf);
+ }
  @+break;
 @z
 
