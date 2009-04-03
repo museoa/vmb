@@ -2484,7 +2484,7 @@ breakpoint= true;
 interrupt= false;
 if(loc.h&sign_bit)show_operating_system= true;
 n= mmgetchars(buf,256,g[255],0);
-if(strncmp(buf,"DEBUG ",6)==0)printf("\n\t%s!\n\n",buf);
+if(strncmp(buf,"DEBUG ",6)==0)printf("\n\t%s!\n\n",buf+6);
 }
 break;
 #line 2364 "mmix-sim.w"
