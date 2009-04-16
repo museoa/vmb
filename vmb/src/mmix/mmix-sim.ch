@@ -690,7 +690,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,"%z"},@|
-{"SWYM",0x01,0,0,1,"%z"},@|
+{"SWYM",0x01,0,0,1,"%r"},@|
 @z
 
 
@@ -1181,7 +1181,9 @@ case SWYM:
  if ((inst&0xFFFFFF)!=0) 
  {   char buf[256];
      int n;
-     z.h=0, z.l=inst&0xFF;
+     strcpy(rhs,"$%x,%z");
+     z.h=0, z.l=inst&0xFFFF;
+     x.h=0, x.l=(inst>>16)&0xFF;
      tracing=interacting;
      breakpoint=true;
      interrupt=false;
@@ -1189,6 +1191,8 @@ case SWYM:
      n=mmgetchars(buf,256,g[255],0);
      if (strncmp(buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf+6);
  }
+ else
+   strcpy(rhs,"");
  @+break;
 @z
 
