@@ -1182,13 +1182,14 @@ case SWYM:
  {   char buf[256];
      int n;
      strcpy(rhs,"$%x,%z");
-     z.h=0, z.l=inst&0xFFFF;
-     x.h=0, x.l=(inst>>16)&0xFF;
+     z.h=0, z.l=yz;
+     x.h=0, x.l=xx;
      tracing=interacting;
      breakpoint=true;
      interrupt=false;
      if (loc.h&sign_bit) show_operating_system=true;
-     n=mmgetchars(buf,256,g[255],0);
+     @<Set |b| from register X@>;
+     n=mmgetchars(buf,256,b,0);
      if (strncmp(buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf+6);
  }
  else
