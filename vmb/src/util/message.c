@@ -50,8 +50,20 @@ static int write_socket(int socket, unsigned char *msg, int size)
   while(snd < size)
   { int i;
     i = send(socket, &msg[snd], size-snd,0);
-
-    if (i<=0)
+    if (i<0) /* error */
+    { 
+#ifdef WIN32 
+		i = WSAGetLastError();
+		if (i == WSAEWOULDBLOCK)
+		{  /* if the socket was used in nonblocking mode (motherboadr) 
+		      it might return 0 */
+			continue; /* Bussy wait */
+		}
+#endif		
+		bus_disconnect(socket);
+	  return -1;
+	}
+    else if (i==0) /* connection has closed */
     { bus_disconnect(socket);
       return -1;
     }
@@ -159,13 +171,25 @@ int receive_msg(int socket,
   rcv = read_socket(socket,msg,4);
   if (rcv <= 0)
     return rcv;
-  msg_size = message_size(msg);
 
-  /*recieve rest of message */
-  if (msg_size > 4)
-  { rcv = read_socket(socket,msg+4,msg_size-4);
-    if (rcv <0 )
-      return rcv;
+  { int len;
+    len = rcv;
+	  /*recieve header of message */
+    while (4 > len)
+    { rcv = read_socket(socket,msg+len,4-len);
+      if (rcv <0 )
+        return rcv;
+	  len = len+rcv;
+    }
+    msg_size = message_size(msg);
+
+    /*recieve rest of message */
+    while (msg_size > len)
+    { rcv = read_socket(socket,msg+len,msg_size-len);
+      if (rcv <0 )
+        return rcv;
+	  len = len+rcv;
+    }
   }
   /* transfer data to pointers */
   *type = *msg++;

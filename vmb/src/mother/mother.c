@@ -62,7 +62,7 @@ static int server_terminating=0;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.23 $ $Date: 2009-04-01 16:40:50 $";
+char version[] = "$Revision: 1.24 $ $Date: 2009-06-04 16:31:08 $";
 
 char howto[] =
   "\n"
@@ -505,6 +505,30 @@ close_slot (int i)
     vmb_error(__LINE__,"Invalid slot number");
 }
 
+static void make_blocking(int fd)
+{  /* make the socket blocking */
+#ifdef WIN32
+  if (hMainWnd)
+    WSAAsyncSelect(fd, hMainWnd, WM_SOCKET, 0);
+  else
+  {
+    WSAEVENT e;
+    e = WSACreateEvent ();
+    WSAEventSelect (mother_fd, e,0);
+  }
+  { u_long arg=0;
+    ioctlsocket(fd,FIONBIO,&arg);
+  }
+#else
+  {
+    int flags;
+    flags = fcntl (fd, F_GETFL);
+    flags &= ~O_NONBLOCK;
+    fcntl (mother_fd, F_SETFL, flags);
+  }
+#endif
+}
+
 static void
 connect_new_device ()
 {
@@ -530,6 +554,7 @@ connect_new_device ()
 	setsockopt (slot[i].fd, IPPROTO_TCP, TCP_NODELAY,
 		    (char *) &tmp, sizeof (tmp));
       }
+/*	  make_blocking(slot[i].fd); */
       return;
     }
   vmb_error(__LINE__,"Can't connect any more client's");

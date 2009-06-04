@@ -198,6 +198,20 @@ void preload_data_cache(octa address, int size)
   }
 }
 
+/* sideeffects of special bus messages */
+
+void vmb_poweron(void)
+{}
+
+void vmb_poweroff(void)
+{}
+
+void vmb_disconnected(void)
+{}
+
+void vmb_terminate(void)
+{}
+
 
 void init_mmix_bus(char *host, int port, char *name)
 {

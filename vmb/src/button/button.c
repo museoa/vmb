@@ -164,6 +164,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
  
   case WM_NCLBUTTONDOWN:
+  case WM_NCLBUTTONDBLCLK:
   {   int dx, dy;
 	  WINDOWPLACEMENT wndpl;
       wndpl.length=sizeof(WINDOWPLACEMENT);
