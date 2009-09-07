@@ -3,7 +3,7 @@
  * \file        FAT32_Disk.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Disk.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_Disk.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, Disk
  * \details     {
  * }
@@ -22,7 +22,7 @@
 #ifndef __FAT32_DISK_H__
 #define __FAT32_DISK_H__
 
-bool FAT32_InitDrive();
+bool FAT_InitDrive();
 bool FAT_ReadSector( UINT32 sector, BYTE *buffer );
 bool FAT_WriteSector( UINT32 sector, BYTE *buffer );
 

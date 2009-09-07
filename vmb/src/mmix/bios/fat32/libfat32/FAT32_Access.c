@@ -3,7 +3,7 @@
  * \file        FAT32_Access.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.c,v 1.2 2009-03-02 12:27:59 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_Access.c,v 1.3 2009-09-07 11:43:30 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, Access
  * \details     {
  * }
@@ -20,280 +20,258 @@
 #include <string.h>
 
 #include "FAT32_Definitions.h"
-#include "FAT32_Base.h"
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
-#include "FAT32_Write.h"
 #include "FAT32_FileString.h"
-#include "FAT32_Misc.h"
+#include "FAT32_Longname.h"
+#include "FAT32_Cache.h"
+
+FAT32_Cache DirCache;
 
 
-/*!
- * \fn      bool FAT32_InitFAT(void)
- * \brief   Load FAT32 Parameters
- * \return  Boolean if the initialization went ok or not
- */
-bool FAT32_InitFAT( void )
-{
-    FATFS_Internal.SectorCurrentlyLoaded  = 0xFFFFFFFF;
-    FATFS_Internal.NextFreeCluster        = 0xFFFFFFFF;
-    return FAT32_Init();
+void FAT32_dir_shutdown(void)
+{  FAT32_WriteCache(&DirCache);
 }
 
-/*!
- * \fn      bool FAT32_SectorReader(UINT32 Startcluster, UINT32 offset)
- * \brief   From the provided startcluster and sector offset
- * \return  True if success, returns False if not (including if read out of range)
- */
+
 bool FAT32_SectorReader( UINT32 Startcluster, UINT32 offset )
 {
-    UINT32 SectortoRead, ClustertoRead, ClusterChain   = 0;
-    UINT32 i;
     UINT32 lba;
 
-    LOGVARS( "LOG4C_PRIORITY_VVERBOSE", "Inside of FAT32_SectorReader(UINT32 Startcluster, UINT32 offset).",
-             "uu", Startcluster, offset );
+    lba = FAT32_ClusterOffset2lba(&Startcluster, offset,false);
+    if (lba==0) return false;
 
-    ClusterChain  = Startcluster;                                         ///< Set start of cluster chain to initial value
-
-    ClustertoRead = offset / FAT32.SectorsPerCluster;                     ///< Find parameters
-    SectortoRead  = offset - (ClustertoRead*FAT32.SectorsPerCluster);
-    for (i=0; i<ClustertoRead; i++)                                       ///< Follow chain to find cluster to read
-        ClusterChain = FAT32_FindNextCluster( ClusterChain );
-
-
-    LOGVARS( "LOG4C_PRIORITY_VVERBOSE", "ClusterChain = FAT32_FindNextCluster(ClusterChain);", "x", ClusterChain );
-    //LOGVARS( "LOG4C_PRIORITY_VVERBOSE", "Clusterchain should be (to end):", "x", 0xFFFFFF8 );
-
-    // If end of cluster chain then return false
-    //   -- this was the original value, produces a infinite loop when doing a dirlisting
-    //   -- If the value is e.g. 0xFFFFFF8 the ClusterChain ends prematurely.
-    if( ClusterChain == 0xFFFFFFFF )
-        {
-            LOG( "LOG4C_PRIORITY_VVERBOSE", "We reached the end of the cluster chain, nothing to read anymore !" );
-            return false;
-        }
-
-    lba = FAT32_LBAofCluster(ClusterChain)+SectortoRead;                   ///< Calculate sector address
-
-    if (lba!=FATFS_Internal.SectorCurrentlyLoaded)                         ///< Else read sector if not already loaded
-    {
-        FATFS_Internal.SectorCurrentlyLoaded = lba;
-        return FAT_ReadSector( FATFS_Internal.SectorCurrentlyLoaded, FATFS_Internal.currentsector );
-    }
-    else
-        return true;
-
+    return FAT32_ReadCache(&DirCache,lba);
 }
 
 
 #ifdef INCLUDE_WRITE_SUPPORT
 
 /*!
- * \fn      bool FAT32_SectorWriter(UINT32 Startcluster, UINT32 offset)
+ * \fn      bool FAT32_SectorWriter(UINT32 *Startcluster, UINT32 offset)
  * \brief   Write to the provided startcluster and sector offset 
  * \return  True if success, returns False if not
  */
-bool FAT32_SectorWriter(UINT32 Startcluster, UINT32 offset)
+bool FAT32_SectorWriter(UINT32 *Startcluster, UINT32 offset)
 {
-    UINT32 SectortoWrite, ClustertoWrite, ClusterChain  = 0;
-    UINT32 LastClusterChain                             = 0xFFFFFFFF;
-    UINT32 i;
+    UINT32 lba;
 
-    ClusterChain    = Startcluster;                                   ///< Set start of cluster chain to initial value
+    lba = FAT32_ClusterOffset2lba(Startcluster, offset, true);
+    if (lba==0) return false;
+    
+    DirCache.lba=lba;
+    DirCache.dirty=true;
 
-    ClustertoWrite  = offset / FAT32.SectorsPerCluster;               ///< Find parameters
-    SectortoWrite   = offset - ( ClustertoWrite * FAT32.SectorsPerCluster );
-
-    for( i=0; i<ClustertoWrite; i++ )                                 ///< Follow chain to find cluster to read
-    {
-        LastClusterChain  = ClusterChain;                             ///< Find next link in the chain
-        ClusterChain      = FAT32_FindNextCluster( ClusterChain );
-
-        if( ClusterChain==0xFFFFFFFF )                                ///< Dont keep following a dead end
-            break;
-    }
-
-    if( ClusterChain==0xFFFFFFFF )                                    ///< If end of cluster chain 
-    {
-        if( !FAT32_AddFreeSpaceToChain( &LastClusterChain ) )         ///< Add another cluster to the last good cluster chain
-            return false;
-        ClusterChain = LastClusterChain;
-    }
-
-    FATFS_Internal.SectorCurrentlyLoaded = FAT32_LBAofCluster( ClusterChain ) + SectortoWrite;  ///< Calculate write address
-
-    return FAT_WriteSector(FATFS_Internal.SectorCurrentlyLoaded, FATFS_Internal.currentsector); ///< Write to disk
+    return FAT32_WriteCache(&DirCache);    
 }
 
 #endif
 
 
-/*!
- * \fn      void FAT32_ShowFATDetails(void)
- * \brief   Show the details about the filesystem
- */
+UINT32 FAT32_GetFilelength(FAT32_ShortEntry *sfEntry)
+{ return GET_32BIT_WORD(sfEntry->Size,0);
+}
 
-void FAT32_ShowFATDetails( void )
-{
-  LOG( "LOG4C_PRIORITY_DEBUG", "Current Disc FAT details\r\n------------------------\r\nRoot Dir First Cluster = " );
-  LOGVARS( "LOG4C_PRIORITY_DEBUG", "x", FAT32.RootDir_First_Cluster);
-  LOG( "LOG4C_PRIORITY_DEBUG", "\r\nFAT Begin LBA = ");
-  LOGVARS( "LOG4C_PRIORITY_DEBUG", "x", FAT32.fat_begin_lba);
-  LOG( "LOG4C_PRIORITY_DEBUG", "\r\nCluster Begin LBA = ");
-  LOGVARS( "LOG4C_PRIORITY_DEBUG", "x", FAT32.cluster_begin_lba);
-  LOG( "LOG4C_PRIORITY_DEBUG", "\r\nSectors Per Cluster = ");
-  LOGVARS( "LOG4C_PRIORITY_DEBUG", "d", FAT32.SectorsPerCluster);
-  LOG( "LOG4C_PRIORITY_DEBUG", "\r\n\r\nFormula for conversion from Cluster num to LBA is;");
-  LOG( "LOG4C_PRIORITY_DEBUG", "\r\nLBA = (cluster_begin_lba + ((Cluster_Number-2)*SectorsPerCluster)))\r\n");
+void FAT32_SetFilelength(FAT32_ShortEntry *sfEntry, UINT32 length)
+{ SET_32BIT_WORD(sfEntry->Size,0,length);
+  DirCache.dirty=true;
+}
+
+UINT32 FAT32_GetFileStartcluster(FAT32_ShortEntry *sfEntry)
+{ return (((UINT32)GET_16BIT_WORD(sfEntry->FstClusterHI,0))<<16)
+                                     + GET_16BIT_WORD(sfEntry->FstClusterLO,0);
+}
+void FAT32_SetFileStartcluster(FAT32_ShortEntry *sfEntry, UINT32 cluster)
+{ SET_16BIT_WORD(sfEntry->FstClusterHI,0, (cluster>>16)&0xFFFF);
+  SET_16BIT_WORD(sfEntry->FstClusterLO,0, cluster&0xFFFF);
+  DirCache.dirty=true;
 }
 
 
+int FAT32_FindNextFile(UINT32 cluster, int *psector, int *pitem, 
+    UINT32 *lba1, int *offset1, UINT32 *lba2, int *offset2)
+/* finds in the directory given by its Start cluster sector and item, 
+   count contiguous entries that belong to one filename. 
+   It returns the number of
+   entries that belong to this file.
+   a return value of 0 means no file found.
+   a return value of 1 means a single short entry was found.
+   a return value > 1 means a sequence of long entries was found,
+   the first of these at lba1 and offset1, 
+   the last at lba2 and offset2. (they are equal if entryCount=1).
+*/
+{  
+    int sector = *psector;
+    BYTE item = *pitem;
+    UINT16 recordoffset;
+    int count, n, expect;
+    FAT32_ShortEntry *dirEntry;
 
-/*!
- * \fn      UINT32 FAT32_GetRootCluster(void)
- * \brief   Get the root dir cluster
- * \return  Returns a unsigned integer (uint32) which represents the first cluster from the Root
- * directory.
- */
-UINT32 FAT32_GetRootCluster( void )
-{
-    LOGVARS( "LOG4C_PRIORITY_DEBUG", "Returning FAT32.RootDir_First_Cluster", "x", FAT32.RootDir_First_Cluster);
-    return FAT32.RootDir_First_Cluster;
+    count = expect=0;
+
+    while (FAT32_SectorReader(cluster, sector)) 
+    { for (; item<16;item++)
+      { recordoffset = (32*item);
+        dirEntry=(FAT32_ShortEntry*)(DirCache.buffer+recordoffset);
+        if ((n=FATLongname_is_lfn_entry(dirEntry))!=0) /* lfn entry */
+	  { if (n<0) 
+	    { count = -n;
+              *lba1=DirCache.lba;
+              *offset1=recordoffset;
+	      expect = count -1;
+	    }
+	    else if (n == expect)
+	      expect--;
+	    else
+	      count=expect=0;
+	  }
+	else if ( FATLongname_is_sfn_entry(dirEntry))
+	  { if (count==0)
+            { *lba1=*lba2=DirCache.lba;
+              *offset1=*offset2=recordoffset;
+            }
+	    else
+            { *lba2=DirCache.lba;
+              *offset2=recordoffset;
+            }
+	    count++;
+	    *psector=sector;
+	    *pitem=item;
+	    return count;
+	  }
+        else
+	  { count=0;
+	  }
+      }
+      item = 0;
+      sector++;
+    }
+    return 0;
 }
 
 
+static int FAT32_Longname_Equal(const char *filename, int count, 
+                      UINT32 lba1, int offset1, UINT32 lba2, int offset2)
+/* determine if the filename matches either the
+short entry stored at lba2/offset2 or 
+if (count>1) the long name that preceedes the short entry starting at lba1/offset1
+with count-1 entries.
+check the checksums to make sure the sequence of long entries is valid.
+return 1 if equal,
+return 0 if different.
+According to the Microsoft white paper, the long name, if pressent, 
+should be checked first. I do it the other way round.
+first.
+*/
+{ FAT32_ShortEntry *shortEntry;
+  FAT32_LongEntry *longEntry;
+  BYTE checksum;
+  int n,i;
+
+  if (!FAT32_ReadCache(&DirCache,lba2)) return 0;
+  shortEntry = (FAT32_ShortEntry*)(DirCache.buffer+offset2);
+  if ( FileString_CompareSN(shortEntry->Name,filename))
+    return 1;
+  if (count <=1)
+    return 0;
+  checksum =  FATLongname_ChkSum(shortEntry->Name); 
+  /* we read backward through the long entries and compare */
+  for (n=1; n<count; n++)
+    { offset2 = offset2-32;
+      if (offset2 < 0)
+	{ lba2=lba1;
+          offset2 = 512-32;
+          if (!FAT32_ReadCache(&DirCache,lba2)) return 0;
+	}
+      longEntry = (FAT32_LongEntry*)(DirCache.buffer+offset2);
+      i=FATLongname_Compare_entry(longEntry,filename,checksum,n);
+      if (i==0) return 0;
+      filename=filename+i;
+    }
+  return 1;
+}
+
 /*!
- * \fn      UINT32 FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry)
+ * \fn      FAT32_ShortEntry *FAT32_GetFileEntry(UINT32 Cluster, char *nametofind)
  * \brief   Find the file entry for a filename
- * \param   Cluster     An unsigned integer (uint32) which represents a cluster on the Fat32 image
- * \param   nametofind  A char pointer which represents the name for which to search
- * \param   sfEntry     A FAT32_ShortEntry pointer of the sfEntry, will contain the
- *                      entry data if return is true.
- * \return  Returns true if the file was found, false otherwise
+ * \param   Cluster     Needs an unsigned integer (uint32) which represents the start cluster of the directory
+ * \param   nametofind  Needs a char pointer which represents the name for which to search
+ * \return  Returns a pointer to the sfEntry or NULL (if unsuccessful)
+ * \sideeffects has FAT32_LongFilename contain the files longname (if it exists) or "" otherwise
+ *              and has long_start_lba and long_start_offset set also 
+
  */
-bool FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry)
+
+FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind)
 {
-    LOGVARS( "LOG4C_PRIORITY_DEBUG", "FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, ..)", "uc", Cluster, nametofind );
-    BYTE item           = 0;
-    UINT16 recordoffset = 0;
-    BYTE i              = 0;
-    int x               = 0;
-    char LongFilename[ MAX_LONG_FILENAME ];
-    char ShortFilename[ 13 ];
-    FAT32_ShortEntry *directoryEntry;
-
-    FATMisc_ClearLFN(true);
-
-    while( true )                                                                      ///< Main cluster following loop
-    {
-        ///! Read sector
-        if( FAT32_SectorReader(Cluster, x++) )                                         ///< If sector read was successfull
-        {
-            for( item=0; item<=15;item++ )                                             ///< Analyse Sector
-            {
-                recordoffset    = (32*item);                                           ///< Create the multiplier for sector access
-
-                directoryEntry = (FAT32_ShortEntry*)(FATFS_Internal.currentsector+recordoffset);          ///< Overlay directory entry over buffer
-
-                if (FATMisc_If_LFN_TextOnly(directoryEntry) )                          ///< Long File Name Text Found
-                    FATMisc_CacheLFN(FATFS_Internal.currentsector+recordoffset);
-                else if (FATMisc_If_LFN_Invalid(directoryEntry) )                      ///< If Invalid record found delete any long file name information collated
-                    FATMisc_ClearLFN(false);
-                else if (FATMisc_If_LFN_Exists(directoryEntry) )                       ///< Normal SFN Entry and Long text exists 
-                {
-                    FATMisc_GetLFNCache((BYTE*)LongFilename);
-
-                    if (FileString_Compare(LongFilename, nametofind))                  ///< Compare names to see if they match
-                    {
-                        memcpy(sfEntry,directoryEntry,sizeof(FAT32_ShortEntry));
-                        return true;
-                    }
-
-                     FATMisc_ClearLFN(false);
-                }
-                else if (FATMisc_If_noLFN_SFN_Only(directoryEntry) )                   ///< Normal Entry, only 8.3 Text
-                {
-                    memset(ShortFilename, 0, sizeof(ShortFilename));
-
-                    for (i=0; i<8; i++)                                                ///< Copy name to string
-                        ShortFilename[i] = directoryEntry->Name[i];
-
-                    if (ShortFilename[0]!='.')                                         ///< If not . or .. entry
-                        ShortFilename[8] = '.';
-                    else
-                        ShortFilename[8] = ' ';
-
-                    for (i=8; i<11; i++)                                               ///< Extension
-                        ShortFilename[i+1] = directoryEntry->Name[i];
-
-                    if (FileString_Compare(ShortFilename, nametofind))                 ///< Compare names to see if they match
-                    {
-                        memcpy(sfEntry,directoryEntry,sizeof(FAT32_ShortEntry));
-                        return true;
-                    }
-
-                    FATMisc_ClearLFN(false);
-                }
-            }
-        }
+  int sector, item, count;
+    UINT32 lba1, lba2;
+    int offset1, offset2;
+    sector=0;
+    item = 0;
+    while ((count= FAT32_FindNextFile(cluster, &sector, &item, 
+				      &lba1, &offset1, &lba2, &offset2))!=0)
+      {	if (FAT32_Longname_Equal(nametofind,count, lba1, offset1, lba2, offset2))
+	  {  FAT32_ReadCache(&DirCache,lba2);
+	     return (FAT32_ShortEntry *)(DirCache.buffer+offset2);
+	  }
         else
-            break;
-
-    } // End of while loop
-
-    return false;
+          item++;
+      }
+    return 0;
 }
 
-#ifdef INCLUDE_WRITE_SUPPORT
 
-
-/*!
- * \fn      bool FAT32_SFNexists(UINT32 Cluster, char *shortname)
- * \brief   Check if a short filename exists
- * \note    shortname is XXXXXXXXYYY not XXXXXXXX.YYY
- * \param   Cluster     Needs an unsigned integer (uint32) which represents a cluster on the Fat32 image
- * \param   shortname   Needs a char pointer which holds the shortname 
- * \return  Returns a unsigned integer (uint32) which represents the file entry for a given cluster and name.
- */
-bool FAT32_SFNexists(UINT32 Cluster, char *shortname)
+FAT32_ShortEntry * FAT32_GetFileShort(UINT32 Cluster, BYTE *shortname)
 {
-    BYTE item           = 0;
-    UINT16 recordoffset = 0;
-    int x               = 0;
-    FAT32_ShortEntry *directoryEntry;
-
-    while (true)                                                                ///< Main cluster following loop
-    {
-        ///! Read sector
-        if (FAT32_SectorReader(Cluster, x++))                                   ///< If sector read was successfull
-        {
-            ///! Analyse Sector
-            for (item=0; item<=15;item++)
-            {
-                recordoffset = (32*item);                                       ///< Create the multiplier for sector access
-
-                directoryEntry = (FAT32_ShortEntry*)(FATFS_Internal.currentsector+recordoffset);  ///< Overlay directory entry over buffer
-
-                if (FATMisc_If_LFN_TextOnly(directoryEntry) )                                     ///< Long File Name Text Found
-                    ; // FIXME
-                else if (FATMisc_If_LFN_Invalid(directoryEntry) )               ///< If Invalid record found delete any long file name information collated
-                    ; // FIXME
-                else if (FATMisc_If_noLFN_SFN_Only(directoryEntry) )            ///< Normal Entry, only 8.3 Text
-                {
-                    if (strncmp((const char*)directoryEntry->Name, shortname, 11)==0)
-                        return true;
-                }
-            }
-        }
-        else
-            break;
-    } // End of while loop
-
-    return false;
+  int item;
+  int sector;
+  FAT32_ShortEntry *entry;
+  sector = 0;
+  while (FAT32_SectorReader(Cluster, sector++)) 
+  { for (item=0; item<16;item++)
+    { entry = (FAT32_ShortEntry*)(DirCache.buffer+32*item); 
+      if( FATLongname_is_sfn_entry(entry) &&  ///< Normal Entry, only 8.3 Text
+          strncmp((const char*)entry->Name, (const char*)shortname, 11)==0)
+        return entry;
+    }
+  }
+  return NULL;
 }
-#endif
 
+bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *parentcluster)
+/* from full path get path, filename, and startcluster of the directory */
+{ const char *tail;
+  char *out;
+  UINT32 startcluster;
+  FAT32_ShortEntry *sfEntry;
+  
+  startcluster = FAT32.RootDir_First_Cluster;
+  out = path;
+  *out++='/';
+  tail = FileString_GetFirstDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
+  while (tail!=NULL)
+    { int d;
+      sfEntry=FAT32_GetFileEntry(startcluster, out);
+      if (sfEntry!=NULL && FATLongname_is_dir_entry(sfEntry))
+        startcluster = FAT32_GetFileStartcluster(sfEntry);
+      else
+      {  *name = 0;
+	 *path = 0;
+         *parentcluster = 0;
+         return false;
+      }
+      d = tail-fullpath;
+      out[d-1]='/';
+      out+=d;
+      fullpath=tail;
+      tail = FileString_GetNextDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
+    }
+  FileString_Trim(name,out);
+  *--out=0; /* remove trailing '/' */
+  *parentcluster = startcluster;
+  return true;
+}
 
 #ifdef INCLUDE_WRITE_SUPPORT
 
@@ -306,49 +284,17 @@ bool FAT32_SFNexists(UINT32 Cluster, char *shortname)
  * \param   fileLength  Needs an unsigned integer (uint32) which holds the file length
  * \return  Returns boolean, true if success, false if failure
  */
-bool FAT32_UpdateFileLength(UINT32 Cluster, char *shortname, UINT32 fileLength)
-{
-    BYTE item           = 0;
-    UINT16 recordoffset = 0;
-    int x               = 0;
-    FAT32_ShortEntry *directoryEntry;
+bool FAT32_UpdateFileLength(UINT32 parentcluster, BYTE *shortname, UINT32 fileLength)
+{  FAT32_ShortEntry *Entry;
 
-    while (true)                                                                  ///< Main cluster following loop
-    {
-        ///! Read sector
-        if (FAT32_SectorReader(Cluster, x++))                                     ///< If sector read was successfull
-        {
-            ///! Analyse Sector
-            for (item=0; item<=15;item++)
-            {
-                recordoffset = (32*item);                                         ///< Create the multiplier for sector access
-
-                directoryEntry = (FAT32_ShortEntry*)(FATFS_Internal.currentsector+recordoffset);      ///< Overlay directory entry over buffer
-
-                if (FATMisc_If_LFN_TextOnly(directoryEntry) )                     ///< Long File Name Text Found
-                    ;     // FIXME
-                else if (FATMisc_If_LFN_Invalid(directoryEntry) )                 ///< If Invalid record found delete any long file name information collated
-                    ;     // FIXME
-
-                else if(FATMisc_If_noLFN_SFN_Only(directoryEntry) )              ///< Normal Entry, only 8.3 Text
-                {
-                    if(strncmp((const char*)directoryEntry->Name, shortname, 11)==0)
-                    {
-                        SET_32BIT_WORD(directoryEntry->Size,0,fileLength);
-                        // TODO: Update last write time
-
-                        memcpy((BYTE*)(FATFS_Internal.currentsector+recordoffset), (BYTE*)directoryEntry, sizeof(FAT32_ShortEntry));    ///< Update sfn entry
-                        return FAT_WriteSector(FATFS_Internal.SectorCurrentlyLoaded, FATFS_Internal.currentsector);   ///< Write sector back
-                    }
-                }
-            }
-        }
-        else
-            break;
-    } // End of while loop
-
-    return false;
+  Entry = FAT32_GetFileShort(parentcluster, shortname);
+  if (Entry==NULL) return false;
+  SET_32BIT_WORD(Entry->Size,0,fileLength);
+        // TODO: Update last write time
+  DirCache.dirty=true;
+  return FAT32_WriteCache(&DirCache);   ///< Write sector back
 }
+
 #endif
 
 
@@ -363,158 +309,125 @@ bool FAT32_UpdateFileLength(UINT32 Cluster, char *shortname, UINT32 fileLength)
  * \param   shortname   Needs a char pointer which holds the shortname 
  * \return  Returns boolean, true if success, false if failure
  */
-bool FAT32_MarkFileDeleted(UINT32 Cluster, char *shortname)
-{
-    BYTE item           = 0;
-    UINT16 recordoffset = 0;
-    int x               = 0;
-    FAT32_ShortEntry *directoryEntry;
+bool FAT32_MarkFileDeleted(UINT32 Cluster, BYTE *shortname)
+{  FAT32_ShortEntry *Entry;
 
-    while (true)                                                                    ///< Main cluster following loop
-    {
-        ///< Read sector
-        if (FAT32_SectorReader(Cluster, x++))                                       ///< If sector read was successfull
-        {
-            ///< Analyse Sector
-            for (item=0; item<=15;item++)
-            {
-                recordoffset = (32*item);                                           ///< Create the multiplier for sector access
-
-                directoryEntry = (FAT32_ShortEntry*)(FATFS_Internal.currentsector+recordoffset);          ///< Overlay directory entry over buffer
-
-                if (FATMisc_If_LFN_TextOnly(directoryEntry) )                       ///< Long File Name Text Found
-                    ; // FIXME
-                else if (FATMisc_If_LFN_Invalid(directoryEntry) )                   ///< If Invalid record found delete any long file name information collated
-                    ; // FIXME
-                else if (FATMisc_If_noLFN_SFN_Only(directoryEntry) )                ///< Normal Entry, only 8.3 Text
-                {
-                    if (strncmp((const char *)directoryEntry->Name, shortname, 11)==0)
-                    {
-                        directoryEntry->Name[0] = 0xE5;                             ///< Mark as deleted
-
-                        memcpy((BYTE*)(FATFS_Internal.currentsector+recordoffset), (BYTE*)directoryEntry, sizeof(FAT32_ShortEntry));  ///< Update sfn entry
-
-                        return FAT_WriteSector(FATFS_Internal.SectorCurrentlyLoaded, FATFS_Internal.currentsector);                   ///< Write sector back
-                    }
-                }
-            }
-        }
-        else
-            break;
-    } // End of while loop
-
-    return false;
+  /* This should also remove associated long filename entries */
+   Entry = FAT32_GetFileShort(Cluster, shortname);
+   if (Entry==NULL) return false;
+   Entry->Name[0] = 0xE5;                  
+   DirCache.dirty=true;
+   return FAT32_WriteCache(&DirCache);
 }
 #endif
 
-
-/*!
- * \fn      void ListDirectory(UINT32 StartCluster)
- * \brief   Using starting cluster number of a directory and the FAT, list all directories and files
- * \param   StartCluster  Needs and unsigned integer (uint32) which represents the Start cluster of the File System.
- */
-void ListDirectory(UINT32 StartCluster)
+//-----------------------------------------------------------------------------
+// FAT32_FindFreeOffset: Find a free space in the directory for a new entry 
+// which takes up 'entryCount' blocks (or allocate some more)
+//-----------------------------------------------------------------------------
+bool FAT32_FindFreeOffset(UINT32 dirCluster, int entryCount, UINT32 *lba1, int *offset1, UINT32 *lba2, int *offset2)
+/* finds in the directory given by its Start Cluster, entryCount contiguous entries.
+   the first of this at lba1 and offset1, 
+   the last at lba2 and offset2. (they are equal if entryCount=1).
+   extends the directory if needed and possible.
+*/
 {
-    LOGVARS( "LOG4C_PRIORITY_DEBUG", "Begin of ListDirectory(UINT32 StartCluster)", "u", StartCluster );
-
-    BYTE i,item;
+    BYTE item;
     UINT16 recordoffset;
-    BYTE LFNIndex=0;
-    UINT32 x=0;
-    FAT32_ShortEntry *directoryEntry;
-    char LongFilename[MAX_LONG_FILENAME];
-    char ShortFilename[13];
+    int currentCount;
+    int sector;
+    FAT32_ShortEntry *dirEntry;
+    UINT32 newCluster;
+    int i;
 
-    FAT32.filenumber=0;
-    LOG( "LOG4C_PRIORITY_DEBUG", "\r\nNo.\tFilename\r\n" );
-
-    FATMisc_ClearLFN(true);
-    
-    while(true)
-    {
-        bool retVal = FAT32_SectorReader(StartCluster, x);
-        ++x;
-        LOGVARS( "LOG4C_PRIORITY_VVERBOSE", "FAT32_SectorReader(StartCluster, ++x)", "uu", StartCluster, x);
-        if( retVal )                                                                                ///< If data read OK
-        {
-            LFNIndex = 0;
-
-            for (item=0; item<=15; item++)                                                          ///< Maximum of 15 directory entries
-            {
-                recordoffset = (32*item);                                                           ///< Increase directory offset 
-
-                directoryEntry = (FAT32_ShortEntry*)(FATFS_Internal.currentsector+recordoffset);    ///< Overlay directory entry over buffer
-
-                if ( FATMisc_If_LFN_TextOnly(directoryEntry) )                                      ///< Long File Name Text Found
-                {
-                    LOG( "LOG4C_PRIORITY_VVERBOSE", "if ( FATMisc_If_LFN_TextOnly(directoryEntry) == TRUE" );
-                    FATMisc_CacheLFN(FATFS_Internal.currentsector+recordoffset);
-                }
-                else if ( FATMisc_If_LFN_Invalid(directoryEntry) )  ///< If Invalid record found delete any long file name information collated
-                    {
-                        LOG( "LOG4C_PRIORITY_VVERBOSE", "if ( FATMisc_If_LFN_Invalid(directoryEntry) == TRUE" );
-                        FATMisc_ClearLFN(false);
-                    }
-                    else if (FATMisc_If_LFN_Exists(directoryEntry) )                                ///< Normal SFN Entry and Long text exists 
-                        {
-                            LOG( "LOG4C_PRIORITY_VVERBOSE", "if (FATMisc_If_LFN_Exists(directoryEntry) == TRUE" );
-                            FAT32.filenumber++;                                                     ///< File / Dir Count
-
-                            FATMisc_GetLFNCache((BYTE*)LongFilename);                               ///< Get text
-
-                            if (FATMisc_If_dir_entry(directoryEntry)) LOG( "LOG4C_PRIORITY_DEBUG", "\r\nDirectory ");
-                            if (FATMisc_If_file_entry(directoryEntry)) LOG( "LOG4C_PRIORITY_DEBUG", "\r\nFile ");
-
-                            ///! Print Filename
-                            #ifdef BIOS
-                                LOGVARS( "LOG4C_PRIORITY_DEBUG", "dsdx", FAT32.filenumber, LongFilename, directoryEntry->FileSize, (directoryEntry->FstClusHI<<16)|directoryEntry->FstClusLO);
-                            #endif
-
-                            #ifdef STANDALONE
-                                printf("%d - %s [%d bytes] (0x%08lx)\n",FAT32.filenumber, LongFilename, directoryEntry->FileSize, (directoryEntry->FstClusHI<<16)|directoryEntry->FstClusLO);
-                            #endif
-
-                             FATMisc_ClearLFN(false);
-                        }
-                        else if( FATMisc_If_noLFN_SFN_Only(directoryEntry) )                        ///< Normal Entry, only 8.3 Text
-                        {
-                            LOG( "LOG4C_PRIORITY_VVERBOSE", "if( FATMisc_If_noLFN_SFN_Only(directoryEntry) == TRUE" );
-                            FATMisc_ClearLFN(false);
-                            FAT32.filenumber++;                                                     ///< File / Dir Count
-                            
-                            if (FATMisc_If_dir_entry(directoryEntry)) LOG( "LOG4C_PRIORITY_DEBUG", "\r\nDirectory ");
-                            if (FATMisc_If_file_entry(directoryEntry)) LOG( "LOG4C_PRIORITY_DEBUG", "\r\nFile ");
-
-                            memset(ShortFilename, 0, sizeof(ShortFilename));
-
-                            for (i=0; i<8; i++)                                                     ///< Copy name to string
-                                ShortFilename[i] = directoryEntry->Name[i];
-
-                            if (ShortFilename[0]!='.')                                              ///< If not . or .. entry
-                                ShortFilename[8] = '.';
-                            else
-                                ShortFilename[8] = ' ';
-
-                            for (i=8; i<11; i++)                                                    ///< Extension
-                                ShortFilename[i+1] = directoryEntry->Name[i];
-
-                            LOGVARS( "LOG4C_PRIORITY_DEBUG", "ds", FAT32.filenumber, ShortFilename);  ///< Print Filename
-                        }
-
-            
-            }
-
-            // FIXME : Remove this
-            //if( getLengthOfNumber( x ) > 2 )
-            //   break;
-
-        }
+    sector = 0;
+    currentCount=0;
+    while (FAT32_SectorReader(dirCluster, sector++)) 
+    { for (item=0; item<16;item++)
+      { recordoffset = (32*item);
+        dirEntry=(FAT32_ShortEntry*)(DirCache.buffer+recordoffset);
+	if (dirEntry->Attr ==  FILE_HEADER_BLANK ||
+	    dirEntry->Attr ==  FILE_HEADER_DELETED )
+	  currentCount++;
         else
-        {
-            break;
+          currentCount=0;
+        if (currentCount==1)
+	{ *lba1=DirCache.lba;
+          *offset1=recordoffset;
+        }  
+        if (currentCount==entryCount)
+	{ *lba2=DirCache.lba;
+          *offset2=recordoffset;
+          return true;
+        }  
+      }
+    }
+
+    // Run out of free space in the directory, allocate one additional cluster
+    newCluster=FAT32_FindBlankCluster();
+    if (newCluster==0)
+       return false;
+    if (!FAT32_AddClusterToEndofChain(dirCluster, newCluster))
+       return false;
+    *lba2 =  FAT32_LBAofCluster(newCluster);
+    *offset2=32*(entryCount-currentCount-1);
+    if (currentCount==0)
+    { *lba1=*lba2;
+      *offset1=0;
+    }    
+    for (i=0;i<FAT32.SectorsPerCluster;i++)
+      FAT32_ZeroCache(&DirCache, *lba2+i);
+
+    return true;
+}  
+
+
+//-----------------------------------------------------------------------------
+// FAT32_AddFileEntry: Add a directory entry to a location found by FindFreeOffset
+//-----------------------------------------------------------------------------
+bool FAT32_AddFileEntry(UINT32 dirCluster,
+                        char *filename, 
+                        BYTE *shortfilename,
+                        UINT32 startCluster, 
+                        UINT32 size)
+/* add a file entry to the directory given by dirCluster.
+   if filename==NULL only a short entry is generated otherwise, a 
+   sequence of long entries followed by a short entry.
+*/
+{
+    int entryCount, n;
+    FAT32_ShortEntry *shortEntry;
+    FAT32_LongEntry *longEntry;
+    UINT32 lba1, lba2;
+    int offset1, offset2;
+    BYTE checksum;
+    if (filename!=NULL)
+      entryCount = FATLongname_LFN_to_entry_count(filename);
+    else
+      entryCount = 0;
+
+    if( !FAT32_FindFreeOffset(dirCluster, entryCount+1, &lba1, &offset1, &lba2, &offset2) )
+        return false;
+    if (entryCount>0) 
+    { checksum =  FATLongname_ChkSum(shortfilename);
+      for(n = entryCount;n>0;n--)
+      { if (!FAT32_ReadCache(&DirCache,lba1)) 
+          return false;
+        longEntry = (FAT32_LongEntry*)(DirCache.buffer+offset1);
+        FATLongname_Create_lfn_entrys(filename, entryCount,  n, checksum, longEntry); 
+        DirCache.dirty=true;
+        offset1+=32;
+        if (offset1>=512)
+        { lba1= lba2;
+          offset1=offset2;
         }
-    } // end of while
+      }
+    }
+    /* create short entry */
+    if (!FAT32_ReadCache(&DirCache,lba2)) 
+      return false;
+    shortEntry = (FAT32_ShortEntry*)(DirCache.buffer+offset2);
+    FATLongname_Create_sfn_entry(shortfilename, size, startCluster, shortEntry);
+    DirCache.dirty=true;
+    return FAT32_WriteCache(&DirCache);
 }
-
-
-

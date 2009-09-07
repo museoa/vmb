@@ -32,13 +32,15 @@
   #define NULL ((void *)0)
 #endif
 
-
+#ifndef islower
 #define islower(c) ('a'<= (c) && (c) <= 'z')
 #define toupper(c) (islower(c) ? (c) - 'a' + 'A' : (c))
 
 #define isupper(c) ('A'<= (c) && (c) <= 'Z')
 #define tolower(c) (isupper(c) ? (c) - 'A' + 'a' : (c))
 
+#define isspace(c) ((c)==' ')
+#endif
 
 //-------------------------------------------------------------
 //					 Disk Configuration

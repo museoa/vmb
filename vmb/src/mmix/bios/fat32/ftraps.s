@@ -50,7 +50,8 @@ TrapUnhandled	SWYM	5		        % tell the debugger
 
 		.global TrapHalt
 	
-TrapHalt	NEG	$0,1            %  enable interrupts
+TrapHalt        PUSHJ	$0,fat32_shutdown
+	        NEG	$0,1            %  enable interrupts
   		PUT	rK,$0
 1H		SYNC	4		%go to power save mode
 		JMP	1B              % and loop idle
@@ -82,7 +83,7 @@ TrapFputs 	AND     $0,$0,#0FF    %get the Z value
 
 		.global	TrapFopen
 	
-TrapFopen 	AND     $6,$0,#0FF	% get the Z value is the handle
+TrapFopen 	AND     $8,$0,#0FF	% get the Z value is the handle
 	        GET     $0,rJ		% the return address
 		SET	$1,$255		% save global registers destroyed by gcc
 		SET	$2,$254
@@ -93,8 +94,8 @@ TrapFopen 	AND     $6,$0,#0FF	% get the Z value is the handle
 		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
-		LDO	$7,$5,0   %the name string
-		LDO	$8,$5,8	  %the mode number
+		LDO	$6,$5,0   %the name string
+		LDO	$7,$5,8	  %the mode number
 		PUSHJ   $5,fat32_fopen
 		PUT	rBB,$5     %the error code is returned with resume 1
 		SET	$255,$1   % restore user gcc stack and globals
@@ -126,11 +127,13 @@ TrapFclose	AND     $6,$0,#0FF	% get the Z value is the handle
 		PUT	rJ,$0
 		POP	0,0
 
-		.global	TrapFread
+
+	        .global	TrapFread
 
 
-TrapFread	AND     $7,$0,#0FF    %get the Z value
-		CMP	$1,$7,3
+
+TrapFread	AND     $10,$0,#0FF    %get the Z value
+		CMP	$1,$10,3
 		BN	$1,TrapFgets	for stdin, stdout, stderr do like fgets
 
 		% this is a file handle
@@ -143,13 +146,13 @@ TrapFread	AND     $7,$0,#0FF    %get the Z value
 	
 		GETA	$254,OSStackStart
 		SET	$253,0
-	      	GET	$6,rBB    %get the $255 parameter
-		LDO	$8,$6,0   %the buffer
-		LDO	$9,$6,8	  %the size
-		SET	$5,$9
-		PUSHJ   $6,fat32_fread
-		SUB	$6,$6,$5
-		PUT	rBB,$6     %the error code is returned with resume 1
+	      	GET	$5,rBB    %get the $255 parameter
+		LDO	$8,$5,0   %the buffer
+		LDO	$6,$5,8  %the size
+	        SET	$9,$6
+		PUSHJ   $7,fat32_fread
+		SUB	$7,$7,$6   % return n-size like MMIXware does
+		PUT	rBB,$7     %the error code is returned with resume 1
 		SET	$255,$1   % restore user gcc stack and globals
 		SET	$254,$2
 		SET	$253,$3
@@ -196,52 +199,35 @@ TrapFgetws 	NEG	$0,1
 
 		.global	TrapFwrite
 
-TrapFwrite AND     $10,$0,#0FF    %get the Z value 
-        BZ      $10,1F     %this is stdin
-        CMP     $1,$10,2
-        BNP     $1,4F     %this is stdout or stderr
 
-%       this is a file
-        GET     $0,rJ		% the return address
-	SET	$1,$255		% save global registers destroyed by gcc
-	SET	$2,$254
-	SET	$3,$253
-	GET	$4,rG
-	PUT	rG,#e0          % allocate 32 global registers for gcc
+TrapFwrite 	AND     $9,$0,#0FF    %get the Z value 
+        	CMP     $1,$9,3     
+        	BN      $1,TrapFputs  for stdin, stdout, stderr do like fputs
+
+
+		% this is a file handle
+	        GET     $0,rJ		% the return address
+		SET	$1,$255		% save global registers destroyed by gcc
+		SET	$2,$254
+		SET	$3,$253
+		GET	$4,rG
+		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-	GETA	$254,OSStackStart
-	SET	$253,0
-      	GET	$6,rBB    %get the $255 parameter
-	LDO	$7,$6,0   %the buffer
-	SET	$8,1      %the size
-	LDO	$9,$6,8	  %the count, in $10 is the handle
-	SET	$5,$9
-	PUSHJ   $6,fat32_fwrite
-	SUB	$6,$6,$5
-	PUT	rBB,$6     %the error code is returned with resume 1
-	SET	$255,$1   % restore user gcc stack and globals
-	SET	$254,$2
-	SET	$253,$3
-	PUT	rG,$4
-	PUT	rJ,$0
-	POP	0,0
-
-
-%       Fwrite to the screen
-4H      GET	$0,rBB    %get the $255 parameter
-	LDO	$1,$0,8   %size
-	LDO	$0,$0,0   %buffer
-	GET	$2,rJ
-	JMP 	2F
-
-3H	LDBU    $4,$0,0
-	ADD	$0,$0,1
-	PUSHJ	$3,ScreenC
-	SUB	$1,$1,1
-2H      BP      $1,3B
-	PUT	rJ,$2
-1H	POP	0,0
-
+		GETA	$254,OSStackStart
+		SET	$253,0
+	      	GET	$5,rBB    %get the $255 parameter
+		LDO	$7,$5,0   %the buffer
+		LDO	$5,$5,8	  %the size
+	        SET	$8,$5   
+		PUSHJ   $6,fat32_fwrite
+	        SUB	$6,$6,$5
+		PUT	rBB,$6     %the error code is returned with resume 1
+		SET	$255,$1   % restore user gcc stack and globals
+		SET	$254,$2
+		SET	$253,$3
+		PUT	rG,$4
+		PUT	rJ,$0
+		POP	0,0
 
 		.global	TrapFputws
 	

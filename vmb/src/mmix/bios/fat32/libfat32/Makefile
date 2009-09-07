@@ -6,13 +6,12 @@ ARFLAGS = cru
 RANLIB = mmix-ranlib
 
 
-OBJECTS = FAT32_Access.o  FAT32_FileLib.o \
-          FAT32_Table.o FAT32_Base.o \
-          FAT32_FileString.o  FAT32_Write.o \
-          FAT32_Disk.o    FAT32_Misc.o \
+OBJECTS = FAT32_Cache.o FAT32_Access.o  FAT32_FileLib.o \
+          FAT32_Table.o FAT32_FileString.o \
+          FAT32_Disk.o  FAT32_Longname.o \
 
 
-all: libfat32.a
+all: .depend libfat32.a TAGS
 
 
 libfat32.a: $(OBJECTS)
@@ -23,8 +22,11 @@ libfat32.a: $(OBJECTS)
 install:
 	echo nothing to do
 
+TAGS: *.c *.h
+	etags *.c *.h
+
 clean:
-	rm -f *.o *.a *~ 
+	rm -f *.o *.a *~ TAGS
 
 
 .depend:

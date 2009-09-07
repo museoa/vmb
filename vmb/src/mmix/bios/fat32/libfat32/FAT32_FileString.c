@@ -27,125 +27,59 @@
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 #include <string.h>
+#include "FAT32_Definitions.h"
 #include "FAT32_FileString.h"
 
-//-----------------------------------------------------------------------------
-// FileString_PathTotalLevels: Take a filename and path and count the sub levels
-// of folders. E.g. C:\folder\file.zip = 1 level
-// Returns: -1 = Error, 0 or more = Ok
-// in case there is no drive prefix, we assume C:
-// we accept unix style filenames with '/' instead of '\'
-//-----------------------------------------------------------------------------
-int FileString_PathTotalLevels(char *path)
-{
-    int levels=0;
 
 
-    // Check for C:\... and skip it,
-    if (path[1]==':')
-      path= path+2;
-    // current working directory is always / skip it
-    if ( path[0]=='\\' ||  path[0]=='/')
-      path++;
 
-    // If too short
-    if (path[0]==0)
-        return -1;
+/* the next two function make an iterator over a path */
 
-    // Count levels in path string
-    while (*path)
-    {
-      if (*path == '\\' || *path == '/') levels++;
-      path++;
-    }
-    
-    return levels;
-}
-
-//-----------------------------------------------------------------------------
-// FileString_GetSubString: Get a substring from 'Path' which contains the folder
-// (or file) at the specified level.
-// E.g. C:\folder\file.zip : Level 0 = folder, Level 1 = file.zip
-// Returns: -1 = Error, lenght of substring if Ok
-//-----------------------------------------------------------------------------
-int FileString_GetSubString(char *path, int levelreq, char *output)
-{
-    int i, k;
-    int level;
-
-
-    // Check for C:\... and skip it,
-    if (path[1]==':')
-      path= path+2;
-    // current working directory is always / skip it
-    if ( path[0]=='\\' ||  path[0]=='/')
-      path++;
-
-    // If too short
-    if (path[0]==0)
-        return -1;
-
-    // Loop through the number of times as characters in 'path'
-    for (i = 0,level=0; path[i]!=0; i++)
-    {
-        // If a '\' or '/' is found then increase level
-        if (path[i]=='\\' || path[i]=='/') 
-          level++;
-        else
-        // If correct level and the character is not a '\' then copy text to 'output'
-        if (level==levelreq)
-        { for (k=0; path[i]!=0 && path[i]!='\\' && path[i]!='/'; i++,k++) 
-            output[k] = path[i];
-          output[k] = 0;
-          return k;
+const char *FileString_GetNextDirectory(const char * path, char * dir, int bound)
+/* copy the first directory of path into dir, terminate dir with 0
+   return the pointer where the next directory starts in path
+   return NULL if there was no directory in the path (only a file)
+   bound is a bound on the characters that *dir may hold.
+   truncate if needed. this will lead to a path that is probably not found
+   in the volume but if yes, who knows ...
+*/
+{  char * q;
+   q = dir; 
+   if (bound<=0) return 0;
+   while (*path!=0)
+      if ( *path =='\\' || *path=='/')
+	{ *q=0;
+          return path+1;
 	}
-    }
-    return -1;    // Error
+      else if (q-dir<bound-1) /* leave 1 char space fo the trailing 0 */
+        *q++=*path++;
+      else
+        path++;
+    *q = 0;
+    return NULL;
 }
 
-//-----------------------------------------------------------------------------
-// FileString_SplitPath: Full path contains the passed in string. 
-// Returned is the Path string and file Name string
-// E.g. C:\folder\sub\file.zip -> Path = folder\sub  FileName = file.zip
-// E.g. C:\file.zip -> Path = [blank]  FileName = file.zip
-//-----------------------------------------------------------------------------
-int FileString_SplitPath(char *FullPath, char *Path, char *FileName)
-{
-    int n;
-    int levels;
-
-    // Count the levels to the filepath
-    levels = FileString_PathTotalLevels(FullPath);
-    if (levels<0)
-        return -1;
-
-    // Get filename part of string
-    n = FileString_GetSubString(FullPath, levels, FileName);
-
-    // If root file
-    if (levels==0)
-        Path[0]='\0';
-    else
-    {
-       // Check for C:\... and skip it,
-       if (FullPath[1]==':')
-         FullPath= FullPath+2;
-       // current working directory is always / skip it
-       if ( FullPath[0]=='\\' || FullPath[0]=='/')
-         FullPath++;
-
-        n = (int)strlen(FullPath) - n;
-
-        memcpy(Path, FullPath, n);
-        Path[n-1] = '\0';
-    }
-    return 0;
+static const char *skip_root(const char *path)
+/* skip C:/ or C:\ or / or \ or ... */
+{ if (path[0]==0) return path;
+  if (path[1]==':') path=path+2;
+  if (path[0]=='/') return path+1;
+  if (path[0]=='\\') return path+1;
+  return path;
 }
+
+const char *FileString_GetFirstDirectory(const char * path, char * dir, int bound)
+
+{  
+  return FileString_GetNextDirectory(skip_root(path),dir, bound);
+}
+ 
+
 
 //-----------------------------------------------------------------------------
 // FileString_StrCmpNoCase: Compare two strings case with case sensitivity
 //-----------------------------------------------------------------------------
-int FileString_StrCmpNoCase(char *s1, char *s2, int n)
+static int FileString_StrCmpNoCase(char *s1, char *s2, int n)
 {
     int diff;
     char a,b;
@@ -170,7 +104,7 @@ int FileString_StrCmpNoCase(char *s1, char *s2, int n)
 // FileString_GetExtension: Get index to extension within filename
 // Returns -1 if not found or index otherwise
 //-----------------------------------------------------------------------------
-int FileString_GetExtension(char *str)
+static int FileString_GetExtension(char *str)
 {
     int dotPos = -1;
     char *strSrc = str;
@@ -191,7 +125,7 @@ int FileString_GetExtension(char *str)
 // FileString_TrimLength: Get length of string excluding trailing spaces
 // Returns -1 if not found or index otherwise
 //-----------------------------------------------------------------------------
-int FileString_TrimLength(char *str, int strLen)
+static int FileString_TrimLength(char *str, int strLen)
 {
     char *strSrc = str+strLen-1;
     
@@ -204,6 +138,31 @@ int FileString_TrimLength(char *str, int strLen)
 
     return strLen;
 }
+
+//-----------------------------------------------------------------------------
+// FileString_Compare: Compare an internal short name to an external name.
+// two filenames (without copying or changing originals)
+// Returns 1 if match, 0 if not
+//-----------------------------------------------------------------------------
+
+int FileString_CompareSN(BYTE* shortname, const char* name)
+{ int i;
+
+  for(i=0;i<8 && shortname[i]!=' ';i++,name++)
+    if (shortname[i]!=toupper(*name)) return 0;
+
+  if (*name=='.') 
+    { name++;
+      for(i=8;i<11 && shortname[i]!=' ';i++,name++)
+        if (shortname[i]!=toupper(*name)) return 0;
+    }
+  else if (shortname[8]!=' ')
+    return 0;
+
+  return (*name==0);
+}
+
+
 
 //-----------------------------------------------------------------------------
 // FileString_Compare: Compare two filenames (without copying or changing originals)
@@ -265,3 +224,48 @@ int FileString_Compare(char* strA, char* strB)
     else
         return 1;
 }
+
+
+#if 0
+bool FileString_is_short(const char *filename)
+/* a filename is short, if it has a maximum of 8 characters basename followed by
+   a an optional dot and a maximum 3 characters extension */
+{ int i;
+  i=0;
+  for (i=0;i<9;i++)
+  { if (filename[i]=='.') /* extension starts */
+      { filename=filename+i+1; 
+        for (i=0;i<4;i++)
+	{ if (filename[i]==0) return true;
+	  if (filename[i]=='.') return false; /* dot in the extension */
+	}
+        return false; /* extension too long */
+      }
+    if (filename[i]==0) return true;
+  }
+  return false; /* base too long */  
+}
+#endif
+
+void FileString_Trim(char *trimmed, const char *filename)
+/* external filenames can contain all kind of garbage, here we remove it and
+place a neat and clean copy in trimmed. Filenames in the internal Files[] structure
+should always be trimmed */
+{ int i;
+  while (isspace(*filename)) filename++; /* trim leading spaces */
+  for (i=0;i<MAX_LONG_FILENAME-1 && *filename!=0;i++,filename++)
+    trimmed[i]=*filename;
+  while (i>0) /* trim trailing dots and spaces except for "." and ".."*/
+  { i--;
+    if (isspace(trimmed[i]))
+      continue;
+    if (trimmed[i]=='.' && i>1)
+      continue;
+    i++;
+    break;
+  }
+  trimmed[i]=0;
+  return;
+}
+
+

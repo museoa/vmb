@@ -3,7 +3,7 @@
  * \file        FAT32_Definitions.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Definitions.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_Definitions.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, Definitions
  * \details     {
  * }
@@ -65,9 +65,14 @@
 #define FAT_TYPE_FAT16             2
 #define FAT_TYPE_FAT32             3
 
+
+///! VFAT Max filename Length 
+#define MAX_LONG_FILENAME               256
+#define MAX_LONG_PATH                   260
+
+
+
 ///! FAT32 Specific Statics
-#define Signature_Position                  510
-#define Signature_Value                  0xAA55
 #define PARTITION1_TYPECODE_LOCATION        450
 #define FAT32_TYPECODE1                    0x0B
 #define FAT32_TYPECODE2                    0x0C
@@ -82,16 +87,21 @@
 #define FILE_ATTR_DIRECTORY                0x10
 #define FILE_ATTR_ARCHIVE                  0x20
 #define FILE_ATTR_LFN_TEXT                 0x0F
+#define FILE_ATTR_LFN_MASK                 0x3F
+
 #define FILE_HEADER_BLANK                  0x00
 #define FILE_HEADER_DELETED                0xE5
 #define FILE_TYPE_DIR                      0x10
 #define FILE_TYPE_FILE                     0x20
 
 
-///! Other Defines
+///! FAT32 Other Defines
 #define FAT32_SIGNATURE              0xAA55
 #define FAT32_SIGNATURE_OFFSET       0x1FE            
-#define FAT32_EOC_FLAG               0xFFFFFFFF
+#define FAT32_EOC_FLAG               0x0FFFFFF8
+#define FAT32_C_MASK                 0x0FFFFFFF
+#define FAT32_EOC(cluster)           ((cluster&FAT32_C_MASK) >= FAT32_EOC_FLAG)
+#define FAT32_INVALID_SECTOR         0xFFFFFFFF
 
 #ifdef TARGET_WINDOWS 
     #pragma pack(1)
@@ -114,6 +124,20 @@ typedef struct
     BYTE Size[4];         /* Little endian Number */
 } FAT32_ShortEntry;
 
+
+typedef struct
+{
+    BYTE Ord;
+    BYTE Name1[10];
+    BYTE Attr;
+    BYTE Type;
+    BYTE ChkSum;
+    BYTE Name2[12];
+    BYTE FstClusterLO[2]; /* Little endian Number */
+    BYTE Name3[4];         /* Little endian Number */
+} FAT32_LongEntry;
+
+
+
 #endif // __FAT32_DEFINITIONS_H__
 
-// vim:ts=4:tw=100:wm=100

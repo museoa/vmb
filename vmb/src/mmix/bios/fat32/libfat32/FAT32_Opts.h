@@ -3,7 +3,7 @@
  * \file        FAT32_Opts.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Opts.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_Opts.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, FAT32 Options
  * \details     {
  * }
@@ -21,14 +21,12 @@
 
 ///! Configuration
 
-///! Max filename Length 
-#define MAX_LONG_FILENAME               260
 
 ///! Max open files here for all handles from 0 to 0xFF
 #define MAX_OPEN_FILES                    256
 
 ///! Writes to FAT are done immediately
-#define FATBUFFER_IMMEDIATE_WRITEBACK     1
+#define FATBUFFER_IMMEDIATE_WRITEBACK     0
 
 ///! Include support for writing files
 #define INCLUDE_WRITE_SUPPORT             1

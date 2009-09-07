@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.2 2009-03-02 12:27:59 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.3 2009-09-07 11:43:30 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -16,88 +16,60 @@
  */
 
 ///! Custom Includes
+#include "FAT32_Opts.h"
 #include "FAT32_Definitions.h"
-#include "FAT32_Base.h"
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
-#include "FAT32_Write.h"
-#include "FAT32_Misc.h"
+#include "FAT32_Longname.h"
 #include "FAT32_FileString.h"
+#include "FAT32_Cache.h"
+#include "FAT32_Disk.h"
 #include "FAT32_FileLib.h"
 #include <string.h>
 
+///! Global structures
+typedef struct
+{
+    UINT32  parentcluster;
+    UINT32  startcluster;
+    UINT32  bytenum;
+    UINT32  currentsector;
+    UINT32  currentlba;      // lba for currentsector
+    UINT32  filelength;
+    char    path[ MAX_LONG_PATH ];
+    char    filename[ MAX_LONG_FILENAME ];
+    BYTE    shortfilename[ 11 ];
+    bool    inUse;
+    bool    Read;
+    bool    Write;
+    bool    Append;
+    bool    Binary;
+    bool    Erase;
+} FL_FILE;
+
 ///! Local variables
 
-FL_FILE        Files[MAX_OPEN_FILES];
 int            Filelib_Init;
-
-
-///! Macro for checking if file lib is initialised
-#define CHECK_FL_INIT()        { if (Filelib_Init==false) fat32_initialize(); }
-
-///! Macro for checking if a handle is in a valid range
-#if 0
-#define CHECK_HANDLE(handle) if((handle < 0) || (handle > MAX_OPEN_FILES)) \
-    { LOG( "LOG4C_PRIORITY_ERROR", "handle out of range" ); \
-      return -1;  }
-#else
-/// since handles are of type BYTE and MAX_OPEN_FILES == 256 
-#define CHECK_HANDLE(handle) 
-#endif
-
-///! Macro for Checking if file open
-#define CHECK_OPEN(handle) if (Files[handle].inUse==false) \
-    { LOG( "LOG4C_PRIORITY_ERROR", "file already open" ); \
-      return -1;  }
-
+FL_FILE        Files[MAX_OPEN_FILES];
+#define MAX_FILE_CACHE 4
+FAT32_Cache FileCache[MAX_FILE_CACHE];  // share buffers for all handles%MAX_FILE_CACHE
+#define CachePtr(handle) (&(FileCache[handle%MAX_FILE_CACHE]))
 
 ///! Local Functions
-static bool        _open_directory(char *path, UINT32 *pathCluster);
-static bool        open_read_file(BYTE handle, char *path);
-static bool        _write_block(BYTE handle, BYTE *data, UINT32 length);
-static bool        create_file(BYTE handle,char *filename, UINT32 size);
-
-/*!
- * \fn      static bool _open_directory(char *path, UINT32 *pathCluster)
- * \brief   Cycle through path string to find the start cluster address of the highest subdir.
- * \param   path          Needs an char pointer which holds the path
- * \param   pathCluster   Needs an unsigned int (uint32) which represents the path cluster 
- * \return  Returns true if the dir is already open 
- */
-static bool _open_directory(char *path, UINT32 *pathCluster)
-{
-    int levels;
-    int sublevel;
-    char currentfolder[MAX_LONG_FILENAME];
-    FAT32_ShortEntry sfEntry;
-    UINT32 startcluster;
-
-    startcluster    = FAT32_GetRootCluster();                                           ///< Set starting cluster to root cluster
-    levels          = FileString_PathTotalLevels(path);                                 ///< Find number of levels
-
-    for (sublevel=0;sublevel<(levels+1);sublevel++)                                     ///< Cycle through each level and get the start sector
-    {
-        FileString_GetSubString(path, sublevel, currentfolder);
-
-        if (FAT32_GetFileEntry(startcluster, currentfolder,&sfEntry))                   ///< Find clusteraddress for folder (currentfolder) 
-            startcluster = (((UINT32)GET_16BIT_WORD(sfEntry.FstClusterHI,0))<<16) 
-                                   + GET_16BIT_WORD(sfEntry.FstClusterLO,0);
-        else
-            return false;
-    }
-
-    *pathCluster = startcluster;
-    return true;
-}
-
+static bool open_read_file(BYTE handle, char *path);
+static bool create_file(BYTE handle,char *filename);
+static UINT32 sector_to_lba( FL_FILE* file, UINT32 sector, int extend);
+static int read_block(BYTE * buffer, unsigned int count, int handle);
+static bool write_block(int handle, const BYTE *data, UINT32 count);
+static int update_file_cache(int handle, int extend);
 
 ///! External API
 
 /*!
- * \fn      void fat32_initialize( void )
- * \brief   Initialise File Library, called once before using any of the funczions below
+ * \fn      void fat32_init( void )
+ * \brief   Initialise File Library, called once before using any of the functions below
  */
-void fat32_initialize( void )
+void fat32_initialize(void)
 {
     int i;
 
@@ -105,14 +77,20 @@ void fat32_initialize( void )
 
     Filelib_Init=false;
 
-    if (!FAT32_InitDrive()) return;
+    if (!FAT_InitDrive()) return;
     if (!FAT32_Init()) return;
 
     for (i=0;i<MAX_OPEN_FILES;i++)
         Files[i].inUse = false;
+    for (i=0;i<MAX_FILE_CACHE;i++)
+      FAT32_InitCache(&(FileCache[i]));
 
     Filelib_Init = true;
 }
+
+
+///! Macro for checking if file lib is initialised
+#define CHECK_FL_INIT()        { if (!Filelib_Init) fat32_initialize(); }
 
 
 /*!
@@ -120,9 +98,12 @@ void fat32_initialize( void )
  * \brief   Call before shutting down system
  */
 void fat32_shutdown( void )
-{
+{ int i;
   if (!Filelib_Init) return;
-  FAT32_PurgeFATBuffer();
+  for (i=0;i<MAX_FILE_CACHE;i++)
+    FAT32_WriteCache(&(FileCache[i]));
+  FAT32_dir_shutdown();
+  FAT32_FAT_shutdown();
 }
 
 /*!
@@ -133,7 +114,8 @@ void fat32_shutdown( void )
  * \return  Returns FIXME
  */
 
-int fat32_fopen(BYTE handle, char *path, int mode)
+
+int fat32_fopen(char *fullpath, int mode, int handle)
 {
     bool read = false;
     bool write = false;
@@ -142,26 +124,15 @@ int fat32_fopen(BYTE handle, char *path, int mode)
     bool create = false;
     bool erase = false;
 
-    LOGVARS( "LOG4C_PRIORITY_DEBUG", "Inside fat32_fopen(char *path, char *mode)", "ss", path, mode );
-
-    // If first call to library, and still not initialized try to initialize again
+    LOG( "LOG4C_PRIORITY_DEBUG", "Inside fat32_fopen");
     CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
 
-    if(path==NULL)
-    {
-        LOG( "LOG4C_PRIORITY_ERROR", "fat32_fopen - Path was null" );
-        return -1;
+
+    if ((handle < 0) || (handle >= MAX_OPEN_FILES) ||
+       (fullpath==NULL) || (mode>4) || (Files[handle].inUse)) 
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fopen - Path or mode was null handle out of range" );
+      return -1;
     }
-
-    if(mode>4 || mode<0) 
-    {
-        LOG( "LOG4C_PRIORITY_ERROR", "fat32_fopen - mode was out of range" );
-        return -1;
-    }
-
-    if (Files[handle].inUse)
-      fat32_fclose(handle);
 
     // Supported Modes:
     // 0  Open a file for reading in Text mode. The file must exist. 
@@ -175,8 +146,7 @@ int fat32_fopen(BYTE handle, char *path, int mode)
     // 4  Append to a file. Writing operations append data at the end of the file. 
     //    The file is created if it does not exist. 
     switch (mode)
-    {
-        case 0:
+    {   case 0:
             read = true;
             break;
         case 1:
@@ -205,7 +175,7 @@ int fat32_fopen(BYTE handle, char *path, int mode)
     if( read )
     {
         LOGVARS( "LOG4C_PRIORITY_DEBUG", "Reading file", "s", path );
-        open_read_file(handle, path);
+        open_read_file(handle, fullpath);
     }
 
     // Create New
@@ -213,7 +183,7 @@ int fat32_fopen(BYTE handle, char *path, int mode)
     if( (!Files[handle].inUse) && (create) )
     {
         LOG( "LOG4C_PRIORITY_DEBUG", "Creating file" );
-        Files[handle].inUse = create_file(handle, path, 0);
+        create_file(handle, fullpath);
     }
 #else
     create = false;
@@ -223,7 +193,7 @@ int fat32_fopen(BYTE handle, char *path, int mode)
 
     // Write Existing
     if ( !create && !read && (write || append) )
-       open_read_file(handle, path);
+       open_read_file(handle, fullpath);
 
     if (Files[handle].inUse)
     {
@@ -236,592 +206,588 @@ int fat32_fopen(BYTE handle, char *path, int mode)
 
     return 0;    
 }
-//-----------------------------------------------------------------------------
-// open_read_file: Open a file for reading
-//-----------------------------------------------------------------------------
-static bool open_read_file(BYTE handle, char *path)
-{
-    FL_FILE* file; 
-    FAT32_ShortEntry sfEntry;
 
-    file = &(Files[handle]);
-    // Check if file already open
-    if (file->inUse) return false;
-
-    // Clear filename
-    memset(file->path, '\n', sizeof(file->path));
-    memset(file->filename, '\n', sizeof(file->filename));
-
-    // Split full path into filename and directory path
-    FileString_SplitPath(path, file->path, file->filename);
-
-    // If file is in the root dir
-    if (file->path[0]==0)
-    {
-        file->parentcluster = FAT32_GetRootCluster();
-        file->inRoot = true;
-    }
-    else
-    {
-        file->inRoot = false;
-
-        // Find parent directory start cluster
-        if (!_open_directory(file->path, &file->parentcluster))
-            return false;
-    }
-
-    // Using dir cluster address search for filename
-    if (FAT32_GetFileEntry(file->parentcluster, file->filename,&sfEntry))
-    {
-        // Initialise file details
-        memcpy(file->shortfilename, sfEntry.Name, 11);
-        file->filelength = GET_32BIT_WORD(sfEntry.Size,0);
-        file->bytenum = 0;
-        file->startcluster = (((UINT32)GET_16BIT_WORD(sfEntry.FstClusterHI,0))<<16)
-                                     + GET_16BIT_WORD(sfEntry.FstClusterLO,0);
-        file->currentBlock = 0xFFFFFFFF;
-        file->inUse = true;
-
-        FAT32_PurgeFATBuffer();
-
-        return true;
-    }
-
-    return false;
-}
-//-----------------------------------------------------------------------------
-// _create_file: Create a new file
-//-----------------------------------------------------------------------------
-#ifdef INCLUDE_WRITE_SUPPORT
-static bool create_file(BYTE handle, char *filename, UINT32 size)
-{
-    FL_FILE* file; 
-    FAT32_ShortEntry sfEntry;
-    char shortFilename[11];
-    int tailNum;
-
-    LOG( "LOG4C_PRIORITY_DEBUG", "Inside of _create_file" );
-
-    file = &(Files[handle]);
-    // Check if file already open
-    if (file->inUse) return false;
-
-    // Clear filename
-    memset(file->path, '\n', sizeof(file->path));
-    memset(file->filename, '\n', sizeof(file->filename));
-
-    // Split full path into filename and directory path
-    FileString_SplitPath(filename, file->path, file->filename);
-
-    // If file is in the root dir
-    if (file->path[0]==0)
-    {
-        file->parentcluster = FAT32_GetRootCluster();
-        file->inRoot = true;
-    }
-    else
-    {
-        file->inRoot = false;
-
-        // Find parent directory start cluster
-        if( !_open_directory(file->path, &file->parentcluster) )
-        {
-            LOG( "LOG4C_PRIORITY_ERROR", "Couldn't find the parent directory start cluster." );
-            return false;
-        }
-    }
-
-    // Check if same filename exists in directory
-    if (FAT32_GetFileEntry(file->parentcluster, file->filename,&sfEntry))
-        LOG( "LOG4C_PRIORITY_ERROR", "File already exists in directory" );
-    else 
-      {
-    // Create the file space for the file
-    file->startcluster = 0;
-    file->filelength = size;
-    if( !FAT32_AllocateFreeSpace(true, &file->startcluster, (file->filelength==0)?1:file->filelength) )
-    {
-        LOG( "LOG4C_PRIORITY_ERROR", "Couldn't allocate free space for the file" );
-        return false;
-    }
-
-    // Generate a short filename & tail
-    tailNum = 0;
-    do 
-    {
-        // Create a standard short filename (without tail)
-        FATMisc_CreateSFN(shortFilename, file->filename);
-
-        // If second hit or more, generate a ~n tail        
-        if (tailNum!=0)
-            FATMisc_GenerateTail((char*)file->shortfilename, shortFilename, tailNum);
-        // Try with no tail if first entry
-        else
-            memcpy(file->shortfilename, shortFilename, 11);
-
-        // Check if entry exists already or not
-        if (FAT32_SFNexists(file->parentcluster, (char*)file->shortfilename)==false)
-            break;
-
-        tailNum++;
-    }
-    while (tailNum<9999);
-
-    if( tailNum == 9999 )
-    {
-        LOG( "LOG4C_PRIORITY_ERROR", "Couldn't generate a short filename & tail" );
-        return false;
-    }
-
-    // Add file to disk
-    if( !FAT32_AddFileEntry(file->parentcluster, (char*)file->filename, (char*)file->shortfilename, file->startcluster, file->filelength) )
-    {
-        LOG( "LOG4C_PRIORITY_ERROR", "Couldn't add file to disk - FAT32_AddFileEntry failed" );
-        return false;
-    }
-    }
-    // General
-    file->bytenum = 0;
-    file->currentBlock = 0xFFFFFFFF;
-    file->inUse = true;
-    
-    FAT32_PurgeFATBuffer();
-
-    return true;
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // fat32_fclose: Close an open file
 //-----------------------------------------------------------------------------
-int fat32_fclose(BYTE handle)
+int fat32_fclose(int handle)
 {   FL_FILE* file; 
  
-    LOGVARS( "LOG4C_PRIORITY_DEBUG", "Closing file", "s", file );
-    // If first call to library, initialise
+    LOG( "LOG4C_PRIORITY_DEBUG", "Closing file");
     CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
+
+    if((handle<0) || (handle >= MAX_OPEN_FILES))
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fclose - handle out of range" );
+      return -1;
+    }
 
     file = &(Files[handle]);
  
     file->bytenum = 0;
     file->filelength = 0;
     file->startcluster = 0;
-    file->currentBlock = 0xFFFFFFFF;
+    file->currentsector = FAT32_INVALID_SECTOR;
     file->inUse = false;
-    FAT32_PurgeFATBuffer();
+    FAT32_WriteCache(CachePtr(handle));
     return 0;
 }
 
 //-----------------------------------------------------------------------------
 // fat32_fread: Read a block of data from the file
-// return number of byte read, -1 on error
 //-----------------------------------------------------------------------------
-int fat32_fread(BYTE handle, BYTE * buffer, UINT32 count)
-{
-    UINT32 sector;
-    UINT32 offset;
-    UINT32 totalSectors;
-    UINT32 bytesRead;
-    UINT32 thisReadCount;
-    UINT32 i;
-
-    // If first call to library, initialise
+int fat32_fread(void *buffer, unsigned int size, int handle )
+{  
+    LOG( "LOG4C_PRIORITY_DEBUG", "Read file");
     CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
 
-    if (buffer==NULL)
-        return -1;
-
-    // No read permissions
-    if (Files[handle].Read==false)
-        return -1;
-
-    // Nothing to be done
-    if (count==0)
-        return 0;
-
-    // Check if read starts past end of file
-    if (Files[handle].bytenum>=Files[handle].filelength)
-        return -1;
-
-    // Limit to file size
-    if ( (Files[handle].bytenum + count) > Files[handle].filelength )
-        count = Files[handle].filelength - Files[handle].bytenum;
-
-    // Calculations for file position
-    sector = Files[handle].bytenum / 512;
-    offset = Files[handle].bytenum - (sector*512);
-
-    // Calculate how many sectors this is
-    totalSectors = (count+offset) / 512;
-
-    // Take into account partial sector read
-    if ((count+offset) % 512)
-        totalSectors++;
-
-    bytesRead = 0;
-    for (i=0;i<totalSectors;i++)
-    {
-        // Read sector of file
-        if ( FAT32_SectorReader(Files[handle].startcluster, (sector+i)) )
-        {
-            // Read length - full sector or remainder
-            if ( (bytesRead+512) > count )
-                thisReadCount = count - bytesRead;
-            else
-                thisReadCount = 512;
-
-            // Copy to file buffer (for continuation reads)
-            memcpy(Files[handle].filebuf, FATFS_Internal.currentsector, 512);
-            Files[handle].currentBlock = (sector+i);
-
-            // Copy to application buffer
-            // Non aligned start
-            if ( (i==0) && (offset!=0) )
-                memcpy( (BYTE*)(buffer+bytesRead), (BYTE*)(Files[handle].filebuf+offset), thisReadCount);
-            else
-                memcpy( (BYTE*)(buffer+bytesRead), Files[handle].filebuf, thisReadCount);
-        
-            bytesRead+=thisReadCount;
-            Files[handle].bytenum+=thisReadCount;
-
-            if (thisReadCount>=count)
-                return bytesRead;
-        }
-        // Read failed - out of range (probably)
-        else
-        {
-            return (int)bytesRead;
-        }
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Read) ||
+       (buffer==NULL) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fread - invalid parameters" );
+      return -1;
     }
 
-    return bytesRead;
-}
+    // Check if read past end of file
+    if (Files[handle].bytenum>=Files[handle].filelength)
+        return 0;
 
+    return read_block(buffer,size,handle);
+}
 
 //-----------------------------------------------------------------------------
 // fat32_fgetc: Get a character in the stream
 //-----------------------------------------------------------------------------
-int fat32_fgetc(BYTE handle)
+int fat32_fgetc(int handle)
 {
-    UINT32 sector;
-    UINT32 offset;    
-    BYTE returnchar=0;
+    int offset;
 
-    // If first call to library, initialise
+    LOG( "LOG4C_PRIORITY_DEBUG", "Read char");
     CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
-
-    // No read permissions
-    if (Files[handle].Read==false)
-        return -1;
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Read) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fgetc - invalid parameters" );
+      return -1;
+    }
 
     // Check if read past end of file
     if (Files[handle].bytenum>=Files[handle].filelength)
         return -1;
 
-    // Calculations for file position
-    sector = Files[handle].bytenum / 512;
-    offset = Files[handle].bytenum - (sector*512);
+    offset = update_file_cache(handle,false);
 
-    // If file block not already loaded
-    if (Files[handle].currentBlock!=sector)
-    {
-        // Read the appropriate sector
-        if (!FAT32_SectorReader(Files[handle].startcluster, sector)) 
-            return -1;
+    if (offset<0) return -1;
 
-        // Copy to file's buffer
-        memcpy(Files[handle].filebuf, FATFS_Internal.currentsector, 512);
-        Files[handle].currentBlock=sector;
+    return CachePtr(handle)->buffer[offset];
+}
+
+char* fat32_fgets(char *s, unsigned int size, int handle)
+{
+  BYTE *p;
+  int part;
+  int offset;
+  int i, byteRead;;
+
+    LOG( "LOG4C_PRIORITY_DEBUG", "Read string");
+    CHECK_FL_INIT();
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Read) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fgets - invalid parameters" );
+      return NULL;
     }
 
-    // Get the data block
-    returnchar = Files[handle].filebuf[offset];
+    // Check if read past end of file
+    if (Files[handle].bytenum>=Files[handle].filelength)
+        return NULL;
 
-    // Increase next read position
-    Files[handle].bytenum++;
+    // Limit to file size
+    if ( (Files[handle].bytenum + size) > Files[handle].filelength )
+      size = Files[handle].filelength - Files[handle].bytenum;
 
-    // Return character read
-    return returnchar;
+    byteRead = 0;
+
+    while (size>0)
+      { offset = update_file_cache(handle,false);
+      if (offset<0) return NULL;
+      p = CachePtr(handle)->buffer+offset;
+      if (offset+size>512) part = 512-offset;
+      else part = size;
+      for (i=0; i<part;i++,p++)
+      {  s[byteRead++] = *p;
+         if (*p == '\n')
+	 { s[byteRead]='\0';
+           Files[handle].bytenum+=i+1;
+           return s; 
+	 }
+      }
+      size -= part;
+      Files[handle].bytenum+=part;
+    }
+    s[byteRead]='\0';
+    return s;
 }
+
+//-----------------------------------------------------------------------------
+// fat32_fwrite: Write a block of data to the stream
+//-----------------------------------------------------------------------------
+#ifdef INCLUDE_WRITE_SUPPORT
+int fat32_fwrite(const void *buffer, unsigned int size, int handle)
+{
+
+    // If first call to library, initialise
+    CHECK_FL_INIT();
+
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Write) ||
+       (buffer==NULL) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fwrite - invalid parameters" );
+      return -1;
+    }
+
+    // Append writes to end of file
+    if( Files[handle].Append )
+    { LOG( "LOG4C_PRIORITY_DEBUG", "Appending to end of file" );
+      Files[handle].bytenum = Files[handle].filelength;
+    }
+
+    // Else write to current position
+    return write_block(handle, buffer, size );
+}
+
+//-----------------------------------------------------------------------------
+// fat32_fputc: Write a character to the stream
+//-----------------------------------------------------------------------------
+int fat32_fputc(int c, int handle)
+{   int offset;
+
+    LOG( "LOG4C_PRIORITY_DEBUG", "Write char");
+    CHECK_FL_INIT();
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Write) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fputc - invalid parameters" );
+      return -1;
+    }
+
+    offset = update_file_cache(handle,true);
+
+    if (offset<0) return -1;
+
+    CachePtr(handle)->buffer[offset]=(unsigned char)c;
+    CachePtr(handle)->dirty=true;
+   
+    Files[handle].bytenum++;
+    
+    // Increase file size
+    if (Files[handle].filelength<Files[handle].bytenum)
+    { Files[handle].filelength=Files[handle].bytenum;
+      // Update filesize in directory
+      FAT32_UpdateFileLength(Files[handle].parentcluster, 
+         Files[handle].shortfilename, Files[handle].filelength);
+    }
+ 
+    return (int)(unsigned char)c;
+}
+
+//-----------------------------------------------------------------------------
+// fat32_fputs: Write a character string to the stream
+//-----------------------------------------------------------------------------
+int fat32_fputs(const char * str, int handle)
+{ BYTE *p;
+  const char *s;
+  int part;
+  int offset;
+  int i;
+
+  LOG( "LOG4C_PRIORITY_DEBUG", "Write string");
+  CHECK_FL_INIT();
+  if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+    (!Files[handle].inUse) ||
+    (!Files[handle].Write) ||
+    (str==NULL) )
+  { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fputs - invalid parameters" );
+    return -1;
+  }
+
+  // Append writes to end of file
+  if (Files[handle].Append)
+    Files[handle].bytenum = Files[handle].filelength;
+  // Else write to current position
+
+  s = str;
+
+  while (*s != 0)
+  { offset = update_file_cache(handle,true);
+    if (offset<0) return -1;
+    p = CachePtr(handle)->buffer+offset;
+    part = 512-offset;
+    for (i=0; i<part && (*s!=0);i++)
+      *p++ = *s++;
+    CachePtr(handle)->dirty=true;
+    Files[handle].bytenum+=i;
+  }
+
+  // Increase file size
+  if (Files[handle].filelength<Files[handle].bytenum)
+  { Files[handle].filelength=Files[handle].bytenum;
+    // Update filesize in directory
+    FAT32_UpdateFileLength(Files[handle].parentcluster, 
+         Files[handle].shortfilename, Files[handle].filelength);
+  }
+  return s-str;
+}
+
+#endif
 
 
 //-----------------------------------------------------------------------------
 // fat32_fseek: Seek to a specific place in the file
 // TODO: This should support -ve numbers with SEEK END and SEEK CUR
 //-----------------------------------------------------------------------------
-int fat32_fseek( BYTE handle , UINT32 offset , int origin )
+int fat32_fseek(long offset , int origin, int handle)
 {
-    // If first call to library, initialise
-    CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
+  LOG( "LOG4C_PRIORITY_DEBUG", "File seek");
+  CHECK_FL_INIT();
 
-   if ( (origin == SEEK_END) && (offset!=0) )
-        return -1;
+  if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+     (!Files[handle].inUse) )
+  { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fseek - invalid parameters" );
+    return -1;
+  }
 
-    // Invalidate file buffer
-    Files[handle].currentBlock = 0xFFFFFFFF;
-
-    if (origin==SEEK_SET)
-    {
-        Files[handle].bytenum = offset;
-
-        if (Files[handle].bytenum>Files[handle].filelength)
-            Files[handle].bytenum = Files[handle].filelength;
-
-        return 0;
-    }
-    else if (origin==SEEK_CUR)
-    {
-        Files[handle].bytenum+= offset;
-
-        if (Files[handle].bytenum>Files[handle].filelength)
-            Files[handle].bytenum = Files[handle].filelength;
-
-        return 0;
-    }
-    else if (origin==SEEK_END)
-    {
-        Files[handle].bytenum = Files[handle].filelength;
-        return 0;
-    }
-    else
-        return -1;
+  switch(origin)
+  { case SEEK_CUR:
+      offset = Files[handle].bytenum + offset;
+      break;
+    case SEEK_SET:
+      break; 
+    case SEEK_END:
+      offset = Files[handle].filelength + offset;
+      break;
+    default:
+      return -1;
+  }
+  if(offset<0 || offset>Files[handle].filelength)
+     return -1;
+  Files[handle].bytenum = offset;
+  return 0;
 }
+
 //-----------------------------------------------------------------------------
 // fat32_fgetpos: Get the current file position
 //-----------------------------------------------------------------------------
-int fat32_fgetpos(BYTE handle , UINT32 * position)
-{
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
+int fat32_tell(int handle)
+{ 
+  LOG( "LOG4C_PRIORITY_DEBUG", "File tell");
+  CHECK_FL_INIT();
 
-    // Get position
-    *position = Files[handle].bytenum;
-
-    return 0;
+  if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+     (!Files[handle].inUse) )
+  { LOG( "LOG4C_PRIORITY_ERROR", "fat32_ftell - invalid parameters" );
+    return -1;
+  }
+  return  Files[handle].bytenum;
 }
 
-//-----------------------------------------------------------------------------
-// fat32_fputc: Write a character to the stream
-//-----------------------------------------------------------------------------
-#ifdef INCLUDE_WRITE_SUPPORT
-int fat32_fputc(int c, BYTE handle)
-{
-    BYTE Buffer[1];
-
-    // If first call to library, initialise
-    CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
-
-    // Append writes to end of file
-    if (Files[handle].Append)
-        Files[handle].bytenum = Files[handle].filelength;
-    // Else write to current position
-
-    // Write single byte
-    Buffer[0] = (BYTE)c;
-    if (_write_block(handle, Buffer, 1))
-        return c;
-    else
-        return -1;
-}
-#endif
-
-//-----------------------------------------------------------------------------
-// fat32_fwrite: Write a block of data to the stream
-//-----------------------------------------------------------------------------
-#ifdef INCLUDE_WRITE_SUPPORT
-int fat32_fwrite(const void * data, int size, int count, BYTE handle )
-{
-    LOG( "LOG4C_PRIORITY_DEBUG", "Inside fat32_fwrite" );
-
-    // If first call to library, initialise
-    CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
-
-    // Append writes to end of file
-    if( Files[handle].Append )
-    {
-        LOG( "LOG4C_PRIORITY_DEBUG", "Appending to end of file" );
-        Files[handle].bytenum = Files[handle].filelength;
-    }
-
-    // Else write to current position
-
-    if( _write_block(handle, (BYTE*)data, (size*count) ) )
-    {
-        LOG( "LOG4C_PRIORITY_DEBUG", "Writing to current position." );
-        return count;
-    }
-    else
-        return -1;
-}
-#endif
-//-----------------------------------------------------------------------------
-// fat32_fputs: Write a character string to the stream
-//-----------------------------------------------------------------------------
-#ifdef INCLUDE_WRITE_SUPPORT
-int fat32_fputs(const char * str, BYTE handle)
-{
-    // If first call to library, initialise
-    CHECK_FL_INIT();
-    CHECK_HANDLE(handle);
-    CHECK_OPEN(handle);
-
-    // Append writes to end of file
-    if (Files[handle].Append)
-        Files[handle].bytenum = Files[handle].filelength;
-    // Else write to current position
-
-    if (_write_block(handle, (BYTE*)str, (UINT32)strlen(str)))
-        return (int)strlen(str);
-    else
-        return -1;
-}
-#endif
-//-----------------------------------------------------------------------------
-// _write_block: Write a block of data to a file
-//-----------------------------------------------------------------------------
-#ifdef INCLUDE_WRITE_SUPPORT
-static bool _write_block(BYTE handle, BYTE *data, UINT32 length) 
-{
-    UINT32 sector;
-    UINT32 offset;    
-    UINT32 i;
-    bool dirtySector = false;
-
-    // No write permissions
-    if (Files[handle].Write==false)
-        return false;
-
-    for (i=0;i<length;i++)
-    {
-        // Calculations for file position
-        sector = Files[handle].bytenum / 512;
-        offset = Files[handle].bytenum - (sector*512);
-
-        // If file block not already loaded
-        if (Files[handle].currentBlock!=sector)
-        {
-            if (dirtySector)
-            {
-                // Copy from file buffer to FAT driver buffer
-                memcpy(FATFS_Internal.currentsector, Files[handle].filebuf, 512);
-
-                // Write back current sector before loading next
-                if (!FAT32_SectorWriter(Files[handle].startcluster, Files[handle].currentBlock)) 
-                    return false;
-            }
-
-            // Read the appropriate sector
-            // NOTE: This does not have succeed; if last sector of file
-            // reached, no valid data will be read in, but write will 
-            // allocate some more space for new data.
-            FAT32_SectorReader(Files[handle].startcluster, sector);
-
-            // Copy to file's buffer
-            memcpy(Files[handle].filebuf, FATFS_Internal.currentsector, 512);
-            Files[handle].currentBlock=sector;
-            dirtySector = false;
-        }
-
-        // Get the data block
-        Files[handle].filebuf[offset] = data[i];
-        dirtySector = true;
-
-        // Increase next read/write position
-        Files[handle].bytenum++;
-    }
-
-    // If some write data still in buffer
-    if (dirtySector)
-    {
-        // Copy from file buffer to FAT driver buffer
-        memcpy(FATFS_Internal.currentsector, Files[handle].filebuf, 512);
-
-        // Write back current sector before loading next
-        if (!FAT32_SectorWriter(Files[handle].startcluster, Files[handle].currentBlock)) 
-            return false;
-    }
-
-    // Increase file size
-    Files[handle].filelength+=length;
-
-    // Update filesize in directory
-    FAT32_UpdateFileLength(Files[handle].parentcluster, (char*)Files[handle].shortfilename, Files[handle].filelength);
-
-    return true;
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // fat32_remove: Remove a file from the filesystem
 //-----------------------------------------------------------------------------
 #ifdef INCLUDE_WRITE_SUPPORT
 
-int fat32_remove( const char * filename )
-{
-    FL_FILE dir; 
-    FAT32_ShortEntry sfEntry;
+int fat32_remove( const char *fullpath )
+{ 
+ 
+    FAT32_ShortEntry *sfEntry;
+    UINT32 startcluster, parentcluster;
+    BYTE shortname[11];
+    char path[ MAX_LONG_FILENAME];
+    char name[ MAX_LONG_FILENAME];
 
     // If first call to library, initialise
+    LOG( "LOG4C_PRIORITY_DEBUG", "File remove");
     CHECK_FL_INIT();
 
-    dir.inUse = true;
-    // Clear filename
-    memset(dir.path, '\n', sizeof(dir.path));
-    memset(dir.filename, '\n', sizeof(dir.filename));
+    if (!FAT32_GetDirectory(fullpath,path,name,&parentcluster))
+      return -1;
 
-    // Split full path into filename and directory path
-    FileString_SplitPath((char*)filename, dir.path, dir.filename);
+    sfEntry=FAT32_GetFileEntry(parentcluster, name);
+    if (sfEntry==NULL || FATLongname_is_dir_entry(sfEntry))
+      return -1;
+    
+    memcpy(shortname, sfEntry->Name, 11);
+    startcluster = FAT32_GetFileStartcluster(sfEntry);
 
-    // If file is in the root dir
-    if (dir.path[0]==0)
-    {
-        dir.parentcluster = FAT32_GetRootCluster();
-        dir.inRoot = true;
-    }
-    else
-    {
-        dir.inRoot = false;
+    // Delete allocated space
+    if (!FAT32_FreeClusterChain(startcluster))
+      return -1;
 
-        // Find parent directory start cluster
-        if (!_open_directory(dir.path, &dir.parentcluster))
-            return -1;
-    }
+    // Remove directory entries
+    if (!FAT32_MarkFileDeleted(parentcluster, shortname))
+      return -1;
 
-    // Using dir cluster address search for filename
-    if (FAT32_GetFileEntry(dir.parentcluster, dir.filename,&sfEntry))
-    {
-        // Initialise file details
-        memcpy(dir.shortfilename, sfEntry.Name, 11);
-        dir.filelength = GET_32BIT_WORD(sfEntry.Size,0);
-        dir.bytenum = 0;
-        dir.startcluster = (((UINT32)GET_16BIT_WORD(sfEntry.FstClusterHI,0))<<16) 
-                                   + GET_16BIT_WORD(sfEntry.FstClusterLO,0);
-         dir.currentBlock = 0xFFFFFFFF;
-
-        // Delete allocated space
-        if (!FAT32_FreeClusterChain(dir.startcluster))
-            return -1;
-
-        // Remove directory entries
-        if (!FAT32_MarkFileDeleted(dir.parentcluster, (char*)dir.shortfilename))
-            return -1;
-
-        FAT32_PurgeFATBuffer();
-        return 0;
-    }
-    else
-        return -1;
+    return 0;
 }
 
 #endif  // INCLUDE_WRITE_SUPPORT
+
+int fat32_mkdir(const char *fullpath)
+{     // If first call to library, initialise
+    LOG( "LOG4C_PRIORITY_DEBUG", "Make Directory");
+    CHECK_FL_INIT();
+    return -1;
+}
+
+
+// Local Functions
+
+
+static UINT32 sector_to_lba( FL_FILE* file, UINT32 sector, int extend)
+{ UINT32 lba;
+  // we cache sector/lba pairs
+  if (sector == file->currentsector) return file->currentlba;
+  if (sector/FAT32.SectorsPerCluster == file->currentsector/ FAT32.SectorsPerCluster)
+  {  //different sector within same cluster
+    lba = file->currentlba +(sector-file->currentsector);
+  }
+  else
+    lba = FAT32_ClusterOffset2lba(&file->startcluster, sector, extend);
+
+  if (lba!=0) 
+    { file->currentsector=sector;
+      file->currentlba=lba;
+    }
+  return lba; 
+} 
+
+
+//-----------------------------------------------------------------------------
+// open_read_file: Open a file for reading
+//-----------------------------------------------------------------------------
+static bool open_read_file(BYTE handle, char *fullpath)
+{
+    FL_FILE* file; 
+    FAT32_ShortEntry *sfEntry;
+
+    file = &(Files[handle]);
+
+    if (!FAT32_GetDirectory(fullpath,file->path,file->filename,&file->parentcluster))
+      return false;
+
+    // Using dir cluster address search for filename
+    sfEntry=FAT32_GetFileEntry(file->parentcluster, file->filename);
+    if (sfEntry!=NULL && !FATLongname_is_dir_entry(sfEntry))
+    {
+        // Initialise file details
+        memcpy(file->shortfilename, sfEntry->Name, 11);
+        file->filelength = FAT32_GetFilelength(sfEntry);
+        file->bytenum = 0;
+        file->startcluster =  FAT32_GetFileStartcluster(sfEntry);
+        file->currentsector = FAT32_INVALID_SECTOR;
+        file->inUse = true;
+
+        return true;
+    }
+
+    return false;
+}
+
+
+//-----------------------------------------------------------------------------
+// create_file: Create a new, empty file
+//-----------------------------------------------------------------------------
+#ifdef INCLUDE_WRITE_SUPPORT
+static bool create_file(BYTE handle, char *fullpath)
+
+{
+    FL_FILE* file; 
+    int tail;
+    FAT32_ShortEntry *entry;
+    file = &(Files[handle]);
+    file->startcluster = 0; /* a start cluster of 0 means empty */
+    file->filelength = 0;
+    file->bytenum = 0;
+    file->currentsector = FAT32_INVALID_SECTOR;
+
+    if (!FAT32_GetDirectory(fullpath,file->path,file->filename,&file->parentcluster))
+      return false;
+    // Check if same filename exists in directory
+    entry = FAT32_GetFileEntry(file->parentcluster, file->filename);
+    if (entry == NULL) /* make a new file */
+    { tail = FATLongname_Create_sfn_with_tail(file->parentcluster, 
+                     file->shortfilename, file->filename);
+      if( !FAT32_AddFileEntry(file->parentcluster, 
+                            (tail==0)? NULL:file->filename,
+                            file->shortfilename, 
+                            file->startcluster, 
+                            file->filelength) )
+        return false;
+    }
+    else 
+    {  FAT32_FreeClusterChain(FAT32_GetFileStartcluster(entry));
+       FAT32_SetFileStartcluster(entry,file->startcluster);
+       FAT32_SetFilelength(entry,file->filelength);
+    }
+    file->inUse = true;
+    return true;
+}
+#endif
+
+
+ static int update_file_cache(int handle, int extend)
+// return offset into file cache or -1 if unsuccessful
+ // if extend==true then extend the file if necessary
+{   register FL_FILE* file; 
+    UINT32 sector;
+    UINT32 offset;
+    UINT32 lba;
+  
+    file = &(Files[handle]);
+
+    // Calculations for file position
+    sector = file->bytenum / 512;
+    offset = file->bytenum - (sector*512);
+    lba = sector_to_lba(file, sector,extend);
+    if (lba==0) 
+      return -1;
+    if (extend && sector>file->filelength / 512) 
+    { if (!FAT32_ZeroCache(CachePtr(handle),lba))
+        return -1;
+    }
+    else if (!FAT32_ReadCache(CachePtr(handle),lba))
+      return -1;
+    return offset;
+}
+
+
+
+static int read_block(BYTE * buffer, unsigned int count, int handle)
+{   register FL_FILE* file; 
+    UINT32 sector;
+    UINT32 offset;
+    UINT32 lba;
+    UINT32 totalSectors;
+    UINT32 bytesRead;
+    UINT32 thisReadCount;
+    UINT32 i;
+
+    // Nothing to be done
+    if (count==0)
+        return 0;
+
+    file = &(Files[handle]);
+
+    // Check if read starts past end of file
+    if (file->bytenum>=file->filelength)
+        return -1;
+
+    // Limit to file size
+    if ( (file->bytenum + count) > file->filelength )
+      count = file->filelength - file->bytenum;
+
+    // Calculations for file position
+    sector = file->bytenum / 512;
+    offset = file->bytenum - (sector*512);
+
+    // Calculate how many sectors this is
+    totalSectors = (count+offset+511) / 512;
+
+    bytesRead = 0;
+    for (i=0;i<totalSectors;i++)
+    {  lba = sector_to_lba(file, sector,false);
+       if (lba==0) 
+         return (int)bytesRead;
+      if (!FAT32_ReadCache(CachePtr(handle),lba))
+         return (int)bytesRead;
+       // Read length - full sector or part
+       if ( offset+count>512 )
+         thisReadCount = 512-offset;
+       else
+         thisReadCount = count;
+
+       // Copy to application buffer
+       memcpy( (BYTE*)(buffer+bytesRead), CachePtr(handle)->buffer+offset, thisReadCount);
+       bytesRead+=thisReadCount;
+       count -=thisReadCount;
+       if (count<=0)
+         break;
+       sector++;
+       offset=0;
+    }
+    file->bytenum+=bytesRead;
+
+    return bytesRead;
+}
+
+//-----------------------------------------------------------------------------
+// write_block: Write a block of data to a file
+//-----------------------------------------------------------------------------
+#ifdef INCLUDE_WRITE_SUPPORT
+static bool write_block(int handle, const BYTE *data, UINT32 count) 
+{   register FL_FILE* file; 
+    UINT32 sector;
+    UINT32 offset;
+    UINT32 totalSectors;  
+    UINT32 oldSectors;  
+    UINT32 BytesWritten;
+    UINT32 thisWriteCount;
+    UINT32 lba;  
+    UINT32 i;
+
+    // Nothing to be done
+    if (count==0)
+      return 0;
+
+    file = &(Files[handle]);
+    
+    // Calculations for file position
+    sector = file->bytenum / 512;
+    offset = file->bytenum - (sector*512);
+    // Calculate how many sectors this is
+    totalSectors = (count+offset+511) / 512;
+    oldSectors = (file->filelength+511)/512;
+
+    BytesWritten = 0;
+    for (i=0;i<totalSectors;i++)
+    {
+      lba = sector_to_lba(file, sector, true);
+       if (lba==0) 
+         return -1;
+       // Write length - full sector or part
+       if (offset+count>512)
+         thisWriteCount = 512-offset;
+       else
+         thisWriteCount = count;
+
+       if (thisWriteCount==512)
+         FAT32_MoveCache(CachePtr(handle),lba);
+       else if(sector<oldSectors)
+	 FAT32_ReadCache(CachePtr(handle),lba);
+       else
+	 FAT32_ZeroCache(CachePtr(handle),lba);
+
+       memcpy(CachePtr(handle)->buffer+offset, (data+BytesWritten),thisWriteCount);
+       CachePtr(handle)->dirty=true;
+       BytesWritten+=thisWriteCount;
+       count -= thisWriteCount;
+       if (count<=0) break;
+       sector++;
+       offset=0;
+     }
+
+    file->bytenum+=BytesWritten;
+
+    // Increase file size
+    if (file->filelength<file->bytenum)
+    { file->filelength=file->bytenum;
+
+      // Update filesize in directory
+      FAT32_UpdateFileLength(file->parentcluster, file->shortfilename, file->filelength);
+    }
+    return true;
+}
+#endif

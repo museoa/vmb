@@ -3,7 +3,7 @@
  * \file        FAT32_FileString.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileString.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_FileString.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, File String capsulation
  * \details     {
  * }
@@ -22,13 +22,13 @@
 #include "../define.h"
 
 ///! Prototypes
-int FileString_PathTotalLevels( char *path );
-int FileString_GetSubString( char *Path, int levelreq, char *output );
-int FileString_SplitPath( char *FullPath, char *Path, char *FileName );
-int FileString_StrCmpNoCase( char *s1, char *s2, int n );
-int FileString_GetExtension( char *str );
-int FileString_TrimLength( char *str, int strLen );
+
 int FileString_Compare( char* strA, char* strB );
+int FileString_CompareSN(BYTE* shortname, const char* name);
+const char *FileString_GetFirstDirectory(const char * path, char * dir,int bound);
+const char *FileString_GetNextDirectory(const char * path, char * q, int bound);
+bool FileString_is_short(const char *filename);
+void FileString_Trim(char *trimmed, const char *filename);
 
 #ifndef NULL
     #define NULL 0

@@ -3,7 +3,7 @@
  * \file        FAT32_Disk.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Disk.c,v 1.1 2008-09-15 13:49:47 ruckert Exp $  // 2.0
+ * \version     $Id: FAT32_Disk.c,v 1.2 2009-09-07 11:43:30 ruckert Exp $  // 2.0
  * \brief       FAT32 Library, Disk
  * \details     {
  * }
@@ -20,11 +20,11 @@
 
 
 /*!
- * \fn      bool FAT32_InitDrive( void )
+ * \fn      bool FAT_InitDrive( void )
  * \brief   Initialise the choosen source
  * \return  True if success, returns False if not
  */
-bool FAT32_InitDrive( void )
+bool FAT_InitDrive( void )
 {
   return disk_init();
 

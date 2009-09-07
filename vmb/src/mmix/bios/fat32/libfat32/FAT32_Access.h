@@ -3,7 +3,7 @@
  * \file        FAT32_Access.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.h,v 1.2 2009-03-02 12:27:59 ruckert Exp $
+ * \version     $Id: FAT32_Access.h,v 1.3 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, Access functions
  * \details     {
  * }
@@ -23,26 +23,23 @@
 #ifndef __FAT32_ACCESS_H__
 #define __FAT32_ACCESS_H__
 
-///! Globals
-struct
-{
-    BYTE currentsector[512];
-    UINT32 SectorCurrentlyLoaded; ///< Initially Load to 0xffffffff;
-    UINT32 NextFreeCluster;
-} FATFS_Internal;
 
 ///! Prototypes
-bool FAT32_InitFAT( void );
+void FAT32_dir_shutdown(void);
 bool FAT32_SectorReader( UINT32 Startcluster, UINT32 offset );
-bool FAT32_SectorWriter( UINT32 Startcluster, UINT32 offset );
-void FAT32_ShowFATDetails( void );
-UINT32 FAT32_GetRootCluster(  );
-bool FAT32_GetFileEntry( UINT32 Cluster, char *nametofind, FAT32_ShortEntry *sfEntry );
-bool FAT32_SFNexists( UINT32 Cluster, char *shortname );
-bool FAT32_UpdateFileLength( UINT32 Cluster, char *shortname, UINT32 fileLength );
-bool FAT32_MarkFileDeleted( UINT32 Cluster, char *shortname );
-void ListDirectory( UINT32 StartCluster );
+bool FAT32_SectorWriter( UINT32 *Startcluster, UINT32 offset );
+bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *parentcluster);
+FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 Cluster, char *nametofind);
+FAT32_ShortEntry *FAT32_GetFileShort( UINT32 Cluster, BYTE *shortname);
+UINT32 FAT32_GetFilelength(FAT32_ShortEntry *sfEntry);
+void FAT32_SetFilelength(FAT32_ShortEntry *sfEntry, UINT32 length);
+UINT32 FAT32_GetFileStartcluster(FAT32_ShortEntry *sfEntry);
+void FAT32_SetFileStartcluster(FAT32_ShortEntry *sfEntry, UINT32 cluster);
+bool FAT32_UpdateFileLength( UINT32 Cluster, BYTE *shortname, UINT32 fileLength );
+bool FAT32_MarkFileDeleted( UINT32 Cluster, BYTE *shortname );
+bool FAT32_AddFileEntry(UINT32 dirCluster, char *filename, BYTE *shortfilename, UINT32 startCluster, UINT32 size);
+
+
 
 #endif // __FAT32_ACCESS_H__
 
-// vim:ts=4:tw=100:wm=100

@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.h,v 1.1 2008-09-15 13:49:47 ruckert Exp $
+ * \version     $Id: FAT32_FileLib.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -22,7 +22,7 @@
 #ifndef __FILELIB_H__
 #define __FILELIB_H__
 
-///! Defines
+///! Defines for fat32_fseek
 #ifndef SEEK_CUR
     #define SEEK_CUR    1
 #endif
@@ -35,43 +35,20 @@
     #define SEEK_SET    0
 #endif
 
-///! Global structures
-typedef struct
-{
-    UINT32  parentcluster;
-    UINT32  startcluster;
-    UINT32  bytenum;
-    UINT32  currentBlock;
-    UINT32  filelength;
-    char    path[ MAX_LONG_FILENAME ];
-    char    filename[ MAX_LONG_FILENAME ];
-    BYTE    filebuf[ 512 ];
-    BYTE    shortfilename[ 11 ];
-    bool    inUse;
-    bool    inRoot;
-
-    bool    Read;
-    bool    Write;
-    bool    Append;
-    bool    Binary;
-    bool    Erase;
-} FL_FILE;
-
-
 ///! External Prototypes
 void        fat32_initialize(void);
 void        fat32_shutdown(void);
-int         fat32_fopen(BYTE handle, char *path, int mode );
-int        fat32_fclose(BYTE handle);
-int         fat32_fgetc(BYTE handle);
-int         fat32_fputc( int c, BYTE handle);
-int         fat32_fputs( const char * str, BYTE handle);
-int         fat32_fwrite( const void * data, int size, int count, BYTE handle);
-int         fat32_fread( BYTE handle, BYTE * buffer, UINT32 count );
-int         fat32_fseek( BYTE handle, UINT32 offset , int origin );
-int         fat32_fgetpos( BYTE handle, UINT32 * position);
-int         fat32_remove( const char * filename );
-
+int         fat32_fopen(char *path, int mode, int handle );
+int         fat32_fclose(int handle);
+int         fat32_fread(void *buffer, unsigned int size, int handle );
+int         fat32_fgetc(int handle);
+char*       fat32_fgets(char *s, unsigned int size, int handle);
+int         fat32_fwrite(const void *buffer, unsigned int size, int handle);
+int         fat32_fputc(int c, int handle);
+int         fat32_fputs(const char * str, int handle);
+int         fat32_fseek(long offset , int origin, int handle);
+long        fat32_ftell(int handle);
+int         fat32_remove(const char * filename);
+int         fat32_mkdir(const char *pathname);
 #endif  // __FILELIB_H__
 
-// vim:ts=4:tw=100:wm=100

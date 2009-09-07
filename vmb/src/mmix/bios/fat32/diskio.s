@@ -25,8 +25,9 @@ count	IS	$1
 buffer	IS	$2        should be negative to be a physical address
 		%local variables
 base	IS	$3
-control IS	$4	
-tmp	IS	$5
+control IS	$4
+diskflag IS	$5	
+tmp	IS	$6
 					
 disk_read	BNN	buffer,1F
 
@@ -46,14 +47,23 @@ disk_read	BNN	buffer,1F
 		STO	sector,base,sectorOffset
 		SET	control,#3    IEN|STRT   to make it read
 		STO	control,base,controlOffset
-		SYNC	4		%go to power save mode
+3H		SYNC	4		%go to power save mode
+		GET	tmp,rQ
+     		SETML	diskflag,0x0008
+	        AND     diskflag,diskflag,tmp
+		BZ	diskflag,3B	% this was not the disk interrupt
+	        ANDN	tmp,tmp,diskflag   % delete the bit
+	        PUT     rQ,tmp
 
 2H		LDO	control,base,controlOffset load controll
 		AND	tmp,control,#10	test the BUSSY bit
 		BNZ	tmp,2B
 		AND	tmp,control,#08	test the ERROR bit
-	        ZSZ	$0,tmp,1	   return ERROR != 1
-		POP	1,0
+	        BNZ	tmp,1F	
+
+
+		SET	$0,1    return true
+	        POP	1,0
 	
 1H		SET	$0,0	return false
 		POP	1,0
