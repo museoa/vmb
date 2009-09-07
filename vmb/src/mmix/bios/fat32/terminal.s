@@ -45,10 +45,14 @@ DTrapKey	SETH	$1,console
 %	read blocking a character from the keyboard
 KeyboardC 	SETH	$1,console    
 3H	LDO	$2,$1,0		%keyboard status/data
-	BN	$2,2F	
-	SR	$3,$2,32
+	BNN	$2,4F
+	%	wait
+2H	SYNC	4		%go to power save mode
+	JMP	3B
+
+4H	SR	$3,$2,32
 	AND	$3,$3,#FF
-	BZ	$3,2F	
+	BZ	$3,2B
 	AND	$2,$2,#FF
 	STO	$2,$1,8		%echo
 	CMP	$3,$2,#0D	%carriage return
@@ -57,9 +61,6 @@ KeyboardC 	SETH	$1,console
 	STO	$2,$1,8
 1H	SET	$0,$2
 	POP	1,0
-%	wait
-2H	SYNC	4		%go to power save mode
-	JMP	3B
 
 
 

@@ -40,7 +40,7 @@ FAT32_Cache FATCache, FAT2Cache; /* the secont is only to write multiple FATs */
 
 
 #ifdef FATBUFFER_IMMEDIATE_WRITEBACK
-#define FAT32_UpdateFAT() FAT32_WriteCache(&FATCache)
+#define FAT32_UpdateFAT() (FAT32_WriteCache(&FATCache),FAT32_WriteCache(&FAT2Cache))
 #else
 #define FAT32_UpdateFAT() 
 #endif
@@ -53,7 +53,7 @@ static bool FAT32_SetClusterValue(UINT32 Cluster, UINT32 value)
    it should make sure that each time we write the FATCache
    we write the secont FAT too.
 */
-{ int i;
+{ 
 	UINT32 sector, offset;
 	sector = Cluster / 128;
 	offset = (Cluster - (sector * 128)) * 4; 
@@ -61,8 +61,10 @@ static bool FAT32_SetClusterValue(UINT32 Cluster, UINT32 value)
 	FAT32_ReadCache(&FATCache,FAT32.fat_begin_lba+sector);
 	FAT32_SET_32BIT(FATCache, offset, value);
 	 
-        for (i=1;i<FAT32.NumFATs;i++)
-	  { /* write the other FATs too */
+        if (FAT32.NumFATs>1)
+	  { /* write the second FAT */
+	    FAT32_ReadCache(&FAT2Cache,FAT32.fat_begin_lba+FAT32.FATSz+sector);
+	    FAT32_SET_32BIT(FAT2Cache, offset, value);
 	  }
 
         FAT32_UpdateFAT(); 

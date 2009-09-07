@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.3 2009-09-07 11:43:30 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.4 2009-09-07 13:05:42 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -100,6 +100,8 @@ void fat32_initialize(void)
 void fat32_shutdown( void )
 { int i;
   if (!Filelib_Init) return;
+  for (i=0;i<MAX_OPEN_FILES;i++)
+    if (Files[i].inUse) fat32_fclose(i);
   for (i=0;i<MAX_FILE_CACHE;i++)
     FAT32_WriteCache(&(FileCache[i]));
   FAT32_dir_shutdown();

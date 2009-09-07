@@ -2,36 +2,36 @@
 	.global FHandler
 
 FHandler	GET	$0,rXX
-		BNN	$0,Ropcode
+		BNN	$0,1F		%check the ropcode
 		SRU	$1,$0,24       
 		AND	$1,$1,#FF		%the opcode
-		BZ	$1,TrapInstruction		
+		BZ	$1,4F		
 
 		POP	0,0			%not a TRAP and ropcode<0
        
-Ropcode		SRU	$0,$0,56		%the ropcode
-		BZ	$0,PageFault		%0 means page fault
+1H		SRU	$0,$0,56		%the ropcode
+		BZ	$0,1F		%0 means page fault
 		CMP	$1,$0,2         
-		BZ      $1,Emulate		%2 means emulate the instruction
+		BZ      $1,2F		%2 means emulate the instruction
 		CMP	$1,$0,3	        
-		BZ	$1,Virtual		%page table translation in software
+		BZ	$1,3F		%page table translation in software
 
 
 %       TRAP handler for page faults (not yet implemented)       	
-PageFault	SWYM	5		% tell the debugger
+1H		SWYM	5		% Page Fault tell the debugger
 		POP     0,0              
 
 %       Emulate the instruction
-Emulate		SWYM	5		% tell the debugger
+2H		SWYM	5		% Emulate tell the debugger
 		POP     0,0              
 
 %	Do pagetable translation in software
-Virtual		SET	$0,#1234		%the dummy physical address
+3H		SET	$0,#1234		%the dummy physical address
 		PUT	rZZ,$0			%thats where the translation is suposed to go
 		POP     0,0
 
 %       Handle a Trap Instruction
-TrapInstruction SRU	$1,$0,8
+4H		SRU	$1,$0,8
 		AND	$1,$1,#FF		%the Y value (the function code)
 	        CMP     $3,$1,#1F
 		BP	$3,TrapUnhandled	% in the moment we handle only very few Traps
