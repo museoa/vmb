@@ -8,7 +8,7 @@ LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
-all: $(PROG) bios.img TAGS
+all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
