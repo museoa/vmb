@@ -163,7 +163,7 @@ void write_data_cache(octa address, int size)
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_flush_line(&vmb_d_cache, address.h, address.l);
-    incr(address,LINESIZE);
+    address=incr(address,LINESIZE);
   }
 }
 
@@ -172,7 +172,7 @@ void clear_data_cache(octa address, int size)
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_clear_line(&vmb_d_cache, address.h, address.l);
-    incr(address,LINESIZE);
+    address=incr(address,LINESIZE);
   }
 }
 
@@ -181,7 +181,7 @@ void clear_instruction_cache(octa address, int size)
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_clear_line(&vmb_i_cache, address.h, address.l);
-    incr(address,LINESIZE);
+    address=incr(address,LINESIZE);
   }
 }
 
@@ -190,7 +190,7 @@ void prego_instruction_cache(octa address, int size)
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_preload(&vmb_i_cache, address.h, address.l);
-    incr(address,LINESIZE);
+    address=incr(address,LINESIZE);
   }
 }
 
@@ -199,7 +199,7 @@ void preload_data_cache(octa address, int size)
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_preload(&vmb_d_cache, address.h, address.l);
-    incr(address,LINESIZE);
+    address=incr(address,LINESIZE);
   }
 }
 
