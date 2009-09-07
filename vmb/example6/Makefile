@@ -44,4 +44,6 @@ mount:
 	mount -o loop  disk.bin mnt
 
 mkdisk:
-	mkdosfs -C -F 32 disk.bin 128
+	mkdosfs -C -F 32  disk.bin 128
+#	mkdosfs -C -F 32 -R 2 disk.bin 128
+	
