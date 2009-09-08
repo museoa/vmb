@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.5 2009-09-08 12:59:12 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.6 2009-09-08 13:12:02 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -21,7 +21,6 @@
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
 #include "FAT32_Name.h"
-#include "FAT32_FileString.h"
 #include "FAT32_Cache.h"
 #include "FAT32_Disk.h"
 #include "FAT32_FileLib.h"
@@ -620,7 +619,7 @@ static bool create_file(BYTE handle, char *fullpath)
     // Check if same filename exists in directory
     entry = FAT32_GetFileEntry(file->parentcluster, file->filename);
     if (entry == NULL) /* make a new file */
-    { tail = FileString_Create_sfn_with_tail(file->parentcluster, 
+    { tail = FATName_Create_sfn_with_tail(file->parentcluster, 
                      file->shortfilename, file->filename);
       if( !FAT32_AddFileEntry(file->parentcluster, 
                             (tail==0)? NULL:file->filename,

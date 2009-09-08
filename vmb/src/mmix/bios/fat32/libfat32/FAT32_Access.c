@@ -3,7 +3,7 @@
  * \file        FAT32_Access.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.c,v 1.4 2009-09-08 12:59:12 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_Access.c,v 1.5 2009-09-08 13:12:02 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, Access
  * \details     {
  * }
@@ -22,7 +22,6 @@
 #include "FAT32_Definitions.h"
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
-#include "FAT32_FileString.h"
 #include "FAT32_Name.h"
 #include "FAT32_Cache.h"
 
@@ -170,7 +169,7 @@ first.
 
   if (!FAT32_ReadCache(&DirCache,lba2)) return 0;
   shortEntry = (FAT32_ShortEntry*)(DirCache.buffer+offset2);
-  if ( FileString_CompareSN(shortEntry->Name,filename))
+  if ( Name_CompareSN(shortEntry->Name,filename))
     return 1;
   if (count <=1)
     return 0;
@@ -249,7 +248,7 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
   startcluster = FAT32.RootDir_First_Cluster;
   out = path;
   *out++='/';
-  tail = FileString_GetFirstDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
+  tail = Name_GetFirstDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
   while (tail!=NULL)
     { int d;
       sfEntry=FAT32_GetFileEntry(startcluster, out);
@@ -265,9 +264,9 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
       out[d-1]='/';
       out+=d;
       fullpath=tail;
-      tail = FileString_GetNextDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
+      tail = Name_GetNextDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
     }
-  FileString_Trim(name,out);
+  Name_Trim(name,out);
   *--out=0; /* remove trailing '/' */
   *parentcluster = startcluster;
   return true;
