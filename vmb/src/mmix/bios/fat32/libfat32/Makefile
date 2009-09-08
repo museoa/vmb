@@ -7,8 +7,8 @@ RANLIB = mmix-ranlib
 
 
 OBJECTS = FAT32_Cache.o FAT32_Access.o  FAT32_FileLib.o \
-          FAT32_Table.o FAT32_FileString.o \
-          FAT32_Disk.o  FAT32_Longname.o \
+          FAT32_Table.o \
+          FAT32_Disk.o  FAT32_Name.o \
 
 
 all: .depend libfat32.a TAGS

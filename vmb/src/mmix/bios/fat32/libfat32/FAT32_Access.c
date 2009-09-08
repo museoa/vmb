@@ -3,7 +3,7 @@
  * \file        FAT32_Access.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.c,v 1.3 2009-09-07 11:43:30 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_Access.c,v 1.4 2009-09-08 12:59:12 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, Access
  * \details     {
  * }
@@ -23,7 +23,7 @@
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
 #include "FAT32_FileString.h"
-#include "FAT32_Longname.h"
+#include "FAT32_Name.h"
 #include "FAT32_Cache.h"
 
 FAT32_Cache DirCache;
@@ -113,7 +113,7 @@ int FAT32_FindNextFile(UINT32 cluster, int *psector, int *pitem,
     { for (; item<16;item++)
       { recordoffset = (32*item);
         dirEntry=(FAT32_ShortEntry*)(DirCache.buffer+recordoffset);
-        if ((n=FATLongname_is_lfn_entry(dirEntry))!=0) /* lfn entry */
+        if ((n=FATName_is_lfn_entry(dirEntry))!=0) /* lfn entry */
 	  { if (n<0) 
 	    { count = -n;
               *lba1=DirCache.lba;
@@ -125,7 +125,7 @@ int FAT32_FindNextFile(UINT32 cluster, int *psector, int *pitem,
 	    else
 	      count=expect=0;
 	  }
-	else if ( FATLongname_is_sfn_entry(dirEntry))
+	else if ( FATName_is_sfn_entry(dirEntry))
 	  { if (count==0)
             { *lba1=*lba2=DirCache.lba;
               *offset1=*offset2=recordoffset;
@@ -150,7 +150,7 @@ int FAT32_FindNextFile(UINT32 cluster, int *psector, int *pitem,
 }
 
 
-static int FAT32_Longname_Equal(const char *filename, int count, 
+static int FAT32_Name_Equal(const char *filename, int count, 
                       UINT32 lba1, int offset1, UINT32 lba2, int offset2)
 /* determine if the filename matches either the
 short entry stored at lba2/offset2 or 
@@ -174,7 +174,7 @@ first.
     return 1;
   if (count <=1)
     return 0;
-  checksum =  FATLongname_ChkSum(shortEntry->Name); 
+  checksum =  FATName_ChkSum(shortEntry->Name); 
   /* we read backward through the long entries and compare */
   for (n=1; n<count; n++)
     { offset2 = offset2-32;
@@ -184,7 +184,7 @@ first.
           if (!FAT32_ReadCache(&DirCache,lba2)) return 0;
 	}
       longEntry = (FAT32_LongEntry*)(DirCache.buffer+offset2);
-      i=FATLongname_Compare_entry(longEntry,filename,checksum,n);
+      i=FATName_Compare_entry(longEntry,filename,checksum,n);
       if (i==0) return 0;
       filename=filename+i;
     }
@@ -211,7 +211,7 @@ FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind)
     item = 0;
     while ((count= FAT32_FindNextFile(cluster, &sector, &item, 
 				      &lba1, &offset1, &lba2, &offset2))!=0)
-      {	if (FAT32_Longname_Equal(nametofind,count, lba1, offset1, lba2, offset2))
+      {	if (FAT32_Name_Equal(nametofind,count, lba1, offset1, lba2, offset2))
 	  {  FAT32_ReadCache(&DirCache,lba2);
 	     return (FAT32_ShortEntry *)(DirCache.buffer+offset2);
 	  }
@@ -231,7 +231,7 @@ FAT32_ShortEntry * FAT32_GetFileShort(UINT32 Cluster, BYTE *shortname)
   while (FAT32_SectorReader(Cluster, sector++)) 
   { for (item=0; item<16;item++)
     { entry = (FAT32_ShortEntry*)(DirCache.buffer+32*item); 
-      if( FATLongname_is_sfn_entry(entry) &&  ///< Normal Entry, only 8.3 Text
+      if( FATName_is_sfn_entry(entry) &&  ///< Normal Entry, only 8.3 Text
           strncmp((const char*)entry->Name, (const char*)shortname, 11)==0)
         return entry;
     }
@@ -253,7 +253,7 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
   while (tail!=NULL)
     { int d;
       sfEntry=FAT32_GetFileEntry(startcluster, out);
-      if (sfEntry!=NULL && FATLongname_is_dir_entry(sfEntry))
+      if (sfEntry!=NULL && FATName_is_dir_entry(sfEntry))
         startcluster = FAT32_GetFileStartcluster(sfEntry);
       else
       {  *name = 0;
@@ -402,19 +402,19 @@ bool FAT32_AddFileEntry(UINT32 dirCluster,
     int offset1, offset2;
     BYTE checksum;
     if (filename!=NULL)
-      entryCount = FATLongname_LFN_to_entry_count(filename);
+      entryCount = FATName_LFN_to_entry_count(filename);
     else
       entryCount = 0;
 
     if( !FAT32_FindFreeOffset(dirCluster, entryCount+1, &lba1, &offset1, &lba2, &offset2) )
         return false;
     if (entryCount>0) 
-    { checksum =  FATLongname_ChkSum(shortfilename);
+    { checksum =  FATName_ChkSum(shortfilename);
       for(n = entryCount;n>0;n--)
       { if (!FAT32_ReadCache(&DirCache,lba1)) 
           return false;
         longEntry = (FAT32_LongEntry*)(DirCache.buffer+offset1);
-        FATLongname_Create_lfn_entrys(filename, entryCount,  n, checksum, longEntry); 
+        FATName_Create_lfn_entrys(filename, entryCount,  n, checksum, longEntry); 
         DirCache.dirty=true;
         offset1+=32;
         if (offset1>=512)
@@ -427,7 +427,7 @@ bool FAT32_AddFileEntry(UINT32 dirCluster,
     if (!FAT32_ReadCache(&DirCache,lba2)) 
       return false;
     shortEntry = (FAT32_ShortEntry*)(DirCache.buffer+offset2);
-    FATLongname_Create_sfn_entry(shortfilename, size, startCluster, shortEntry);
+    FATName_Create_sfn_entry(shortfilename, size, startCluster, shortEntry);
     DirCache.dirty=true;
     return FAT32_WriteCache(&DirCache);
 }

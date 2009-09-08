@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.4 2009-09-07 13:05:42 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.5 2009-09-08 12:59:12 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -20,7 +20,7 @@
 #include "FAT32_Definitions.h"
 #include "FAT32_Table.h"
 #include "FAT32_Access.h"
-#include "FAT32_Longname.h"
+#include "FAT32_Name.h"
 #include "FAT32_FileString.h"
 #include "FAT32_Cache.h"
 #include "FAT32_Disk.h"
@@ -518,7 +518,7 @@ int fat32_remove( const char *fullpath )
       return -1;
 
     sfEntry=FAT32_GetFileEntry(parentcluster, name);
-    if (sfEntry==NULL || FATLongname_is_dir_entry(sfEntry))
+    if (sfEntry==NULL || FATName_is_dir_entry(sfEntry))
       return -1;
     
     memcpy(shortname, sfEntry->Name, 11);
@@ -582,7 +582,7 @@ static bool open_read_file(BYTE handle, char *fullpath)
 
     // Using dir cluster address search for filename
     sfEntry=FAT32_GetFileEntry(file->parentcluster, file->filename);
-    if (sfEntry!=NULL && !FATLongname_is_dir_entry(sfEntry))
+    if (sfEntry!=NULL && !FATName_is_dir_entry(sfEntry))
     {
         // Initialise file details
         memcpy(file->shortfilename, sfEntry->Name, 11);
@@ -620,7 +620,7 @@ static bool create_file(BYTE handle, char *fullpath)
     // Check if same filename exists in directory
     entry = FAT32_GetFileEntry(file->parentcluster, file->filename);
     if (entry == NULL) /* make a new file */
-    { tail = FATLongname_Create_sfn_with_tail(file->parentcluster, 
+    { tail = FileString_Create_sfn_with_tail(file->parentcluster, 
                      file->shortfilename, file->filename);
       if( !FAT32_AddFileEntry(file->parentcluster, 
                             (tail==0)? NULL:file->filename,
