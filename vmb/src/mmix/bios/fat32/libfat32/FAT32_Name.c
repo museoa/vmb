@@ -166,12 +166,14 @@ static void FATName_Create_sfn(BYTE *shortname, char *filename)
 	for (;*filename!=0;filename++)
 	  if (*filename=='.') lastdot=filename;
         if (lastdot!=NULL)
+	{ lastdot++;
           while (i<11&&*lastdot!=0)
 	  { if (isspace(*lastdot))
               lastdot++;
 	    else 
 	      shortname[i++]=toupper(*lastdot++);
 	  }
+	}
  padding:
         for (;i<11;i++)
           shortname[i]=' ';

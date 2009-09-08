@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.6 2009-09-08 13:12:02 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.7 2009-09-08 15:56:57 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -30,6 +30,7 @@
 typedef struct
 {
     UINT32  parentcluster;
+    int     parentitem;
     UINT32  startcluster;
     UINT32  bytenum;
     UINT32  currentsector;
@@ -388,7 +389,7 @@ int fat32_fputc(int c, int handle)
     { Files[handle].filelength=Files[handle].bytenum;
       // Update filesize in directory
       FAT32_UpdateFileLength(Files[handle].parentcluster, 
-         Files[handle].shortfilename, Files[handle].filelength);
+         Files[handle].parentitem, Files[handle].filelength, Files[handle].startcluster);
     }
  
     return (int)(unsigned char)c;
@@ -437,7 +438,7 @@ int fat32_fputs(const char * str, int handle)
   { Files[handle].filelength=Files[handle].bytenum;
     // Update filesize in directory
     FAT32_UpdateFileLength(Files[handle].parentcluster, 
-         Files[handle].shortfilename, Files[handle].filelength);
+         Files[handle].parentitem, Files[handle].filelength, Files[handle].startcluster);
   }
   return s-str;
 }
@@ -508,6 +509,7 @@ int fat32_remove( const char *fullpath )
     BYTE shortname[11];
     char path[ MAX_LONG_FILENAME];
     char name[ MAX_LONG_FILENAME];
+    int item;
 
     // If first call to library, initialise
     LOG( "LOG4C_PRIORITY_DEBUG", "File remove");
@@ -516,7 +518,7 @@ int fat32_remove( const char *fullpath )
     if (!FAT32_GetDirectory(fullpath,path,name,&parentcluster))
       return -1;
 
-    sfEntry=FAT32_GetFileEntry(parentcluster, name);
+    sfEntry=FAT32_GetFileEntry(parentcluster, name, &item);
     if (sfEntry==NULL || FATName_is_dir_entry(sfEntry))
       return -1;
     
@@ -528,7 +530,7 @@ int fat32_remove( const char *fullpath )
       return -1;
 
     // Remove directory entries
-    if (!FAT32_MarkFileDeleted(parentcluster, shortname))
+    if (!FAT32_MarkFileDeleted(parentcluster, item))
       return -1;
 
     return 0;
@@ -557,7 +559,6 @@ static UINT32 sector_to_lba( FL_FILE* file, UINT32 sector, int extend)
   }
   else
     lba = FAT32_ClusterOffset2lba(&file->startcluster, sector, extend);
-
   if (lba!=0) 
     { file->currentsector=sector;
       file->currentlba=lba;
@@ -580,7 +581,7 @@ static bool open_read_file(BYTE handle, char *fullpath)
       return false;
 
     // Using dir cluster address search for filename
-    sfEntry=FAT32_GetFileEntry(file->parentcluster, file->filename);
+    sfEntry=FAT32_GetFileEntry(file->parentcluster, file->filename, &(file->parentitem));
     if (sfEntry!=NULL && !FATName_is_dir_entry(sfEntry))
     {
         // Initialise file details
@@ -617,7 +618,7 @@ static bool create_file(BYTE handle, char *fullpath)
     if (!FAT32_GetDirectory(fullpath,file->path,file->filename,&file->parentcluster))
       return false;
     // Check if same filename exists in directory
-    entry = FAT32_GetFileEntry(file->parentcluster, file->filename);
+    entry = FAT32_GetFileEntry(file->parentcluster, file->filename, &file->parentitem);
     if (entry == NULL) /* make a new file */
     { tail = FATName_Create_sfn_with_tail(file->parentcluster, 
                      file->shortfilename, file->filename);
@@ -625,7 +626,8 @@ static bool create_file(BYTE handle, char *fullpath)
                             (tail==0)? NULL:file->filename,
                             file->shortfilename, 
                             file->startcluster, 
-                            file->filelength) )
+                            file->filelength,
+                            &(file->parentitem)) )
         return false;
     }
     else 
@@ -787,7 +789,7 @@ static bool write_block(int handle, const BYTE *data, UINT32 count)
     { file->filelength=file->bytenum;
 
       // Update filesize in directory
-      FAT32_UpdateFileLength(file->parentcluster, file->shortfilename, file->filelength);
+      FAT32_UpdateFileLength(file->parentcluster, file->parentitem, file->filelength, file->startcluster);
     }
     return true;
 }

@@ -3,7 +3,7 @@
  * \file        FAT32_Access.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Access.c,v 1.5 2009-09-08 13:12:02 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_Access.c,v 1.6 2009-09-08 15:56:57 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, Access
  * \details     {
  * }
@@ -191,7 +191,8 @@ first.
 }
 
 /*!
- * \fn      FAT32_ShortEntry *FAT32_GetFileEntry(UINT32 Cluster, char *nametofind)
+ * \fn      FAT32_ShortEntry *FAT32_GetFileEntry(UINT32 Cluster, char *nametofind, 
+ *           int *itemfound)
  * \brief   Find the file entry for a filename
  * \param   Cluster     Needs an unsigned integer (uint32) which represents the start cluster of the directory
  * \param   nametofind  Needs a char pointer which represents the name for which to search
@@ -201,7 +202,7 @@ first.
 
  */
 
-FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind)
+FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind, int *itemfound)
 {
   int sector, item, count;
     UINT32 lba1, lba2;
@@ -212,6 +213,7 @@ FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind)
 				      &lba1, &offset1, &lba2, &offset2))!=0)
       {	if (FAT32_Name_Equal(nametofind,count, lba1, offset1, lba2, offset2))
 	  {  FAT32_ReadCache(&DirCache,lba2);
+             *itemfound =sector*16+item; 
 	     return (FAT32_ShortEntry *)(DirCache.buffer+offset2);
 	  }
         else
@@ -220,6 +222,19 @@ FAT32_ShortEntry *FAT32_GetFileEntry( UINT32 cluster, char *nametofind)
     return 0;
 }
 
+FAT32_ShortEntry * FAT32_GetFile(UINT32 Cluster, int item)
+{
+  int sector;
+  FAT32_ShortEntry *entry;
+  sector = item/16;
+  item = item%16;
+  if(!FAT32_SectorReader(Cluster, sector))
+    return NULL;
+  entry = (FAT32_ShortEntry*)(DirCache.buffer+32*item); 
+  if(!FATName_is_sfn_entry(entry))
+    return NULL;
+  return entry;
+}
 
 FAT32_ShortEntry * FAT32_GetFileShort(UINT32 Cluster, BYTE *shortname)
 {
@@ -244,6 +259,7 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
   char *out;
   UINT32 startcluster;
   FAT32_ShortEntry *sfEntry;
+  int item;
   
   startcluster = FAT32.RootDir_First_Cluster;
   out = path;
@@ -251,7 +267,7 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
   tail = Name_GetFirstDirectory(fullpath, out, MAX_LONG_PATH -(out-path));
   while (tail!=NULL)
     { int d;
-      sfEntry=FAT32_GetFileEntry(startcluster, out);
+      sfEntry=FAT32_GetFileEntry(startcluster, out,&item);
       if (sfEntry!=NULL && FATName_is_dir_entry(sfEntry))
         startcluster = FAT32_GetFileStartcluster(sfEntry);
       else
@@ -283,14 +299,13 @@ bool FAT32_GetDirectory(const char *fullpath, char* path, char *name , UINT32 *p
  * \param   fileLength  Needs an unsigned integer (uint32) which holds the file length
  * \return  Returns boolean, true if success, false if failure
  */
-bool FAT32_UpdateFileLength(UINT32 parentcluster, BYTE *shortname, UINT32 fileLength)
+bool FAT32_UpdateFileLength(UINT32 parentcluster, int item, UINT32 fileLength, UINT32 startcluster)
 {  FAT32_ShortEntry *Entry;
 
-  Entry = FAT32_GetFileShort(parentcluster, shortname);
+  Entry = FAT32_GetFile(parentcluster, item);
   if (Entry==NULL) return false;
-  SET_32BIT_WORD(Entry->Size,0,fileLength);
-        // TODO: Update last write time
-  DirCache.dirty=true;
+  FAT32_SetFilelength(Entry, fileLength);
+  FAT32_SetFileStartcluster(Entry, startcluster);
   return FAT32_WriteCache(&DirCache);   ///< Write sector back
 }
 
@@ -308,11 +323,11 @@ bool FAT32_UpdateFileLength(UINT32 parentcluster, BYTE *shortname, UINT32 fileLe
  * \param   shortname   Needs a char pointer which holds the shortname 
  * \return  Returns boolean, true if success, false if failure
  */
-bool FAT32_MarkFileDeleted(UINT32 Cluster, BYTE *shortname)
+bool FAT32_MarkFileDeleted(UINT32 Cluster, int item)
 {  FAT32_ShortEntry *Entry;
 
   /* This should also remove associated long filename entries */
-   Entry = FAT32_GetFileShort(Cluster, shortname);
+   Entry = FAT32_GetFile(Cluster, item);
    if (Entry==NULL) return false;
    Entry->Name[0] = 0xE5;                  
    DirCache.dirty=true;
@@ -324,7 +339,7 @@ bool FAT32_MarkFileDeleted(UINT32 Cluster, BYTE *shortname)
 // FAT32_FindFreeOffset: Find a free space in the directory for a new entry 
 // which takes up 'entryCount' blocks (or allocate some more)
 //-----------------------------------------------------------------------------
-bool FAT32_FindFreeOffset(UINT32 dirCluster, int entryCount, UINT32 *lba1, int *offset1, UINT32 *lba2, int *offset2)
+static int FAT32_FindFreeItems(UINT32 dirCluster, int entryCount, UINT32 *lba1, int *offset1, UINT32 *lba2, int *offset2)
 /* finds in the directory given by its Start Cluster, entryCount contiguous entries.
    the first of this at lba1 and offset1, 
    the last at lba2 and offset2. (they are equal if entryCount=1).
@@ -341,43 +356,42 @@ bool FAT32_FindFreeOffset(UINT32 dirCluster, int entryCount, UINT32 *lba1, int *
 
     sector = 0;
     currentCount=0;
-    while (FAT32_SectorReader(dirCluster, sector++)) 
-    { for (item=0; item<16;item++)
-      { recordoffset = (32*item);
-        dirEntry=(FAT32_ShortEntry*)(DirCache.buffer+recordoffset);
-	if (dirEntry->Attr ==  FILE_HEADER_BLANK ||
-	    dirEntry->Attr ==  FILE_HEADER_DELETED )
-	  currentCount++;
-        else
-          currentCount=0;
-        if (currentCount==1)
-	{ *lba1=DirCache.lba;
-          *offset1=recordoffset;
-        }  
-        if (currentCount==entryCount)
-	{ *lba2=DirCache.lba;
-          *offset2=recordoffset;
-          return true;
-        }  
+    while (true)
+    { if (!FAT32_SectorReader(dirCluster, sector))
+      { // Run out of free space in the directory, allocate one additional cluster
+        UINT32 newlba;
+        newCluster=FAT32_FindBlankCluster();
+        if (newCluster==0)
+          return -1;
+        if (!FAT32_AddClusterToEndofChain(dirCluster, newCluster))
+          return -1;
+        newlba =  FAT32_LBAofCluster(newCluster);
+        for (i=FAT32.SectorsPerCluster-1;i>=0;i--)
+          FAT32_ZeroCache(&DirCache, newlba+i);
+        if (!FAT32_SectorReader(dirCluster, sector))
+          return -1;
       }
+      for (item=0; item<16;item++)
+        { recordoffset = (32*item);
+          dirEntry=(FAT32_ShortEntry*)(DirCache.buffer+recordoffset);
+	  if (dirEntry->Attr ==  FILE_HEADER_BLANK ||
+              dirEntry->Attr ==  FILE_HEADER_DELETED )
+	    currentCount++;
+          else
+            currentCount=0;
+          if (currentCount==1)
+	  { *lba1=DirCache.lba;
+            *offset1=recordoffset;
+          }  
+          if (currentCount==entryCount)
+	  { *lba2=DirCache.lba;
+            *offset2=recordoffset;
+            return sector*16+item;
+          }  
+        }
+      sector++;
     }
-
-    // Run out of free space in the directory, allocate one additional cluster
-    newCluster=FAT32_FindBlankCluster();
-    if (newCluster==0)
-       return false;
-    if (!FAT32_AddClusterToEndofChain(dirCluster, newCluster))
-       return false;
-    *lba2 =  FAT32_LBAofCluster(newCluster);
-    *offset2=32*(entryCount-currentCount-1);
-    if (currentCount==0)
-    { *lba1=*lba2;
-      *offset1=0;
-    }    
-    for (i=0;i<FAT32.SectorsPerCluster;i++)
-      FAT32_ZeroCache(&DirCache, *lba2+i);
-
-    return true;
+    return -1;
 }  
 
 
@@ -388,7 +402,8 @@ bool FAT32_AddFileEntry(UINT32 dirCluster,
                         char *filename, 
                         BYTE *shortfilename,
                         UINT32 startCluster, 
-                        UINT32 size)
+                        UINT32 size,
+                        int *diritem)
 /* add a file entry to the directory given by dirCluster.
    if filename==NULL only a short entry is generated otherwise, a 
    sequence of long entries followed by a short entry.
@@ -397,15 +412,17 @@ bool FAT32_AddFileEntry(UINT32 dirCluster,
     int entryCount, n;
     FAT32_ShortEntry *shortEntry;
     FAT32_LongEntry *longEntry;
-    UINT32 lba1, lba2;
-    int offset1, offset2;
+    UINT32 lba1=0, lba2;
+    int offset1 =0, offset2;
+    int item;
     BYTE checksum;
     if (filename!=NULL)
       entryCount = FATName_LFN_to_entry_count(filename);
     else
       entryCount = 0;
 
-    if( !FAT32_FindFreeOffset(dirCluster, entryCount+1, &lba1, &offset1, &lba2, &offset2) )
+    if((item = FAT32_FindFreeItems(dirCluster, entryCount+1, 
+				   &lba1, &offset1, &lba2, &offset2) )<0)
         return false;
     if (entryCount>0) 
     { checksum =  FATName_ChkSum(shortfilename);
@@ -428,5 +445,6 @@ bool FAT32_AddFileEntry(UINT32 dirCluster,
     shortEntry = (FAT32_ShortEntry*)(DirCache.buffer+offset2);
     FATName_Create_sfn_entry(shortfilename, size, startCluster, shortEntry);
     DirCache.dirty=true;
+    *diritem = item;
     return FAT32_WriteCache(&DirCache);
 }
