@@ -19,12 +19,13 @@ ScreenBuffer		BYTE 0      255 Byte of screen Buffer
 	.global DTrapScreen
 	
 	
-initTerminal	GETA	$0,ScreenBufferStart
+initTerminal	GETA	$0,pScreenBufferStart
+		LDO	$0,$0,0
 		SET	$1,0
 	        STO	$1,$0,0		%initialize ScreenBufferStart 
 		STO	$1,$0,#8	%initialize ScreenBufferEnd
 		POP     0,0
-	
+pScreenBufferStart OCTA ScreenBufferStart	
 
 console	IS	#8001             %   hi wyde of console	
 

@@ -18,7 +18,7 @@ MASFLAGS= -gdwarf2 -x
 # -static do not link to dynamic libraries
 # -nostdlib do not link in standard libraries
 
-OBJECTS= bios.o tables.o dtraps.o ftraps.o terminal.o diskio.o
+OBJECTS= bios.o dtraps.o ftraps.o terminal.o diskio.o
 LIBS=libfat32/libfat32.a
 SUBDIRS = libfat32
 
@@ -26,7 +26,7 @@ all:  bios.img bios.elf
 
 
 %.o: %.s
-	$(MAS) $(MASFLAGS) $^ -o $@
+	$(MAS) $(MASFLAGS) -no-expand $^ -o $@
 
 
 tables.o: tables.s

@@ -16,7 +16,8 @@ Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	PUT	rT,$0
 	SET	$0,#e0
 	PUT	rG,$0               % allocate 32 global registers for gcc
-	GETA	$254,OSStackStart  % initialize the stackpointer for gcc
+	GETA	$254,pOSStackStart
+	LDO	$254,$254,0
 	SET	$253,0              % the frame pointer for gcc
 	PUSHJ	$0,initMemory	%initialize the memory setup
         PUSHJ	$0,initTerminal
@@ -37,7 +38,11 @@ Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	NEG	$255,1	% enable interrupt $255->rK with resume 1
 	RESUME	1	% loading a file sets up special registers for that
 
-
+	.global pOSStackStart
+pOSRam OCTA OSRam
+pFreeSpace OCTA FreeSpace
+p__Ebss	OCTA	__Ebss
+pOSStackStart OCTA OSStackStart
 	
 %	Entry point for a dynamic TRAP	
 DTrap	PUSHJ	$255,DHandler
@@ -77,8 +82,10 @@ initMemory	SETH    $0,#1234	%set rV register
 		PUT	rV,$0
 
 
-		GETA	$0,FreeSpace
-		GETA	$1,__Ebss       % end of the statically allocated RAM
+		GETA	$0,pFreeSpace
+		LDO	$0,$0,0
+		GETA	$1,p__Ebss
+		LDO	$1,$1,0         % end of the statically allocated RAM
 	        SET	$2,#1FFF
 	        ADD	$1,$1,$2
 		ANDN	$1,$1,$2        % round to next multiple of #2000
@@ -89,7 +96,8 @@ initMemory	SETH    $0,#1234	%set rV register
 DTrapPageFault	POP     0,0              
 
 %	allocate a new page in ram and return its address
-newpage	GETA	$1,FreeSpace
+newpage	GETA	$1,pFreeSpace
+	LDO	$1,$1,0
 	LDO	$0,$1,0		% get the FreeSpace
 	SET	$2,$0
 	INCL	$2,#2000	% add one page
@@ -150,7 +158,10 @@ UserRamSize IS #36000  % size of memory allocated for user programs
 %	First Page in RAM: reserved for the OS.
 %	The layout follows below.
 	  .section	.bss,"aw",@nobits
-
+	.org	0
+OSRam	     IS	  @	
+FreeSpace    OCTA 0              %First page is for OS
+	
 %       leave room for the pages staticaly allocated to user programms
 	.org	UserRamSize
 
@@ -163,4 +174,3 @@ OSStackLow   OCTA	0
 	.global OSStackStart
 OSStackStart OCTA	0
 
-FreeSpace    OCTA 0              %First page is for OS

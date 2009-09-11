@@ -37,27 +37,68 @@ FHandler	GET	$0,rXX
 		BP	$3,TrapUnhandled	% in the moment we handle only very few Traps
 		AND	$1,$1,#1F    
 		SL	$1,$1,2
-		GETA	$2,FTrapTable
+		GETA	$2,1F
 		GO	$2,$2,$1		%Jump into the Trap Table
-	
+
+1H	   JMP   TrapHalt       %0
+	   JMP   TrapFopen      %1
+	   JMP   TrapFclose     %2
+	   JMP   TrapFread      %3
+	   JMP   TrapFgets      %4
+	   JMP   TrapFgetws     %5
+	   JMP   TrapFwrite     %6
+	   JMP   TrapFputs      %7 
+	   JMP   TrapFputws     %8
+	   JMP   TrapFseek      %9
+	   JMP   TrapFtell      %a
+	   JMP   TrapUnhandled  %b
+	   JMP   TrapUnhandled  %c
+	   JMP   TrapUnhandled  %d
+	   JMP   TrapUnhandled  %e
+	   JMP   TrapUnhandled  %f
+	   JMP   TrapGPutPixel %10
+	   JMP   TrapUnhandled %11
+	   JMP   TrapUnhandled %12
+	   JMP   TrapUnhandled %13
+	   JMP   TrapUnhandled %14
+	   JMP   TrapUnhandled %15
+	   JMP   TrapUnhandled %16
+	   JMP   TrapUnhandled %17
+	   JMP   TrapUnhandled %18
+	   JMP   TrapUnhandled %19
+	   JMP   TrapUnhandled %1a
+	   JMP   TrapUnhandled %1b
+	   JMP   TrapUnhandled %1c
+	   JMP   TrapUnhandled %1d
+	   JMP   TrapUnhandled %1e
+	   JMP   TrapUnhandled %1f
+		
 
 %         The individual Trap routines
 
 		.global TrapUnhandled
 
-TrapUnhandled	SWYM	5		        % tell the debugger
-		POP	0,0
+TrapUnhandled   GETA    $0,1F
+                SWYM    0,5            % tell the debugger
+                POP     0,0
+1H              BYTE    "DEBUG Unhandled TRAP",0
 
 		.global TrapHalt
+
+TrapHalt        GETA    $0,2F
+                SWYM    0,5            % tell the debugger
+		SET	$0,#e0
+		PUT	rG,$0               % allocate 32 global registers for gcc
+		GETA	$254,pOSStackStart
+		LDO	$254,$254,0
+		SET	$253,0              % the frame pointer for gcc
+		PUSHJ	$0,fat32_shutdown
+                NEG     $0,1            % enable interrupts
+                PUT     rK,$0
+1H              SYNC    4               % go to power save mode
+                JMP     1B              % and loop idle
+2H              BYTE    "DEBUG Program terminated",0
 	
-TrapHalt        PUSHJ	$0,fat32_shutdown
-	        NEG	$0,1            %  enable interrupts
-  		PUT	rK,$0
-1H		SYNC	4		%go to power save mode
-		JMP	1B              % and loop idle
-		POP	0,0		% we never get here
-
-
 		.global	TrapFputs
 	
 TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
@@ -91,7 +132,8 @@ TrapFopen 	AND     $8,$0,#0FF	% get the Z value is the handle
 		GET	$4,rG
 		PUT	rG,#e0               % allocate 32 global registers for gcc
 	
-		GETA	$254,OSStackStart
+		GETA	$254,pOSStackStart
+		LDO	$254,$254,0
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$6,$5,0   %the name string
@@ -116,7 +158,9 @@ TrapFclose	AND     $6,$0,#0FF	% get the Z value is the handle
 		GET	$4,rG
 		PUT	rG,#e0           % allocate 32 global registers for gcc
 	
-		GETA	$254,OSStackStart
+		GETA	$254,pOSStackStart
+		LDO	$254,$254,0
+
 		SET	$253,0
 		PUSHJ   $5,fat32_fclose
 		PUT	rBB,$5     %the error code is returned with resume 1
@@ -144,7 +188,9 @@ TrapFread	AND     $10,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,OSStackStart
+		GETA	$254,pOSStackStart
+		LDO	$254,$254,0
+
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$8,$5,0   %the buffer
@@ -213,7 +259,8 @@ TrapFwrite 	AND     $9,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,OSStackStart
+		GETA	$254,pOSStackStart
+		LDO	$254,$254,0
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$7,$5,0   %the buffer
