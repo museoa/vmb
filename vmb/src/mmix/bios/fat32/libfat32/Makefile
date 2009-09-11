@@ -26,7 +26,7 @@ TAGS: *.c *.h
 	etags *.c *.h
 
 clean:
-	rm -f *.o *.a *.elf *~ TAGS
+	rm -f *.o *.a *.elf *~ TAGS .depend
 
 
 .depend:

@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.h
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
+ * \version     $Id: FAT32_FileLib.h,v 1.3 2009-09-11 09:13:03 ruckert Exp $
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -43,9 +43,11 @@ int         fat32_fclose(int handle);
 int         fat32_fread(void *buffer, unsigned int size, int handle );
 int         fat32_fgetc(int handle);
 char*       fat32_fgets(char *s, unsigned int size, int handle);
+char*       fat32_fgetws(char *s, unsigned int size, int handle);
 int         fat32_fwrite(const void *buffer, unsigned int size, int handle);
 int         fat32_fputc(int c, int handle);
 int         fat32_fputs(const char * str, int handle);
+int         fat32_fputws(const char * str, int handle);
 int         fat32_fseek(long offset , int origin, int handle);
 long        fat32_ftell(int handle);
 int         fat32_remove(const char * filename);

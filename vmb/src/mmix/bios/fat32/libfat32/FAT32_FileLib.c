@@ -3,7 +3,7 @@
  * \file        FAT32_FileLib.c
  * \author      Rob Riglar <rob@robriglar.com>
  * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_FileLib.c,v 1.7 2009-09-08 15:56:57 ruckert Exp $ // 2.0
+ * \version     $Id: FAT32_FileLib.c,v 1.8 2009-09-11 09:13:03 ruckert Exp $ // 2.0
  * \brief       FAT32 Library, File Library
  * \details     {
  * }
@@ -332,6 +332,53 @@ char* fat32_fgets(char *s, unsigned int size, int handle)
     return s;
 }
 
+char* fat32_fgetws(char *s, unsigned int size, int handle)
+{
+  BYTE *p;
+  int part;
+  int offset;
+  int i, byteRead;;
+
+    LOG( "LOG4C_PRIORITY_DEBUG", "Read string");
+    CHECK_FL_INIT();
+    if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+       (!Files[handle].inUse) ||
+       (!Files[handle].Read) )
+    { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fgets - invalid parameters" );
+      return NULL;
+    }
+
+    // Check if read past end of file
+    if (Files[handle].bytenum>=Files[handle].filelength)
+        return NULL;
+
+    // Limit to file size
+    if ( (Files[handle].bytenum + size) > Files[handle].filelength )
+      size = Files[handle].filelength - Files[handle].bytenum;
+
+    byteRead = 0;
+
+    while (size>0)
+      { offset = update_file_cache(handle,false);
+      if (offset<0) return NULL;
+      p = CachePtr(handle)->buffer+offset;
+      if (offset+size>512) part = 512-offset;
+      else part = size;
+      for (i=0; i<part;i++,p++)
+      {  s[byteRead++] = *p;
+	if (*p == '\n')
+	 { s[byteRead]='\0';
+           Files[handle].bytenum+=i+1;
+           return s; 
+	 }
+      }
+      size -= part;
+      Files[handle].bytenum+=part;
+    }
+    s[byteRead]='\0';
+    return s;
+}
+
 //-----------------------------------------------------------------------------
 // fat32_fwrite: Write a block of data to the stream
 //-----------------------------------------------------------------------------
@@ -443,7 +490,58 @@ int fat32_fputs(const char * str, int handle)
   return s-str;
 }
 
+
+//-----------------------------------------------------------------------------
+// fat32_fputws: Write a wide (16bit) character string to the stream
+//-----------------------------------------------------------------------------
+int fat32_fputws(const char * str, int handle)
+{ BYTE *p;
+  int part;
+  int offset;
+  int i,k;
+
+  LOG( "LOG4C_PRIORITY_DEBUG", "Write string");
+  CHECK_FL_INIT();
+  if((handle<0) || (handle >= MAX_OPEN_FILES) || 
+    (!Files[handle].inUse) ||
+    (!Files[handle].Write) ||
+    (str==NULL) )
+  { LOG( "LOG4C_PRIORITY_ERROR", "fat32_fputs - invalid parameters" );
+    return -1;
+  }
+
+  // Append writes to end of file
+  if (Files[handle].Append)
+    Files[handle].bytenum = Files[handle].filelength;
+  // Else write to current position
+
+  k=0;
+
+  while (!(((k&1)==0) && str[k] == 0 && str[k+1]==0))
+  { offset = update_file_cache(handle,true);
+    if (offset<0) return -1;
+    p = CachePtr(handle)->buffer+offset;
+    part = 512-offset;
+    for (i=0; i<part;i++)
+    { if (((k&1)==0) && str[k] == 0 && str[k+1]==0) break;
+      *p++ = str[k++];
+    }
+    CachePtr(handle)->dirty=true;
+    Files[handle].bytenum+=i;
+  }
+
+  // Increase file size
+  if (Files[handle].filelength<Files[handle].bytenum)
+  { Files[handle].filelength=Files[handle].bytenum;
+    // Update filesize in directory
+    FAT32_UpdateFileLength(Files[handle].parentcluster, 
+         Files[handle].parentitem, Files[handle].filelength, Files[handle].startcluster);
+  }
+  return k;
+}
+
 #endif
+
 
 
 //-----------------------------------------------------------------------------
@@ -482,7 +580,7 @@ int fat32_fseek(long offset , int origin, int handle)
 //-----------------------------------------------------------------------------
 // fat32_fgetpos: Get the current file position
 //-----------------------------------------------------------------------------
-int fat32_tell(int handle)
+long fat32_ftell(int handle)
 { 
   LOG( "LOG4C_PRIORITY_DEBUG", "File tell");
   CHECK_FL_INIT();
