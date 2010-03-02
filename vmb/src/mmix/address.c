@@ -297,7 +297,7 @@ int TC_translate(TC *tc, int s, int i, int n, octa *base)
 #if 0
 
 octa update_vtc(octa key)
-/* implements the LDVTS instruction accordint to mmix-doc */
+/* implements the LDVTS instruction according to mmix-doc */
 {  int i;
    int n;
    int p;
@@ -323,9 +323,9 @@ octa update_vtc(octa key)
    int p;
    int s; 
    octa x;
-   s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
+   s = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
    i = (key.h>>29) & 0x03;
-   n = (key.l>>3) & 0x3FF;
+   n = (key.l>>3) & 0x3FF;	
    p = key.l & 0x07;
    key.h = key.h &0x1FFFFFFF;
    key.l = key.l & ~0x01FF;
@@ -370,20 +370,22 @@ octa update_vtc(octa key)
   else if (p == 6) 
       /* read data translation, read a translation from the data cache, if not present
          read the translation from memory and keep the result in the data VT cache */
-     { p= TC_translate(&data_tc, s, i, n, &key);
+     { int vn    = (g[rV].l>>3)&0x3FF;
+	   p= TC_translate(&data_tc, s, i, vn, &key);
        if (!(p&PAGE_FAULT_BIT))
        { x.h = key.h;
-         x.l = key.l | p;
+         x.l = key.l | (n<<3) | p; /*add in protection bits and page offset */
        }
      }
   else if (p == 7) 
       /* read instruction translation, read a translation from the instruction cache,
          if not present, read the translation from memory 
          and keep the result in the instruction VT cache */
-     { p= TC_translate(&exec_tc, s, i, n, &key);
+     { int vn    = (g[rV].l>>3)&0x3FF;
+       p= TC_translate(&exec_tc, s, i, vn, &key);
        if (!(p&PAGE_FAULT_BIT))
        { x.h = key.h;
-         x.l = key.l | p;
+         x.l = key.l | (n<<3) | p;
        }
      }
     return x;

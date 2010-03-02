@@ -46,15 +46,15 @@ static int hexoutput=0;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
-  case WM_USER+1: /* Power On */
+  case WM_VMB_ON: /* Power On */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) ""); 
 	return 0;
-  case WM_USER+2: /* Power Off */
+  case WM_VMB_OFF: /* Power Off */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
 	SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) "No Power"); 
 	return 0;
- case WM_USER+5: /* Reset */
+ case WM_VMB_RESET: /* Reset */
 	SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) ""); 
 	return 0;
  case WM_USER+6: /* Got character to display */

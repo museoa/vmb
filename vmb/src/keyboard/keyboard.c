@@ -42,7 +42,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.11 $ $Date: 2008-09-26 08:58:55 $";
+char version[]="$Revision: 1.12 $ $Date: 2010-03-02 10:48:23 $";
 
 char howto[] =
 "\n"
@@ -84,7 +84,7 @@ static int input_buffer_first=0, input_buffer_last=0;
 
 /* Interface to the virtual motherboard */
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *kb_get_payload(unsigned int offset,int size)
 {  
     static unsigned char payload[8];
     
@@ -96,29 +96,15 @@ unsigned char *vmb_get_payload(unsigned int offset,int size)
       if (input_buffer_first<input_buffer_last)
 	  { data[DATA] = input_buffer[input_buffer_first++];
         data[COUNT] = 1;
-        vmb_raise_interrupt(interrupt);
-        vmb_debug(0, "Raised interrupt");  
+        vmb_raise_interrupt(&vmb,interrupt);
+        vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");  
 	  }
 	}
     return payload+offset;
 }
 
-void vmb_poweron(void)
-{ 
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
-#endif
-}
 
-
-void vmb_poweroff(void)
-{  
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
-#endif
-}
-
-void vmb_terminate(void)
+void kb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { 
 #ifdef WIN32
@@ -129,48 +115,41 @@ void vmb_terminate(void)
 
 }
 
-void vmb_disconnected(void)
-/* this function is called when the reading thread disconnects from the virtual bus. */
-{ /* do nothing */
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
-#endif
-}
 
 void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
   f = fopen(filename,"rb");
-  if (f==NULL) {vmb_debug(1, "Unable to open input file"); return;}
+  if (f==NULL) {vmb_debug(VMB_DEBUG_CRITICAL, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
-  if (input_buffer_last<0)  vmb_debug(1, "Unable to read input file");
-  if (input_buffer_last==0) {vmb_debug(1, "Empty file"); return;}
+  if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_CRITICAL, "Unable to read input file");
+  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_CRITICAL, "Empty file"); return;}
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
-  vmb_raise_interrupt(interrupt);
-  vmb_debug(0, "Raised interrupt");
+  vmb_raise_interrupt(&vmb,interrupt);
+  vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
 }
 
 void process_input(unsigned char c) 
 { /* The keyboard Interface */
   if (c<0x20 || c >= 0x7F)
-    vmb_debugi(0, "input (#%x)\n",c);
+    vmb_debugi(VMB_DEBUG_INFO, "input (#%x)\n",c);
   else
-    vmb_debugi(0, "input %c",c);
+    vmb_debugi(VMB_DEBUG_INFO, "input %c",c);
   if (input_buffer_first < input_buffer_last)
-	  vmb_debugi(0, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
-  else if (vmb_power)
+	  vmb_debugi(VMB_DEBUG_INFO, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
+  else if (vmb.power)
   { data[DATA] = c;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
-    vmb_raise_interrupt(interrupt);
-    vmb_debug(0, "Raised interrupt");
+    vmb_raise_interrupt(&vmb,interrupt);
+    vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
   }
   else
-  { vmb_debug(1, "no power character ignored");
+  { vmb_debug(VMB_DEBUG_NOTIFY, "no power character ignored");
 #ifdef WIN32
    Beep(800,100);
 #else
@@ -207,7 +186,7 @@ static void prepare_input(void)
 }
 #endif
 
-void init_device(void)
+void init_device(device_info *vmb)
 { vmb_size = 8;
 #ifdef WIN32
   hBmpActive = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPACTIVE), 
@@ -217,6 +196,11 @@ void init_device(void)
 #else
    prepare_input();
 #endif
+  vmb->poweron=vmb_poweron;
+  vmb->poweroff=vmb_poweroff;
+  vmb->disconnected=vmb_disconnected;
+  vmb->terminate=kb_terminate;
+  vmb->get_payload=kb_get_payload;
 }
 
 
@@ -225,16 +209,16 @@ void init_device(void)
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);
-  vmb_debugs(0, "%s ",vmb_program_name);
-  vmb_debugs(0, "%s ", version);
-  vmb_debugs(0, "host: %s ",host);
-  vmb_debugi(0, "port: %d ",port);
-  init_device();
-  vmb_debugi(0, "address hi: %x",vmb_address_hi);
-  vmb_debugi(0, "address lo: %x",vmb_address_lo);
-  vmb_debugi(0, "size: %x ",vmb_size);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  init_device(&vmb);
+  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
+  vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
   
-  vmb_connect(host,port); 
+  vmb_connect(&vmb,host,port); 
 
   vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
                0, 0, vmb_program_name);
@@ -242,7 +226,7 @@ int main(int argc, char *argv[])
   while (vmb_connected)
   { unsigned char c;
     int i;
-    vmb_debug(0, "reading character:");
+    vmb_debug(VMB_DEBUG_INFO, "reading character:");
     i = read(0,&c,1);
     if (i == 0) 
       continue;
@@ -250,7 +234,7 @@ int main(int argc, char *argv[])
     { vmb_error(__LINE__,"Read Error");
       break;
     }
-    vmb_debugi(0, "got %02X",c&0xFF);
+    vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
     process_input(c);
   }
   vmb_disconnect();

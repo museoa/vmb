@@ -38,9 +38,9 @@
 #include "error.h"
 
 unsigned int vmb_debug_flag = 0;
+unsigned int vmb_verbose_flag = 0;
 
-
-int vmb_verbose_level = 1;
+int vmb_debug_mask = VMB_DEBUG_DEFAULT;
 char *vmb_program_name = "Unknown";
 void (*vmb_message_hook)(char *msg) = NULL;
 void (*vmb_debug_hook)(char *msg) = NULL;
@@ -79,7 +79,7 @@ void vmb_error(int line, char *message)
 void vmb_debug(int level, char *msg)
 { 
   if (!vmb_debug_flag) return;
-  if (level<vmb_verbose_level) return;
+  if ((level&~vmb_debug_mask)==0) return;
   if (vmb_debug_hook == NULL)
 	fprintf(stderr,"DEBUG (%s): %s\r\n",vmb_program_name, msg);
   else  
@@ -91,7 +91,7 @@ void vmb_debugi(int level, char *msg, int i)
 { 
   static char tmp[1000];
   if (!vmb_debug_flag) return;
-  if (level<vmb_verbose_level) return;
+  if ((level&~vmb_debug_mask)==0) return;
   sprintf(tmp,msg,i);
   vmb_debug(level, tmp);
 }
@@ -102,25 +102,20 @@ void vmb_debugs(int level, char *msg, char *s)
 { 
   static char tmp[1000];
   if (!vmb_debug_flag) return;
-  if (level<vmb_verbose_level) return;
+  if ((level&~vmb_debug_mask)==0) return;
   sprintf(tmp,msg,s);
   vmb_debug(level, tmp);
 }
 
-
-void vmb_debugx(int level, char *msg, unsigned char *s, int n)
-     /* a function to call to display debug messages */
-{ int i; 
+static char *hexstr(unsigned char *s, int n)
 #define HEXMAX (256*8) 
- 
+{ 
   static char hex[HEXMAX*2+ HEXMAX/8 +1];/*each character 2 hex digits,
                                           one space every eight' digit, 
                                           one zero byte */
   char *p;
-  if (!vmb_debug_flag) return;
-  if (level<vmb_verbose_level) return;
+  int i;
   if (n>HEXMAX) n = HEXMAX;
-
   i = 0;   
   hex[0] = 0;
   p = hex;
@@ -136,7 +131,14 @@ void vmb_debugx(int level, char *msg, unsigned char *s, int n)
     p = p + (n-i)*2;
   }
   *p = 0;
-  vmb_debugs(level, msg,hex);
+  return hex;
+}
+
+void vmb_debugx(int level, char *msg, unsigned char *s, int n)
+     /* a function to call to display debug messages */
+{  if (!vmb_debug_flag) return;
+  if ((level&~vmb_debug_mask)==0) return;
+  vmb_debugs(level, msg,hexstr(s,n));
 }
 
 
@@ -219,24 +221,30 @@ debug_id (unsigned char id)
 
 void vmb_debugm(int level, unsigned char mtype,unsigned char msize, unsigned char mslot,unsigned char mid,
                    unsigned char maddress[8], unsigned char *mpayload)
-{ if (!vmb_debug_flag) return;
-  if (level<vmb_verbose_level) return;
-  vmb_debugs(level,"\ttype:    %s", debug_type (mtype));
-  vmb_debugi(level,"\tsize:    %d", msize);
-  vmb_debugi(level,"\tslot:    %d", mslot);
-  {
-    char *id_str = debug_id (mid);
-    if (id_str == NULL)
-      vmb_debugx(level,"\tid:      %s", &mid, 1);
-    else
-      vmb_debugs(level,"\tid:      %s", id_str);
-  }
+{ static char tmp[1000];
+  int n;
+  char *id_str;
+  if (!vmb_debug_flag) return;
+  if ((level&~vmb_debug_mask)==0) return;
+  id_str = debug_id (mid);
+  if (id_str == NULL) id_str = hexstr(&mid,1);
+  n = sprintf(tmp,"\ttype:\t%s\r\n"
+	          "\tsize:\t%d\r\n"
+			  "\tslot:\t%d\r\n"
+			  "\tid  :\t%s",
+			  debug_type(mtype),
+			  msize,
+			  mslot,
+			  id_str);
+
+  if (mtype & TYPE_ADDRESS)
+    n += sprintf(tmp+n,"\r\n\taddress: %s", hexstr(maddress, 8));
+  if ((mtype & TYPE_PAYLOAD)&&!(VMB_DEBUG_PAYLOAD&vmb_debug_mask))
+    n += sprintf(tmp+n,"\r\n\tpayload: %s", hexstr(mpayload, 8 * (msize + 1)));
 #if 0
   if (mtype & TYPE_TIME)
-    vmb_debugi(level,"\ttime:    %d", mtime);
+     n += sprintf(tmp+n,"\r\n\ttime: %d", mtime);
 #endif
-  if (mtype & TYPE_ADDRESS)
-    vmb_debugx(level,"\taddress: %s", maddress, 8);
-  if (mtype & TYPE_PAYLOAD)
-    vmb_debugx(level,"\tpayload: %s", mpayload, 8 * (msize + 1));
+
+  vmb_debug(level, tmp);
 }

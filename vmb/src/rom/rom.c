@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.7 $ $Date: 2008-09-26 08:58:55 $";
+char version[]="$Revision: 1.8 $ $Date: 2010-03-02 10:48:24 $";
 
 char howto[] =
 "\n"
@@ -164,70 +164,53 @@ void open_file(void)
 }
 
 
-void init_device(void)
-{  vmb_debugi(0, "address hi: %x",vmb_address_hi);
-   vmb_debugi(0, "address lo: %x",vmb_address_lo);
-   open_file();
-   vmb_debugi(0, "size: %d",vmb_size);
-   close(0);
-}
 
 /* Interface to the virtual motherboard */
 
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *rom_get_payload(unsigned int offset,int size)
 {
     return rom+offset;
 }
 
 
-void vmb_poweron(void)
-{ 
+void rom_poweron(void)
+{  open_file();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
-#endif
-}
-
-void vmb_poweroff(void)
-{  
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
-#endif
-}
-
-void vmb_terminate(void)
-/* this function is called when the motherboard politely asks the device to terminate.*/
-{ 
-#ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }
 
 
-void vmb_disconnected(void)
-/* this function is called when the reading thread disconnects from the virtual bus. */
-{ /* do nothing */
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
-#endif
+void init_device(device_info *vmb)
+{  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
+   vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
+   open_file();
+   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
+   close(0);
+   vmb->poweron=rom_poweron;
+   vmb->poweroff=vmb_poweroff;
+   vmb->disconnected=vmb_disconnected;
+   vmb->reset=open_file;
+   vmb->terminate=vmb_terminate;
+   vmb->get_payload=rom_get_payload;
 }
-
 #ifdef WIN32
 #else
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+ vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+ vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
  close(0); /* stdin */
- init_device();
- vmb_debugi(0, "address hi: %x",vmb_address_hi);
- vmb_debugi(0, "address lo: %x",vmb_address_lo);
- vmb_debugi(0, "size: %x ",vmb_size);
+ init_device(&vmb);
+ vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
+ vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
+ vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
  
- vmb_connect(host,port); 
+ vmb_connect(&vmb,host,port); 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
  vmb_wait_for_disconnect();
  return 0;

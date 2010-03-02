@@ -48,7 +48,7 @@ void vmb_poweroff(void)
 /* this function is called when the virtual power is turned off */
 { /* do nothing */
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
+   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
 }
 

@@ -50,12 +50,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
   case WM_SETFOCUS:
-    vmb_debug(0, "got focus");
+    vmb_debug(VMB_DEBUG_PROGRESS, "got focus");
 	hBmp = hBmpActive;
     RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
     break;
   case WM_KILLFOCUS:
-    vmb_debug(0, "lost focus");
+    vmb_debug(VMB_DEBUG_PROGRESS, "lost focus");
 	hBmp = hBmpInactive;
 	RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
 	break;
@@ -68,11 +68,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DragFinish(hDrop);
 	  }
 	  return 0;
-  case WM_USER+1: /* Power On */
+  case WM_VMB_ON: /* Power On */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	DragAcceptFiles(hWnd,TRUE);
 	return 0;
-  case WM_USER+2: /* Power Off */
+  case WM_VMB_OFF: /* Power Off */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
 	DragAcceptFiles(hWnd,FALSE);
 	return 0;

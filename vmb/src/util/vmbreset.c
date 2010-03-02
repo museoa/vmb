@@ -28,6 +28,10 @@
 
 
 #include <stdlib.h>
+#ifdef WIN32
+#include <windows.h>
+extern HWND hMainWnd;
+#endif
 #include "vmb.h"
 
 
@@ -44,5 +48,8 @@
 void vmb_reset(void)
 /* this function is called when the virtual reset button is pressed */
 { /* do nothing */
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_VMB_RESET,0,0);
+#endif
 }
 

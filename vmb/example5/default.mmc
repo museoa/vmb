@@ -14,7 +14,7 @@ exec button.exe reset
 exec sevensegment.exe
 exec timer.exe
 exec rom.exe
-exec mmix.exe -O -i
+exec mmix.exe -i -O
 #endif
 
 

@@ -27,7 +27,7 @@ extern HBITMAP hbussy;
 #include "disk.h"
 
 
-char version[]="$Revision: 1.12 $ $Date: 2008-09-26 08:58:55 $";
+char version[]="$Revision: 1.13 $ $Date: 2010-03-02 10:48:23 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -108,7 +108,7 @@ static void clean_up_action_mutex(void *_dummy)
 
 void set_diskCtrl(int value)
 { int start;
-  vmb_debugi(0, "Setting diskCtrl 0x%X",value);
+  vmb_debugi(VMB_DEBUG_PROGRESS, "Setting diskCtrl 0x%X",value);
   start = 0;
 #ifdef WIN32
   EnterCriticalSection (&action_section);
@@ -138,7 +138,7 @@ void set_diskCtrl(int value)
   }
 #endif
   if (start)
-    vmb_debug(0, "Action triggered");
+    vmb_debug(VMB_DEBUG_INFO, "Action triggered");
 }
 
 
@@ -200,15 +200,6 @@ static void *disk_server(void *_dummy)
   return 0;
 }
 
-void init_device(void)
-{	vmb_size = 8*5;
-#ifdef WIN32	
-    haction =CreateEvent(NULL,FALSE,FALSE,NULL);
-    InitializeCriticalSection (&action_section);
-	hbussy = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BUSSY), 
-				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
-#endif
-}
 
 void start_disk_server(void)
 {  if (diskImage != NULL) {
@@ -237,7 +228,7 @@ void start_disk_server(void)
 
 void stop_disk_server(void)
 { 
-  vmb_debug(0, "stopping disk server");
+  vmb_debug(VMB_DEBUG_INFO, "stopping disk server");
   disk_server_shutdown = 1;
   while (disk_server_running)
   {
@@ -273,8 +264,8 @@ static void register_to_mem(void)
 }
 
 static void mem_to_register(int offset, int size)
-{  vmb_debugi(0, "mem to registers offset: %d",offset);
-   vmb_debugi(0, "mem to registers size: %d",size);
+{  vmb_debugi(VMB_DEBUG_INFO, "mem to registers offset: %d",offset);
+   vmb_debugi(VMB_DEBUG_INFO, "mem to registers size: %d",size);
 
    if (offset < DISK_CTRL+8 && offset+size > DISK_CTRL)
      set_diskCtrl(chartoint(mem+DISK_CTRL+4));
@@ -298,7 +289,7 @@ void inc_DiskDma(int i)
 
 
 static void diskReset(void)
-{ vmb_debug(0, "Disk is Reset");
+{ vmb_debug(VMB_DEBUG_INFO, "Disk is Reset");
   diskCnt = 0;
   diskSct = 0;
   diskDma_lo = 0;
@@ -312,7 +303,7 @@ static void diskInit(void) {
   diskImage = NULL;
   diskCap = 0;
   diskReset();
-  vmb_debug(0, "Initializing Disk");
+  vmb_debug(VMB_DEBUG_INFO, "Initializing Disk");
   if (filename != NULL) {
     /* try to install disk */
     diskImage = fopen(filename, "r+b");
@@ -323,7 +314,7 @@ static void diskInit(void) {
       numBytes = ftell(diskImage);
       fseek(diskImage, 0, SEEK_SET);
       diskCap = numBytes / SECTOR_SIZE;
-      vmb_debugi(0, "Disk of size %ld sectors installed.", diskCap);
+      vmb_debugi(VMB_DEBUG_INFO, "Disk of size %ld sectors installed.", diskCap);
       start_disk_server();
     }
   }
@@ -335,7 +326,7 @@ static void diskExit(void) {
   if (diskImage == NULL) 
     /* disk not installed */
     return;
-  vmb_debug(0, "Closing Disk");
+  vmb_debug(VMB_DEBUG_INFO, "Closing Disk");
   fclose(diskImage);
   diskImage = NULL;
   diskCap = 0;
@@ -349,7 +340,7 @@ static void diskBussy(void)
 #ifdef WIN32
   SendMessage(hMainWnd,WM_USER+5,0,0);
 #endif
-  vmb_debug(0, "Disk is Bussy");
+  vmb_debug(VMB_DEBUG_INFO, "Disk is Bussy");
   set_diskCtrl((diskCtrl | DISK_BUSY) & ~DISK_ERR);
 }
 
@@ -360,16 +351,16 @@ static void diskDone(void)
 #ifdef WIN32
   SendMessage(hMainWnd,WM_USER+1,0,0);
 #endif
-  vmb_debug(0, "Disk is Idle");
+  vmb_debug(VMB_DEBUG_INFO, "Disk is Idle");
   set_diskCtrl(diskCtrl & ~DISK_BUSY);
   if (diskCtrl & DISK_IEN) {
-    vmb_raise_interrupt(interrupt);
-    vmb_debug(0, "Raised interrupt");
+    vmb_raise_interrupt(&vmb,interrupt);
+    vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
   }
 }
 
 static int diskPosition(void)
-{ vmb_debugi(0, "Positioning to sector %d",diskSct);
+{ vmb_debugi(VMB_DEBUG_INFO, "Positioning to sector %d",diskSct);
 
   if (diskCap > 0 &&
       diskCnt > 0 &&
@@ -377,7 +368,7 @@ static int diskPosition(void)
       diskSct < diskCap &&
       diskSct + diskCnt <= diskCap &&
       (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) == 0))
-    { vmb_debug(0, "Positioned");
+    { vmb_debug(VMB_DEBUG_PROGRESS, "Positioned");
       return 1;
     }
   else
@@ -406,8 +397,8 @@ static void diskRead(void)
       da.address_lo = diskDma_lo;
       da.address_hi = diskDma_hi;
       da.status = STATUS_VALID;
-      vmb_store(&da);
-      vmb_debugi(0, "Read sector %d",diskSct);
+      vmb_store(&vmb,&da);
+      vmb_debugi(VMB_DEBUG_INFO, "Read sector %d",diskSct);
       inc_DiskDma(SECTOR_SIZE);
       diskCnt--;
       diskSct++;
@@ -424,8 +415,8 @@ static void diskWrite(void)
       da.address_lo = diskDma_lo;
       da.address_hi = diskDma_hi;
       da.status = STATUS_INVALID;
-      vmb_load(&da);
-      vmb_wait_for_valid(&da);
+      vmb_load(&vmb,&da);
+      vmb_wait_for_valid(&vmb,&da);
       if (da.status!=STATUS_VALID) {
           vmb_error(__LINE__,"cannot read memory");
           set_diskCtrl(diskCtrl | DISK_ERR);
@@ -436,7 +427,7 @@ static void diskWrite(void)
           set_diskCtrl(diskCtrl | DISK_ERR);
           break;
       }
-      vmb_debugi(0, "Wrote sector %d",diskSct);
+      vmb_debugi(VMB_DEBUG_PROGRESS, "Wrote sector %d",diskSct);
       inc_DiskDma(SECTOR_SIZE);
       diskCnt--;
       diskSct++;
@@ -448,7 +439,7 @@ static void diskWrite(void)
 /* connecting to the virtual motherbaord */
 
 
-unsigned char *vmb_get_payload(unsigned int offset, int size)
+unsigned char *disk_get_payload(unsigned int offset, int size)
      /* read an octabyte  (one of the five registers)*/
 {  
    register_to_mem();	
@@ -456,11 +447,11 @@ unsigned char *vmb_get_payload(unsigned int offset, int size)
 }
 
 
-void vmb_put_payload(unsigned int offset, int size, unsigned char *payload)
+void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
      /* write an octabyte  (one of the five registers)*/
 {  
    if ( diskCtrl &DISK_BUSY)
-   {  vmb_debug(1, "Write ignored, disk bussy");
+   {  vmb_debug(VMB_DEBUG_ERROR, "Write ignored, disk bussy");
       return; /* no writing while we are bussy */
    }
    register_to_mem();
@@ -469,37 +460,37 @@ void vmb_put_payload(unsigned int offset, int size, unsigned char *payload)
 }
 
 
-void vmb_poweron(void)
+void disk_poweron(void)
 {  diskInit();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }
 
 
-void vmb_poweroff(void)
+void disk_poweroff(void)
 { diskExit();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
+   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
 }
 
 
-void vmb_reset(void)
+void disk_reset(void)
 { diskExit();
   diskInit();
 }
 
-void vmb_disconnected(void)
+void disk_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { diskExit();
 #ifdef WIN32
-  SendMessage(hMainWnd,WM_USER+4,0,0);
+  PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
 #endif
 }
 
 
-void vmb_terminate(void)
+void disk_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { diskExit();
 #ifdef WIN32
@@ -507,20 +498,37 @@ void vmb_terminate(void)
 #endif
 }
 
+void init_device(device_info *vmb)
+{	vmb_size = 8*5;
+#ifdef WIN32	
+    haction =CreateEvent(NULL,FALSE,FALSE,NULL);
+    InitializeCriticalSection (&action_section);
+	hbussy = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BUSSY), 
+				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
+#endif
+  vmb->poweron=disk_poweron;
+  vmb->poweroff=disk_poweroff;
+  vmb->disconnected=disk_disconnected;
+  vmb->reset=disk_reset;
+  vmb->terminate=disk_terminate;
+  vmb->put_payload=disk_put_payload;
+  vmb->get_payload=disk_get_payload;
+}
+
 #ifndef WIN32
 int main(int argc, char *argv[])
 { param_init(argc, argv);
-  vmb_debugs(0, "%s ",vmb_program_name);
-  vmb_debugs(0, "%s ", version);
-  vmb_debugs(0, "host: %s ",host);
-  vmb_debugi(0, "port: %d ",port);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
   vmb_size = 8*5;
-  vmb_debugi(0, "address hi: %x",vmb_address_hi);
-  vmb_debugi(0, "address lo: %x",vmb_address_lo);
-  vmb_debugi(0, "size: %x ",vmb_size);
-  init_device();
-  vmb_connect(host,port); 
-  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
+  vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
+  init_device(&vmb);
+  vmb_connect(&vmb,host,port); 
+  vmb_register(&vmb,vmb_address_hi,vmb_address_lo,vmb_size,
                0, 0, vmb_program_name);
   vmb_wait_for_disconnect();
  

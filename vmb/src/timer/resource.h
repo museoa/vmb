@@ -16,13 +16,9 @@
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
 #define IDD_ABOUT                       121
-#define IDD_CONNECT                     122
-#define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-#define IDD_TIME                        125
-#define IDC_THE_SERVER                  1001
-#define IDC_THE_PORT                    1002
-#define IDC_DEBUG                       1003
+#define IDB_BITMAP3                     126
+#define IDB_BLINK                       126
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define IDC_RAMSIZE                     1006
@@ -40,7 +36,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        126
+#define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40017
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101

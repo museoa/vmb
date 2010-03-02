@@ -37,9 +37,10 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 static void display_char(char c);
+extern device_info vmb;
 
 
-char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:05 $";
+char version[]="$Revision: 1.6 $ $Date: 2010-03-02 10:48:24 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -75,15 +76,6 @@ static unsigned char data[8];
 #define DATA  7
 
 
-void init_device(void)
-{ vmb_debugi(0, "address hi: %x",vmb_address_hi);
-  vmb_debugi(0, "address lo: %x",vmb_address_lo);
-  vmb_debugi(0, "interrupt: %d",interrupt);
-  vmb_size = 8;
-#ifndef WIN32
-   setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
-#endif
-}
 
 static void display_char(char c)
 { 
@@ -97,11 +89,11 @@ static void display_char(char c)
 /* Interface to the virtual motherboard */
 
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *screen_get_payload(unsigned int offset,int size)
 { return data+offset;
 }
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
+void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 {   
     unsigned char cpData[8]; //!< to fix payload smaller then 8
     int i;
@@ -117,67 +109,47 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (data[COUNT]<0xFF) data[COUNT]++;
     else data[ERROR]=0x80;
     data[DATA] = payload[7-offset];
-    vmb_debugi(0, "(%02X)",data[DATA]);
+    vmb_debugi(VMB_DEBUG_INFO, "(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
-    vmb_raise_interrupt(interrupt);
+    vmb_raise_interrupt(&vmb,interrupt);
 }
 
 
-void vmb_poweron(void)
-{ 
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
+
+void init_device(device_info *vmb)
+{ vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt);
+  vmb_size = 8;
+#ifndef WIN32
+   setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
 #endif
+  vmb->poweron=vmb_poweron;
+  vmb->poweroff=vmb_poweroff;
+  vmb->reset = vmb_reset;
+  vmb->disconnected=vmb_disconnected;
+  vmb->terminate=vmb_terminate;
+  vmb->put_payload=screen_put_payload;
+  vmb->get_payload=screen_get_payload;
+
+
 }
-
-void vmb_poweroff(void)
-{  
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
-#endif
-}
-
-void vmb_disconnected(void)
-/* this function is called when the reading thread disconnects from the virtual bus. */
-{ /* do nothing */
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
-#endif
-}
-
-
-void vmb_terminate(void)
-/* this function is called when the motherboard politely asks the device to terminate.*/
-{ 
-#ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
-#endif
-}
-
-void vmb_reset(void)
-{
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
-#endif
-}
-
-
 #ifdef WIN32
 #else
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+ vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+ vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
  close(0); /* stdin */
- init_device();
- vmb_debugi(0, "address hi: %x",vmb_address_hi);
- vmb_debugi(0, "address lo: %x",vmb_address_lo);
- vmb_debugi(0, "size: %x ",vmb_size);
- vmb_connect(host,port); 
+ init_device(&vmb);
+ vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
+ vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
+ vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
+ vmb_connect(&vmb,host,port); 
 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
  vmb_wait_for_disconnect();

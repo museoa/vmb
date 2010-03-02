@@ -16,9 +16,7 @@
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
 #define IDD_ABOUT                       121
-#define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-#define IDC_DEBUG                       1003
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define IDC_FILE                        1006

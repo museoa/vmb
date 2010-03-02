@@ -173,6 +173,7 @@ should be included here as a literate program.
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
+device_info vmb = {0};
 @z
 
 @x
@@ -1151,7 +1152,7 @@ break_inst: breakpoint=tracing=true;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
-     vmb_wait_for_event();
+     vmb_wait_for_event(&vmb);
  else if (zz==5) /* empty write buffer */
    write_all_data_cache();
  else if (zz==6) /* clear VAT cache */
@@ -1167,6 +1168,7 @@ case LDVTS: case LDVTSI:
 { if (!(loc.h&sign_bit)) goto privileged_inst;
   if (w.h&sign_bit) goto illegal_inst;
   x = update_vtc(w);
+  goto store_x;
 }
 break;
 privileged_inst: strcpy(lhs,"!privileged");
@@ -1493,9 +1495,9 @@ void mmputchars(buf,size,addr)
 
 @<Check for trap interrupt@>=
 if (!resuming)
-{ vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
-  if (!vmb_connected)  goto end_simulation;
-  if (!vmb_power || vmb_reset_flag) { breakpoint=true; vmb_reset_flag=0; goto boot;}
+{ vmb_get_interrupt(&vmb,&g[rQ].h,&g[rQ].l);
+  if (!vmb.connected)  goto end_simulation;
+  if (!vmb.power || vmb.reset_flag) { breakpoint=true; vmb.reset_flag=0; goto boot;}
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
@@ -1723,12 +1725,12 @@ boot:
   @<Initialize everything@>;
 
   fprintf(stderr,"Power...");
-  while (!vmb_power)
-  {  vmb_wait_for_power();
-     if (!vmb_connected) goto end_simulation;
+  while (!vmb.power)
+  {  vmb_wait_for_power(&vmb);
+     if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  vmb_reset_flag = 0;
+  vmb.reset_flag = 0;
 
   @<Load object file@>;
   @<Load the command line arguments@>;
@@ -1746,7 +1748,7 @@ boot:
     do @<Perform one instruction@>@;
     while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) interacting=true, interact_after_break=false;
-    if (!vmb_power) goto boot;
+    if (!vmb.power) goto boot;
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(true);
@@ -1970,7 +1972,7 @@ aux=incr(x,8*(argc+1));
 for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
   store_data(8,aux,x);
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
-  x.l+=8, aux.l+=8+(strlen(*cur_arg)&-8);
+  x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
 x.l=0;@+ store_data(8,aux,x);
 @z

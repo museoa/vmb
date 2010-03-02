@@ -14,50 +14,29 @@
 #include "cache.h"
 
 
-static struct
-{ unsigned char address[8];
-  unsigned int size;
-  unsigned int lo_mask;
-  unsigned int hi_mask;
-} device_info;
 
 
-static int vmb_fd;
-unsigned int vmb_connected = 0;
-unsigned int vmb_power = 0;
-unsigned int vmb_reset_flag = 0;
-
-static unsigned int vmb_interrupt_lo=0;
-static unsigned int vmb_interrupt_hi=0;
-
-void vmb_raise_reset(void)
+void vmb_raise_reset(device_info *vmb)
      /* trigger a hard reset on the bus */
-{ send_msg(vmb_fd, TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
+{ send_msg(vmb->fd, TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
 }
 
 
-#ifdef WIN32
-HANDLE hevent;
-CRITICAL_SECTION   event_section;
-#else
-static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
-
+#ifndef WIN32
 static void clean_up_event_mutex(void *_dummy)
 { pthread_mutex_unlock(&event_mutex); /* needed if canceled waiting */
 }
-
 #endif
 
-int vmb_get_interrupt(unsigned int *hi, unsigned int *lo)
+int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo)
      /* return 0 if there was no recent interrupt 
         return 1 if there was, and add the interrupt bits to lo and hi
         return -1 if the bus disconnected
      */
 {
-  if (vmb_interrupt_lo == 0 && vmb_interrupt_hi ==0) return 0;
+  if (vmb->interrupt_lo == 0 && vmb->interrupt_hi ==0) return 0;
 #ifdef WIN32
-  EnterCriticalSection (&event_section);
+  EnterCriticalSection (&vmb->event_section);
 #else
   { int rc = pthread_mutex_lock(&event_mutex);
     if (rc) 
@@ -66,12 +45,12 @@ int vmb_get_interrupt(unsigned int *hi, unsigned int *lo)
     }
   }
 #endif
-  *hi |= vmb_interrupt_hi; 
-  *lo |= vmb_interrupt_lo; 
-  vmb_interrupt_hi = 0;
-  vmb_interrupt_lo = 0;
+  *hi |= vmb->interrupt_hi; 
+  *lo |= vmb->interrupt_lo; 
+  vmb->interrupt_hi = 0;
+  vmb->interrupt_lo = 0;
 #ifdef WIN32
-  LeaveCriticalSection (&event_section);
+  LeaveCriticalSection (&vmb->event_section);
 #else
   { int rc = pthread_mutex_unlock(&event_mutex);
     if (rc) 
@@ -80,20 +59,19 @@ int vmb_get_interrupt(unsigned int *hi, unsigned int *lo)
     }
   }
 #endif
-  if (vmb_connected) return 1;
+  if (vmb->connected) return 1;
   else return -1;
 }
 
-void vmb_raise_interrupt(unsigned char i)
+void vmb_raise_interrupt(device_info *vmb, unsigned char i)
      /* raise interrupt i to the bus */
 {  if ( i >= 64)
     return;
-   send_msg(vmb_fd, TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
+   send_msg(vmb->fd, TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
 }
 
-static unsigned int cancel_wait_for_event = 0;
 
-void vmb_wait_for_event(void)
+void vmb_wait_for_event(device_info *vmb)
 /* waits for a  power off, reset, disconnect, or an interrupt
 */
 { 
@@ -107,23 +85,23 @@ void vmb_wait_for_event(void)
   pthread_cleanup_push(clean_up_event_mutex,NULL);
 #endif
   /* in the meantime the event might have happend */
-  while (vmb_power &&
-         !vmb_reset_flag && 
-         vmb_connected &&
-	 vmb_interrupt_lo == 0 && vmb_interrupt_hi ==0 &&
-         !cancel_wait_for_event)
+  while (vmb->power &&
+         !vmb->reset_flag && 
+         vmb->connected &&
+	 vmb->interrupt_lo == 0 && vmb->interrupt_hi ==0 &&
+         !vmb->cancel_wait_for_event)
 #ifdef WIN32
-     WaitForSingleObject(hevent,INFINITE);
+     WaitForSingleObject(vmb->hevent,INFINITE);
 #else
      pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
 #endif
-  cancel_wait_for_event=0;
+  vmb->cancel_wait_for_event=0;
 }
 
 
 
-void vmb_wait_for_power(void)
+void vmb_wait_for_power(device_info *vmb)
 /* waits for a  power on or for a disconnect */
 { 
 #ifndef WIN32
@@ -136,16 +114,16 @@ void vmb_wait_for_power(void)
   pthread_cleanup_push(clean_up_event_mutex,NULL);
 #endif
   /* in the meantime power might be on */
-  while (vmb_connected && !vmb_power)
+  while (vmb->connected && !vmb->power)
 #ifdef WIN32
-     WaitForSingleObject(hevent,INFINITE);
+     WaitForSingleObject(vmb->hevent,INFINITE);
 #else
      pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
 #endif  
 }
 
-void vmb_wait_for_disconnect(void)
+void vmb_wait_for_disconnect(device_info *vmb)
 /* waits for a disconnect */
 { 
  #ifndef WIN32
@@ -157,9 +135,9 @@ void vmb_wait_for_disconnect(void)
     pthread_cleanup_push(clean_up_event_mutex,NULL);
 #endif
   /* in the meantime power might be on */
-  while (vmb_connected)
+  while (vmb->connected)
 #ifdef WIN32
-    WaitForSingleObject(hevent,INFINITE);
+    WaitForSingleObject(vmb->hevent,INFINITE);
 #else
     rc = pthread_cond_wait(&event_cond,&event_mutex);
   pthread_cleanup_pop(1);
@@ -167,11 +145,11 @@ void vmb_wait_for_disconnect(void)
 #endif 
 }
 
-static void change_event(unsigned int *event, unsigned int value)
+static void change_event(device_info *vmb, unsigned int *event, unsigned int value)
 /* change one of the variables protected by the event mutex */
 { 
  #ifdef WIN32
-  EnterCriticalSection (&event_section);
+  EnterCriticalSection (&vmb->event_section);
 #else
   int rc = pthread_mutex_lock(&event_mutex);
   if (rc) 
@@ -181,8 +159,8 @@ static void change_event(unsigned int *event, unsigned int value)
 #endif 
   *event = value;
 #ifdef WIN32
-  LeaveCriticalSection (&event_section);
-  SetEvent (hevent);
+  LeaveCriticalSection (&vmb->event_section);
+  SetEvent (vmb->hevent);
 #else
   rc = pthread_cond_signal(&event_cond);
   rc = pthread_mutex_unlock(&event_mutex);
@@ -193,13 +171,11 @@ static void change_event(unsigned int *event, unsigned int value)
 #endif
 }
 
-extern void vmb_cancel_wait_for_event(void)
-{ change_event(&cancel_wait_for_event,1);
+extern void vmb_cancel_wait_for_event(device_info *vmb)
+{ change_event(vmb, &vmb->cancel_wait_for_event,1);
 }
 
 #ifdef WIN32
-static DWORD dwReadThreadId;
-static HANDLE hReadThread;
 #else
 static int read_tid;
 static pthread_t read_thr;
@@ -220,8 +196,9 @@ static pthread_t read_thr;
 #define PENDINGREADMAX (1<<8)
 #define PENDINGREADMASK (PENDINGREADMAX-1)
 static data_address *pending_read[PENDINGREADMAX];
-static unsigned int pending_first=0; /* points the the first pending read */
+static unsigned int pending_first=0; /* points to the first pending read */
 static unsigned int pending_last=0; /* points past the last pending read */
+
 #ifdef WIN32
 HANDLE hnot_full_pending;
 #else
@@ -374,25 +351,25 @@ void vmb_cancel_all_loads(void)
 { flush_pending_read_queue();
 }
 
-static void reply_payload(unsigned char address[8],int size, unsigned char *payload)
+static void reply_payload(device_info *vmb, unsigned char address[8],int size, unsigned char *payload)
 { unsigned int address_hi = chartoint(address);
   unsigned int address_lo = chartoint(address+4);
   data_address *da;
-  vmb_debugx(0, "Searching for read request matching %s",address,8);
+  vmb_debugx(VMB_DEBUG_PROGRESS, "Searching for read request matching %s",address,8);
   da = dequeue_read_request(address_hi,address_lo);
   if (da!=NULL)
-  { vmb_debug(0, "Matching read request found");
+  { vmb_debug(VMB_DEBUG_PROGRESS, "Matching read request found");
     deliver_answer(da,size,payload);
   }
   else if (size == 0) /* this was a dummy answer, we drop all pending requests */
-  { vmb_debug(1, "No matching request for dummy answer");
+  { vmb_debug(VMB_DEBUG_ERROR, "No matching request for dummy answer");
     flush_pending_read_queue();
   }
   else
-     vmb_debug(1, "No matching read request found");
+     vmb_debug(VMB_DEBUG_ERROR, "No matching read request found");
 }
 
-void vmb_wait_for_valid(data_address *da)
+void vmb_wait_for_valid(device_info *vmb, data_address *da)
 { 
 #ifndef WIN32
   int rc;
@@ -404,7 +381,7 @@ void vmb_wait_for_valid(data_address *da)
   pthread_cleanup_push(clean_up_valid_mutex,NULL);
 #endif
   /* in the meantime the da might be valid */
-  if (vmb_connected)
+  if (vmb->connected)
     while (da->status != STATUS_VALID)
 #ifdef WIN32
       WaitForSingleObject(hvalid,INFINITE);
@@ -414,7 +391,7 @@ void vmb_wait_for_valid(data_address *da)
 #endif
 }
 
-static void answer_readrequest(unsigned char slot,
+static void answer_readrequest(device_info *vmb, unsigned char slot,
    			   unsigned char address[8], int size, unsigned char *data)
 { unsigned char type, id;
   if (size == 0 || data == NULL)
@@ -437,50 +414,51 @@ static void answer_readrequest(unsigned char slot,
     { type = TYPE_ADDRESS|TYPE_ROUTE|TYPE_PAYLOAD;
       id = ID_READREPLY; 
       size = (size+7)/8-1;}
-  send_msg(vmb_fd, type,(unsigned char)size,slot,id,0,address,data);
+  send_msg(vmb->fd, type,(unsigned char)size,slot,id,0,address,data);
 }
 
 
-static void read_request( unsigned char a[8], int s, unsigned char slot, unsigned char p[])
+static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned char slot, unsigned char p[])
 { unsigned int offset;
   unsigned char *data;
 
-  offset = get_offset(device_info.address,a);
-  if (hi_offset || overflow_offset || offset + s > device_info.size)
+  offset = get_offset(vmb->address,a);
+  if (hi_offset || overflow_offset || offset + s > vmb->size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    vmb_debugs(1, "Read request out of range %s",hex);
-    vmb_debug(1, "Sending empty answer");
-    answer_readrequest(slot, a,0,NULL);
-    vmb_debug(1, "raising interrupt");
-    vmb_raise_interrupt(INT_NOMEM);
+    vmb_debugs(VMB_DEBUG_ERROR, "Read request out of range %s",hex);
+    vmb_debug(VMB_DEBUG_ERROR, "Sending empty answer");
+    answer_readrequest(vmb, slot, a,0,NULL);
+    vmb_debug(VMB_DEBUG_NOTIFY, "raising interrupt");
+    vmb_raise_interrupt(vmb, INT_NOMEM);
     return;
   }
-  vmb_debug(0, "sending answer");
-  data = vmb_get_payload(offset,s);
-  answer_readrequest(slot,a,s,data);
+  vmb_debug(VMB_DEBUG_PROGRESS, "sending answer");
+  if (vmb->get_payload)  data = vmb->get_payload(offset,s);
+  else data = NULL;
+  answer_readrequest(vmb, slot,a,s,data);
 }
 
-static void write_request(unsigned char a[8], int s, unsigned char p[])
+static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned char p[])
 { unsigned int offset;
-  offset = get_offset(device_info.address,a);
-  if (hi_offset || overflow_offset || offset + s > device_info.size)
+  offset = get_offset(vmb->address,a);
+  if (hi_offset || overflow_offset || offset + s > vmb->size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    vmb_debugs(1, "Write request out of range %s",hex);
-    vmb_debugx(1, "Address: %s",device_info.address,8);
-    vmb_debugi(1, "Size:    %d",device_info.size);
-    vmb_debugi(1, "Offset:  %ud", offset);
-    vmb_debug(1, "raising interrupt");
-    vmb_raise_interrupt(INT_NOMEM);
+    vmb_debugs(VMB_DEBUG_ERROR, "Write request out of range %s",hex);
+    vmb_debugx(VMB_DEBUG_ERROR, "Address: %s",vmb->address,8);
+    vmb_debugi(VMB_DEBUG_ERROR, "Size:    %d",vmb->size);
+    vmb_debugi(VMB_DEBUG_ERROR, "Offset:  %ud", offset);
+    vmb_debug(VMB_DEBUG_NOTIFY, "raising interrupt");
+    vmb_raise_interrupt(vmb, INT_NOMEM);
     return;
   }
-  vmb_debug(0, "Writing");
-  vmb_put_payload(offset,s,p);
+  vmb_debug(VMB_DEBUG_PROGRESS, "Sending Write Request");
+  if (vmb->put_payload)  vmb->put_payload(offset,s,p);
 }
 
 
-static void dispatch_message(unsigned char type, 
+static void dispatch_message(device_info *vmb, unsigned char type, 
                              unsigned char size, 
                              unsigned char slot, 
                              unsigned char id, 
@@ -490,75 +468,76 @@ static void dispatch_message(unsigned char type,
     { case ID_IGNORE: 
         return;
       case ID_READ:
-	read_request(address, (size+1)*8, slot, payload);
+	read_request(vmb, address, (size+1)*8, slot, payload);
         return;
       case ID_READBYTE:
-	read_request(address, 1, slot, payload);
+	read_request(vmb, address, 1, slot, payload);
         return;
       case ID_READWYDE:
-	read_request(address, 2, slot, payload);
+	read_request(vmb, address, 2, slot, payload);
         return;
       case ID_READTETRA:
-	read_request(address, 4, slot, payload);
+	read_request(vmb, address, 4, slot, payload);
         return;
       case ID_WRITE:
-	write_request(address, (size+1)*8, payload);
+	write_request(vmb, address, (size+1)*8, payload);
         return;
       case ID_WRITEBYTE:
-	write_request(address, 1, payload);
+	write_request(vmb, address, 1, payload);
         return;
       case ID_WRITEWYDE:
-	write_request(address, 2, payload);
+	write_request(vmb, address, 2, payload);
         return;
       case ID_WRITETETRA:
-	write_request(address, 4, payload);
+	write_request(vmb, address, 4, payload);
         return;
       case ID_READREPLY:
-	reply_payload(address,(size+1)*8,payload);
+	reply_payload(vmb, address,(size+1)*8,payload);
         return;
       case ID_BYTEREPLY:
-	reply_payload(address,1,payload);
+	reply_payload(vmb, address,1,payload);
         return;
       case ID_WYDEREPLY:
-	reply_payload(address,2,payload);
+	reply_payload(vmb, address,2,payload);
         return;
       case ID_TETRAREPLY:
-	reply_payload(address,4,payload);
+	reply_payload(vmb, address,4,payload);
         return;
       case ID_NOREPLY:
-	reply_payload(address,0,payload);
+	reply_payload(vmb, address,0,payload);
         return;
 	  case ID_TERMINATE:
-		  vmb_terminate();
+		  if (vmb->terminate) vmb->terminate();
 		  return;
       case ID_RESET:
-        change_event(&vmb_reset_flag, 1);
-	vmb_reset();
+        change_event(vmb, &vmb->reset_flag, 1);
+	      if(vmb->reset) vmb->reset();
         return;
       case ID_POWEROFF:
-        vmb_reset_flag = 0;
-        change_event(&vmb_power,0);
-	vmb_poweroff();
+        vmb->reset_flag = 0;
+        change_event(vmb, &vmb->power,0);
+	    if (vmb->poweroff) vmb->poweroff();
         return;
       case ID_POWERON:
-        vmb_reset_flag = 0;
-        change_event(&vmb_power, 1);
-	vmb_poweron();
+        vmb->reset_flag = 0;
+        change_event(vmb, &vmb->power, 1);
+		if (vmb->poweron) vmb->poweron();
         return;
       case ID_INTERRUPT:
         if (slot<32)
-           change_event(&vmb_interrupt_lo, vmb_interrupt_lo| BIT(slot));
+           change_event(vmb, &vmb->interrupt_lo, vmb->interrupt_lo| BIT(slot));
         else 
-           change_event(&vmb_interrupt_hi, vmb_interrupt_hi| BIT(slot-32));
-	vmb_interrupt(slot);
+           change_event(vmb, &vmb->interrupt_hi, vmb->interrupt_hi| BIT(slot-32));
+	    if (vmb->interrupt) vmb->interrupt(slot);
         return;
       default:
-        vmb_unknown(type,size,slot,id,get_offset(device_info.address,address),payload);
+        if (vmb->unknown) vmb->unknown(type,size,slot,id,get_offset(vmb->address,address),payload);
 	return;
       }
 }
 
-static int get_request(unsigned char *type, 
+static int get_request(device_info *vmb, 
+					   unsigned char *type, 
                         unsigned char *size, 
                         unsigned char *slot,
                         unsigned char *id,
@@ -567,29 +546,26 @@ static int get_request(unsigned char *type,
 { unsigned int  time;
 
   int i;
-  i=receive_msg(vmb_fd,type,size,slot,id,&time,address,payload);
+  i=receive_msg(vmb->fd,type,size,slot,id,&time,address,payload);
   if (i<0) 
 	return 0;
-  vmb_debugm(0, *type,*size,*slot,*id,address,payload);
+  vmb_debugm(VMB_DEBUG_MSG, *type,*size,*slot,*id,address,payload);
   return 1;
 }
 
 
-static void clean_up_read_thread(void *_dummy)
-{ if (vmb_fd>=0)
-  { bus_unregister(vmb_fd);
-    bus_disconnect(vmb_fd); 
-    vmb_fd = INVALID_SOCKET;
+static void clean_up_read_thread(device_info *vmb)
+{ if (vmb->fd>=0)
+  { bus_unregister(vmb->fd);
+    bus_disconnect(vmb->fd); 
+    vmb->fd = INVALID_SOCKET;
   }
-  change_event(&vmb_connected, 0);
+  change_event(vmb, &vmb->connected, 0);
   flush_pending_read_queue();
-  vmb_disconnected();
+  if (vmb->disconnected) vmb->disconnected();
   #ifdef WIN32
-   CloseHandle(hevent); hevent = NULL;
-   CloseHandle(hnot_full_pending); hnot_full_pending=NULL;
-   CloseHandle(hvalid); hvalid=NULL;
-   DeleteCriticalSection(&event_section);
-   DeleteCriticalSection(&valid_section);
+   CloseHandle(vmb->hevent); vmb->hevent = NULL;
+   DeleteCriticalSection(&vmb->event_section);
 #endif
 }
 
@@ -601,15 +577,16 @@ static void *read_loop(void *_dummy)
 { unsigned char type,size,slot,id;
   unsigned char address[8];
   unsigned char payload[MAXPAYLOAD];
+  device_info *vmb = (device_info *)dummy;
 
   /* the loop will exit if the bus disconnects. Then clean up */
 #ifndef WIN32
   pthread_cleanup_push(clean_up_read_thread,NULL);
 #endif
-  while (get_request(&type,&size,&slot,&id,address,payload))
-    dispatch_message(type,size,slot,id,address,payload);
+  while (get_request(vmb, &type,&size,&slot,&id,address,payload))
+    dispatch_message(vmb, type,size,slot,id,address,payload);
 #ifdef WIN32
-  clean_up_read_thread(NULL);
+  clean_up_read_thread(vmb);
 #else
   pthread_cleanup_pop(1);
 #endif
@@ -618,7 +595,7 @@ static void *read_loop(void *_dummy)
 
 
 
-void vmb_disconnect(void)
+void vmb_disconnect(device_info *vmb)
      /* call this to terminate the reading thread properly before
         terminating the main program.
      */
@@ -631,9 +608,9 @@ void vmb_disconnect(void)
       pthread_exit(NULL);
     }
 #endif 
-  if (vmb_connected)
+  if (vmb->connected)
 #ifdef WIN32
-	  bus_disconnect(vmb_fd);
+	  bus_disconnect(vmb->fd);
 #else
     /* should not be used. Kills the thread immediately without cleaning up. */
     pthread_cancel(read_thr);
@@ -648,27 +625,38 @@ void vmb_disconnect(void)
 }
 
 /* Functions called by the CPU thread */
+void vmb_begin(void)
+{  hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
+   hvalid =CreateEvent(NULL,FALSE,FALSE,NULL);
+   InitializeCriticalSection (&valid_section);
+}
 
-void vmb_connect(char *host, int port)
+
+void vmb_end(void)
+{  CloseHandle(hnot_full_pending); hnot_full_pending=NULL;
+   CloseHandle(hvalid); hvalid=NULL;
+   DeleteCriticalSection(&valid_section);
+}
+
+void vmb_connect(device_info *vmb, char *host, int port)
 /* call to initialize the interface to the virtual bus 
    must be called before any of the other functions
 */
-{  vmb_fd= bus_connect(host,port);
-   if (vmb_fd<0) vmb_fatal_error(__LINE__,"Unable to connect to motherboard");
+{  vmb->fd= bus_connect(host,port);
+   if (vmb->fd<0) vmb_fatal_error(__LINE__,"Unable to connect to motherboard");
 
-  vmb_connected = 1;
+  vmb->connected = 1;
 #ifdef WIN32
   { DWORD dwReadThreadId;
-    hevent =CreateEvent(NULL,FALSE,FALSE,NULL);
-    hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
-    hvalid =CreateEvent(NULL,FALSE,FALSE,NULL);
-    InitializeCriticalSection (&event_section);
-    InitializeCriticalSection (&valid_section);
+    HANDLE hReadThread;
+    vmb->hevent =CreateEvent(NULL,FALSE,FALSE,NULL);
+    InitializeCriticalSection (&vmb->event_section);
+
     hReadThread = CreateThread( 
             NULL,              // default security attributes
             0,                 // use default stack size  
             read_loop,        // thread function 
-            NULL,             // argument to thread function 
+            vmb,             // argument to thread function 
             0,                 // use default creation flags 
             &dwReadThreadId);   // returns the thread identifier 
         // Check the return value for success. 
@@ -682,7 +670,7 @@ void vmb_connect(char *host, int port)
 #endif
 }
 
-void vmb_register(unsigned int address_hi, unsigned int address_lo,
+void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int address_lo,
 		  unsigned int size,
                   unsigned int lo_mask, unsigned int hi_mask,
                   char *name)
@@ -690,13 +678,13 @@ void vmb_register(unsigned int address_hi, unsigned int address_lo,
    must be called before any of the other funcions
 */
 {  unsigned char limit[8];
-   inttochar(address_hi,device_info.address);
-   inttochar(address_lo,device_info.address+4);
-   device_info.size = size;
-   add_offset(device_info.address,size,limit);
-   device_info.lo_mask = lo_mask;
-   device_info.hi_mask = hi_mask;
-   if (bus_register(vmb_fd,device_info.address,limit,lo_mask,hi_mask,name)<0)
+   inttochar(address_hi,vmb->address);
+   inttochar(address_lo,vmb->address+4);
+   vmb->size = size;
+   add_offset(vmb->address,size,limit);
+   vmb->lo_mask = lo_mask;
+   vmb->hi_mask = hi_mask;
+   if (bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name)<0)
       vmb_fatal_error(__LINE__,"Unable to register with motherboard");
 }
 
@@ -704,53 +692,67 @@ void vmb_init_data_address(data_address *da, int size)
      /* initialize a data_address structure */
 {  da->size=size;
    size = (size+7)&~0x7; /* round size up to a multiple of 8 */
-   da->data=malloc(size);
-   if (da->data == NULL)
-     vmb_fatal_error(__LINE__,"Out of memory initializing data address pair");
-    da->address_hi = 0;
-   da->address_lo = 0;
-   da->status = STATUS_INVALID;  
+   if (da->data!=NULL) 
+   { free(da->data);
+     da->data = NULL;
+   }
+   if (size > 0)
+   { da->data=malloc(size);
+     if (da->data == NULL)
+       vmb_fatal_error(__LINE__,"Out of memory initializing data address pair");
+   }
+   da->address_hi = 0;
+   da->address_lo = 0; 
+   da->id = 0;
+   da->status = STATUS_INVALID; 
 }
 
-void vmb_store(data_address *da)
+void vmb_store(device_info *vmb, data_address *da)
 { unsigned char id;
   unsigned char address[8];
   unsigned char size;
-  if (da->size==1)
+  if (da->size>0) 
+  { if (da->size==1)
     { id = ID_WRITEBYTE; size = 0;}
-  else   if (da->size==2)
+    else   if (da->size==2)
     { id = ID_WRITEWYDE; size = 0;}
-  else  if (da->size<=4)
+    else  if (da->size<=4)
     { id = ID_WRITETETRA; size = 0;}
-  else
+    else
     { id = ID_WRITE; size = (da->size+7)/8-1; }
  
-  inttochar(da->address_hi,address);
-  inttochar(da->address_lo,address+4);
-  send_msg(vmb_fd,
+    inttochar(da->address_hi,address);
+    inttochar(da->address_lo,address+4);
+    send_msg(vmb->fd,
            (unsigned char)(TYPE_ADDRESS|TYPE_PAYLOAD),
            size,0,id,0,address,da->data);
+  }
   da->status = STATUS_VALID;
 }
 
-void vmb_load(data_address *da)
+void vmb_load(device_info *vmb, data_address *da)
 { unsigned char id;
   unsigned char address[8];
   unsigned char size;
-  da->status = STATUS_READING;
-  if (da->size==1)
+  if (da->size>0)
+  { da->status = STATUS_READING;
+    if (da->size==1)
     { id = ID_READBYTE; size = 0;}
-  else   if (da->size==2)
+    else   if (da->size==2)
     { id = ID_READWYDE; size = 0;}
-  else  if (da->size<=4)
+    else  if (da->size<=4)
     { id = ID_READTETRA; size = 0;}
-  else
+    else
     { id = ID_READ; size = (da->size+7)/8-1; }
-  inttochar(da->address_hi,address);
-  inttochar(da->address_lo,address+4);
-  enqueue_read_request(da);
-  vmb_debugx(0, "Pending read request added for address %s",address,8);
-  send_msg(vmb_fd,
+    inttochar(da->address_hi,address);
+    inttochar(da->address_lo,address+4);
+    enqueue_read_request(da);
+    vmb_debugx(VMB_DEBUG_PROGRESS, "Pending read request added for address %s",address,8);
+    send_msg(vmb->fd,
            (unsigned char)(TYPE_ADDRESS|TYPE_REQUEST),
            size,0,id,0,address,NULL);
+  }
+  else
+    da->status = STATUS_VALID;
 }
+

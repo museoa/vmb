@@ -74,7 +74,7 @@ extern void parse_commandline(int argc, char **argv);
 extern void parse_commandstr(char *p);
 /* like parse_commandline takes all the information from one string */
 
-extern int parse_configfile(char *filename);
+extern int parse_configfile(char *filename, char *condition);
 /* same for a configuration file (options only) 
    the file with the given filename is opened and read.
    empty/blank lines are ignored
@@ -123,6 +123,7 @@ typedef enum {
   fun_arg, /* call a specified function with an argument */
   str_arg, /* store the argument as string */
   int_arg, /* store the argument as int */
+  double_arg, /* store the argument as a double */
   tgl_arg, /* toggle the argument, an int, between 0 and 1 */
   on_arg,  /* set the argument, an int, to 1 */
   off_arg, /* set the argument, an int, to 0 */
@@ -143,6 +144,7 @@ struct {
    void *v;              /* dummy for internal use */
    char **str;           /* where to store a string */
    int *i;               /* where to store an int */
+   double *d;			 /* where to store a double */
    uint64_t *u;          /* where to store an uint64_t */
    int (*f)(char *arg); } handler; /* what function to call */
 } option_spec;  /* see below */
@@ -175,6 +177,16 @@ extern option_spec options[];
     option_defaults will set the variable i to 8000
     and giving the option on the commandline (or in a configuration file)
     will change i to whatever value was given there.
+
+   {"set zoom to <float>",'z',"zoom","float",double_arg,"1.0",{&zoom}},
+
+    This option can be used as ... -z 1.5 or --zoom 4
+    the option_usage function will output something like:
+     -z --zoom <float> set zoom to <float> default=1.0
+
+    option_defaults will set the variable zoom to 1.0
+    and giving the option on the commandline (or in a configuration file)
+    will change zoom to whatever value was given there.
 
    {"turn on verbose mode",'v',"verbose",NULL,on_arg,NULL,{&flag}},
 

@@ -48,6 +48,6 @@ void vmb_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { /* do nothing */
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
+   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
 #endif
 }

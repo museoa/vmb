@@ -26,7 +26,18 @@
 
 extern char *vmb_program_name;
 extern unsigned int vmb_debug_flag;
-extern int vmb_verbose_level;
+extern unsigned int vmb_verbose_flag;
+#define VMB_DEBUG_FATAL			0x0001
+#define VMB_DEBUG_CRITICAL		0x0002
+#define VMB_DEBUG_ERROR			0x0004
+#define VMB_DEBUG_NOTIFY		0x0008
+#define VMB_DEBUG_PROGRESS		0x0010
+#define VMB_DEBUG_INFO			0x0020
+#define VMB_DEBUG_MSG			0x0040
+#define VMB_DEBUG_PAYLOAD		0x0080
+#define VMB_DEBUG_DEFAULT		0xFFF0
+
+extern int vmb_debug_mask; 
 
 
 extern void vmb_message(char *msg);

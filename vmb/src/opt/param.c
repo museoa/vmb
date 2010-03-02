@@ -48,6 +48,7 @@ char *filename=NULL;
 int port = 9002;
 int interrupt = 16;
 int xpos=0, ypos=0; /* Window position */
+int minimized = 0;  /* start the window minimized */
 
 #ifdef WIN32
 #include <windows.h>
@@ -64,7 +65,7 @@ char *commands[MAX_EXEC]={0};
 
 void store_command(char *command)
 { int i;
-  vmb_debugs(0, "storing command %s",command);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "storing command %s",command);
   for (i=0; i<MAX_EXEC ;i++)
     if (commands[i]!=NULL)
     {  if (strcmp(commands[i],command)==0) 
@@ -102,10 +103,6 @@ void usage(char *message)
 #endif
 }
 
-void load_configfile(char *name)
-{ parse_configfile(name);
-}
-
 
 static int mk_argv(char *argv[MAXARG],char *command)
 { int argc;  
@@ -131,14 +128,14 @@ void do_commands(void)
     if (commands[i]!=NULL)
       { 
         char *argv[MAXARG] = {0};
-        vmb_debugs(0, "executing command %s",commands[i]);
+        vmb_debugs(VMB_DEBUG_PROGRESS, "executing command %s",commands[i]);
         if (!mk_argv(argv,commands[i]))
           continue;
 #ifdef WIN32
 		{ intptr_t p;
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
-		  {  vmb_debugi(1, "could not start %d",errno);
+		  {  vmb_debugs(VMB_DEBUG_ERROR, "could not start %s",argv[0]);
 	             vmb_error(__LINE__,"Unable to execute command");
 		  }
 		}
@@ -161,7 +158,7 @@ void do_commands(void)
 
 void do_argument(int pos, char * arg)
 { 
-  vmb_debug(1, "too many arguments"); 
+  vmb_debug(VMB_DEBUG_ERROR, "too many arguments"); 
 }
 
 

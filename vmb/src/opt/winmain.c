@@ -1,5 +1,6 @@
 
 #include <windows.h>
+#include <commctrl.h>
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
@@ -10,6 +11,7 @@ HWND hMainWnd;
 HBITMAP hBmp=NULL;
 HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
+device_info vmb = {0};
 
 
 BOOL InitInstance(HINSTANCE hInstance)
@@ -26,13 +28,13 @@ BOOL InitInstance(HINSTANCE hInstance)
   r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
-    vmb_debugi(1,"Unable to load class name (%X)",r);
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
   }
   r = LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
-    vmb_debugi(1,"Unable to load window title (%X)",r);
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load window title (%X)",r);
   }
   ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX); 
@@ -91,29 +93,34 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
-
+    InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 	
 	param_init();
     get_pos_key(&xpos,&ypos,defined);
-    init_device();
+    init_device(&vmb);
 
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	if (minimized)CloseWindow(hMainWnd); 
 	UpdateWindow(hMainWnd);
- 	vmb_connect(host,port);
-	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
-    SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
+	vmb_begin();
+ 	vmb_connect(&vmb,host,port);
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
+    SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+	if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
+	if (vmb_verbose_flag) vmb_debug_mask=0; else vmb_debug_mask=VMB_DEBUG_DEFAULT;
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
-	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
 	  { TranslateMessage(&msg);
 	    DispatchMessage(&msg);
 	  }
-	vmb_disconnect();
+	vmb_disconnect(&vmb);
     set_pos_key(hMainWnd,defined);
+	vmb_end();
 	return (int)msg.wParam;
 }
 

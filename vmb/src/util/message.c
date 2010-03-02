@@ -223,7 +223,9 @@ int message_size(unsigned char msg[4])
 
 /* functions to connect, register, unregister, and disconnect */
 
-static int bus_connected=0;
+#ifdef WIN32
+static int connections=0;
+#endif
 
 
 
@@ -231,7 +233,6 @@ int bus_connect(char *hostname,int port)
 { int fd = 0;
   struct sockaddr_in host_addr;
   static char localhost[] = "localhost";
-  if (bus_connected) return INVALID_SOCKET;
 
   if (hostname == NULL)
     hostname = localhost;
@@ -239,21 +240,27 @@ int bus_connect(char *hostname,int port)
     hostname = localhost;
 
 #ifdef WIN32
+  if (connections==0)
   {	WSADATA wsadata;
 	if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
     {  vmb_error(__LINE__,"Unable to initialize Winsock dll");
 	   return INVALID_SOCKET;
 	}
   }
+  connections++;
 #endif
   fd = (int)socket( PF_INET, SOCK_STREAM, 0);
 
   if (!valid_socket(fd))
   {
 #ifdef WIN32
-	WSACleanup();
+	  connections--;
+	  if (connections==0) 
+		  WSACleanup();
+
 #endif
-    return INVALID_SOCKET;
+	  vmb_error(__LINE__,"Unable to create a socket");    
+	  return INVALID_SOCKET;
   }
 
 #if 0
@@ -274,8 +281,11 @@ int bus_connect(char *hostname,int port)
     if (hp==NULL)
     { server_ip = 0;
 #ifdef WIN32
-      WSACleanup();
+	  connections--;
+	  if (connections==0) 
+		  WSACleanup();
 #endif
+	  vmb_error(__LINE__,"Unable to get host by name");    
       return INVALID_SOCKET;
     }
     memcpy(&server_ip,hp->h_addr,sizeof(server_ip));
@@ -288,11 +298,22 @@ int bus_connect(char *hostname,int port)
 { int i;
   i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
   if (i < 0 )
-  {
+  { int error;
+    error = WSAGetLastError();
+	if (error == WSAECONNREFUSED) /* try a second time */
+	{ i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
+      if (i < 0 )
+	  {	error = WSAGetLastError();
+	    vmb_error(error,"Unable to connect to socket");    
+
 #ifdef WIN32
-	WSACleanup();
+	  connections--;
+	  if (connections==0) 
+		  WSACleanup();
 #endif
     return INVALID_SOCKET;
+       }
+	}
   }
     /* wait until it is writable, then the connection has succeeded */
   { 
@@ -302,8 +323,11 @@ int bus_connect(char *hostname,int port)
     if (select (fd+1, NULL, &write_set, NULL, NULL)<0)
     {
 #ifdef WIN32
-	  WSACleanup();
+	  connections--;
+	  if (connections==0) 
+		  WSACleanup();
 #endif
+	  vmb_error(__LINE__,"Unable to get a writeable socket");    
       return INVALID_SOCKET;
     }
   }
@@ -316,7 +340,6 @@ int bus_connect(char *hostname,int port)
 		(char *) &tmp, sizeof (tmp));
 
   }
-  bus_connected=1;
   return fd; 
 }
 
@@ -369,18 +392,22 @@ int bus_unregister(int socket)
 
 int bus_disconnect(int socket)
 { 
-  if (bus_connected)
-  { bus_connected = 0;
 
 #ifdef WIN32
     if (valid_socket(socket))
-       closesocket(socket);
-	WSACleanup();
+	{ int error;
+	  error = closesocket(socket);
+	  if (error==0)
+		{ connections--;
+	      if (connections==0) 
+			  WSACleanup();
+		}
+	}
 #else
     if (valid_socket(socket))
       close(socket);
 #endif
-  }
+  
   return 0;
 }
 

@@ -136,20 +136,21 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
+static int top, left;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 
   switch (message) 
   {  
- case WM_USER+1: /* Power On */
+ case WM_VMB_ON: /* Power On */
  	return 0;
-  case WM_USER+2: /* Power Off */
+  case WM_VMB_OFF: /* Power Off */
 	return 0;
-  case WM_USER+3: /* Connected */
+  case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
  	return 0;
-  case WM_USER+4: /* Disconnected */
+  case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
 	return 0;
@@ -179,34 +180,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  { hBmp=hOff;
 	    pushstate = 0;
 	    if (enable_interrupts&2)
-    	  vmb_raise_interrupt(upinterrupt);
+    	  vmb_raise_interrupt(&vmb, upinterrupt);
 	  }
 	  else
 	  { hBmp=hOn;
 	    pushstate = 1;
 	    if (enable_interrupts&1)
-    	  vmb_raise_interrupt(interrupt);
+    	  vmb_raise_interrupt(&vmb, interrupt);
 	  }
 	  InvalidateRect(hWnd,NULL,FALSE);
 	  return 0;
   }
+  case WM_WINDOWPOSCHANGED:
+	  top = ((WINDOWPOS *)lParam)->y;
+	  left = ((WINDOWPOS *)lParam)->x;
+	  break;
   case WM_NCLBUTTONUP:
   {   int dx, dy;
-	  WINDOWPLACEMENT wndpl;
-      wndpl.length=sizeof(WINDOWPLACEMENT);
-      if(GetWindowPlacement(hWnd,&wndpl))
-	  { xpos = wndpl.rcNormalPosition.left;   // horizontal position 
-        ypos = wndpl.rcNormalPosition.top;   // vertical position 
-	  }
-	  dx = xpos + 32 - LOWORD(lParam); 
-      dy = ypos +32 - HIWORD(lParam);
+	  dx = left + 32 - LOWORD(lParam); 
+      dy = top +32 - HIWORD(lParam);
       if (dx*dx+dy*dy>20*20) break;
 	  if (pushbutton) return 0;
 	  hBmp=hOff;
 	  pushstate = 0;
 	  InvalidateRect(hWnd,NULL,FALSE);
 	  if (enable_interrupts&2)
-    	vmb_raise_interrupt(upinterrupt);
+    	vmb_raise_interrupt(&vmb, upinterrupt);
 	  return 0;
   }
   }
@@ -214,7 +213,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-void init_device(void)
+void init_device(device_info *vmb)
 { BITMAP bm;
   hBmp = hOff;
   pushstate = 0;
@@ -223,4 +222,8 @@ void init_device(void)
   GetObject(hBmp, sizeof(bm), &bm);
   SetWindowPos(hMainWnd,HWND_TOP,0,0,bm.bmWidth, bm.bmHeight,
 		  SWP_NOMOVE|SWP_NOOWNERZORDER|SWP_SHOWWINDOW);
+  vmb->poweron=vmb_poweron;
+  vmb->poweroff=vmb_poweroff;
+  vmb->disconnected=vmb_disconnected;
+  vmb->terminate=vmb_terminate;
 }

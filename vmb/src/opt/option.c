@@ -107,7 +107,7 @@ uint64_t strtouint64(char *arg)
   return r;
 }
 
-int strtoint(char *arg)
+static int strtoint(char *arg)
 { int r = 0;
   while(isspace(*arg)) arg++;
   if (strncmp(arg,"0x",2)==0 || strncmp(arg,"0X",2)==0) /* hex */
@@ -132,11 +132,34 @@ int strtoint(char *arg)
 }
 
 
+static double strtodouble(char *arg)
+{ double r = 0;
+  while(isspace(*arg)) arg++;
+  while (isdigit(*arg))
+	  {unsigned int d;
+       d = *arg -'0';
+	   r = r*10+d;
+	   arg++;
+	  }
+  if (*arg=='.')
+  { double f=0.1;
+    arg++;
+    while (isdigit(*arg))
+	{  unsigned int d;
+       d = *arg -'0';
+	   r = r+d*f;
+	   f=f*0.1;
+	   arg++;
+	}
+  }
+  return r;
+}
+
 static 
 int do_option(option_spec *p, char *arg)
 { unsigned int n;
-  vmb_debug(0, "processing option:");
-  vmb_debug(0, p->longopt);
+  vmb_debug(VMB_DEBUG_PROGRESS, "processing option:");
+  vmb_debug(VMB_DEBUG_PROGRESS, p->longopt);
   switch (p->kind)
   { case str_arg: 
       if (*(p->handler.str)!=NULL)
@@ -164,7 +187,12 @@ int do_option(option_spec *p, char *arg)
 	  else
           *(p->handler.i)=strtoint(arg);
       return 1;
-   case uint64_arg:
+  case double_arg:
+	  if (arg==NULL)
+		  vmb_error(__LINE__,"Argument expected");
+	  else
+          *(p->handler.d)=strtodouble(arg);
+      return 1;   case uint64_arg:
       if (arg==NULL)
 		  vmb_error(__LINE__,"Argument expected");
 	  else
@@ -210,7 +238,7 @@ int do_option(option_spec *p, char *arg)
       *(p->handler.i)= 0;
       return 0;
     case fun_arg:
-      vmb_debug(0, "calling handler");
+      vmb_debug(VMB_DEBUG_PROGRESS, "calling handler");
       return (p->handler.f)(arg);
     default:
       /* ignore unknown options */
@@ -223,14 +251,14 @@ int  do_option_long(char *cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
    static char msg[100];
-   vmb_debug(0, "searching for option:");
-   vmb_debug(0, cmd);
+   vmb_debug(VMB_DEBUG_PROGRESS, "searching for option:");
+   vmb_debug(VMB_DEBUG_PROGRESS, cmd);
    i=0;
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(1, "option ignored:");
+      { vmb_debug(VMB_DEBUG_NOTIFY, "option ignored:");
         strncpy(msg,cmd,99);
-        vmb_debug(1, msg);
+        vmb_debug(VMB_DEBUG_NOTIFY, msg);
         return 0;
       }
       if (cmd[strlen(options[i].longopt)] == '=')
@@ -253,13 +281,13 @@ int  do_option_short(char cmd,char *arg)
 
    i=0;   
    cmdstr[1] = cmd;
-   vmb_debug(0, "searching for option:");
-   vmb_debug(0, cmdstr);
+   vmb_debug(VMB_DEBUG_PROGRESS, "searching for option:");
+   vmb_debug(VMB_DEBUG_PROGRESS, cmdstr);
    
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(1, "option ignored:");
-        vmb_debug(1, cmdstr);
+      { vmb_debug(VMB_DEBUG_NOTIFY, "option ignored:");
+        vmb_debug(VMB_DEBUG_NOTIFY, cmdstr);
         return 0;
       }
       if (cmd==options[i].shortopt)
@@ -314,8 +342,8 @@ int write_configfile(char *filename)
   { vmb_error(__LINE__,"Filename expected");
     return 0;
   }
-  vmb_debug(0, "writing configfile");
-  vmb_debug(0, filename);
+  vmb_debug(VMB_DEBUG_PROGRESS, "writing configfile");
+  vmb_debug(VMB_DEBUG_PROGRESS, filename);
   out=fopen(filename,"w");
   if (out==NULL) 
 	  {  vmb_error(__LINE__,"Could not write configuration file");
@@ -362,11 +390,11 @@ int write_configfile(char *filename)
       continue;
   }
   fclose(out);
-  vmb_debug(0, "done writing configfile");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done writing configfile");
   return 1;
 }
 
-int parse_configfile(char *filename)
+int parse_configfile(char *filename, char *condition)
 { FILE *in;
   static char line[MAXLINE];
   char *cmd, *arg, *p;    
@@ -377,8 +405,8 @@ int parse_configfile(char *filename)
   { vmb_error(__LINE__,"Argument expected");
     return 0;
   }
-  vmb_debug(0, "reading configfile");
-  vmb_debug(0, filename);
+  vmb_debug(VMB_DEBUG_PROGRESS, "reading configfile");
+  vmb_debug(VMB_DEBUG_PROGRESS, filename);
   in=fopen(filename,"r");
   if (in==NULL)
 	return 0;
@@ -407,7 +435,7 @@ int parse_configfile(char *filename)
      if (strncmp(p,"#if",3)==0 && isspace(p[3])) 
      { p=p+4;
        while(isspace((int)(p[0]))) p++;
-       if ((defined!=NULL && strncmp(p,defined,strlen(defined))==0))
+       if ((condition!=NULL && strncmp(p,condition,strlen(condition))==0))
          conditional = 1;
        else
        { while (!feof(in))
@@ -426,7 +454,7 @@ int parse_configfile(char *filename)
      { if (conditional ==1) 
          conditional=0;
        else
-         vmb_debug(1, "Unmatched #endif"); 
+         vmb_debug(VMB_DEBUG_ERROR, "Unmatched #endif"); 
        continue;
      }
   
@@ -459,7 +487,7 @@ int parse_configfile(char *filename)
      do_option_long(cmd,arg);
   }
   fclose(in);
-  vmb_debug(0, "done configfile");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done configfile");
   return 1;
 }
 
@@ -543,7 +571,7 @@ static int do_define(char *arg)
  return 1;
 }
 
-static void do_configfile(void)
+static void do_configfile(char *condition)
 {   char *configfile;
     int n;
     n = (int)strlen(programpath);
@@ -554,19 +582,19 @@ static void do_configfile(void)
     }
     strcpy(configfile,programpath);
     strcat(configfile,"default.mmc");
-    parse_configfile(configfile); /* global configfile first */
-    parse_configfile("default.mmc"); /* next local configfile */
+    parse_configfile(configfile,condition); /* global configfile first */
+    parse_configfile("default.mmc",condition); /* next local configfile */
     free(configfile);
 }
 
 void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;    
-  vmb_debug(0, "reading commandstr");
+  vmb_debug(VMB_DEBUG_PROGRESS, "reading commandstr");
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
   arguments++;
-  do_configfile();
+  do_configfile(defined);
   while(*p != 0)
   {  while(isspace((int)(p[0]))) p++; /* skip spaces */
      if (p[0] == 0) /* done? */
@@ -616,16 +644,16 @@ void parse_commandstr(char *p)
      else
        do_argument(arguments++, parse_argument(&p));
   }
-  vmb_debug(0, "done commandstr");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done commandstr");
 }
 
 void parse_commandline(int argc, char *argv[])
 { int i,j;
 
-  vmb_debug(0, "parsing commandline");
+  vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline");
   do_program(argv[0]);
   i=do_define(argv[1]);
-  do_configfile();
+  do_configfile(defined);
   while (++i < argc)
   { if (argv[i][0] == '-' && argv[i][1] != 0)
     {  if (argv[i][1] == '-' && argv[i][2] != 0)
@@ -640,6 +668,6 @@ void parse_commandline(int argc, char *argv[])
       do_argument(i, argv[i]);
 
   }
-  vmb_debug(0, "done commandline");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done commandline");
 }
 

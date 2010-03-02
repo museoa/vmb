@@ -25,22 +25,31 @@
 #include "param.h"
 #include "vmb.h"
 
-int width,height,framewidth,frameheight,zoom;
+int width,height,framewidth,frameheight, fontwidth, fontheight;
+double zoom;
+uint64_t vmb_mouse_address, vmb_gpu_address;
+int move_interrupt, gpu_interrupt;
 
 option_spec options[] = {
 /* description short long kind default handler */
-{"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
+{"the host where the bus is located",   'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
-{"the verbosity level (0= all, 1= less, ...)",   'v', "verbosity",    "verbosity level", int_arg, "1", {&vmb_verbose_level}},
+{"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
-{"address whre the resource is located",'a', "address", "start address",   uint64_arg, "8000000000000000", {&vmb_address}},
-{"interrupt send by device",            'i', "interrupt", "interrupt number", int_arg, "8", {&interrupt}},
+{"address where the vram is located",'a', "address", "start address",   uint64_arg, "8000000000000000", {&vmb_address}},
+{"address where the mouse is located",'m', "mouseaddress", "start address",   uint64_arg, "8000000000000000", {&vmb_mouse_address}},
+{"address where the GPU is located",'g', "gpuaddress", "start address",   uint64_arg, "8000000000000000", {&vmb_gpu_address}},
+{"interrupt send by the mouse",            'i', "interrupt", "interrupt number", int_arg, "19", {&interrupt}},
+{"interrupt send by the gpu",            'I', "gpuinterrupt", "interrupt number", int_arg, "20", {&gpu_interrupt}},
+{"whether mouse moves generate interrupts",  'v', "moveinterrupt", "mouse move interrupt flag", on_arg, NULL, {&move_interrupt}},
 {"the visible width",                   'w', "width",    "visible width",int_arg, "640", {&width}},
 {"the visible height",                  'h', "height",    "visible height",int_arg, "480", {&height}},
 {"the frame width",                     'q', "fwidth",    "frame width",int_arg, "640", {&framewidth}},
 {"the frame height",                    'r', "fheight",    "frame height",int_arg, "480", {&frameheight}},
-{"the zoom factor",                      'z', "zoom",    "zoom factor",int_arg, "1", {&zoom}},
+{"the font width",                      's', "fontwidth",    "font width",int_arg, "10", {&fontwidth}},
+{"the font height",                     't', "fontheight",    "font height",int_arg, "20", {&fontheight}},
+{"the zoom factor",                      'z', "zoom",    "zoom factor",double_arg, "1", {&zoom}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}

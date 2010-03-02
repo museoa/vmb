@@ -37,7 +37,12 @@ void inttochar(int val, unsigned char buffer[4])
 	val = val >> 8;
 	buffer[0] =  val;
 }
-
+void shorttochar(int val, unsigned char buffer[2])
+{
+	buffer[1] =  val;
+	val = val >> 8;
+	buffer[0] =  val;
+}
 int chartoint(const unsigned char buffer[4])
 {
   int val;

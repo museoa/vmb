@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.8 $ $Date: 2008-09-26 08:58:55 $";
+char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:24 $";
 
 char howto[] =
 "\n"
@@ -166,56 +166,40 @@ static void ram_clean(void)
 
 /* Interface to the virtual motherboard */
 
-unsigned char *vmb_get_payload(unsigned int offset,int size){
+unsigned char *ram_get_payload(unsigned int offset,int size){
   static unsigned char payload[258*8];
   if (ram_read(offset,size,payload)<size)
-    vmb_debugi(1, "Inclomplete read from ram at offset %08X",offset);
+    vmb_debugi(VMB_DEBUG_ERROR, "Inclomplete read from ram at offset %08X",offset);
   return payload;
 }
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload){
+void ram_put_payload(unsigned int offset,int size, unsigned char *payload){
   if (ram_write(offset,size,payload)<size)
-    vmb_debugi(1, "Inclomplete write to ram at offset %08X",offset);
-}
-
-void vmb_poweron(void)
-{
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
-#endif
+    vmb_debugi(VMB_DEBUG_ERROR, "Inclomplete write to ram at offset %08X",offset);
 }
 
 
-void vmb_poweroff(void)
+
+void ram_poweroff(void)
 { ram_clean();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
-#endif
-}
-
-void vmb_disconnected(void)
-/* this function is called when the reading thread disconnects from the virtual bus. */
-{ /* do nothing */
-#ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
+   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
 }
 
 
-void vmb_terminate(void)
-/* this function is called when the motherboard politely asks the device to terminate.*/
-{ 
-#ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
-#endif
-}
-
-
-void vmb_reset(void)
+void ram_reset(void)
 { 
   ram_clean();
 }
 
-void init_device()
+void init_device(device_info *vmb)
 { ram_clean();
+  vmb->poweron=vmb_poweron;
+  vmb->poweroff=ram_poweroff;
+  vmb->disconnected=vmb_disconnected;
+  vmb->reset=ram_reset;
+  vmb->terminate=vmb_terminate;
+  vmb->put_payload=ram_put_payload;
+  vmb->get_payload=ram_get_payload;
 }

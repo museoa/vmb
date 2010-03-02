@@ -1,9 +1,10 @@
 #include <windows.h>
 #include <afxres.h>
+#include "vmb.h"
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
-#include "vmb.h"
+
 
 HWND hpower;
 
@@ -13,18 +14,18 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   {  
   case WM_NCHITTEST:
     return HTCAPTION;
-  case WM_USER+1: /* Power On */
+  case WM_VMB_ON: /* Power On */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	return 0;
-  case WM_USER+2: /* Power Off */
+  case WM_VMB_OFF: /* Power Off */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
 	return 0;
-  case WM_USER+3: /* Connected */
+  case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
 	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
  	return 0;
-  case WM_USER+4: /* Disconnected */
+  case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
 	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
@@ -49,7 +50,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     }
     return 0;
   case WM_NCRBUTTONDOWN: /* right Mouse Button -> Context Menu */
-    TrackPopupMenu(GetSubMenu(hMenu,0),TPM_LEFTALIGN|TPM_TOPALIGN,
+    TrackPopupMenu(GetSubMenu(hMenu,0),TPM_LEFTALIGN|TPM_TOPALIGN|TPM_NONOTIFY|TPM_RIGHTBUTTON,
 		   LOWORD(lParam),HIWORD(lParam),0 ,hWnd,NULL);
     return 0;
   case WM_COMMAND:
@@ -59,10 +60,15 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	    PostQuitMessage(0);
 	    return 0;
 	case ID_CONNECT:
-	  if (!vmb_connected)
-	    DialogBox(hInst,MAKEINTRESOURCE(IDD_CONNECT),hWnd,ConnectDialogProc);
+	  if (!vmb.connected)
+	  { if (DialogBox(hInst,MAKEINTRESOURCE(IDD_CONNECT),hWnd,ConnectDialogProc))
+	  	{  vmb_connect(&vmb,host,port);
+	       vmb_register(&vmb,HI32(vmb_address), LO32(vmb_address),vmb_size,0,0,defined);
+   	       SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
+		}
+	  }
 	  else
-	    vmb_disconnect();
+	    vmb_disconnect(&vmb);
 	  return 0;
 	case ID_SETTINGS:
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_SETTINGS),hMainWnd,SettingsDialogProc);
@@ -80,8 +86,8 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	  return 0;
 	case ID_VERBOSE:
-        if (vmb_verbose_level==0) vmb_verbose_level = 1; else vmb_verbose_level = 0;
-	    CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
+        if (vmb_debug_mask==0) vmb_debug_mask = VMB_DEBUG_DEFAULT; else vmb_debug_mask = 0;
+	    CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 	  return 0;
 	case ID_HELP_ABOUT:
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
@@ -96,6 +102,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     return 0;
 
   case WM_DESTROY:
+	set_pos_key(hMainWnd,defined);
     PostQuitMessage(0);
     return 0;
   default:

@@ -16,7 +16,7 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
-      { EndDialog(hDlg, TRUE);
+      { EndDialog(hDlg, FALSE);
         return TRUE;
       }
       break;
@@ -26,17 +26,12 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	      GetDlgItemText(hDlg,IDC_THE_SERVER,tmp_option,MAXTMPOPTION);
 		  set_option(&host, tmp_option);
           port = GetDlgItemInt(hDlg,IDC_THE_PORT,NULL,FALSE);
-		  if (!vmb_connected)
-		  {  vmb_connect(host,port);
-		     vmb_register(vmb_address_hi, vmb_address_lo,vmb_size,0,0,defined);
-		     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
-		  }
 		  EndDialog(hDlg, TRUE);
           return TRUE;
       }
       else if( wparam == IDCANCEL )
       {
-        EndDialog(hDlg, TRUE);
+        EndDialog(hDlg, FALSE);
         return TRUE;
       }
      break;

@@ -11,7 +11,7 @@ exec .\rom.exe
 exec .\ram.exe
 exec .\keyboard.exe
 exec .\screen.exe
-exec .\mmix.exe -i -B:9002 hello.mmo 
+exec .\mmix.exe -i hello.mmo 
 #endif
 
 

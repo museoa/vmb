@@ -53,66 +53,61 @@ static long int current_time(void)
 static long int timer_start_time;
 static HWND hTime;
 static HFONT hTimeFont;
-static RECT timelineRect;
+static HBITMAP hblink,hold;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { static HDC BitmapDC ;
   static HBITMAP hold;
   switch (message) 
   {  
-   case WM_USER+2: /* Power Off */
+   case WM_VMB_OFF: /* Power Off */
 	if (counter!=0) 
-	{ KillTimer(hMainWnd,1); counter = 0;}
-   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
-	return 0;
-  case WM_USER+4: /* Disconnected */
+	{ KillTimer(hMainWnd,1); 
+	}
+	break;
+  case WM_VMB_DISCONNECT: /* Disconnected */
 	if (counter!=0) 
-	{ KillTimer(hMainWnd,1); counter = 0;}
-	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
-	  DrawMenuBar(hMainWnd);
-	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
-	return 0;
+	{ KillTimer(hMainWnd,1);  
+	}
+	break;
   case WM_USER+5: /* Stop Timer */
     KillTimer(hMainWnd,1);
-	KillTimer(hMainWnd,2);
-	counter = 0; 
-    InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	SetWindowText(hTime,"0.000");
+	vmb_debug(VMB_DEBUG_INFO,"Timer stoped");
+    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	return 0;
   case WM_USER+6: /* Start Timer */
 	{ char timestr[20];
 	  sprintf(timestr,"%6.3f",counter/1000.0);
 	  SetWindowText(hTime,timestr);
+	  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	}
     SetTimer(hMainWnd,1,counter,NULL);
-	timer_start_time = current_time();
-#define MINUPDATE 50 	/* minimum time between updates */
-#define NUMPIXELS 200 /* number of pixels in the timeline */
-	{ int updates, update_interval;
-	  updates = counter/MINUPDATE; /* number of updates rounded down */
-	  if (updates <1) updates = 1;
-	  if (updates > NUMPIXELS) 
-		  updates = NUMPIXELS; /* we do not need more updates then pixels */
-	  update_interval = (counter-1)/updates; /*rounded down */
-	  SetTimer(hMainWnd,2,update_interval,NULL);
-      InvalidateRect(hMainWnd,&timelineRect,TRUE);
-	}
+	vmb_debugi(VMB_DEBUG_INFO,"Timer started %d",counter);
 	return 0;
   case WM_TIMER: /* Timer expired */
 	  if (wParam == 1) /* the Real Timer */
-	  { vmb_raise_interrupt(interrupt);
-		timer_start_time = current_time();
+	  { vmb_raise_interrupt(&vmb,interrupt);
+	  	vmb_debugi(VMB_DEBUG_INFO,"Timer expired (interrupt %X)",interrupt);
+	    hold = (HBITMAP)SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hblink);
+#define BLINKTIME 100
+		if (counter>2*BLINKTIME)
+	      SetTimer(hMainWnd,2,BLINKTIME,NULL);	 
+	  } 
+	  else if (wParam == 2) /* the Blink Timer */
+	  {  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hold);
+	     KillTimer(hMainWnd,2);
 	  }
-	  InvalidateRect(hMainWnd,&timelineRect,TRUE);
 	  return 0;
   case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,20,32,32,hWnd,NULL,hInst,0);
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
+
 	hTime = CreateWindow( 
                 "STATIC",     // predefined class 
                 NULL,       // no window title 
                 WS_CHILD | WS_VISIBLE | SS_RIGHT,
-                45, 25, 200, 40, 
+                50, 15, 200, 40, 
                 hWnd,       // parent window 
                 (HMENU)2,
                 hInst, 
@@ -121,107 +116,131 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FIXED_PITCH|FF_MODERN,"Arial");
     SendMessage(hTime, WM_SETFONT, (WPARAM)hTimeFont, 0); 
     SetWindowText(hTime,"0.000");
-		timelineRect.top=70-1;
-		timelineRect.left=45-1; 
-		timelineRect.bottom=70+3;
-		timelineRect.right=45+200; 
- 
-    return 0;
+	return 0;
   case WM_DESTROY:
 	DeleteObject(hTimeFont);
-	SelectObject(BitmapDC, hold);
-	DeleteDC(BitmapDC);
-
-    PostQuitMessage(0);
-    return 0;
+    break;
   case WM_CTLCOLORSTATIC:
 	 { HDC hDC = (HDC) wParam;   // handle to display context 
  	   SetBkColor(hDC,0);
 	   SetTextColor(hDC,RGB(35,135,0));
 	 }
 	 return (LRESULT)GetStockObject(BLACK_BRUSH);
-  case WM_PAINT:
-    { PAINTSTRUCT ps;
-      HDC hdc;
-      hdc = BeginPaint (hWnd, &ps);
-	  if (BitmapDC==NULL)
-	  {	    BitmapDC = CreateCompatibleDC(NULL);
-            hold = (HBITMAP)SelectObject(BitmapDC, hBmp);
-	  }
-	  BitBlt(hdc,ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right-ps.rcPaint.left,ps.rcPaint.bottom-ps.rcPaint.top, 
-			BitmapDC, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY);
-      if (counter > 0) 
-	  {
-        HPEN hpen, hpenOld;
-		long int delta;
-		int linelength;
-
-        hpen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
-        hpenOld = SelectObject(hdc, hpen);
-	    MoveToEx(hdc, 45, 70, (LPPOINT) NULL); 
-	    delta = current_time() - timer_start_time;
-        linelength = (200*(counter -delta))/counter;
-        if (linelength>0) LineTo(hdc, 45 + linelength, 70); 
-        SelectObject(hdc, hpenOld);
-        DeleteObject(hpen);
-      }
-      EndPaint (hWnd, &ps);
-    }
-    return 0;
-
   }
  return (OptWndProc(hWnd, message, wParam, lParam));
 }
 
 
-void init_device(void)
-{
-	vmb_size = 8;
-}
 
-char version[]="$Revision: 1.8 $ $Date: 2008-09-26 08:58:55 $";
+
+char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:24 $";
 
 char howto[] =
 "\n"
 "The program will contact the motherboard at [host:]port\n"
 "and register itself with the given start address.\n"
-"It will offer one octa byte at the given address.\n"
-"Of the eight byte only the low order four byte are used.\n"
+"It will offer two octa byte at the given address.\n"
 "Then, the program will answer read and write requests from the bus.\n"
-"Writing a value n into the given tetra byte will start a timer that will\n"
+"Writing a value n into the first tetra byte will start a timer that will\n"
 "deliver an interrupt every n miliseconds.\n"
 "Writing before the time has expired will cancel the next interrupt.\n"
 "Writing a zero value will terminate the interrupts.\n"
-"Reading will give the number of miliseconds between interrupts.\n"
+"Reading this tetra will give the number of miliseconds between interrupts.\n"
 "\n"
 ;
 
-static unsigned char counter_bytes[8] = {0};
+#define TIMER_MEM	16
+static unsigned char tmem[TIMER_MEM] = {0};
+/* memory layout:
+tmem[0]  4 Byte int, timer interval = time in msec between interrupts
+tmem[1]
+tmem[2]
+tmem[3]
 
+tmem[4]	4Byte int current year
+tmem[5]
+tmem[6]
+tmem[7]
+
+tmem[8] 2 Byte int current month
+tmem[9]
+tmem[a] 1 Byte int current day
+tmem[b] 1 Byte int current day of the week
+tmem[c] 4 byte int time in ms since midnight.
+tmem[d]
+tmem[e]
+tmem[f]
+*/
 
 /* Interface to the virtual motherboard */
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
-{
-    inttochar(counter,counter_bytes+4);
-	return counter_bytes+offset;
+unsigned char *timer_get_payload(unsigned int offset,int size)
+{ SYSTEMTIME now;
+  GetSystemTime(&now);
+    inttochar(counter,tmem);
+	inttochar(now.wYear,tmem+4);
+    shorttochar(now.wMonth,tmem+8);
+    tmem[0xa] = (unsigned char)now.wDay;
+	tmem[0xb] = (unsigned char)now.wDayOfWeek;
+	inttochar((((now.wHour*60)+now.wMinute)*60+now.wSecond)*1000+now.wMilliseconds, tmem+0xc);
+	return tmem+offset;
 }
 
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ if (counter != 0)
-    SendMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */
-  if (offset+size<= 8)
-	memmove(counter_bytes+offset,payload, size);
-  counter = chartoint(counter_bytes+4);
+void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
+{ if (!vmb.power)
+  { vmb_debug(VMB_DEBUG_NOTIFY,"Power off, Write ignored.");
+    return;
+  }
+  if (offset+size>4)  /* only the first 4 byte are writable */
+	  size = 4-offset;
+  if (size<=0) return;
+	memmove(tmem+offset,payload, size);
   if (counter != 0)
-    SendMessage(hMainWnd,WM_USER+6,0,0); /* Start the timer */
+    PostMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */  
+  counter = chartoint(tmem);
+  if (counter != 0)
+    PostMessage(hMainWnd,WM_USER+6,0,0); /* Start the timer */
 }
 
+void timer_poweroff(void)
+/* this function is called when the virtual power is turned off */
+{ if (counter!=0) PostMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */
+  counter = 0;
+  PostMessage(hMainWnd,WM_VMB_OFF,0,0);
+}
 
+void timer_poweron(void)
+/* this function is called when the virtual power is turned off */
+{
+   counter = 0;
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
+}
 
-void vmb_reset(void)
-{ if (counter!=0) SendMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */
+void timer_reset(void)
+{ if (counter!=0) PostMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */
   counter = 0;
 }
 
+void timer_disconnected(void)
+/* this function is called when the reading thread disconnects from the virtual bus. */
+{ if (counter!=0) PostMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */
+  counter = 0;
+  PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
+}
+
+
+void init_device(device_info *vmb)
+{
+  vmb_size = TIMER_MEM;
+  vmb->poweron=timer_poweron;
+  vmb->poweroff=timer_poweroff;
+  vmb->disconnected=timer_disconnected;
+  vmb->reset=timer_reset;
+  vmb->terminate=vmb_terminate;
+  vmb->put_payload=timer_put_payload;
+  vmb->get_payload=timer_get_payload;
+  hblink = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BLINK), 
+				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
+
+}

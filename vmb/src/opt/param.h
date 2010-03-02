@@ -28,6 +28,7 @@
 extern char *host;
 extern int port;
 extern int xpos,ypos;
+extern int minimized;
 
 #ifdef WIN32
 #include <windows.h>
@@ -37,8 +38,8 @@ typedef UINT64 uint64_t;
 #endif
 
 extern uint64_t vmb_address;
-#define vmb_address_hi ((unsigned int)(vmb_address>>32))
-#define vmb_address_lo ((unsigned int)(vmb_address&0xFFFFFFFF))
+#define HI32(vmb_address) ((unsigned int)((vmb_address)>>32))
+#define LO32(vmb_address) ((unsigned int)((vmb_address)&0xFFFFFFFF))
 extern unsigned int vmb_size;
 extern int interrupt;
 extern char *filename;
@@ -53,7 +54,6 @@ extern void param_init(void);
 extern void param_init(int argc, char *argv[]);
 #endif
 
-extern void load_configfile(char *name);
 extern void usage(char *message);
 extern void store_command(char *command);
 

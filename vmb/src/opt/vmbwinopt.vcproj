@@ -207,7 +207,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\winopt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\winres.h"
 				>
 			</File>
 		</Filter>

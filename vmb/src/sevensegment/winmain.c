@@ -1,6 +1,6 @@
 #include <winsock2.h>
 #include <windows.h>
-#include <afxres.h>
+#include <commctrl.h>
 #include "vmb.h"
 #include "bus-arith.h"
 #include "resource.h"
@@ -12,10 +12,10 @@
 
 HINSTANCE hInst;
 HWND hMainWnd;
-HBITMAP hBmp;
+HBITMAP hBmp=NULL;;
 HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
-
+device_info vmb = {0};
 
 
 
@@ -50,25 +50,29 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 static HWND hBits[64];
 static HBITMAP hhor,hvert,hdot;
-static int xpixelpos[8] = {39,25,11,  20, 5, 80,65,  82};
-static int ypixelpos[8] = {5,53,101,   10,59,  12,61, 101};
-#define DIGITLENGTH 100
-#define WINHEIGHT 111
+static int xpixelpos[8] = {20,12, 4,  10, 2,40,31,  41};
+static int ypixelpos[8] = { 2,26,50,   4,29, 7,32,  49};
+#define DIGITLENGTH 50
+#define WINHEIGHT 55
 #define WINLENGTH (DIGITLENGTH*8)
 static enum {vert, hor, dot} bittyp[8] = {hor,hor,hor,vert,vert,vert,vert,dot};
+
+
+void seg_poweroff(void);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
-  case WM_USER+1: /* on*/
+  case WM_VMB_ON: /* on*/
 	  return 0;
-  case WM_USER+2: /* off */
+  case WM_VMB_OFF: /* off */
 	  return 0;
-  case WM_USER+3: /* Connected */
+  case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
+	seg_poweroff();
  	return 0;
-  case WM_USER+4: /* Disconnected */
+  case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
 	return 0;
@@ -97,9 +101,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-void init_device(void)
-{
-}
 
 
 
@@ -112,13 +113,13 @@ BOOL InitInstance(HINSTANCE hInstance)
   r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
-    vmb_debugi(1,"Unable to load class name (%X)",r);
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
   }
   r = LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
-    vmb_debugi(1,"Unable to load window title (%X)",r);
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load window title (%X)",r);
   }
  
     hInst = hInstance; 
@@ -167,30 +168,29 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				IMAGE_BITMAP, 0, 0, 0);
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
-
+    InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 
 	param_init();
 	get_pos_key(&xpos,&ypos,defined);
- 
-	vmb_size = 8;
-
+    init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
 
-	vmb_connect(host,port);
-	vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,0,0,defined);
-    SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
+	vmb_connect(&vmb,host,port);
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
+    SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+	if (vmb_verbose_flag) vmb_debug_mask=0; else vmb_debug_mask=VMB_DEBUG_DEFAULT;
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
-	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_verbose_level==0?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
       if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
 	  { TranslateMessage(&msg);
 	    DispatchMessage(&msg);
 	  }
-	vmb_disconnect();
+	vmb_disconnect(&vmb);
     set_pos_key(hMainWnd,defined);
     return (int)msg.wParam;
 }
@@ -218,36 +218,49 @@ static void update_bits(void)
 /* Interface to the virtual motherboard */
 
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *seg_get_payload(unsigned int offset,int size)
 { 
   return segmentbits+offset;
 }
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
+void seg_put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(segmentbits+offset,payload,size);
   update_bits();
 }
 
-void vmb_poweron(void)
+void seg_poweron(void)
 { memset(segmentbits,0xFF,8);
   update_bits();
 }
 
 
-void vmb_poweroff(void)
+void seg_poweroff(void)
 { memset(segmentbits,0x80,8);
   update_bits();
 }
 
-void vmb_disconnected(void)
+void seg_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { memset(segmentbits,0x02,8);
   update_bits();
-  SendMessage(hMainWnd,WM_USER+4,0,0); /* the disconnect button */
+  PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
 
 
-void vmb_reset(void)
+void seg_reset(void)
 { memset(segmentbits,0xFF,8);
   update_bits();
+}
+
+void init_device(device_info *vmb)
+{ 
+  vmb_size = 8;
+
+  vmb->poweron=seg_poweron;
+  vmb->poweroff=seg_poweroff;
+  vmb->disconnected=seg_disconnected;
+  vmb->reset=seg_reset;
+  vmb->terminate=vmb_terminate;
+  vmb->put_payload=seg_put_payload;
+  vmb->get_payload=seg_get_payload;
 }

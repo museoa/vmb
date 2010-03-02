@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -204,6 +204,10 @@
 				RelativePath=".\resource.h"
 				>
 			</File>
+			<File
+				RelativePath="..\opt\win32connect.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -232,6 +236,10 @@
 			</File>
 			<File
 				RelativePath=".\win32.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\opt\win32connect.rc"
 				>
 			</File>
 		</Filter>

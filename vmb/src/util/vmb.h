@@ -23,31 +23,87 @@
 
 #ifndef VMB_H
 #define VMB_H
+#define	WM_VMB				0x8000
+#define WM_VMB_ON			(WM_VMB+1)
+#define WM_VMB_OFF			(WM_VMB+2)
+#define WM_VMB_RESET		(WM_VMB+3)
+#define WM_VMB_CONNECT		(WM_VMB+4)
+#define WM_VMB_DISCONNECT	(WM_VMB+5)
+#define WM_VMB_MSG			(WM_VMB+6)
+#define WM_VMB_OTHER		(WM_VMB+7)
+
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
+
+typedef struct
+{ unsigned int id; /* to tell appart different deviceinfos within the same application */
+  unsigned char address[8];
+  unsigned int size;
+  unsigned int lo_mask;
+  unsigned int hi_mask;
+  unsigned int connected;
+  unsigned int power;
+  unsigned int reset_flag;
+  /* Functions called by the Bus-Read thread */
+  void (*poweron)(void);
+  void (*poweroff)(void);
+  void (*reset)(void);
+  void (*terminate)(void);
+  void (*disconnected)(void);
+  void (*interrupt)(unsigned char interrupt);
+  unsigned char *(*get_payload)(unsigned int offset,int size);
+  void (*put_payload)(unsigned int offset,int size, unsigned char *payload);
+  void (*unknown)(unsigned char type,
+                        unsigned char size,
+                        unsigned char slot,
+                        unsigned char id,
+                        unsigned int offset,
+			unsigned char *payload);
+
+  /* used only locally */
+  unsigned int interrupt_lo;
+  unsigned int interrupt_hi;  
+  int fd;
+  unsigned int cancel_wait_for_event;
+#ifdef WIN32
+  HANDLE hevent;
+  CRITICAL_SECTION   event_section;
+#else
+  pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
+#endif
+
+
+
+} device_info;
 
 /* Functions and Varaibles called by the CPU thread */
-extern unsigned int vmb_connected;
-extern unsigned int vmb_power;
-extern unsigned int vmb_reset_flag;
-
-extern void vmb_connect(char *host, int port);
-extern void vmb_register(unsigned int adress_hi, unsigned int address_lo,
+extern void vmb_begin(void);
+extern void vmb_end(void);
+extern void vmb_connect(device_info *vmb, char *host, int port);
+extern void vmb_register(device_info *vmb,unsigned int adress_hi, unsigned int address_lo,
                          unsigned int size,
                          unsigned int lo_mask, unsigned int hi_mask,
                          char *name);
-extern void vmb_wait_for_disconnect(void);
-extern void vmb_disconnect(void);
-extern int vmb_get_interrupt(unsigned int *hi, unsigned int *lo);
-extern void vmb_raise_interrupt(unsigned char interrupt);
-extern void vmb_raise_reset(void);
-extern void vmb_wait_for_event(void);
-extern void vmb_cancel_wait_for_event(void);
-extern void vmb_wait_for_power(void);
+extern void vmb_wait_for_disconnect(device_info *vmb);
+extern void vmb_disconnect(device_info *vmb);
+extern int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo);
+extern void vmb_raise_interrupt(device_info *vmb, unsigned char interrupt);
+extern void vmb_raise_reset(device_info *vmb);
+extern void vmb_wait_for_event(device_info *vmbd);
+extern void vmb_cancel_wait_for_event(device_info *vmb);
+extern void vmb_wait_for_power(device_info *vmb);
 
 
 typedef struct {
   unsigned char *data;
   int address_hi; 
   int address_lo;
+  int id;
   int size;
   int status;  
 } data_address;
@@ -58,33 +114,34 @@ typedef struct {
 #define STATUS_READING 4
 
 extern void vmb_init_data_address(data_address *da, int size);
-
-extern void vmb_load(data_address *da);
-extern void vmb_wait_for_valid(data_address *da);
+extern void vmb_load(device_info *vmb, data_address *da);
+extern void vmb_wait_for_valid(device_info *vmb, data_address *da);
 extern void vmb_cancel_all_loads(void);
-extern void vmb_store(data_address *da);
+extern void vmb_store(device_info *vmb, data_address *da);
 
-#include "cache.h"
 
-/* Functions called by the Bus-Read thread */
-extern void vmb_poweron(void);
-extern void vmb_poweroff(void);
-extern void vmb_reset(void);
-extern void vmb_terminate(void);
-extern void vmb_disconnected(void);
 
-extern void vmb_interrupt(unsigned char interrupt);
-extern unsigned char *vmb_get_payload(unsigned int offset,int size);
-extern void vmb_put_payload(unsigned int offset,int size, unsigned char *payload);
-extern void vmb_unknown(unsigned char type,
-                        unsigned char size,
-                        unsigned char slot,
-                        unsigned char id,
-                        unsigned int offset,
-			unsigned char *payload);
 
 /* Functions called by the Bus Write thread */
 
+#include "cache.h"
+
 #include "error.h"
+
+/* default implementations */
+extern void vmb_disconnected(void);
+extern unsigned char *vmb_get_payload(unsigned int offset,int size);
+extern void vmb_interrupt(unsigned char interrupt);
+extern void vmb_poweroff(void);
+extern void vmb_poweron(void);
+extern void vmb_put_payload(unsigned int offset,int size, unsigned char *payload);
+extern void vmb_reset(void);
+extern void vmb_terminate(void);
+extern void vmb_unknown(unsigned char type,
+                 unsigned char size,
+                 unsigned char slot,
+                 unsigned char id,
+                 unsigned int offset,
+                 unsigned char *payload);
 
 #endif

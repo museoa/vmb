@@ -1,12 +1,35 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
 
-#include "winopt.h"
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
 #include "afxres.h"
 
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
 
-IDD_CONNECT DIALOG DISCARDABLE  0, 0, 186, 85
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Connect"
-FONT 8, "MS Sans Serif"
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONNECT DIALOGEX 0, 0, 186, 85
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Connect Global"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,129,46,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,129,64,50,14
@@ -16,15 +39,78 @@ BEGIN
     LTEXT           "Port:",IDC_STATIC,7,26,16,8
 END
 
-
-
-IDD_DEBUG DIALOG DISCARDABLE  0, 0, 186, 94
-STYLE WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
-    WS_THICKFRAME
-CAPTION "Debug"
-FONT 8, "MS Sans Serif"
+IDD_DEBUG DIALOGEX 0, 0, 202, 126
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Debug Global"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    EDITTEXT        IDC_DEBUG,3,3,180,88,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | NOT 
-                    WS_TABSTOP
+    EDITTEXT        IDC_DEBUG,12,22,89,12,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
+    CONTROL         "",IDC_TAB_DEBUG,"SysTabControl32",0x0,6,6,186,17
+    CONTROL         "Hide All",IDC_HIDE_ALL,"Button",BS_AUTO3STATE | WS_TABSTOP,12,30,40,10
+    CONTROL         "Hide Bus Messages",IDC_HIDE_MSG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,66,79,10
+    CONTROL         "Hide Infos",IDC_HIDE_INFO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,84,48,10
+    CONTROL         "Hide Progress Indicators",IDC_HIDE_PROGRESS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,102,93,10
+    CONTROL         "Hide Notifications",IDC_HIDE_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,48,71,10
+    CONTROL         "Hide Errors",IDC_HIDE_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,66,51,10
+    CONTROL         "Hide Critical Errors",IDC_HIDE_CRITICAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,84,73,10
+    CONTROL         "Hide Fatal Errors",IDC_HIDE_FATAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,102,68,10
+    CONTROL         "Hide Payloads",IDC_HIDE_PAYLOAD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,48,61,10
 END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DEBUG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 192
+        VERTGUIDE, 192
+        HORZGUIDE, 120
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

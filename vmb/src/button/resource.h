@@ -15,16 +15,13 @@
 #define IDB_ON                          119
 #define IDB_BITMAPOFF                   120
 #define IDD_ABOUT                       121
-#define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
 #define IDB_BITMAPON                    127
-#define IDC_DEBUG                       1003
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define IDC_RAMSIZE                     1006
 #define IDC_UPINTERRUPT                 1007
 #define IDC_INTENABLE                   1008
-#define IDC_BUTTON1                     1009
 #define IDC_COLORCHOOSE                 1009
 #define IDC_UPINTENABLE                 1010
 #define IDC_PUSHBUTTON                  1011

@@ -59,29 +59,30 @@ extern vmb_cache  vmb_d_cache;
 extern vmb_cache  vmb_i_cache;
 
 extern const unsigned char *
-vmb_cache_read(vmb_cache *c, 
+vmb_cache_read(device_info *vmb, 
+			   vmb_cache *c, 
                unsigned int hi_address,
                unsigned int lo_address);
 
 extern unsigned int 
-vmb_cache_read_int(vmb_cache *c, 
+vmb_cache_read_int(device_info *vmb, vmb_cache *c, 
                    unsigned int hi_address,
                    unsigned int lo_address);
 
 extern unsigned char *
-vmb_cache_write(vmb_cache *c, 
+vmb_cache_write(device_info *vmb, vmb_cache *c, 
                unsigned int hi_address,
                unsigned int lo_address);
 
-extern void vmb_cache_preload(vmb_cache *c, unsigned int hi_address,
+extern void vmb_cache_preload(device_info *vmb, vmb_cache *c, unsigned int hi_address,
 			      unsigned int lo_address);
 
 
 extern void vmb_cache_init(vmb_cache *c); 
 extern void vmb_cache_clear(vmb_cache *c);
 extern void vmb_cache_clear_line(vmb_cache *c, int address_hi, int address_lo);
-extern void vmb_cache_flush(vmb_cache *c);
-extern void vmb_cache_flush_line(vmb_cache *c,int address_hi,int address_lo);
-extern void vmb_cache_zero_line(vmb_cache *c,int address_hi,int address_lo);
+extern void vmb_cache_flush(device_info *vmb, vmb_cache *c);
+extern void vmb_cache_flush_line(device_info *vmb, vmb_cache *c,int address_hi,int address_lo);
+extern void vmb_cache_zero_line(device_info *vmb, vmb_cache *c,int address_hi,int address_lo);
 
 #endif

@@ -218,6 +218,10 @@
 				RelativePath=".\resource.h"
 				>
 			</File>
+			<File
+				RelativePath="..\opt\win32connect.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -246,6 +250,10 @@
 			</File>
 			<File
 				RelativePath=".\win32.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\opt\win32connect.rc"
 				>
 			</File>
 		</Filter>

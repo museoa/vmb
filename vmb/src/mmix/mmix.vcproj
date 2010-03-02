@@ -24,6 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="rebuild mmix-sim "
+				CommandLine="ctangle mmix-sim.w mmix-sim.ch"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -103,6 +105,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="rebuild mmix-sim "
+				CommandLine="ctangle mmix-sim.w mmix-sim.ch"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -213,6 +217,10 @@
 				RelativePath=".\address.h"
 				>
 			</File>
+			<File
+				RelativePath=".\mmix-internals.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -220,6 +228,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\mmix-sim.ch"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

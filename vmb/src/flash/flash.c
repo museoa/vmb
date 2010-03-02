@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.8 $ $Date: 2008-09-26 08:58:55 $";
+char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:23 $";
 
 char howto[] =
 "\n"
@@ -65,7 +65,7 @@ void open_file(void)
   int rc;
   if (filename==NULL)
     vmb_fatal_error(__LINE__,"No filename");
-  vmb_debug(0, "reading image file...");
+  vmb_debug(VMB_DEBUG_PROGRESS, "reading image file...");
   f = fopen(filename,"rb");
   if (f==NULL) vmb_fatal_error(__LINE__,"Unable to open file");
   if (fstat(fileno(f),&fs)<0) vmb_fatal_error(__LINE__,"Unable to get file size");
@@ -79,7 +79,7 @@ void open_file(void)
   if (rc==0) vmb_fatal_error(__LINE__,"Empty file");
   fclose(f);
   image_changed = 0;
-  vmb_debug(0, "done reading image file");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done reading image file");
 }
 
 
@@ -87,7 +87,7 @@ void write_file(void)
 { FILE *f;
   int i;
   if (!image_changed) return;
-  vmb_debug(0, "writing image file...");
+  vmb_debug(VMB_DEBUG_PROGRESS, "writing image file...");
   if (filename==NULL|| filename[0]== 0)
   { vmb_error(__LINE__,"No filename");
     return;
@@ -104,46 +104,46 @@ void write_file(void)
   i = (int)fwrite(flash,1,vmb_size,f);
   if (i<(int)vmb_size) vmb_error(__LINE__,"Unable to write file");
   else fclose(f);
-  vmb_debug(0, "done writing image file");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done writing image file");
   image_changed = 0;
 }
 
 /* Interface to the virtual motherboard */
 
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *flash_get_payload(unsigned int offset,int size)
 {
     return flash+offset;
 }
 
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
+void flash_put_payload(unsigned int offset,int size, unsigned char *payload)
 {    memmove(flash+offset,payload,size);
      image_changed = 1;
 }
 
 
-void vmb_poweron(void)
+void flash_poweron(void)
 { open_file();
-  vmb_debugi(0, "size: %d",vmb_size);
+  vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
   #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }
 
-void vmb_poweroff(void)
+void flash_poweroff(void)
 {  write_file();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+2,0,0);
+   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
 }
 
-void vmb_reset(void)
+void flash_reset(void)
 { write_file();
 }
 
 
-void vmb_terminate(void)
+void flash_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 {  write_file();
 #ifdef WIN32
@@ -152,17 +152,24 @@ void vmb_terminate(void)
 }
 
 
-void vmb_disconnected(void)
+void flash_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { /* do nothing */
 	write_file();
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+4,0,0);
+   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
 #endif
 }
 
-void init_device(void)
+void init_device(device_info *vmb)
 { open_file();
+  vmb->poweron=flash_poweron;
+  vmb->poweroff=flash_poweroff;
+  vmb->disconnected=flash_disconnected;
+  vmb->reset=flash_reset;
+  vmb->terminate=flash_terminate;
+  vmb->put_payload=flash_put_payload;
+  vmb->get_payload=flash_get_payload;
 }
 
 
@@ -171,17 +178,17 @@ void init_device(void)
 int main(int argc, char *argv[])
 {
  param_init(argc, argv);
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+ vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+ vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+ vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
  close(0); /* stdin */
- init_device();
- vmb_debugi(0, "address hi: %x ",vmb_address>>32);
- vmb_debugi(0, "address lo: %x ",vmb_address&0xFFFFFFFF);
- vmb_debugi(0, "size: %x ",vmb_size);
+ init_device(&vmb);
+ vmb_debugi(VMB_DEBUG_INFO, "address hi: %x ",vmb_address>>32);
+ vmb_debugi(VMB_DEBUG_INFO, "address lo: %x ",vmb_address&0xFFFFFFFF);
+ vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
  
- vmb_connect(host,port); 
+ vmb_connect(&vmb,host,port); 
 
  vmb_register(vmb_address>>32,vmb_address&0xFFFFFFFF,
               vmb_size, 0, 0, vmb_program_name);

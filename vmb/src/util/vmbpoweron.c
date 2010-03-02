@@ -48,6 +48,6 @@ void vmb_poweron(void)
 /* this function is called when the virtual power is turned on */
 { /* do nothing */
 #ifdef WIN32
-   SendMessage(hMainWnd,WM_USER+1,0,0);
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }

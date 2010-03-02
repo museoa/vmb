@@ -172,14 +172,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vmbgetpayload.c"
-				>
-			</File>
-			<File
-				RelativePath=".\vmbinterrupt.c"
-				>
-			</File>
-			<File
 				RelativePath=".\vmbpoweroff.c"
 				>
 			</File>
@@ -188,19 +180,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vmbputpayload.c"
-				>
-			</File>
-			<File
 				RelativePath=".\vmbreset.c"
 				>
 			</File>
 			<File
 				RelativePath=".\vmbterminate.c"
-				>
-			</File>
-			<File
-				RelativePath=".\vmbunknown.c"
 				>
 			</File>
 		</Filter>
