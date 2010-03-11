@@ -45,11 +45,17 @@ disk_read	BNN	buffer,1F
 		STO	buffer,base,dmaOffset
 		STO	count,base,countOffset
 		STO	sector,base,sectorOffset
+
+     		SETML	diskflag,0x0008
+		GET	tmp,rQ
+	        ANDN	tmp,tmp,diskflag   % delete the bit
+	        PUT     rQ,tmp
+
 		SET	control,#3    IEN|STRT   to make it read
 		STO	control,base,controlOffset
+
 3H		SYNC	4		%go to power save mode
 		GET	tmp,rQ
-     		SETML	diskflag,0x0008
 	        AND     diskflag,diskflag,tmp
 		BZ	diskflag,3B	% this was not the disk interrupt
 	        ANDN	tmp,tmp,diskflag   % delete the bit
@@ -84,9 +90,21 @@ disk_write	BNN	buffer,1F
 		STO	buffer,base,dmaOffset
 		STO	count,base,countOffset
 		STO	sector,base,sectorOffset
+
+     		SETML	diskflag,0x0008
+		GET	tmp,rQ
+	        ANDN	tmp,tmp,diskflag   % delete the bit
+	        PUT     rQ,tmp
+
 		SET	control,#7    WRITE|IEN|STRT   to make it write
 		STO	control,base,controlOffset
-		SYNC	4		%go to power save mode
+3H		SYNC	4		%go to power save mode
+
+		GET	tmp,rQ
+	        AND     diskflag,diskflag,tmp
+		BZ	diskflag,3B	% this was not the disk interrupt
+	        ANDN	tmp,tmp,diskflag   % delete the bit
+	        PUT     rQ,tmp
 
 2H		LDO	control,base,controlOffset load controll
 		AND	tmp,control,#10	test the BUSSY bit

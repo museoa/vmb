@@ -16,9 +16,10 @@ Ropcode		SRU	$0,$0,56		%the ropcode
 		CMP	$1,$0,3	        
 		BZ	$1,Virtual		%page table translation in software
 
-TrapUnhandled	SWYM	5		        % tell the debugger
-		POP	0,0
-
+TrapUnhandled   GETA    $0,1F
+                SWYM    0,5            % tell the debugger
+                POP     0,0
+1H              BYTE    "DEBUG Unhandled TRAP",0
 
 %       TRAP handler for page faults (not yet implemented)       	
 PageFault	SWYM	5		% tell the debugger
@@ -78,14 +79,14 @@ FTrapTable	JMP   TrapHalt       %0
 
 %         The individual Trap routines
 	
+TrapHalt        GETA    $0,2F
+                SWYM    0,5            % tell the debugger
+                NEG     $0,1            % enable interrupts
+                PUT     rK,$0
+1H              SYNC    4               % go to power save mode
+                JMP     1B              % and loop idle
+2H              BYTE    "DEBUG Program terminated",0
 
-TrapHalt	NEG	$0,1            %  enable interrupts
-  		PUT	rK,$0
-1H		SYNC	4		%go to power save mode
-		JMP	1B              % and loop idle
-		POP	0,0		% we never get here
-
-	
 TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
         	BZ      $0,1F     %this is stdin
         	CMP     $1,$0,2

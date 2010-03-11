@@ -14,6 +14,7 @@ Warg	OCTA	buffer
 	OCTA	0
 
 	LOC	#100
+	.global Main
 Main	LDA	$255,ORarg
 	TRAP	0,Fopen,5
 	LDA	$255,Rarg
@@ -44,4 +45,8 @@ Main	LDA	$255,ORarg
 	TRAP	0,Halt,0
 
 error	BYTE	"Error reading string!",10,0
-	
+
+	.global factorial	
+	.type factorial,@function
+factorial	ADD $0,$0,$1
+		POP 1,0

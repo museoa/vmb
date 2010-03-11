@@ -21,7 +21,7 @@
 
 */
 
-#define DEBUG
+#undef DEBUG 
 
 
 #include <stdlib.h>

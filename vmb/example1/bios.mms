@@ -167,8 +167,10 @@ DTrapScreen	SETH    $0,#8000
 	STTU	$1,$0,8
 1H	POP	0,0
 
-DTrapUnhandled	SWYM	5               % inform the debugger
+DTrapUnhandled	GETA	$0,1F
+		SWYM	$0,5               % inform the debugger
 		POP	0,0
+1H		BYTE	"DEBUG Unhandled Exception"
  
 %	Entry point for a forced TRAP
 FTrap	PUSHJ	$255,FHandler
@@ -199,7 +201,7 @@ Ropcode	SRU	$0,$0,56		%the ropcode
 Emulate POP     0,0		%not implemented
 
 
-%	Do pagetable translation in software
+ %	Do pagetable translation in software
 Virtual SET	$0,#1230         %the dummy physical address
 	PUT	rZZ,$0
 	POP     0,0
@@ -249,10 +251,14 @@ FTrapTable JMP   TrapHalt      %0
 
 %         The individual Trap routines
 
-TrapHalt	NEG	$0,1            %  enable interrupts
+TrapHalt	GETA	$0,2F
+		SWYM	$0,5               % inform the debugger
+		NEG	$0,1          	%  enable interrupts
   		PUT	rK,$0
 1H		SYNC	4		%go to power save mode
 		JMP	1B              % and loop idle
+2H		BYTE	"DEBUG Program halted"
+
 
 TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
         	BZ      $0,1F     %this is stdin
@@ -430,8 +436,10 @@ TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
 	      POP	0,0
 
 
-TrapUnhandled	SWYM	5		% tell the debugger
+TrapUnhandled	GETA	$0,1F
+		SWYM	$0,5               % inform the debugger
 		POP	0,0
+1H		BYTE	"DEBUG Unhandled TRAP"
 
 %	Put one character contained in $0 on the screen
 ScreenC	SETH    $1,#8000

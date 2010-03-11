@@ -173,6 +173,7 @@ should be included here as a literate program.
 #include "mmix-bus.h"
 #include "vmb.h"
 extern unsigned char get_break(octa a);
+int mmgetchars(unsigned char *buf, int size, octa addr, int stop);
 @z
 
 @x
@@ -700,7 +701,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
 {"UNSAVE",0x82,0,20,1,"%#z: rG=%x, ..., rL=%a"},@|
 {"SYNC",0x01,0,0,1,"%z"},@|
-{"SWYM",0x01,0,0,1,"%z"},@|
+{"SWYM",0x01,0,0,1,"%r"},@|
 @z
 
 
@@ -1178,7 +1179,21 @@ break_inst: breakpoint=tracing=true;
  break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
-     z.h=0, z.l=inst&0xFF, tracing=breakpoint=interacting=true, interrupt=false;
+ {   unsigned char buf[256];
+     int n;
+     strcpy(rhs,"$%x,%z");
+     z.h=0, z.l=yz;
+     x.h=0, x.l=xx;
+     tracing=interacting;
+     breakpoint=true;
+     interrupt=false;
+     if (loc.h&sign_bit) show_operating_system=true;
+     @<Set |b| from register X@>;
+     n=mmgetchars(buf,256,b,0);
+     if (strncmp((char *)buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf+6);
+ }
+ else
+   strcpy(rhs,"");
  @+break;
 @z
 
