@@ -1,0 +1,117 @@
+<HTML>
+<BODY>
+<H1> The Virtual Motherboard Homepage</H1>
+
+The Virtual Motherboard is hosted under sourceforge
+(see: <A HREF="http://sourceforge.net/projects/vmb/">
+http://sourceforge.net/projects/vmb/</A>). There you can get
+source code and browse the CVS repository.
+<p>
+Here you find documents, specifications for individual devices
+and links to ready to run binary examples.
+
+<H2> General Documentation </H2>
+<UL>
+<LI> <A HREF=messages.html>message specification</A>
+<LI> <A HREF=cache.html>cache specification</A>
+
+</UL>
+
+<H2> Device Documentation </H2>
+<UL>
+<LI><A HREF="winvram_help.html">winvram - Framebuffer Device with Mouse and GPU</A>
+</UL>
+
+
+<H2> Examples </H2>
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example1">Example 1</A></H3>
+A simple configuration running under Linux consisting of
+<UL>
+<LI> Virtual Motherboard.
+<LI> MMIX CPU
+<LI> ROM, including the rom image and the MMIX source files for the image
+<LI> RAM
+<LI> Screen
+<LI> Keyboard
+<LI> A sample hello world program, written in MMIX assembler.
+<LI> The mmix assembler (mmixal) and a tool to produce a boot image
+     from an mmix object file (mmoboot).
+<LI> A README file.
+<LI> The configuration file (default.mmc).
+<LI> A tgz file containing all of the above.
+</UL>
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example2">Example 2</A></H4>
+A simple configuration running under Linux consisting of
+<UL>
+<LI> Virtual Motherboard.
+<LI> MMIX CPU
+<LI> ROM, including the rom image and the MMIX source files for the image
+<LI> RAM
+<LI> Two Framebuffer devices, one written in Java the other in C (for X11).
+<LI> A sample program lorenz.mms diplaying a lorenz attractor.
+<LI> The mmix assembler (mmixal) and a tool to produce a boot image
+     from an mmix object file (mmoboot).
+<LI> A README file.
+<LI> The configuration file (default.mmc).
+<LI> A tgz file containing all of the above.
+</UL>
+
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example3">Example 3</A></H4>
+The same as Example 1, but with executables for WIN32.
+(<A HREF="http://math.cs.hm.edu/vmb/example3/example3.jpg">screenshot</A>)
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example4">Example 4</A></H4>
+The same as Example 2, but with executables for WIN32.
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example5">Example 5</A></H4>
+This example demonstrates a simple embedded device, a stopwatch.
+There is no RAM (everything works in registers, no user program, just
+a program in ROM.
+<p>
+The example uses the GNU toolchain under windows to build the system.
+
+<UL>
+<LI> start it by double-clicking the motherboard. You will get the
+motherboard, ROM (no RAM needed for this), a MMIX CPU in a console window,
+a black, a green, and a red button, a timer, and a seven-segment display.
+Arrange them on the screen as needed. At the first run all items are 
+located at position 0x0, but they remember new positions...
+<LI> Power the system on using the power button on the motherboard.
+<LI> Pressing the green button sends an interrupt and the CPU will 
+switch on the timer.
+<LI>  A Timer interrupt will come every 1/10th of a second.
+<LI> The CPU will update the display on receiving a timer interrupt.
+<LI> Pressing the red button will stop up the timer.
+<LI> Pressing the black button, will reset the counter to zero.
+</UL>
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example7">Example 7</A></H4>
+This example demonstrates the framebuffer device, buttons and timer.
+<UL>
+<LI> The program runs the "Game of Live"
+<LI> start it by double-clicking the motherboard. You will get the
+motherboard, RAM, ROM, am MMIX CPU in a console window, a black, green, and
+red button, a timer, and a frame buffer device. Arrange them on the screen
+as needed. At the first run all items are located at position 0x0, but they
+remember new positions...
+<LI> When power is on the CPU starts, and initializes the screen.
+<LI> Pressing the green button sends an interrupt and the CPU will advance
+to the next generation.
+<LI> Pressing the red button will set up the timer, to send interrupts,
+advancing to the next generation automatically.
+<LI> Pressing the black button, will terminate the Game of Life program. And
+the CPU returns to the operating systems idle loop.
+<LI> Press the rest button on the motherboard to start over.
+</UL>
+It should be possible to write a program that starts with zero
+counting the seconds and displaying the number of seconds elapsed on
+the seven segment display.
+
+<H3><A HREF="http://math.cs.hm.edu/vmb/example-gnu.tgz">Example GNU</A></H4>
+A complex example demonstrating the GNU toolchain with MMIX. 
+
+</BODY>
+</HTML>

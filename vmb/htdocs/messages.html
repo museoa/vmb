@@ -1,0 +1,436 @@
+
+<H1>REFERENCE SECTION on SYNTAX and SEMANTICS of MESSAGES</H1>
+
+
+<H2>Message Format</H2>
+
+A message has the following parts:
+<p>
+<table border=1 align=center>
+<t><th>Size<th>Name<th>Description</tr>
+<tr><td> 4 Byte <td> Header <td>(TYPE,SIZE,SLOT,ID)</tr>
+<tr><td> 4 Byte  <td>Timestamp  <td>(optional)</tr>
+<tr><td> 8 Byte  <td>Address <td> (optional)</tr>
+<tr><td> 1-256 Octabyte  <td>Payload  <td>(optional)</tr>
+</table>
+<p>
+The header together with the optional timestamp and the optional address
+is called the extended header.
+
+
+<H2>Message TYPE</H2>
+
+The TYPE Byte in the Header has the following bits:
+  bus, time, address, route, payload, request, lock, unused
+These bit have the following semantics:
+
+<H4>bus bit 1</H4>
+    This is a message for/from the bus (motherboard). 
+    The bus will handle this message.
+    The type of the message is determined by the ID byte (see below).
+<H4>bus bit 0</H4>
+    This is a message from device to device which just needs to be
+    forwarded by the bus.
+
+<H4>time bit 1</H4>
+    the four byte header is followed by a four byte time stamp
+    that may be incremented by the bus and other components to provide
+    timing information.
+<H4>time bit 0</H4>
+   there is no time time stamp after the header
+
+<H4>address bit 1</H4>
+    the four byte header and the optional four byte time stamp
+    are followed by an eight byte address. 
+    if the route bit is not set, ignore SLOT and determine 
+    the receiver from the address
+<H4>address bit 0</H4>
+    there is no 8 byte address after the header.
+
+<H4>route bit 1</H4>
+    if this bit is set, send the message to the SLOT byte.
+<H4>route bit 0</H4>
+    if the address bit is set, determine the receiver from the address,
+    otherwise there is no receiver, which may be OK for bus messages,
+    or if the ID is 0 (ignore)
+
+<H4>payload bit 1</H4>
+    if the payload bit is set, the extended header is followed by a payload.
+    Its size as a multiple of octas is given by the SIZE byte as SIZE+1.
+    This allows from 1 octa up to 256 octas payload = 2k byte.
+    For an empty payload just don't set the payload bit.
+<H4>payload bit 0</H4>
+    there is no payload after the extended header.
+   
+<H4>request bit 1</H4>
+    if this bit is set, the bus will set the SLOT byte to the sender slot 
+    before delivering the message but after determining 
+    the receiver (which might be specified by the SLOT). This allows
+    the receiver to send an answer using the route bit.
+    If the request bit is set, the sending device will expect an answer.
+    If there is no receiving device or if the receiving device disconnects
+    before sending an answer, the bus should provide a dummy answer.
+<H4>request bit 0</H4>
+    The SLOT byte is not changed, there will be no answer expected.
+
+<H4>lock bit 1</H4>
+    if this bit is set, the bus is locked for exclusive access according to 
+    the following rules:
+    After the bus accepts a message with the lock bit, no other message will
+    be accepted or delivered until the bus gets unlocked again.
+
+    The the bus then repeats the following two steps:
+    1.  It will deliver the message to the receiver.
+    2.  Then it will wait until the receiver sends a message.
+
+    The bus is unlocked as soon as a message without the lock bit has been
+    delivered (after step 1 above).
+    To unlock the bus the final receiver can send a message with four
+    zero byte (without address and route bit, and id=0, it will be ignored).
+
+<H2>Message Size</H2>
+
+The message size can be determined from the first two byte 
+(the TYPE and the SIZE byte of the header) of the message.
+It is computed as follows:
+<p>
+   The minimum size of the message is 4 byte. 
+      (the message consists of just the header)
+   Add 4, if the time bit in the TYPE byte is set.
+   Add 8, if the address bit in the TYPE byte is set.
+   Add 8*(SIZE+1), if the payload bit in the TYPE byte is set.
+
+
+<H2>Summary of the predefined Message ID's</H2>
+
+
+<H3><Pre>#define ID_IGNORE    0</pre></H3>
+
+Message Format: 4 to 16 Byte
+<table border = 1>
+<tr><td>    TYPE <td> (bus=0, time=any, address=any, route=any, 
+            payload=0, request=0, lock=any, unused=any)
+<tr><td>    SIZE <td> any
+<tr><td>    SLOT <td> any
+<tr><td>    ID   <td> 0
+<tr><td colspan=2>    if time bit set<br>
+<tr><td>    time <td> any (4 Byte)
+<tr><td colspan=2>    if address bit set<br>
+<tr><td>    address <td> any (8 Byte)
+</table>
+<H4>Semantics:</H4>
+   The sender of such a message can use the route bit and the SLOT,
+   or the address bit and the address field to determine the receiver.
+   If neither is specified the bus will ignore this message (but may
+   unlock).
+
+   The receiver can safely ignore this message.
+
+
+
+<HR><H3><Pre>#define ID_READ      1</pre></H3>
+
+Message Format: 12 to 16 Byte
+<table border=1>
+<tr><td>    TYPE <td> (bus=0, time=any, address=1, route=any, 
+            payload=0, request=1, lock=any, unused=any)
+<tr><td>    SIZE <td> any
+<tr><td>    SLOT <td> any
+<tr><td>    ID   <td> 1
+<tr><td colspan=2>    if time bit set<br>
+<tr><td>    time <td> any (4 Byte)
+<tr><td>    address <td> any (8 Byte)
+</table>
+<H4>Semantics:</H4>
+   The sender of this message will expect a answer containing 
+   (SIZE+1)*8 byte at the given address.
+   The answer should have ID = ID_READREPLY 
+   (or ID=ID_NOREPLY in case of an error).
+
+   The bus will replace the SLOT byte by the sending slot number, such
+   that the receiver of the message can send an answer using the route bit.
+   The bus will make sure that eventually the sender will receive an answer.
+
+   The receiver should send a answer with ID=ID_READREPLY to the device
+   given in the SLOT byte using the route bit. It should add SIZE+1 octas
+   of payload containing the memory content starting at the given address.
+
+
+<HR><H3><Pre>#define ID_WRITE     2</pre></H3>
+
+Message Format: 20 to 16+256*8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>2
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+<tr><td>    payload<td>any ((SIZE+1)*8 Byte)
+</table>
+<H4>Semantics:</H4>
+   The sender of this message will expect that the SIZE+1 octas contained
+   in the payload will be stored by the receiver at the given address.
+
+   The receiver will store the data. There is no answer.
+
+<HR><H3><Pre>#define ID_READREPLY 3</pre></H3>
+
+Message Format: 20 to 16+256*8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>3
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+<tr><td>    payload<td>any ((SIZE+1)*8 Byte)
+</table>    
+
+<H4>Semantics:</H4>
+   The sender of this message will inform the receiver
+    that the SIZE+1 octas contained in the payload 
+    are stored at the given address.
+
+   The receiver can use the data.
+
+<HR><H3><Pre>#define ID_NOREPLY   4</pre></H3>
+
+Message Format: 12 to 16 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=0, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>4
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+</table>
+
+<H4>Semantics:</H4>
+   The sender of this message will inform the receiver
+   that the read request just received can not be answered.
+   The sender may be either a device or the bus.
+   Typically the sender of such a message should also raise 
+   an interrupt to cause proper error treatment.
+
+   The receiver should treat this message as a (soft) read error.
+   It can also ignore this message and process the interrupt
+   caused by an unsuccessful read.
+
+<HR><H3><Pre>#define ID_READBYTE  5</pre></H3>
+<H3><Pre>#define ID_READWYDE  6</pre></H3>
+<H3><Pre>#define ID_READTETRA 7</pre></H3>
+
+Message Format: 12 to 16 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=0, request=1, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>5,6, or 7
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+</table>
+<H4>Semantics:</H4>
+   The sender of this message will expect a answer containing 
+   1 (READBYTE), 1 (READWYDE) or 4 (READTETRA) byte at the given address.
+   The answer should have ID<td>ID_BYTEREPLY, ID=ID_WYDEREPLY, or
+   ID=ID_TETRAREPLY
+   (or ID=ID_NOREPLY in case of an error).
+
+   The bus will replace the SLOT byte by the sending slot number, such
+   that the receiver of the message can send an answer using the route bit.
+   The bus will make sure that eventually the sender will receive an answer.
+
+   The receiver should send a answer with ID=ID_BYTEREPLY, ID=ID_WYDEREPLY, or
+   ID=ID_TETRAREPLY to the device given in the SLOT byte using the route bit.
+   It should add 1 octa of payload containing left justified the 
+   memory content (1, 2, or 4 byte) starting at the given address.
+   
+
+<HR><H3><Pre>#define ID_WRITEBYTE  8</pre></H3>
+<H3><Pre>#define ID_WRITEWYDE  9</pre></H3>
+<H3><Pre>#define ID_WRITETETRA 10</pre></H3>
+
+Message Format: 20 to 24 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>0
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>8, 9, or 10
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+<tr><td>    payload<td>any (8 Byte
+</table>
+
+<H4>Semantics:</H4>
+   The sender of this message will expect that 1, 2 or 4 byte contained
+   left justified in the payload will be stored by the receiver 
+   at the given address.
+
+   The receiver will store the data. There is no answer.
+
+
+<HR><H3><Pre>#define ID_BYTEREPLY  11</pre></H3>
+<H3><Pre>#define ID_WYDEREPLY  12</pre></H3>
+<H3><Pre>#define ID_TETRAREPLY 13</pre></H3>
+
+Message Format: 20 to 24 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=0, time=any, address=1, route=any, 
+            payload=1, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>0
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>11, 12, or 13
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    address<td>any (8 Byte)
+<tr><td>    payload<td>any (8 Byte)
+</table>    
+
+<H4>Semantics:</H4>
+   The sender of this message will inform the receiver
+   that the 1, 2, or 4 byte contained left justified in the payload octa
+   are stored at the given address.
+
+   The receiver can use the data.
+
+
+<HR><H3><Pre>#define ID_REGISTER   0xFA0</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=1, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>0xFA
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+<tr><td>    payload<td>any (8 Byte)
+</table>
+
+<H4>Semantics:</H4>
+   The sender of this message tries to register itself with the bus.
+   The payload will contain in this order:
+     the address (8 byte)
+     the limit (8 byte)
+     the interrupt mask (8byte)
+     the name (a multiple of 8 byte)
+   The SIZE byte should correctly specify the amount of payload supplied
+   which varies because of the name.
+   The registered device claims to be responsible for the memory
+   range starting at the given address up to but not including the limit.
+   Any interrupt, where interrupt numbers range between 0 and 63,
+   that is raised will be delivered to this device if the corresponding
+   bit in the interrupt mask is set.
+   The name that follows in the payload is a zero terminated string
+   left justified in the payload. The payload may be longer than the string
+   because the payload is always a multiple of 8 byte. The name of the
+   device is just for information. 
+
+<HR><H3><Pre>#define ID_UNREGISTER 0xFB</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=any, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>0xFB
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+</table>
+
+<H4>Semantics:</H4>
+   A registered device should unregister itself before disconnecting.
+
+<HR><H3><Pre>#define ID_INTERRUPT  0xFC</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>0 to 63
+<tr><td>    ID  <td>0xFC
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+</table>
+
+<H4>Semantics:</H4>
+  The sender of this message raises an interrupt. The interrupt number
+  should be a number between 0 and 63 nd is contained in the SLOT byte.
+
+  The bus will check all registered devices and if the corresponding bit
+  in the interrupt mask is set, it will forward this message to the device.
+
+  The receiver of this message should take note of the interrupt and
+  process it.
+
+<HR><H3><Pre>#define ID_RESET      0xFD</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>0xFD
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+</table>
+
+<H4>Semantics:</H4>
+  This is the hardware reset signal. This is not a software interrupt.
+  Even if the software of a device is spinning in a loop or got stuck
+  otherwise the receiver should be able to process this message and get
+  back into a sane initial state.
+  Devices typically do not send this signal. It is send out by the 
+  motherboard/bus.
+  
+<HR><H3><Pre>#define ID_POWEROFF   0xFE</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>0xFE
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+</table>
+
+<H4>Semantics:</H4>
+  This is not a power fail interrupt, or something that a device can handle;
+  its definitely the end of power. If the device has no (virtual) battery
+  it should stop operating. The power off signal will only come after
+  a power on signal.
+
+<HR><H3><Pre>#define ID_POWERON    0xFF</pre></H3>
+
+Message Format: 4 to 8 Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=any, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=any)
+<tr><td>    SIZE<td>any
+<tr><td>    SLOT<td>any
+<tr><td>    ID  <td>0xFF
+<tr><td colspan=2> if time bit set
+<tr><td>      time<td>any (4 Byte)
+</table>
+
+<H4>Semantics:</H4>
+  This is signal is the beginning of life for a device.
+  The device should wait after registering until it receives
+  the power on signal. Then it should start working.
