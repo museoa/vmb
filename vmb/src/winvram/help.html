@@ -1,0 +1,167 @@
+<HTML>
+<BODY>
+<H1>winvram Device Specification</H1>
+
+
+<H2>The Video Ram</H2>
+The video ram uses 4 Byte (one TETRA) for each pixel: IIRRGGBB
+The high order byte is ignored, the next byte specifies the red value
+in the range 0 (black) to 255 (full red), then the green and finally in the low order byte
+the blue value - again in the range 0 to 255.
+<p>
+The first TETRA belongs to the top left pixel. the second TETRA to the next pixel
+just to the right of it. line by line from top to bottom, each TETRA in memory 
+belongs to one pixel. The size of the video ram depends on the configuration.
+The default gives a frame buffer 640 pixel wide and 480 Pixel high. Other sizes
+are possible. It is possible to configure the visible size smaller than the
+size of the frame buffer; this leaves video ram, that is not visible (off screen 
+video ram). It can be used to store bitmaps. These can be transfered to the visible
+part very fast using the GPU.
+
+
+<H2>The Mouse device</H2>
+
+The Mouse device uses 16 Byte, that are read-only.
+<p>
+<table border=1>
+<tr><th>Index<th>Name<th>Description
+<tr><td>00-01<td>buttons<td> the values indicate which buttons are down when
+		the event happens:
+                <table>
+		<tr><td>0x01 <td>= MK_LBUTTON <td>The left mouse button is down. 
+	    	<tr><td>0x10 <td>= MK_MBUTTON <td>The middle mouse button is down. 
+		<tr><td>0x02 <td>= MK_RBUTTON <td>The right mouse button is down. 
+		<tr><td>0x04 <td>= MK_SHIFT   <td>The SHIFT key is down. 
+		<tr><td>0x08 <td>= MK_CONTROL <td>The CTRL key is down.   
+                </table>
+<tr><td>02-03<td>event<td>The event bits use MK_LBUTTON, MK_MBUTTON, and MK_RBUTTON
+		   to indicate the button. Bit 0x04 (MK_SHIFT) is 1 for a
+		   down event, and 0 for an up event. If the down event is
+		   a double-click, the bit 0x08 (MK_CONTROL) is set in addition.
+		   A Mouse Move event is indicated by bit 0x80.
+<tr><td>04-05<td>x<td>The x position where the event happens
+<tr><td>06-07<td>y<td>The y position where the event happens
+<tr><td>08-11<td> <td>unused
+<tr><td>12-13<td>cx<td>the current x position of the mouse.
+<tr><td>14-15<td>cy<td>the current y position of the mouse.
+</table>
+
+<H2>The Graphics Processing Unit GPU</H2>
+
+The GPU uses 56 Byte as follows:
+<p>
+<table border=1>
+<tr><th>Index<th>Name<th>Description
+<tr><td>0x00<td>command<td> see below.
+<tr><td>0x01-0x03<td>command aux<td> 
+<tr><td>0x04-0x05<td>x2<td> secondary x position
+<tr><td>0x06-0x07<td>y2<td> secondary y position
+<tr><td>0x08-0x09<td>w<td> width 
+<tr><td>0x0a-0x0b<td>h<td> height
+<tr><td>0x0c-0x0d<td>x<td> x position
+<tr><td>0x0e-0x0f<td>y<td> y position
+<tr><td>0x10-0x17<td>bba<td> bit block address
+<tr><td>0x18     <td><td> ignored
+<tr><td>0x19     <td>tbr><td> text background color red
+<tr><td>0x1a     <td>tbg<td>  text background color green
+<tr><td>0x1b     <td>tbb<td>  text background color blue
+<tr><td>0x1c     <td><td> ignored
+<tr><td>0x1d     <td>tfr><td> text foreground color red
+<tr><td>0x1e     <td>tfg<td>  text foreground color green
+<tr><td>0x1f     <td>tfb<td>  text foreground color blue
+<tr><td>0x20     <td><td> ignored
+<tr><td>0x21     <td>fr><td> fill color red
+<tr><td>0x22     <td>fg<td>  fill color green
+<tr><td>0x23     <td>fb<td>  fill color blue
+<tr><td>0x24     <td><td> ignored
+<tr><td>0x25     <td>lr><td> line color red
+<tr><td>0x26     <td>lg<td>  line color green
+<tr><td>0x27     <td>lb<td>  line color blue
+<tr><td>0x28-0x29<td>cw<td> character width 
+<tr><td>0x2a-0x2b<td>ch<td> charcter height
+<tr><td>0x2c-0x2f<td><td> unused
+<tr><td>0x30-0x31<td>fw<td> frame width
+<tr><td>0x32-0x33<td>fh<td> frame height
+<tr><td>0x34-0x35<td>sh<td> screen width
+<tr><td>0x36-0x37<td>sh<td> screen height
+</table>
+<p>
+The first 4 Byte (0-4) contain the command. writing any of these
+bytes will trigger the execution of the command.
+The command may be split into a command number (byte 0) and some
+auxiliary information (1-3).
+<p>
+Most commands require a position. the coordinates are taken
+from Bytes c,d (x) and e,f (y).  If appropriate, executing of a command
+will update these values to make the two values work like a cursor.
+<p>
+Bit Block transfers from/to non graphic memory need a physical
+target address. The address goes in the third OCTA.
+<p>
+Most commands require, in addition, color information (Drawing of Text,
+Lines and Rectangles) this information comes in the fourth and fifth OCTA.
+<p>
+Commands that need additional x,y information would primarily use byte 4 to 7.
+Additional x,y and w,h information can be provided in the second OCTA.
+<p>
+The sixth and seventh OCTA are read only. They provide information
+on the size of the system font, the frame size and the visible part of it.
+<p>
+<H3>Commands</H3>
+<H4> command == 0 Do Nothing</H4>
+<H4> command == 1 Write Character</H4>
+write the character contained in command aux LO (ASCII) to the position
+given in x and y using the system Font. update x and y for the next character.
+Handle newline (0x0A) by moving x,y to the beginning of the next line and 
+carriage return (0x0D) by moving x,y to the beginning of the current line.
+Scroll up the screen, if a newline happens to be in the last line of the screen.
+<H4> command == 2 Draw Rectangle</H4>
+Draw a filled Rectangle using the fill color, using the x,y position as top left
+and the secondary x,y as bottom right. No update of the position occurs.
+<H4> command == 3 Draw Line</H4>
+Draw a line using the line color from the x,y position to the secondary x,y
+The secondary x,y will then replace the position x,y to support drawing joint lines.
+<H4> command == 4 Bit Block Transfer</H4>
+Transfers a rectangular block of pixels from one part of the video ram to another part
+od the video ram. The x,y position is the top left coordinate of 
+the destination. the secondary x,y is the top left coordinate of the source. 
+the width and height values of the second OCTA define the destination rectangle.
+clipping (if needed) occurs on the destination rectangle.
+The command aux value is used for the raster mode used in a
+windows Bitblt Function. the following values are defined:
+<p>
+<table border = 1>
+<tr><th>Name<th>Value<th>Operation
+<tr><td> SRCCOPY      <td>       0xCC0020  <td>dest = source                   
+<tr><td> SRCPAINT     <td>       0xEE0086  <td>dest = source OR dest           
+<tr><td> SRCAND       <td>       0x8800C6  <td>dest = source AND dest          
+<tr><td> SRCINVERT    <td>       0x660046  <td>dest = source XOR dest          
+<tr><td> SRCERASE     <td>       0x440328  <td>dest = source AND (NOT dest )   
+<tr><td> NOTSRCCOPY   <td>       0x330008  <td>dest = (NOT source)             
+<tr><td> NOTSRCERASE  <td>       0x1100A6  <td>dest = (NOT src) AND (NOT dest) 
+<tr><td> MERGECOPY    <td>       0xC000CA  <td>dest = (source AND pattern)     
+<tr><td> MERGEPAINT   <td>       0xBB0226  <td>dest = (NOT source) OR dest     
+<tr><td> PATCOPY      <td>       0xF00021  <td>dest = pattern                  
+<tr><td> PATPAINT     <td>       0xFB0A09  <td>dest = DPSnoo                   
+<tr><td> PATINVERT    <td>       0x5A0049  <td>dest = pattern XOR dest         
+<tr><td> DSTINVERT    <td>       0x550009  <td>dest = (NOT dest)               
+<tr><td> BLACKNESS    <td>       0x000042  <td>dest = BLACK                    
+<tr><td> WHITENESS    <td>       0xFF0062  <td>dest = WHITE     
+</table>
+
+<H4> command == 5 Incomming Bit Block Transfer</H4> 
+Transfers a rectangular block of pixels from regular memory into the video memory.
+The x,y position is the top left coordinate of 
+the destination. The bit block address (bba) ist the physical adress where
+the source bit pattern is stored as a sequence of TETRA byte.
+The width and height values of the second OCTA define the source and the destination rectangle.
+clipping (if needed) occurs on the destination rectangle.
+The command aux value should be used for the raster mode ar specified above,
+however this is currently not implemented. The values are just copied from source to destination.
+<p>
+
+<H4> command == 6 Outgoing Bit Block Transfer</H4> 
+Not yet implemented.
+<p>
+</BODY>
+</HTML>
