@@ -744,12 +744,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  w = GPU_W; i = 0;  /* below we have 0<=i<w and 0<=k<h */
 		  h = GPU_H; k = 0;
 		  size = w*h*4;
+		  da.address_hi = chartoint(gpu_mem+0x10);
+          da.address_lo = chartoint(gpu_mem+0x14);
 		  d = 0x100*8;
           while (size>0)
 		  { if (d>size) d = size;
 			da.size = d;
-			da.address_hi = chartoint(gpu_mem+0x10);
-            da.address_lo = chartoint(gpu_mem+0x14);
 		    vmb_load(&vmb_gpu, &da);
 		    vmb_wait_for_valid(&vmb_gpu, &da);
 			EnterCriticalSection (&bitmap_section);
@@ -762,6 +762,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
             LeaveCriticalSection (&bitmap_section);
 			size=size-d;
+			if (da.address_lo+d<da.address_lo) da.address_hi++;
+			da.address_lo += d;
 		  }
 		  vmb_raise_interrupt(&vmb_gpu, gpu_interrupt);
 		  rect.top = (int)(y*zoom);
