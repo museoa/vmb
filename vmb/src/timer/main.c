@@ -122,8 +122,7 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
       pthread_exit(NULL);
     }
   }
-  ms = chartoint(ram)<<4;
-  ms = ms + chartoint(ram+4);
+  ms = chartoint(ram);
   if (ms != 0)
   {  int rc = pthread_cond_signal(&ms_cond);
      if (rc) 
