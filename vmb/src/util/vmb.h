@@ -73,8 +73,8 @@ typedef struct
   HANDLE hevent;
   CRITICAL_SECTION   event_section;
 #else
-  pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t event_mutex;
+  pthread_cond_t event_cond;
 #endif
 
 

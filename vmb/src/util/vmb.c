@@ -23,8 +23,8 @@ void vmb_raise_reset(device_info *vmb)
 
 
 #ifndef WIN32
-static void clean_up_event_mutex(void *_dummy)
-{ pthread_mutex_unlock(&event_mutex); /* needed if canceled waiting */
+static void clean_up_event_mutex(void *vmb)
+{ pthread_mutex_unlock(&(((device_info *)vmb)->event_mutex)); /* needed if canceled waiting */
 }
 #endif
 
@@ -38,7 +38,7 @@ int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo)
 #ifdef WIN32
   EnterCriticalSection (&vmb->event_section);
 #else
-  { int rc = pthread_mutex_lock(&event_mutex);
+  { int rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
@@ -52,7 +52,7 @@ int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo)
 #ifdef WIN32
   LeaveCriticalSection (&vmb->event_section);
 #else
-  { int rc = pthread_mutex_unlock(&event_mutex);
+  { int rc = pthread_mutex_unlock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Unlocking event mutex failed");
       pthread_exit(NULL);
@@ -76,13 +76,13 @@ void vmb_wait_for_event(device_info *vmb)
 */
 { 
 #ifndef WIN32
-  { int rc = pthread_mutex_lock(&event_mutex);
+  { int rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
   }
-  pthread_cleanup_push(clean_up_event_mutex,NULL);
+  pthread_cleanup_push(clean_up_event_mutex,vmb);
 #endif
   /* in the meantime the event might have happend */
   while (vmb->power &&
@@ -93,7 +93,7 @@ void vmb_wait_for_event(device_info *vmb)
 #ifdef WIN32
      WaitForSingleObject(vmb->hevent,INFINITE);
 #else
-     pthread_cond_wait(&event_cond,&event_mutex);
+     pthread_cond_wait(&vmb->event_cond,&vmb->event_mutex);
   pthread_cleanup_pop(1);
 #endif
   vmb->cancel_wait_for_event=0;
@@ -105,20 +105,20 @@ void vmb_wait_for_power(device_info *vmb)
 /* waits for a  power on or for a disconnect */
 { 
 #ifndef WIN32
-  { int rc = pthread_mutex_lock(&event_mutex);
+  { int rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
   }
-  pthread_cleanup_push(clean_up_event_mutex,NULL);
+  pthread_cleanup_push(clean_up_event_mutex,vmb);
 #endif
   /* in the meantime power might be on */
   while (vmb->connected && !vmb->power)
 #ifdef WIN32
      WaitForSingleObject(vmb->hevent,INFINITE);
 #else
-     pthread_cond_wait(&event_cond,&event_mutex);
+     pthread_cond_wait(&vmb->event_cond,&vmb->event_mutex);
   pthread_cleanup_pop(1);
 #endif  
 }
@@ -127,19 +127,19 @@ void vmb_wait_for_disconnect(device_info *vmb)
 /* waits for a disconnect */
 { 
  #ifndef WIN32
-  { int rc;rc = pthread_mutex_lock(&event_mutex);
+  { int rc;rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
     }
-    pthread_cleanup_push(clean_up_event_mutex,NULL);
+    pthread_cleanup_push(clean_up_event_mutex,vmb);
 #endif
   /* in the meantime power might be on */
   while (vmb->connected)
 #ifdef WIN32
     WaitForSingleObject(vmb->hevent,INFINITE);
 #else
-    rc = pthread_cond_wait(&event_cond,&event_mutex);
+    rc = pthread_cond_wait(&vmb->event_cond,&vmb->event_mutex);
   pthread_cleanup_pop(1);
   }
 #endif 
@@ -151,7 +151,7 @@ static void change_event(device_info *vmb, unsigned int *event, unsigned int val
  #ifdef WIN32
   EnterCriticalSection (&vmb->event_section);
 #else
-  int rc = pthread_mutex_lock(&event_mutex);
+  int rc = pthread_mutex_lock(&vmb->event_mutex);
   if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
@@ -162,8 +162,8 @@ static void change_event(device_info *vmb, unsigned int *event, unsigned int val
   LeaveCriticalSection (&vmb->event_section);
   SetEvent (vmb->hevent);
 #else
-  rc = pthread_cond_signal(&event_cond);
-  rc = pthread_mutex_unlock(&event_mutex);
+  rc = pthread_cond_signal(&vmb->event_cond);
+  rc = pthread_mutex_unlock(&vmb->event_mutex);
   if (rc) 
   { vmb_error(__LINE__,"Unlocking event mutex failed");
     pthread_exit(NULL);
@@ -554,8 +554,9 @@ static int get_request(device_info *vmb,
 }
 
 
-static void clean_up_read_thread(device_info *vmb)
-{ if (vmb->fd>=0)
+static void clean_up_read_thread(void *dummy)
+{ device_info *vmb = (device_info *)dummy;
+  if (vmb->fd>=0)
   { bus_unregister(vmb->fd);
     bus_disconnect(vmb->fd); 
     vmb->fd = INVALID_SOCKET;
@@ -572,7 +573,7 @@ static void clean_up_read_thread(device_info *vmb)
 #ifdef WIN32
 static DWORD WINAPI read_loop(LPVOID dummy)
 #else
-static void *read_loop(void *_dummy)
+static void *read_loop(void *dummy)
 #endif
 { unsigned char type,size,slot,id;
   unsigned char address[8];
@@ -581,7 +582,7 @@ static void *read_loop(void *_dummy)
 
   /* the loop will exit if the bus disconnects. Then clean up */
 #ifndef WIN32
-  pthread_cleanup_push(clean_up_read_thread,NULL);
+  pthread_cleanup_push(clean_up_read_thread,vmb);
 #endif
   while (get_request(vmb, &type,&size,&slot,&id,address,payload))
     dispatch_message(vmb, type,size,slot,id,address,payload);
@@ -602,7 +603,7 @@ void vmb_disconnect(device_info *vmb)
 { 
 #ifndef WIN32
   void *exitcode;
-  int rc = pthread_mutex_lock(&event_mutex);
+  int rc = pthread_mutex_lock(&vmb->event_mutex);
   if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
       pthread_exit(NULL);
@@ -614,7 +615,7 @@ void vmb_disconnect(device_info *vmb)
 #else
     /* should not be used. Kills the thread immediately without cleaning up. */
     pthread_cancel(read_thr);
-  rc = pthread_mutex_unlock(&event_mutex);
+  rc = pthread_mutex_unlock(&vmb->event_mutex);
   if (rc) 
   { vmb_error(__LINE__,"Unlocking event mutex failed");
     pthread_exit(NULL);
@@ -626,16 +627,24 @@ void vmb_disconnect(device_info *vmb)
 
 /* Functions called by the CPU thread */
 void vmb_begin(void)
-{  hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
+{  
+#ifdef WIN32
+   hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
    hvalid =CreateEvent(NULL,FALSE,FALSE,NULL);
    InitializeCriticalSection (&valid_section);
+#else
+#endif
 }
 
 
 void vmb_end(void)
-{  CloseHandle(hnot_full_pending); hnot_full_pending=NULL;
+{  
+#ifdef WIN32
+   CloseHandle(hnot_full_pending); hnot_full_pending=NULL;
    CloseHandle(hvalid); hvalid=NULL;
    DeleteCriticalSection(&valid_section);
+#else
+#endif
 }
 
 void vmb_connect(device_info *vmb, char *host, int port)
@@ -666,7 +675,7 @@ void vmb_connect(device_info *vmb, char *host, int port)
     CloseHandle(hReadThread);
   }
 #else
-   read_tid = pthread_create(&read_thr,NULL,read_loop,NULL);
+   read_tid = pthread_create(&read_thr,NULL,read_loop,vmb);
 #endif
 }
 

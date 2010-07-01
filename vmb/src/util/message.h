@@ -114,14 +114,14 @@ extern int message_size(unsigned char msg[4]);
 
 /* interrupt bits for the rQ and rK Registers */
 /* The low 8 bit of the high tetra are for program interrups */
-#define INT_READ   0 /*instruction tries to load from a page without read permission;*/
-#define INT_WRITE  1 /*instruction tries to store to a page without write permission;*/
-#define INT_EXEC   2 /*instruction appears in a page without execute permission;*/
-#define INT_NEG    3 /*instruction refers to a negative virtual address;*/
-#define INT_KERNEL 4 /*instruction is privileged, for use by the ``kernel'' only;*/
-#define INT_BREAK  5 /*instruction breaks the rules of MMIX;*/
-#define INT_SECURE 6 /*instruction violates security;*/
-#define INT_PRIV   7 /*instruction comes from a privileged (negative) virtual address.*/
+#define INT_READ   7 /*instruction tries to load from a page without read permission;*/
+#define INT_WRITE  6 /*instruction tries to store to a page without write permission;*/
+#define INT_EXEC   5 /*instruction appears in a page without execute permission;*/
+#define INT_NEG    4 /*instruction refers to a negative virtual address;*/
+#define INT_KERNEL 3 /*instruction is privileged, for use by the ``kernel'' only;*/
+#define INT_BREAK  2 /*instruction breaks the rules of MMIX;*/
+#define INT_SECURE 1 /*instruction violates security;*/
+#define INT_PRIV   0 /*instruction comes from a privileged (negative) virtual address.*/
 
 
 

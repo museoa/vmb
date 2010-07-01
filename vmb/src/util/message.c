@@ -298,22 +298,24 @@ int bus_connect(char *hostname,int port)
 { int i;
   i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
   if (i < 0 )
-  { int error;
+  { 
+#ifdef WIN32
+    int error;
     error = WSAGetLastError();
 	if (error == WSAECONNREFUSED) /* try a second time */
 	{ i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
       if (i < 0 )
 	  {	error = WSAGetLastError();
 	    vmb_error(error,"Unable to connect to socket");    
-
-#ifdef WIN32
 	  connections--;
 	  if (connections==0) 
 		  WSACleanup();
-#endif
-    return INVALID_SOCKET;
-       }
+          return INVALID_SOCKET;
+          }
 	}
+#else
+          return INVALID_SOCKET;
+#endif
   }
     /* wait until it is writable, then the connection has succeeded */
   { 

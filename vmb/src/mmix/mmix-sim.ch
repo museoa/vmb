@@ -617,9 +617,12 @@ bool profile_started; /* have we printed at least one frequency count? */
 @x
   if (resuming) loc=incr(inst_ptr,-4), inst=g[rX].l;
   else @<Fetch the next instruction@>;
+  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
   if (resuming) loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
   else @<Fetch the next instruction@>;
+  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
+  @<Check for security violation@>
 @z
 
 @x
@@ -850,24 +853,31 @@ case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
  x=load_sf(ll->tet);@+ goto check_ld;
 @y
 case LDB: case LDBI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(1,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDBU: case LDBUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(1,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDW: case LDWI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(2,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDWU: case LDWUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(2,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDT: case LDTI: 
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDTU: case LDTUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDHT: case LDHTI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  x.h=x.l;
  x.l = 0;
@@ -875,14 +885,15 @@ case LDHT: case LDHTI:
 case LDO: case LDOI: 
 case LDOU: case LDOUI: 
 case LDUNC: case LDUNCI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(8,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDSF: case LDSFI: 
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  x=load_sf(x.l);
 check_ld:
  test_load_bkpt(w);
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto privileged_inst;
  goto store_x;
 page_fault:
  if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
@@ -936,7 +947,7 @@ fin_pst:
    a=shift_right(shift_left(b,i),i,0);
    if (a.h!=b.h || a.l!=b.l) exc|=V_BIT;
  }
-fin_st:@+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto privileged_inst;
+fin_st:@+  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!store_data(j,b,w)) goto page_fault;
  test_store_bkpt(w);
  break;
@@ -984,6 +995,7 @@ The locking of the bus still needs to be implemented!
 
 @<Cases for ind...@>=
 case CSWAP: case CSWAPI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto  translation_bypassed_inst;
  if (!load_data(8,&a,w,0)) goto page_fault;
  if (g[rP].h==a.h && g[rP].l==a.l) {
    x.h=0, x.l=1;
@@ -1023,6 +1035,7 @@ case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
   }
   else
     x=g[zz];
+  if (zz==rQ) new_Q.h = new_Q.l = 0;
   goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
@@ -1031,10 +1044,31 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
     if (xx<=18 && !(loc.h&sign_bit)) goto privileged_inst;
     if (xx==rA) @<Get ready to update rA@>@;
     else if (xx==rL) @<Set $L=z=\min(z,L)$@>@;
-    else if (xx==rG) @<Get ready to update rG@>;
+    else if (xx==rG) @<Get ready to update rG@>@;
+    else if (xx== rQ)
+    { new_Q.h |= z.h &~ g[rQ].h;@+
+      new_Q.l |= z.l &~ g[rQ].l;
+      z.l |= new_Q.l;@+
+      z.h |= new_Q.h;@+
+    }
   }
   g[xx]=z;@+zz=xx;@+break;
 @z
+
+@x
+case PUSHGO: case PUSHGOI: inst_ptr=w;@+goto push;
+case PUSHJ: case PUSHJB: inst_ptr=z;
+@y
+case PUSHGO: case PUSHGOI: 
+if ((w.h&sign_bit) && !(loc.h&sign_bit))
+{ new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+inst_ptr=w;@+goto push;
+case PUSHJ: case PUSHJB: 
+if ((z.h&sign_bit) && !(loc.h&sign_bit))
+{ new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+inst_ptr=z;
+@z
+
 
 @x
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
@@ -1171,14 +1205,6 @@ case LDVTS: case LDVTSI:
   goto store_x;
 }
 break;
-privileged_inst: strcpy(lhs,"!privileged");
-g[rQ].h |= 0x10; /* set the k bit */
- goto break_inst;
-illegal_inst: strcpy(lhs,"!illegal");
-g[rQ].h |= 0x20; /* set the b bit */
-break_inst: breakpoint=tracing=true;
- if (!interacting && !interact_after_break) halted=true;
- break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
  {   char buf[256];
@@ -1196,7 +1222,20 @@ case SWYM:
  }
  else
    strcpy(rhs,"");
- @+break;
+break;
+translation_bypassed_inst: strcpy(lhs,"!virtual translation bypassed");
+g[rQ].h |= N_BIT; new_Q.h |= N_BIT; /* set the n bit */
+ goto break_inst;
+privileged_inst: strcpy(lhs,"!privileged");
+g[rQ].h |= K_BIT; new_Q.h |= K_BIT; /* set the k bit */
+ goto break_inst;
+illegal_inst: strcpy(lhs,"!illegal");
+g[rQ].h |= B_BIT; new_Q.h |= B_BIT; /* set the b bit */
+ goto break_inst;
+security_inst: strcpy(lhs,"!security violation");
+break_inst: breakpoint=tracing=true;
+ if (!interacting && !interact_after_break) halted=true;
+break;
 @z
 
 @x
@@ -1493,9 +1532,19 @@ void mmputchars(buf,size,addr)
 @y
 @ We do similar things for a trap interrupt.
 
+Interrupt bits in rQ might be lost if they are set between a \.{GET}
+and a~\.{PUT}. Therefore we don't allow \.{PUT} to zero out bits that
+have become~1 since the most recently committed \.{GET}.
+
+@<Glob...@>=
+octa new_Q; /* when rQ increases in any bit position, so should this */
+
+@ Now we can implement external interrupts.
+
 @<Check for trap interrupt@>=
 if (!resuming)
-{ vmb_get_interrupt(&vmb,&g[rQ].h,&g[rQ].l);
+{ if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
+  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
   if (!vmb.connected)  goto end_simulation;
   if (!vmb.power || vmb.reset_flag) { breakpoint=true; vmb.reset_flag=0; goto boot;}
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
@@ -1505,6 +1554,49 @@ if (!resuming)
     inst_ptr=y=g[rTT];
   }
 }
+
+@ An instruction will not be executed if it violates the basic
+security rule of \MMIX: An instruction in a nonnegative location
+should not be performed unless all eight of the internal interrupts
+have been enabled in the interrupt mask register~rK.
+Conversely, an instruction in a negative location should not be performed
+if the |P_BIT| is enabled in~rK.
+
+The nonnegative-location case turns on the |S_BIT| of both rK and~rQ\null,
+leading to an immediate interrupt.
+
+@<Check for security violation@>=
+{
+  if (loc.h&sign_bit)
+  { g[rQ].h |= P_BIT;
+    new_Q.h |= P_BIT;
+    if (g[rK].h&P_BIT) 
+      goto security_inst;
+  }
+  else
+  { g[rQ].h &= ~P_BIT;
+    new_Q.h &= ~P_BIT;
+    if ((g[rK].h&0xff)!=0xff)
+    { g[rQ].h |= S_BIT;
+      new_Q.h |= S_BIT;
+      g[rK].h |= S_BIT;
+      goto security_inst;
+    }
+  }
+}
+
+
+@ Here are the bit codes that affect traps. The first eight
+cases apply to the upper half of~rQ.
+
+@d P_BIT (1<<0) /* instruction in privileged location */
+@d S_BIT (1<<1) /* security violation */
+@d B_BIT (1<<2) /* instruction breaks the rules */
+@d K_BIT (1<<3) /* instruction for kernel only */
+@d N_BIT (1<<4) /* virtual translation bypassed */
+@d PX_BIT (1<<5) /* permission lacking to execute from page */
+@d PW_BIT (1<<6) /* permission lacking to write on page */
+@d PR_BIT (1<<7) /* permission lacking to read from page */
 
 @ We need this:
     
@@ -1852,6 +1944,15 @@ else mmix_fake_stdin(fake_stdin);
 @y
 else fprintf(stderr,"Sorry, I can't fake stdin\n");
 @z
+
+@x
+ interact: @<Put a new command in |command_buf|@>;
+@y
+ interact: @<Put a new command in |command_buf|@>;
+ if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
+  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
+@z
+
 
 @x
  case 'M':@+if (!(cur_disp_addr.h&sign_bit)) {

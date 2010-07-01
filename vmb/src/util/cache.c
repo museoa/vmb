@@ -11,8 +11,8 @@
 
 
 /* providing an instruction and a data cache */
-vmb_cache vmb_i_cache = {0};
-vmb_cache vmb_d_cache = {0};
+vmb_cache vmb_i_cache = {{{{{0}}}}};
+vmb_cache vmb_d_cache = {{{{{0}}}}};
 
 
 void vmb_cache_init(vmb_cache *c)

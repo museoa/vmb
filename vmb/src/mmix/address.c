@@ -219,7 +219,8 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
    return e.p;
  
 pagetable_error:
-   g[rQ].l = g[rQ].l | BIT(INT_PAGEERROR);
+   g[rQ].l |= BIT(INT_PAGEERROR);
+   new_Q.l |= BIT(INT_PAGEERROR); 
    return 0;
 }
 
@@ -467,7 +468,7 @@ int translate_address(octa *address, TC *tc)
 
 
 int load_instruction(tetra *instruction, octa address)
-/* load a tetra into data from the given virtual address 
+/* load a tetra into instruction from the given virtual address 
    raise an interrupt if there is a problem and load 0.
 */
 { if (address.h==last_i_addr.h &&
@@ -487,12 +488,14 @@ int load_instruction(tetra *instruction, octa address)
     int p = translate_address(&address, &exec_tc);
     if (p&PAGE_FAULT_BIT)
     { *instruction = 0;
-      g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+      g[rQ].l |= BIT(INT_PAGEFAULT);
+      new_Q.l |=  BIT(INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&EXEC_BIT)) 
     { *instruction = 0;
-      g[rQ].h = g[rQ].h | BIT(INT_EXEC);
+      g[rQ].h |=  BIT(INT_EXEC);
+      new_Q.h |=  BIT(INT_EXEC);
       return 0;
     }
     last_i_addr.h = last.h;
@@ -535,12 +538,14 @@ int load_data(int size, octa *data, octa address,int signextension)
     int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
     { data->h=data->l = 0;
-      g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+      g[rQ].l |= BIT( INT_PAGEFAULT);
+      new_Q.l |= BIT( INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&READ_BIT)) 
     { data->h=data->l = 0;
-      g[rQ].h = g[rQ].h | BIT(INT_READ);
+      g[rQ].h |= BIT(INT_READ);
+      new_Q.h |= BIT(INT_READ);
       return 0;
     }
     last_d_addr.h = last.h;
@@ -576,11 +581,13 @@ int store_data(int size,octa data, octa address)
   { octa last= address;
     int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
-    { g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+    { g[rQ].l |= BIT( INT_PAGEFAULT);
+      new_Q.l |= BIT( INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&WRITE_BIT)) 
-    { g[rQ].h = g[rQ].h | BIT(INT_WRITE);
+    { g[rQ].h |= BIT(INT_WRITE);
+      new_Q.h |= BIT(INT_WRITE);
       return 0;
     }
     last_d_addr.h = last.h;

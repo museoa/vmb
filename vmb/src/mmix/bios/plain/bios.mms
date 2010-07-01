@@ -47,12 +47,12 @@ DHandler 	GET 	$0,rQ
 		GO	$1,$1,$2
 
 
-DTrapTable JMP DTrapUnhandled  %0
-	   JMP DTrapUnhandled  %1
-           JMP DTrapUnhandled  %2
-           JMP DTrapUnhandled  %3
+DTrapTable JMP DTrapPower  %0
+	   JMP DTrapParity  %1
+           JMP DTrapNoMem  %2
+           JMP DTrapReboot  %3
            JMP DTrapPageFault  %4
-           JMP DTrapUnhandled  %5
+           JMP DTrapPageError  %5
            JMP DTrapUnhandled  %6
            JMP DTrapUnhandled  %7
            JMP DTrapUnhandled  %8
@@ -79,14 +79,14 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %29
            JMP DTrapUnhandled  %30
            JMP DTrapUnhandled  %31
-           JMP DTrapUnhandled  %32
-           JMP DTrapUnhandled  %33
-           JMP DTrapUnhandled  %34
-           JMP DTrapUnhandled  %35
-           JMP DTrapUnhandled  %36
-           JMP DTrapUnhandled  %37
-           JMP DTrapUnhandled  %38
-           JMP DTrapUnhandled  %39
+           JMP DTrapPrivileged %32
+           JMP DTrapSecurity   %33
+           JMP DTrapBreakRule  %34
+           JMP DTrapKernel     %35
+           JMP DTrapNegative   %36
+           JMP DTrapExec       %37
+           JMP DTrapWrite      %38
+           JMP DTrapRead       %39
            JMP DTrapUnhandled  %40
            JMP DTrapUnhandled  %41
            JMP DTrapUnhandled  %42
@@ -112,6 +112,24 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %62
            JMP DTrapUnhandled  %63
            JMP DTrapUnhandled  %64  rQ was zero
+
+
+%       TRAP handlers 
+DTrapPower	POP     0,0           %0
+DTrapParity	POP     0,0           %1
+DTrapNoMem	POP     0,0           %2
+DTrapReboot	POP     0,0           %3
+DTrapPageFault	POP     0,0           %4
+DTrapPageError	POP     0,0           %5
+
+DTrapPrivileged	JMP	TrapHalt	%32
+DTrapSecurity	JMP	TrapHalt	%33
+DTrapBreakRule	JMP	TrapHalt	%34
+DTrapKernel	JMP	TrapHalt	%35
+DTrapNegative	JMP	TrapHalt	%36
+DTrapExec	JMP	TrapHalt	%37
+DTrapWrite	JMP	TrapHalt	%38
+DTrapRead	JMP	TrapHalt	%39
 
 
 console   IS	#8001             %   hi wyde of console	
@@ -249,7 +267,8 @@ FTrapTable JMP   TrapHalt      %0
 
 %         The individual Trap routines
 
-TrapHalt	NEG	$0,1            %  enable interrupts
+TrapHalt	SETMH	$0,#FF          % enable most interrupts
+		NOR	$0,$0,0          
   		PUT	rK,$0
 1H		SYNC	4		%go to power save mode
 		JMP	1B              % and loop idle
@@ -505,9 +524,6 @@ memory	SETH    $0,#1234	%set rV register
         STO	$1,$0,#8	%initialize ScreenBufferStart 
         STO	$1,$0,#10	%initialize ScreenBufferEnd
 	POP     0,0
-
-%       TRAP handler for page faults (not yet implemented)       	
-DTrapPageFault	POP     0,0              
 
 %	allocate a new page in ram and return its address
 newpage	SETH	$1,#8000

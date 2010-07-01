@@ -35,7 +35,7 @@ extern octa loc; /*instruction pointer */
 extern octa *l; /* local registers */
 extern int lring_size; /* the number of local registers (a power of 2) */
 extern int lring_mask; /* one less than |lring_size| */
-
+extern octa new_Q;
 
 typedef enum{
 rB,rD,rE,rH,rJ,rM,rR,rBB,
