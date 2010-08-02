@@ -1,0 +1,687 @@
+                   	LOC	Data_Segment
+($254=#20000000    	GREG	@
+         00000000)
+(0000000000000030) height	IS	48
+(0000000000000040) width	IS	64
+2000000000000000:  CellColor TETRA	#FF0000
+ ...000: 00ff0000
+                   
+ ...008: 00000000  Create	OCTA	0	three lists of records
+ ...00c: 00000000
+ ...010: 00000000  Kill	OCTA	0
+ ...014: 00000000
+ ...018: 00000000  Unused	OCTA	0
+ ...01c: 00000000
+                   
+(0000000000000000) x	IS	0	records contain 4 fields 
+(0000000000000004) y	IS	4	in two octas
+(0000000000000008) next	IS	8
+(0000000000000010) esize	IS	16
+                   
+ ...020: 00        Buffer	BYTE	0
+(0000000000000050) BSize	IS	80
+                   	LOC	Buffer+BSize
+ ...070: 20000000  InArgs	OCTA	Buffer,BSize
+ ...074: 00000020
+ ...078: 00000000
+ ...07c: 00000050
+                   
+ ...080: 00        Counts	BYTE	0	Byte-Array of Neighbor Counts
+                   	LOC	Counts+height*width
+($253=#20000000    	GREG	@	
+         00000c80)
+ ...c80: 00        Cells	BYTE	0	Byte-Array of cells 0 dead 1 alive
+                   	LOC	Cells+height*width
+                   
+2000000000001880:  	OCTA	0	ensure alignment of heap
+ ...880: 00000000
+ ...884: 00000000
+($252=#20000000    Free	GREG	@	End of used data, begin of heap
+         00001888)
+                   	
+                   	LOC 	#100
+                   
+                   	PREFIX	:malloc		Memory allocate
+($000)             size	IS	$0		parameter
+                   
+0000000000000100:  :malloc ADDU	size,size,7	rund up to multiple of 8
+ ...100: 23000007
+ ...104: cb000007  	ANDN	size,size,7
+ ...108: 22fcfc00  	ADDU	:Free,:Free,size
+ ...10c: 2600fc00  	SUBU	$0,:Free,size
+ ...110: f8010000  	POP	1,0
+                   
+                   //	Painting Cells
+                   
+                   	PREFIX	:paint paint a single pixel 
+                   
+                   
+(0000000000000010) GPutPixel IS	#10	Trap number	
+(0000000000000040) Gwidth	  IS	64	Physical length of a screen line
+                   
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             color	IS	$2
+($003)             tmp	IS	$3
+                   
+ ...114: e3030040  :paint	SET	tmp,Gwidth
+ ...118: 18010103  	MUL	y,y,tmp
+ ...11c: 20010100  	ADD	y,y,x
+ ...120: 39010122  	SL	y,y,32+2	times 4 and shift to hi tetra
+ ...124: c0ff0102  	OR	$255,y,color	pass parameter to TRAP
+ ...128: 00001000  	TRAP	0,GPutPixel,0
+ ...12c: f8000000  	POP	0,0
+                   
+                   //	Basic list processing functions
+                   
+                   	PREFIX	:remove		remove first element
+($000)             list	IS	$0
+($001)             eptr	IS	$1
+($002)             nptr	IS	$2	
+                   
+ ...130: 8d010000  :remove	LDO	eptr,list,0
+ ...134: 4201xxxx  	BZ	eptr,empty
+ ...138: 8d020108  	LDO	nptr,eptr,:next
+ ...13c: ad020000  	STO	nptr,list,0
+ ...140: c1000100  empty	SET	$0,eptr
+ ...144: f8010000  	POP	1,0
+                   
+                   	PREFIX	:add		add element as first element
+($000)             list	IS	$0
+($001)             eptr	IS	$1
+($002)             nptr	IS	$2
+ ...148: 8d020000  :add	LDO	nptr,list,0
+ ...14c: ad020108  	STO	nptr,eptr,:next
+ ...150: ad010000  	STO	eptr,list,0
+ ...154: f8000000  	POP	0,0	
+                   
+                   	PREFIX	:iterate	iterate over a list
+($000)             first	IS	$0
+($001)             proc	IS	$1		call this for each element
+($002)             return	IS	$2
+($003)             tmp	IS	$3
+                   
+ ...158: fe020004  :iterate GET	return,:rJ
+ ...15c: f0xxxxxx  	JMP	2F
+                   
+ ...160: c1040000  1H	SET	tmp+1,first
+ ...164: bf030100  	PUSHGO	tmp,proc,0	
+ ...168: 8d000008  	LDO	first,first,:next
+ ...16c: 4b00fffd  2H	BNZ	first,1B
+                   
+ ...170: f6040002  	PUT	:rJ,return
+ ...174: f8000000  	POP	0,0
+                   
+                   
+                   	PREFIX	:dispose	return all elements of a list to unused
+($000)             first	IS	$0
+($001)             proc	IS	$1		call this for each element
+($002)             return	IS	$2
+($003)             tmp	IS	$3
+                   
+ ...178: fe020004  :dispose GET	return,:rJ
+ ...17c: f0xxxxxx  	JMP	2F
+                   
+ ...180: c1040000  1H	SET	tmp+1,first
+ ...184: 8d000008  	LDO	first,first,:next
+ ...188: f203xxxx  	PUSHJ	tmp,:delete
+ ...18c: 4b00fffd  2H	BNZ	first,1B
+                   
+ ...190: f6040002  	PUT	:rJ,return
+ ...194: f8000000  	POP	0,0
+                   
+                   
+                   //	creating and deleting list elements
+                   
+                   	PREFIX	:new		create new list element
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             return	IS	$2
+($003)             eptr	IS	$3
+                   
+ ...198: fe020004  :new	GET	return,:rJ
+ ...19c: 2304fe18  	LDA	eptr+1,:Unused
+ ...1a0: f303ffe4  	PUSHJ	eptr,:remove
+ ...1a4: 4a03xxxx  	BNZ	eptr,1F
+ ...1a8: e3040010  	SET	eptr+1,:esize	
+ ...1ac: f303ffd5  	PUSHJ	eptr,:malloc
+ ...1b0: f6040002  1H	PUT	:rJ,return
+ ...1b4: a9000300  	STT	x,eptr,:x
+ ...1b8: a9010304  	STT	y,eptr,:y
+ ...1bc: c1000300  	SET	$0,eptr
+ ...1c0: f8010000  	POP	1,0
+                   
+                   	PREFIX	:delete		return a list element to unused
+($000)             eptr	IS	$0
+($001)             return	IS	$1
+($003)             tmp	IS 	$3
+ ...1c4: fe010004  :delete	GET	return,:rJ
+ ...1c8: 2304fe18  	LDA	tmp+1,:Unused
+ ...1cc: c1050000  	SET	tmp+2,eptr
+ ...1d0: f303ffde  	PUSHJ	tmp,:add
+ ...1d4: f6040001  	PUT	:rJ,return
+ ...1d8: f8010000  	POP	1,0
+                   
+                   
+                   //	Second level functions called in Main
+                   
+                   	PREFIX	:Init	Initialize the Create List
+                   
+ ...1dc: 05010002  glider	BYTE	5,1,0,2,1,0,2,1,2,2,2 		n,dx1,dy1,...,dxn,dyn
+ ...1e0: 01000201
+ ...1e4: 020202  
+ ...1e8: 00000000  	TETRA	0				alignment
+                   
+ ...1ec: 16000001  pulse	BYTE	22,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0
+ ...1f0: 00020003
+ ...1f4: 00040005
+ ...1f8: 00060007
+ ...1fc: 00      
+ ...1fd:   000102  	BYTE	   0,1,2,1,3,1,4,1,5,1,7,1
+ ...200: 01030104
+ ...204: 01050107
+ ...208: 01      
+ ...209:   000201  	BYTE	   0,2,1,2,2,2,3,2,4,2,5,2,6,2,7,2
+ ...20c: 02020203
+ ...210: 02040205
+ ...214: 02060207
+ ...218: 02      
+                   
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             dx	IS	$2
+($003)             dy	IS	$3
+($004)             n	IS	$4
+($005)             p	IS	$5
+($006)             return	IS	$6
+($007)             tmp	IS	$7
+                   
+ ...21c: fe060004  :Init	GET	return,:rJ
+                   
+ ...220: f508ffef  	GETA	tmp+1,glider
+ ...224: e3090004  	SET	tmp+2,4
+ ...228: e30a0004  	SET	tmp+3,4
+ ...22c: f207xxxx  	PUSHJ	tmp,:pattern
+                   
+ ...230: f508ffef  	GETA	tmp+1,pulse
+ ...234: e309001e  	SET	tmp+2,30
+ ...238: e30a000a  	SET	tmp+3,10
+ ...23c: f207xxxx  	PUSHJ	tmp,:pattern
+                   
+ ...240: f6040006  	PUT	:rJ,return
+ ...244: f8000000  	POP	0,0
+                   
+                   	PREFIX :pattern
+($000)             p	IS	$0
+($001)             x	IS	$1
+($002)             y	IS	$2
+($003)             dx	IS	$3
+($004)             dy	IS	$4
+($005)             n	IS	$5
+($006)             return	IS	$6
+($007)             tmp	IS	$7
+                   
+ ...248: fe060004  :pattern GET	return,:rJ
+ ...24c: 81050000  	LDB	n,p,0
+ ...250: 23000001  	ADDU	p,p,1
+ ...254: 4205xxxx  loop	BZ	n,end
+ ...258: 81030000  	LDB	dx,p,0
+ ...25c: 81040001  	LDB	dy,p,1
+                   
+ ...260: 20080103  	ADD	tmp+1,x,dx
+ ...264: 20090204  	ADD	tmp+2,y,dy
+ ...268: f207xxxx  	PUSHJ	tmp,:docreate
+                   
+ ...26c: 23000002  	ADDU	p,p,2
+ ...270: 25050501  	SUB	n,n,1
+ ...274: f1fffff8  	JMP	loop
+                   
+ ...278: f6040006  end	PUT	:rJ,return
+ ...27c: f8000000  	POP	0,0
+                   
+                   
+                   
+                   
+                   	PREFIX	:Update		Update the count array
+                   
+($000)             return	IS	$0
+($001)             tmp	IS	$1
+                   
+ ...280: fe000004  :Update GET	return,:rJ
+                   
+ ...284: 8d02fe08  	LDO	tmp+1,:Create
+ ...288: f403xxxx  	GETA	tmp+2,:birth
+ ...28c: f301ffb3  	PUSHJ	tmp,:iterate
+                   
+ ...290: 8d02fe10  	LDO	tmp+1,:Kill
+ ...294: f403xxxx  	GETA	tmp+2,:death
+ ...298: f301ffb0  	PUSHJ	tmp,:iterate
+                   
+ ...29c: f6040000  	PUT	:rJ,return
+ ...2a0: f8000000  	POP	0,0
+                   	
+                   	PREFIX	:birth
+                   
+($000)             eptr	IS	$0
+($001)             return	IS	$1
+($005)             tmp	IS	$5
+                   
+ ...2a4: fe010004  :birth	GET	return,:rJ
+ ...2a8: 89060000  	LDT	tmp+1,eptr,:x
+ ...2ac: 89070004  	LDT	tmp+2,eptr,:y
+ ...2b0: e3080001  	SET	tmp+3,1
+ ...2b4: f205xxxx  	PUSHJ	tmp,:adjust
+ ...2b8: f6040001  end	PUT	:rJ,return
+ ...2bc: f8000000  	POP	0,0
+                   
+                   	PREFIX	:death
+                   
+($000)             eptr	IS	$0
+($001)             return	IS	$1
+($005)             tmp	IS	$5
+                   
+ ...2c0: fe010004  :death	GET	return,:rJ
+ ...2c4: 89060000  	LDT	tmp+1,eptr,:x
+ ...2c8: 89070004  	LDT	tmp+2,eptr,:y
+ ...2cc: c2080808  	ORN	tmp+3,tmp+3,tmp+3	minus one
+ ...2d0: f205xxxx  	PUSHJ	tmp,:adjust
+ ...2d4: f6040001  end	PUT	:rJ,return
+ ...2d8: f8000000  	POP	0,0
+                   
+                   
+                   
+                   	PREFIX	:adjust adjust neighbour counts of x/y by diff
+                   
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             diff	IS	$2
+($003)             p	IS	$3
+($004)             tmp	IS	$4
+                   
+ ...2dc: 2303fe80  :adjust	LDA	p,:Counts
+ ...2e0: 22030300  	ADDU	p,p,x
+ ...2e4: 19040140  	MUL	tmp,y,:width
+ ...2e8: 22030304  	ADDU	p,p,tmp		points to center element
+                   
+ ...2ec: 25030341  	SUB	p,p,:width+1	top-left	
+ ...2f0: 81040300  	LDB	tmp,p,0
+ ...2f4: 20040402  	ADD	tmp,tmp,diff
+ ...2f8: a1040300  	STB	tmp,p,0
+                   
+ ...2fc: 81040301  	LDB	tmp,p,1		top-mid
+ ...300: 20040402  	ADD	tmp,tmp,diff
+ ...304: a1040301  	STB	tmp,p,1
+                   
+ ...308: 81040302  	LDB	tmp,p,2		top-right
+ ...30c: 20040402  	ADD	tmp,tmp,diff
+ ...310: a1040302  	STB	tmp,p,2
+                   
+ ...314: 21030340  	ADD	p,p,:width	mid-left
+ ...318: 81040300  	LDB	tmp,p,0
+ ...31c: 20040402  	ADD	tmp,tmp,diff
+ ...320: a1040300  	STB	tmp,p,0
+                   
+ ...324: 81040302  	LDB	tmp,p,2		mid-right
+ ...328: 20040402  	ADD	tmp,tmp,diff
+ ...32c: a1040302  	STB	tmp,p,2
+                   
+ ...330: 21030340  	ADD	p,p,:width	bot-left
+ ...334: 81040300  	LDB	tmp,p,0
+ ...338: 20040402  	ADD	tmp,tmp,diff
+ ...33c: a1040300  	STB	tmp,p,0
+                   
+ ...340: 81040301  	LDB	tmp,p,1		bot-mid
+ ...344: 20040402  	ADD	tmp,tmp,diff
+ ...348: a1040301  	STB	tmp,p,1
+                   
+ ...34c: 81040302  	LDB	tmp,p,2		bot-right
+ ...350: 20040402  	ADD	tmp,tmp,diff
+ ...354: a1040302  	STB	tmp,p,2
+                   
+ ...358: f8000000  	POP	0,0
+                   
+                   	PREFIX	:NextGeneration
+                   //	iterate over neighbours of created or killed cells and
+                   //	make new lists of cells to create or kill, 
+                   //	set the cell array and the screen
+                   
+($000)             created	IS	$0
+($001)             killed	IS	$1
+($002)             return	IS	$2
+($003)             tmp	IS	$3
+                   
+ ...35c: fe020004  :NextGeneration  GET	return,:rJ
+ ...360: 8d00fe08  	LDO	created,:Create
+ ...364: 8d01fe10  	LDO	killed,:Kill
+ ...368: e3030000  	SET	tmp,0
+ ...36c: ad03fe08  	STO	tmp,:Create   make lists empty
+ ...370: ad03fe10  	STO	tmp,:Kill	
+                   
+ ...374: c1040000  	SET	tmp+1,created
+ ...378: f405xxxx  	GETA	tmp+2,:test
+ ...37c: f303ff77  	PUSHJ	tmp,:iterate
+                   
+ ...380: c1040100  	SET	tmp+1,killed
+ ...384: f405xxxx  	GETA	tmp+2,:test
+ ...388: f303ff74  	PUSHJ	tmp,:iterate
+                   
+ ...38c: c1040000  	SET	tmp+1,created
+ ...390: f303ff7a  	PUSHJ	tmp,:dispose
+ ...394: c1040100  	SET	tmp+1,killed
+ ...398: f303ff78  	PUSHJ	tmp,:dispose
+                   
+ ...39c: f6040002  	PUT	:rJ,return
+ ...3a0: f8000000  	POP	0,0
+                   
+                   	PREFIX	:test all neighbours of the element
+                   
+($000)             eptr	IS	$0
+($001)             return	IS	$1
+($002)             x	IS	$2
+($003)             y	IS	$3
+($004)             tmp	IS	$4
+                   
+ ...3a4: fe010004  :test	GET	return,:rJ
+ ...3a8: 89020000  	LDT	x,eptr,:x
+ ...3ac: 89030004  	LDT	y,eptr,:y
+                   
+ ...3b0: 25050201  	SUB	tmp+1,x,1	top-left
+ ...3b4: 25060301  	SUB	tmp+2,y,1
+ ...3b8: f204xxxx  	PUSHJ	tmp,:decide
+ ...3bc: c1050200  	SET	tmp+1,x		top-mid
+ ...3c0: 25060301  	SUB	tmp+2,y,1
+ ...3c4: f204xxxx  	PUSHJ	tmp,:decide
+ ...3c8: 21050201  	ADD	tmp+1,x,1	top-right
+ ...3cc: 25060301  	SUB	tmp+2,y,1
+ ...3d0: f204xxxx  	PUSHJ	tmp,:decide
+                   
+ ...3d4: 25050201  	SUB	tmp+1,x,1	mid-left
+ ...3d8: c1060300  	SET	tmp+2,y
+ ...3dc: f204xxxx  	PUSHJ	tmp,:decide
+ ...3e0: c1050200  	SET	tmp+1,x		mid-mid
+ ...3e4: c1060300  	SET	tmp+2,y
+ ...3e8: f204xxxx  	PUSHJ	tmp,:decide
+ ...3ec: 21050201  	ADD	tmp+1,x,1	mid-right
+ ...3f0: c1060300  	SET	tmp+2,y
+ ...3f4: f204xxxx  	PUSHJ	tmp,:decide
+                   
+ ...3f8: 25050201  	SUB	tmp+1,x,1	bot-left
+ ...3fc: 21060301  	ADD	tmp+2,y,1
+ ...400: f204xxxx  	PUSHJ	tmp,:decide
+ ...404: c1050200  	SET	tmp+1,x		bot-mid
+ ...408: 21060301  	ADD	tmp+2,y,1
+ ...40c: f204xxxx  	PUSHJ	tmp,:decide
+ ...410: 21050201  	ADD	tmp+1,x,1	bot-right
+ ...414: 21060301  	ADD	tmp+2,y,1
+ ...418: f204xxxx  	PUSHJ	tmp,:decide
+                   
+ ...41c: f6040001  	PUT	:rJ,return
+ ...420: f8000000  	POP	0,0
+                   
+                   
+                   	PREFIX	:decide what to do with cell x,y kill, create, or survive
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             index	IS	$2
+($003)             count	IS	$3
+($004)             state	IS	$4
+($005)             base	IS	$5
+($006)             return 	IS	$6
+($007)             tmp	IS	$7
+                   
+ ...424: 4000xxxx  :decide BN	x,quit		check for bounds
+ ...428: 4001xxxx  	BN	y,quit
+ ...42c: 31070040  	CMP	tmp,x,:width
+ ...430: 4807xxxx  	BNN	tmp,quit
+ ...434: 31070130  	CMP	tmp,y,:height
+ ...438: 4807xxxx  	BNN	tmp,quit
+                   	
+ ...43c: fe060004  	GET	return,:rJ
+ ...440: 19070140  	MUL	tmp,y,:width
+ ...444: 20020700  	ADD	index,tmp,x
+ ...448: 2305fd00  	LDA	base,:Cells
+ ...44c: 80040502  	LDB	state,base,index
+ ...450: 2305fe80  	LDA	base,:Counts
+ ...454: 80030502  	LDB	count,base,index
+ ...458: 4204xxxx  	BZ	state,dead
+                   	
+ ...45c: 31070302  	CMP	tmp,count,2
+ ...460: 4207xxxx  	BZ	tmp,end
+ ...464: 31070303  	CMP	tmp,count,3
+ ...468: 4207xxxx  	BZ	tmp,end
+                   
+ ...46c: c1080000  	SET	tmp+1,x
+ ...470: c1090100  	SET	tmp+2,y		
+ ...474: f207xxxx  	PUSHJ	tmp,:dokill
+                   	
+ ...478: f0xxxxxx  	JMP	end
+                   
+ ...47c: 31070303  dead	CMP	tmp,count,3
+ ...480: 4a07xxxx  	BNZ	tmp,end
+                   
+ ...484: c1080000  	SET	tmp+1,x
+ ...488: c1090100  	SET	tmp+2,y		
+ ...48c: f207xxxx  	PUSHJ	tmp,:docreate
+                   	
+ ...490: f6040006  end	PUT	:rJ,return
+ ...494: f8000000  quit	POP	0,0
+                   
+                   	PREFIX :docreate create the cell, update cells, screen, add Created
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             return	IS	$2
+($003)             base	IS	$3
+($004)             tmp	IS	$4
+                   
+                   
+ ...498: fe020004  :docreate GET	return,:rJ
+ ...49c: 2303fd00  	LDA	base,:Cells
+ ...4a0: 19040140  	MUL	tmp,y,:width
+ ...4a4: 20040400  	ADD	tmp,tmp,x
+ ...4a8: 20030304  	ADD	base,base,tmp
+ ...4ac: 81040300  	LDB	tmp,base,0
+ ...4b0: 4404xxxx  	BP	tmp,end		already alive
+ ...4b4: e3040001  	SET	tmp,1
+ ...4b8: a1040300  	STB	tmp,base,0
+                   
+ ...4bc: c1050000  	SET	tmp+1,x
+ ...4c0: c1060100  	SET	tmp+2,y
+ ...4c4: 8b07fe00  	LDTU	tmp+3,:CellColor
+ ...4c8: f304ff13  	PUSHJ	tmp,:paint
+                   	
+ ...4cc: 2305fe08  	LDA	tmp+1,:Create
+                   
+ ...4d0: c1070000  	SET	tmp+3,x
+ ...4d4: c1080100  	SET	tmp+4,y		
+ ...4d8: f306ff30  	PUSHJ	tmp+2,:new
+                   	
+ ...4dc: f304ff1b  	PUSHJ	tmp,:add
+                   
+ ...4e0: f6040002  end	PUT	:rJ,return
+ ...4e4: f8000000  	POP	0,0
+                   
+                   
+                   
+                   	PREFIX :dokill kill the cell, update cells and screen, add to kill
+($000)             x	IS	$0
+($001)             y	IS	$1
+($002)             return	IS	$2
+($003)             base	IS	$3
+($004)             tmp	IS	$4
+                   
+                   
+ ...4e8: fe020004  :dokill GET	return,:rJ
+ ...4ec: 2303fd00  	LDA	base,:Cells
+ ...4f0: 19040140  	MUL	tmp,y,:width
+ ...4f4: 20040400  	ADD	tmp,tmp,x
+ ...4f8: 20030304  	ADD	base,base,tmp
+ ...4fc: 81040300  	LDB	tmp,base,0
+ ...500: 4204xxxx  	BZ	tmp,end		already dead
+ ...504: e3040000  	SET	tmp,0
+ ...508: a1040300  	STB	tmp,base,0
+                   
+ ...50c: c1050000  	SET	tmp+1,x
+ ...510: c1060100  	SET	tmp+2,y
+ ...514: e3070000  	SET	tmp+3,0
+ ...518: f304feff  	PUSHJ	tmp,:paint
+                   	
+ ...51c: 2305fe10  	LDA	tmp+1,:Kill
+                   
+ ...520: c1070000  	SET	tmp+3,x
+ ...524: c1080100  	SET	tmp+4,y		
+ ...528: f306ff1c  	PUSHJ	tmp+2,:new
+                   	
+ ...52c: f304ff07  	PUSHJ	tmp,:add
+                   
+ ...530: f6040002  end	PUT	:rJ,return
+ ...534: f8000000  	POP	0,0
+                   
+                   
+                   
+                   
+                   	PREFIX	:
+                   
+(0000000000000011) TWait	IS	#11	Trap number	
+                   
+ ...538: f300ff39  Main	PUSHJ	$0,Init
+ ...53c: f300ff51  1H	PUSHJ	$0,Update
+ ...540: f300ff87  	PUSHJ	$0,NextGeneration
+ ...544: 00001100  	TRAP	0,TWait,0
+ ...548: 4bfffffd  	BNZ	$255,1B
+ ...54c: e3ff0000  	SET	$255,0
+ ...550: 00000000  	TRAP	0,Halt,0
+
+Symbol table:
+ BSize = #0000000000000050 (13)
+ Buffer = #2000000000000020 (12)
+ CellColor = #2000000000000000 (4)
+ Cells = #2000000000000c80 (16)
+ Counts = #2000000000000080 (15)
+ Create = #2000000000000008 (5)
+ Free = $252 (17)
+ InArgs = #2000000000000070 (14)
+ Init = #000000000000021c (55)
+ Initdx = $002 (60)
+ Initdy = $003 (61)
+ Initglider = #00000000000001dc (56)
+ Initn = $004 (62)
+ Initp = $005 (63)
+ Initpulse = #00000000000001ec (57)
+ Initreturn = $006 (64)
+ Inittmp = $007 (65)
+ Initx = $000 (58)
+ Inity = $001 (59)
+ Kill = #2000000000000010 (6)
+ Main = #0000000000000538 (1)
+ NextGeneration = #000000000000035c (97)
+ NextGenerationcreated = $000 (98)
+ NextGenerationkilled = $001 (99)
+ NextGenerationreturn = $002 (100)
+ NextGenerationtmp = $003 (101)
+ TWait = #0000000000000011 (134)
+ Unused = #2000000000000018 (7)
+ Update = #0000000000000280 (78)
+ Updatereturn = $000 (79)
+ Updatetmp = $001 (80)
+ add = #0000000000000148 (32)
+ addeptr = $001 (34)
+ addlist = $000 (33)
+ addnptr = $002 (35)
+ adjust = #00000000000002dc (86)
+ adjustdiff = $002 (94)
+ adjustp = $003 (95)
+ adjusttmp = $004 (96)
+ adjustx = $000 (92)
+ adjusty = $001 (93)
+ birth = #00000000000002a4 (81)
+ birthend = #00000000000002b8 (87)
+ birtheptr = $000 (83)
+ birthreturn = $001 (84)
+ birthtmp = $005 (85)
+ death = #00000000000002c0 (82)
+ deathend = #00000000000002d4 (91)
+ deatheptr = $000 (88)
+ deathreturn = $001 (89)
+ deathtmp = $005 (90)
+ decide = #0000000000000424 (108)
+ decidebase = $005 (114)
+ decidecount = $003 (112)
+ decidedead = #000000000000047c (118)
+ decideend = #0000000000000490 (119)
+ decideindex = $002 (111)
+ decidequit = #0000000000000494 (117)
+ decidereturn = $006 (115)
+ decidestate = $004 (113)
+ decidetmp = $007 (116)
+ decidex = $000 (109)
+ decidey = $001 (110)
+ delete = #00000000000001c4 (46)
+ deleteeptr = $000 (52)
+ deletereturn = $001 (53)
+ deletetmp = $003 (54)
+ dispose = #0000000000000178 (41)
+ disposefirst = $000 (42)
+ disposeproc = $001 (43)
+ disposereturn = $002 (44)
+ disposetmp = $003 (45)
+ docreate = #0000000000000498 (77)
+ docreatebase = $003 (124)
+ docreateend = #00000000000004e0 (126)
+ docreatereturn = $002 (123)
+ docreatetmp = $004 (125)
+ docreatex = $000 (121)
+ docreatey = $001 (122)
+ dokill = #00000000000004e8 (120)
+ dokillbase = $003 (130)
+ dokillend = #0000000000000530 (132)
+ dokillreturn = $002 (129)
+ dokilltmp = $004 (131)
+ dokillx = $000 (127)
+ dokilly = $001 (128)
+ esize = #0000000000000010 (11)
+ height = #0000000000000030 (2)
+ iterate = #0000000000000158 (36)
+ iteratefirst = $000 (37)
+ iterateproc = $001 (38)
+ iteratereturn = $002 (39)
+ iteratetmp = $003 (40)
+ malloc = #0000000000000100 (18)
+ mallocsize = $000 (19)
+ new = #0000000000000198 (47)
+ neweptr = $003 (51)
+ newreturn = $002 (50)
+ newx = $000 (48)
+ newy = $001 (49)
+ next = #0000000000000008 (10)
+ paint = #0000000000000114 (20)
+ paintGPutPixel = #0000000000000010 (21)
+ paintGwidth = #0000000000000040 (22)
+ paintcolor = $002 (25)
+ painttmp = $003 (26)
+ paintx = $000 (23)
+ painty = $001 (24)
+ pattern = #0000000000000248 (66)
+ patterndx = $003 (70)
+ patterndy = $004 (71)
+ patternend = #0000000000000278 (75)
+ patternloop = #0000000000000254 (76)
+ patternn = $005 (72)
+ patternp = $000 (67)
+ patternreturn = $006 (73)
+ patterntmp = $007 (74)
+ patternx = $001 (68)
+ patterny = $002 (69)
+ remove = #0000000000000130 (27)
+ removeempty = #0000000000000140 (31)
+ removeeptr = $001 (29)
+ removelist = $000 (28)
+ removenptr = $002 (30)
+ test = #00000000000003a4 (102)
+ testeptr = $000 (103)
+ testreturn = $001 (104)
+ testtmp = $004 (107)
+ testx = $002 (105)
+ testy = $003 (106)
+ width = #0000000000000040 (3)
+ x = #0000000000000000 (8)
+ y = #0000000000000004 (9)

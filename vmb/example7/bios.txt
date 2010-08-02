@@ -1,0 +1,737 @@
+                   %	this is the MMIX BIOS
+                   %	it is considert to be the ROM loaded 
+                   %	at physical address 0000 0000 0000 0000
+                   %	used with 
+                   %	virtual address 8000 0000 0000 0000
+                   
+                   	.section    .text,"ax",@progbits		
+                   	LOC	#8000000000000000
+                   	
+                   % page table setup (see small model in address.howto)
+(8000000000000000) Main	IS	@  dummy	%Main, to keep mmixal happy
+8000000000000000:  Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
+ ...000: f400xxxx
+ ...004: f60e0000  	PUT	rTT,$0
+ ...008: f400xxxx  	GETA	$0,FTrap
+ ...00c: f60d0000  	PUT	rT,$0
+ ...010: f200xxxx  	PUSHJ	$0,memory	%initialize the memory setup
+ ...014: e3000000          SET	$0,0
+ ...018: f6100000  	PUT     rQ,$0		%clear interrupts
+                   
+                   %	here we start a loaded user program
+                   %       rXX should be #FB0000FF = UNSAVE $255
+                   %	rBB is coppied to $255, it should be the place in the stack 
+                   %	where UNSAVE will find its data
+                   %	rWW should be the entry point in the main program, 
+                   %	thats where the program
+                   %	continues after the UNSAVE.
+                   %	If no program is loaded, rXX will be 0, that is TRAP 0,Halt,0
+                   %	and we end the program before it has started in the Trap handler.
+                   	
+ ...01c: 35ff0001  	NEG	$255,1	% enable interrupt $255->rK with resume 1
+ ...020: f9000001  	RESUME	1	% loading a file sets up special registers for that
+                   
+                   	
+ ...024: f2ffxxxx  DTrap	PUSHJ	$255,DHandler
+ ...028: f60400ff  	PUT	rJ,$255
+ ...02c: 35ff0001  	NEG	$255,1		% enable interrupt $255->rK with resume 1
+ ...030: f9000001  	RESUME	1
+                   	
+ ...034: fe000010  DHandler 	GET 	$0,rQ
+ ...038: 27010001  		SUBU	$1,$0,1		%from xxx...xxx1000 to xxx...xxx0111
+ ...03c: da020100  		SADD	$2,$1,$0	%position of lowest bit
+ ...040: ca010001  		ANDN	$1,$0,$1	%the lowest bit
+ ...044: ca010001          	ANDN	$1,$0,$1	%delete lowest bit
+ ...048: f6100001  		PUT	rQ,$1		%and return to rQ
+ ...04c: 3b020202  		SLU	$2,$2,2		%scale
+ ...050: f401xxxx          	GETA	$1,DTrapTable	%and jump
+ ...054: 9e010102  		GO	$1,$1,$2
+                   
+                   
+ ...058: f0xxxxxx  DTrapTable JMP DTrapUnhandled  %0
+ ...05c: f0xxxxxx  	   JMP DTrapUnhandled  %1
+ ...060: f0xxxxxx             JMP DTrapUnhandled  %2
+ ...064: f0xxxxxx             JMP DTrapUnhandled  %3
+ ...068: f0xxxxxx             JMP DTrapPageFault  %4
+ ...06c: f0xxxxxx             JMP DTrapUnhandled  %5
+ ...070: f0xxxxxx             JMP DTrapUnhandled  %6
+ ...074: f0xxxxxx             JMP DTrapUnhandled  %7
+ ...078: f0xxxxxx             JMP DTrapUnhandled  %8
+ ...07c: f0xxxxxx             JMP DTrapUnhandled  %9
+ ...080: f0xxxxxx             JMP DTrapUnhandled  %10
+ ...084: f0xxxxxx             JMP DTrapTimer      %11
+ ...088: f0xxxxxx             JMP DTrapStep       %12
+ ...08c: f0xxxxxx             JMP DTrapStart      %13
+ ...090: f0xxxxxx             JMP DTrapStop       %14
+ ...094: f0xxxxxx             JMP DTrapHalt       %15
+ ...098: f0xxxxxx             JMP DTrapUnhandled  %16
+ ...09c: f0xxxxxx             JMP DTrapKey        517
+ ...0a0: f0xxxxxx             JMP DTrapScreen     %18
+ ...0a4: f0xxxxxx             JMP DTrapUnhandled  %19
+ ...0a8: f0xxxxxx             JMP DTrapUnhandled  %20
+ ...0ac: f0xxxxxx             JMP DTrapUnhandled  %21
+ ...0b0: f0xxxxxx             JMP DTrapUnhandled  %22
+ ...0b4: f0xxxxxx             JMP DTrapUnhandled  %23
+ ...0b8: f0xxxxxx             JMP DTrapUnhandled  %24
+ ...0bc: f0xxxxxx             JMP DTrapUnhandled  %25
+ ...0c0: f0xxxxxx             JMP DTrapUnhandled  %26
+ ...0c4: f0xxxxxx             JMP DTrapUnhandled  %27
+ ...0c8: f0xxxxxx             JMP DTrapUnhandled  %28
+ ...0cc: f0xxxxxx             JMP DTrapUnhandled  %29
+ ...0d0: f0xxxxxx             JMP DTrapUnhandled  %30
+ ...0d4: f0xxxxxx             JMP DTrapUnhandled  %31
+ ...0d8: f0xxxxxx             JMP DTrapUnhandled  %32
+ ...0dc: f0xxxxxx             JMP DTrapUnhandled  %33
+ ...0e0: f0xxxxxx             JMP DTrapUnhandled  %34
+ ...0e4: f0xxxxxx             JMP DTrapUnhandled  %35
+ ...0e8: f0xxxxxx             JMP DTrapUnhandled  %36
+ ...0ec: f0xxxxxx             JMP DTrapUnhandled  %37
+ ...0f0: f0xxxxxx             JMP DTrapUnhandled  %38
+ ...0f4: f0xxxxxx             JMP DTrapUnhandled  %39
+ ...0f8: f0xxxxxx             JMP DTrapUnhandled  %40
+ ...0fc: f0xxxxxx             JMP DTrapUnhandled  %41
+ ...100: f0xxxxxx             JMP DTrapUnhandled  %42
+ ...104: f0xxxxxx             JMP DTrapUnhandled  %43
+ ...108: f0xxxxxx             JMP DTrapUnhandled  %44
+ ...10c: f0xxxxxx             JMP DTrapUnhandled  %45
+ ...110: f0xxxxxx             JMP DTrapUnhandled  %46
+ ...114: f0xxxxxx             JMP DTrapUnhandled  %47
+ ...118: f0xxxxxx             JMP DTrapUnhandled  %48
+ ...11c: f0xxxxxx             JMP DTrapUnhandled  %49
+ ...120: f0xxxxxx             JMP DTrapUnhandled  %50
+ ...124: f0xxxxxx             JMP DTrapUnhandled  %51
+ ...128: f0xxxxxx             JMP DTrapUnhandled  %52
+ ...12c: f0xxxxxx             JMP DTrapUnhandled  %53
+ ...130: f0xxxxxx             JMP DTrapUnhandled  %54
+ ...134: f0xxxxxx             JMP DTrapUnhandled  %55
+ ...138: f0xxxxxx             JMP DTrapUnhandled  %56
+ ...13c: f0xxxxxx             JMP DTrapUnhandled  %57
+ ...140: f0xxxxxx             JMP DTrapUnhandled  %58
+ ...144: f0xxxxxx             JMP DTrapUnhandled  %59
+ ...148: f0xxxxxx             JMP DTrapUnhandled  %60
+ ...14c: f0xxxxxx             JMP DTrapUnhandled  %61
+ ...150: f0xxxxxx             JMP DTrapUnhandled  %62
+ ...154: f0xxxxxx             JMP DTrapUnhandled  %63
+ ...158: f0xxxxxx             JMP DTrapUnhandled  %64  rQ was zero
+                   
+                   
+(0000000000008001) console   IS	#8001             %   hi wyde of console	
+                   
+ ...15c: e0018001  DTrapKey	SETH	$1,console    
+ ...160: 8d020100  	LDO	$2,$1,0		%keyboard status/data
+ ...164: 4002xxxx  	BN	$2,1F	
+ ...168: 3d030220  	SR	$3,$2,32
+ ...16c: c90303ff  	AND	$3,$3,#FF
+ ...170: 4203xxxx  	BZ	$3,1F	
+ ...174: c90202ff  	AND	$2,$2,#FF
+ ...178: ad020108  	STO	$2,$1,8		%echo
+ ...17c: 3102020d  	CMP	$2,$2,#0D	%carriage return
+ ...180: 4a02xxxx  	BNZ	$2,1F		
+ ...184: e302000a  	SET	$2,#0A		%line feed
+ ...188: ad020108  	STO	$2,$1,8
+ ...18c: f8000000  1H	POP	0,0
+                   
+                   %	read blocking a character from the keyboard
+ ...190: e0018001  KeyboardC 	SETH	$1,console    
+ ...194: 8d020100  3H	LDO	$2,$1,0		%keyboard status/data
+ ...198: 4002xxxx  	BN	$2,2F	
+ ...19c: 3d030220  	SR	$3,$2,32
+ ...1a0: c90303ff  	AND	$3,$3,#FF
+ ...1a4: 4203xxxx  	BZ	$3,2F	
+ ...1a8: c90202ff  	AND	$2,$2,#FF
+ ...1ac: ad020108  	STO	$2,$1,8		%echo
+ ...1b0: 3103020d  	CMP	$3,$2,#0D	%carriage return
+ ...1b4: 4a03xxxx  	BNZ	$3,1F		
+ ...1b8: e302000a  	SET	$2,#0A		%line feed
+ ...1bc: ad020108  	STO	$2,$1,8
+ ...1c0: c1000200  1H	SET	$0,$2
+ ...1c4: f8010000  	POP	1,0
+                   %	wait
+ ...1c8: fc000004  2H	SYNC	4		%go to power save mode
+ ...1cc: f1fffff2  	JMP	3B
+                   
+                   
+                   
+                   
+ ...1d0: e0008000  DTrapScreen	SETH    $0,#8000
+ ...1d4: e9000001          ORMH	$0,#0001	%address of bios ram
+ ...1d8: 89010008  	LDT	$1,$0,8	        %index screen buffer start
+ ...1dc: 8902000c  	LDT	$2,$0,12        % index screen buffer limit
+ ...1e0: 30030102  	CMP	$3,$1,$2
+ ...1e4: 4203xxxx  	BZ	$3,1F		%buffer empty
+ ...1e8: 23030010  	ADDU	$3,$0,16	 %       screen buffer address
+ ...1ec: 82030301  	LDBU	$3,$3,$1
+ ...1f0: e0048001  	SETH	$4,console 
+ ...1f4: ad030408  	STO	$3,$4,8                 
+ ...1f8: 21010101  	ADD     $1,$1,1
+ ...1fc: c90101ff  	AND	$1,$1,#FF       %256 byte wrap around buffer
+ ...200: ab010008  	STTU	$1,$0,8
+ ...204: f8000000  1H	POP	0,0
+                   
+                   
+                   
+ ...208: e0008003  DTrapStart	SETH	$0,#8003	% timer address
+ ...20c: e30103e8  		SET	$1,1000		%1000 ms
+ ...210: ad010000  		STO	$1,$0,0		%enable timer interrupts
+ ...214: f8000000  		POP 0,0
+                   
+ ...218: e0008003  DTrapStop	SETH	$0,#8003	% timer address
+ ...21c: e3010000  		SET	$1,0		% 
+ ...220: ad010000  		STO	$1,$0,0		%disable timer interrupts
+ ...224: f8000000  		POP 0,0
+                   
+ ...228: f400xxxx  DTrapUnhandled	GETA	$0,1F
+ ...22c: fd000005  		SWYM	$0,5               % inform the debugger
+ ...230: f8000000  		POP	0,0
+ ...234: 44454255  1H		BYTE	"DEBUG Unhandled Interrupt",0
+ ...238: 4720556e
+ ...23c: 68616e64
+ ...240: 6c656420
+ ...244: 496e7465
+ ...248: 72727570
+ ...24c: 7400    
+                   
+ ...250: e0018000  DTrapTimer	SETH	$1,#8000
+ ...254: e9010001  		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+ ...258: e3000001  		SET	$0,1
+ ...25c: ad000110  		STO	$0,$1,16	% third octa is the step flag
+ ...260: f8000000  		POP	0,0
+                   
+                   
+ ...264: e0018000  DTrapStep	SETH	$1,#8000
+ ...268: e9010001  		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+ ...26c: e3000001  		SET	$0,1
+ ...270: ad000110  		STO	$0,$1,16	% third octa is the step flag
+ ...274: f8000000  		POP	0,0
+                   
+ ...278: e0018000  DTrapHalt	SETH	$1,#8000
+ ...27c: e9010001  		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+ ...280: e3000001  		SET	$0,1
+ ...284: ad000108  		STO	$0,$1,8		% second octa is the terminate flag
+ ...288: f8000000  		POP	0,0
+                   		
+                   		
+                   		
+                   		
+                    
+                   %	Entry point for a forced TRAP
+ ...28c: f2ffxxxx  FTrap	PUSHJ	$255,FHandler
+ ...290: f60400ff  	PUT	rJ,$255
+ ...294: 35ff0001  	NEG	$255,1	  %enable interrupt $255->rK with resume 1
+ ...298: f9000001  	RESUME	1
+                   
+ ...29c: fe00001d  FHandler	GET	$0,rXX
+ ...2a0: 4800xxxx  		BNN	$0,Ropcode
+ ...2a4: 3f010018  		SRU	$1,$0,24       
+ ...2a8: c90101ff  		AND	$1,$1,#FF	%the opcode
+ ...2ac: 4201xxxx  		BZ	$1,Trap		
+                   
+ ...2b0: f8000000  		POP	0,0		%not a TRAP and ropcode<0
+                          
+ ...2b4: 3f000038  Ropcode	SRU	$0,$0,56		%the ropcode
+ ...2b8: 4200xxxx  	BZ	$0,DTrapPageFault	%0 means page fault
+ ...2bc: 25010002  	SUB	$1,$0,2         
+ ...2c0: 4201xxxx  	BZ      $1,Emulate		%2 means emulate the instruction
+ ...2c4: 31010003  	CMP	$1,$0,3	        
+ ...2c8: 4201xxxx  	BZ	$1,Virtual	%page table translation in software
+                   
+ ...2cc: f8000000  	POP     0,0             %ignore the rest
+                   
+                   
+                   	
+                   %       Emulate the instruction
+ ...2d0: f8000000  Emulate POP     0,0		%not implemented
+                   
+                   
+                   %	Do pagetable translation in software
+ ...2d4: e3001230  Virtual SET	$0,#1230         %the dummy physical address
+ ...2d8: f61f0000  	PUT	rZZ,$0
+ ...2dc: f8000000  	POP     0,0
+                   
+                   %       Handle a forced Trap
+ ...2e0: f402xxxx  Trap    GETA	$2,FTrapTable
+ ...2e4: 3f010008  	SRU	$1,$0,8
+ ...2e8: c90101ff  	AND	$1,$1,#FF		%the Y value (the function code)
+ ...2ec: 3103011f          CMP     $3,$1,#1F
+ ...2f0: 4403xxxx  	BP	$3,TrapUnhandled	% in the moment we handle only very few Traps
+ ...2f4: c901011f  	AND	$1,$1,#1F    
+ ...2f8: 39010102  	SL	$1,$1,2
+ ...2fc: 9e020201  1H	GO	$2,$2,$1		%Jump into the Trap Table
+                   	
+ ...300: f0xxxxxx  FTrapTable JMP   TrapHalt      %0
+ ...304: f0xxxxxx  	  JMP   TrapFopen      %1
+ ...308: f0xxxxxx  	  JMP   TrapFclose     %2
+ ...30c: f0xxxxxx  	  JMP   TrapFread      %3
+ ...310: f0xxxxxx  	  JMP   TrapFgets      %4
+ ...314: f0xxxxxx  	  JMP   TrapFgetws     %5
+ ...318: f0xxxxxx  	  JMP   TrapFwrite     %6
+ ...31c: f0xxxxxx  	  JMP   TrapFputs      %7 
+ ...320: f0xxxxxx  	  JMP   TrapFputws     %8
+ ...324: f0xxxxxx  	  JMP   TrapFseek      %9
+ ...328: f0xxxxxx  	  JMP   TrapFtell      %a
+ ...32c: f0xxxxxx  	  JMP   TrapUnhandled  %b
+ ...330: f0xxxxxx  	  JMP   TrapUnhandled  %c
+ ...334: f0xxxxxx  	  JMP   TrapUnhandled  %d
+ ...338: f0xxxxxx  	  JMP   TrapUnhandled  %e
+ ...33c: f0xxxxxx  	  JMP   TrapUnhandled  %f
+ ...340: f0xxxxxx  	  JMP   TrapGPutPixel %10
+ ...344: f0xxxxxx  	  JMP   TrapTWait     %11
+ ...348: f0xxxxxx  	  JMP   TrapUnhandled %12
+ ...34c: f0xxxxxx  	  JMP   TrapUnhandled %13
+ ...350: f0xxxxxx  	  JMP   TrapUnhandled %14
+ ...354: f0xxxxxx  	  JMP   TrapUnhandled %15
+ ...358: f0xxxxxx  	  JMP   TrapUnhandled %16
+ ...35c: f0xxxxxx  	  JMP   TrapUnhandled %17
+ ...360: f0xxxxxx  	  JMP   TrapUnhandled %18
+ ...364: f0xxxxxx  	  JMP   TrapUnhandled %19
+ ...368: f0xxxxxx  	  JMP   TrapUnhandled %1a
+ ...36c: f0xxxxxx  	  JMP   TrapUnhandled %1b
+ ...370: f0xxxxxx  	  JMP   TrapUnhandled %1c
+ ...374: f0xxxxxx  	  JMP   TrapUnhandled %1d
+ ...378: f0xxxxxx  	  JMP   TrapUnhandled %1e
+ ...37c: f0xxxxxx  	  JMP   TrapUnhandled %1f
+                   
+                   %         The individual Trap routines
+                   
+ ...380: f400xxxx  TrapHalt	GETA	$0,2F
+ ...384: fd000005  		SWYM	$0,5		% tell the debugger
+ ...388: 35000001  		NEG	$0,1            % enable interrupts
+ ...38c: f60f0000    		PUT	rK,$0
+ ...390: fc000004  1H		SYNC	4		% go to power save mode
+ ...394: f1ffffff  		JMP	1B              % and loop idle
+ ...398: 44454255  2H		BYTE	"DEBUG Program terminated",0		
+ ...39c: 47205072
+ ...3a0: 6f677261
+ ...3a4: 6d207465
+ ...3a8: 726d696e
+ ...3ac: 61746564
+ ...3b0: 00      
+                   
+ ...3b4: c90000ff  TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
+ ...3b8: 4200xxxx          	BZ      $0,1F     %this is stdin
+ ...3bc: 31010002          	CMP     $1,$0,2
+ ...3c0: 4c01xxxx          	BNP     $1,4F     %this is stdout or stderr
+                   %       	this is a file 
+ ...3c4: e0028002  		SETH	$2,#8002
+ ...3c8: 39010011  		SL	$1,$0,17
+ ...3cc: c0010102  		OR	$1,$1,$2   %base addess of file descriptor
+ ...3d0: fe000004          	GET	$0,rJ
+ ...3d4: e2030001  		SETML	$3,#0001 %offset for buffer
+ ...3d8: 20030301  		ADD	$3,$3,$1  %address of disk buffer
+ ...3dc: fe040007          	GET	$4,rBB    %get the $255 parameter: address of string
+ ...3e0: f202xxxx  		PUSHJ	$2,strcpy	
+ ...3e4: ab020114  		STTU	$2,$1,20   %nmeb
+ ...3e8: e3020001          	SET     $2,#1
+ ...3ec: ab020110  		STTU	$2,$1,16   %size
+ ...3f0: e3020004  		SET	$2,4
+ ...3f4: ad020108  		STO	$2,$1,8    %Fwrite to command
+ ...3f8: 8b02011c  		LDTU    $2,$1,28   %result
+ ...3fc: f6070002  		PUT	rBB,$2     %the result is returned with resume 1
+ ...400: f6040000  		PUT	rJ,$0
+ ...404: f8000000  		POP	0,0
+                   
+                   %       	Fputs to the screen
+ ...408: fe000007  4H      	GET	$0,rBB    %get the $255 parameter
+ ...40c: fe010004  		GET	$1,rJ
+ ...410: f0xxxxxx  		JMP 	2F
+ ...414: f202xxxx  3H		PUSHJ	$2,ScreenC
+ ...418: 21000001          	ADD	$0,$0,1
+ ...41c: 81030000  2H		LDB	$3,$0,0
+ ...420: 4b03fffd          	BNZ     $3,3B
+ ...424: f6040001  		PUT	rJ,$1
+ ...428: f8000000  1H		POP	0,0
+                   
+                   
+                   %	Utilities
+                   
+                   %       memcpy utility: copy $2 bytes from $1 to $0
+ ...42c: 83030100  1H	LDBU	$3,$1,0  
+ ...430: a3030000  	STBU    $3,$0,0
+ ...434: 21000001          ADD	$0,$0,1
+ ...438: 21010101  	ADD	$1,$1,1
+ ...43c: 25020201  	SUB	$2,$2,1
+ ...440: 4502fffb  memcpy	BP	$2,1B
+ ...444: f8000000  	POP	0,0
+                   
+                   %       octacpy utility: like memcpy but with a multiple of octas
+ ...448: 8f030100  1H	LDOU	$3,$1,0  %copy $2 octas from $1 to $0
+ ...44c: af030000  	STOU    $3,$0,0
+ ...450: 21000008          ADD	$0,$0,8
+ ...454: 21010108  	ADD	$1,$1,8
+ ...458: 25020208  	SUB	$2,$2,8
+ ...45c: 4502fffb  octacpy	BP	$2,1B
+ ...460: f8000000  	POP	0,0
+                   	
+                   %       strcpy utility
+ ...464: e3030000  strcpy	SET	$3,0
+ ...468: f0xxxxxx  	JMP	2F
+ ...46c: 21000001  1H      ADD	$0,$0,1
+ ...470: 21010101  	ADD	$1,$1,1
+ ...474: 21030301  	ADD	$3,$3,1   %counting bytes
+ ...478: 83020100  2H	LDBU    $2,$1,0
+ ...47c: a3020000  	STBU    $2,$0,0   %bytes from $1 to $0 until zero byte returns size
+ ...480: 4b02fffb  	BNZ	$2,1B
+ ...484: c1000300  	SET	$0,$3
+ ...488: f8010000  	POP	1,0
+                   
+                   %       strcpy utility for wide characters
+ ...48c: e3030000  strcpyw	SET	$3,0
+ ...490: f0xxxxxx  	JMP	2F
+ ...494: 21000002  1H      ADD	$0,$0,2
+ ...498: 21010102  	ADD	$1,$1,2
+ ...49c: 21030302  	ADD	$3,$3,2   %counting bytes
+ ...4a0: 87020100  2H	LDWU    $2,$1,0
+ ...4a4: a7020000  	STWU    $2,$0,0   %bytes from $1 to $0 until zero byte returns size
+ ...4a8: 4b02fffb  	BNZ	$2,1B
+ ...4ac: c1000300  	SET	$0,$3
+ ...4b0: f8010000  	POP	1,0
+                   	
+ ...4b4: f8000000  TrapFopen POP	0,0
+                   
+ ...4b8: f8000000  TrapFclose POP	0,0
+                   
+ ...4bc: f8000000  TrapFread POP	0,0
+                   
+ ...4c0: c90000ff  TrapFgets AND     $0,$0,#0FF    %get the Z value 
+ ...4c4: 4200xxxx          BZ      $0,1F     %this is stdin
+                   %       this is stdout stderr or a file
+ ...4c8: 35000001  	NEG	$0,1
+ ...4cc: f6070001  	PUT	rBB,$1     %the error code is returned with resume 1
+ ...4d0: f8000000  	POP	0,0
+                   
+                   %	read from stdin = keyboard
+ ...4d4: fe010007  1H      GET	$1,rBB    %get the $255 parameter: buffer, size
+ ...4d8: 8d020100  	LDO	$2,$1,0   %buffer
+ ...4dc: 8d030108          LDO     $3,$1,8   %size
+ ...4e0: e3000000  	SET	$0,0	  %number of chars read
+ ...4e4: fe040004  	GET	$4,rJ	  %prepare for subroutine
+ ...4e8: f0xxxxxx  	JMP	1F
+                   %	loop
+ ...4ec: f305ff29  2H	PUSHJ	$5,KeyboardC	% read blocking from the keyboard
+ ...4f0: a3050200  	STBU	$5,$2,0
+ ...4f4: 23020201  	ADDU	$2,$2,1
+ ...4f8: 25030301  	SUB	$3,$3,1
+ ...4fc: 21000001  	ADD	$0,$0,1
+ ...500: 3106050a  	CMP	$6,$5,10	%newline
+ ...504: 4206xxxx  	BZ	$6,2F
+ ...508: 4503fff9  1H	BP	$3,2B
+                   % 	size is zero, done
+ ...50c: f6070000  2H	PUT	rBB,$0     %the result is returned with resume 1
+ ...510: f6040004  	PUT	rJ,$4
+ ...514: f8000000  	POP	0,0
+                   
+                   
+ ...518: f8000000  TrapFgetws POP	0,0
+                   
+                   
+                   
+                   
+ ...51c: c90000ff  TrapFwrite AND     $0,$0,#0FF    %get the Z value 
+ ...520: 4200xxxx          BZ      $0,1F     %this is stdin
+ ...524: 31010002          CMP     $1,$0,2
+ ...528: 4c01xxxx          BNP     $1,4F     %this is stdout or stderr
+                   %       this is a file 
+ ...52c: f8000000  	POP	0,0
+                   
+                   %       Fwrite to the screen
+ ...530: fe000007  4H      GET	$0,rBB    %get the $255 parameter
+ ...534: 8d010008  	LDO	$1,$0,8   %size
+ ...538: 8d000000  	LDO	$0,$0,0   %buffer
+ ...53c: fe020004  	GET	$2,rJ
+ ...540: f0xxxxxx  	JMP 	2F
+                   
+ ...544: 83040000  3H	LDBU    $4,$0,0
+ ...548: 21000001  	ADD	$0,$0,1
+ ...54c: f203xxxx  	PUSHJ	$3,ScreenC
+ ...550: 25010101  	SUB	$1,$1,1
+ ...554: 4501fffc  2H      BP      $1,3B
+ ...558: f6040002  	PUT	rJ,$2
+ ...55c: f8000000  1H	POP	0,0
+                   
+ ...560: c90000ff  TrapFputws  AND     $0,$0,#0FF    %get the Z value 
+ ...564: 4200xxxx          BZ      $0,1F     %this is stdin
+ ...568: 31010002          CMP     $1,$0,2
+ ...56c: 4c01xxxx          BNP     $1,4F     %this is stdout or stderr
+                   %       this is a file 
+ ...570: f8000000  	POP	0,0
+                   
+                   %       Fputsw to the screen
+ ...574: fe000007  4H      GET	$0,rBB    %get the $255 parameter
+ ...578: fe010004  	GET	$1,rJ
+ ...57c: f0xxxxxx  	JMP 	2F
+ ...580: f202xxxx  3H	PUSHJ	$2,ScreenC
+ ...584: 21000002          ADD	$0,$0,2
+ ...588: 87030000  2H	LDWU	$3,$0,0
+ ...58c: 4b03fffd          BNZ     $3,3B
+ ...590: f6040001  	PUT	rJ,$1
+ ...594: f8000000  1H	POP	0,0
+                   
+                   
+ ...598: f8000000  TrapFseek POP	0,0
+                   
+ ...59c: f8000000  TrapFtell  POP	0,0
+                   
+                   
+                   %		Put one pixel on the graphics display. 
+                   %		In $255 we havein the Hi 32 bit the offset
+                   %               and in the low 24 bit the RGB value 
+ ...5a0: fe000007  TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
+ ...5a4: 3f010020  	      SRU       $1,$0,32	%offset
+ ...5a8: e0028002                SETH      $2,#8002	%base address of vram
+ ...5ac: aa000201                STTU      $0,$2,$1
+ ...5b0: f7070000                PUT	rBB,0		%the result is returned with resume 1
+ ...5b4: f8000000  	      POP	0,0
+                   
+                   
+ ...5b8: fc000004  1H		SYNC	4		% go to power save mode
+ ...5bc: fe000004  		GET	$0,rJ
+ ...5c0: f301fe9d  		PUSHJ	$1,DHandler     % handle interrupts
+ ...5c4: f6040000  		PUT	rJ,$0
+ ...5c8: e0018000  TrapTWait	SETH	$1,#8000
+ ...5cc: e9010001  		ORMH	$1,#0001	%$= now points to the first byte in ram	
+ ...5d0: 8d000108  		LDO	$0,$1,8		% second octa is our terminate flag
+ ...5d4: 4a00xxxx  		BNZ	$0,2F
+ ...5d8: 8d000110  		LDO	$0,$1,16	% third octa is the step flag
+ ...5dc: 4300fff7  		BZ	$0,1B		% wait more
+ ...5e0: e3000000  		SET	$0,0
+ ...5e4: ad000110  		STO	$0,$1,16	% reset step flag
+ ...5e8: f7070001  		PUT	rBB,1		%the result 1 is returned with resume 1	
+ ...5ec: f8000000  		POP	0,0
+                   
+ ...5f0: fe000004  2H		GET	$0,rJ
+ ...5f4: f301ff09  		PUSHJ	$1,DTrapStop
+ ...5f8: f6040000  		PUT	rJ,$0
+ ...5fc: f7070000  		PUT	rBB,0		%the result 0 is returned with resume 1	
+ ...600: f8000000  		POP	0,0
+                   
+                   
+ ...604: f400xxxx  TrapUnhandled	GETA	$0,1F
+ ...608: fd000005  		SWYM	$0,5		% tell the debugger
+ ...60c: f8000000  		POP	0,0
+ ...610: 44454255  1H		BYTE	"DEBUG Unhandled TRAP",0		
+ ...614: 4720556e
+ ...618: 68616e64
+ ...61c: 6c656420
+ ...620: 54524150
+ ...624: 00      
+                   
+                   %	Put one character contained in $0 on the screen
+ ...628: e0018000  ScreenC	SETH    $1,#8000
+ ...62c: e9010001          ORMH	$1,#0001	%address of bios ram
+ ...630: 8b020108  2H	LDTU	$2,$1,8	        %index screen buffer start
+ ...634: 8b03010c  	LDTU	$3,$1,12        % index screen buffer limit
+ ...638: 24040302  	SUB	$4,$3,$2
+ ...63c: 4a04xxxx  	BNZ	$4,1F		%buffer not empty, char->buffer
+                   
+ ...640: e0018001  	SETH	$1,console	%try direct output
+ ...644: 8d020108  	LDO	$2,$1,8		%screen status/data
+ ...648: 3d020220  	SR	$2,$2,32	%get error and count data
+ ...64c: 4a02xxxx  	BNZ	$2,1F           %char->buffer
+ ...650: ad000108  	STO	$0,$1,8		%direct output
+ ...654: f8000000  	POP	0,0
+                   
+ ...658: c90404ff  1H	AND	$4,$4,#FF
+ ...65c: 310504ff  	CMP	$5,$4,#FF	
+ ...660: 4005xxxx  	BN	$5,1F		%Still space in the Buffer
+ ...664: fc000004  	SYNC	4		%wait idle for a screen interrupt 
+ ...668: f1fffff2  	JMP	2B		%telling that the screen may again accept characters
+                   
+ ...66c: 21020110  1H	ADD	$2,$1,16	%address of screen buffer
+ ...670: a0000203  	STB	$0,$2,$3
+ ...674: 21030301  	ADD	$3,$3,1
+ ...678: c90303ff  	AND	$3,$3,#FF
+ ...67c: ab030108  	STTU	$3,$1,8
+ ...680: f8000000  	POP	0,0
+                   
+                   
+                   %       The ROM Page Table
+                   %       the table maps each segement with up to 1024 pages
+                   %	currently, the first page is system rom, the next four pages are for
+                   %       text, data, pool, and stack. then there is mor bios code.
+                   %       The page tables imply the following RAM Layout
+                   
+                   %	The RAM Layout
+                   
+                   %       the ram layout uses the small memmory model (see memory.howto)
+                   %       8000000100000000    first page for OS, layout see below
+                   %       Next the  pages for the user programm
+                   
+                   
+                   %       free space starts at 8000000100032000
+                   
+                   	LOC	#8000000000002000	%The start is fixed in mmix-sim.ch
+                   %       Text Segment 10 pages = 80kByte
+8000000000002000:  PageTab OCTA	#0000000100002007	%text, should be ...001 for execute only
+ ...000: 00000001
+ ...004: 00002007
+ ...008: 00000001     	OCTA	#0000000100004007 
+ ...00c: 00004007
+ ...010: 00000001     	OCTA	#0000000100006007 
+ ...014: 00006007
+ ...018: 00000001     	OCTA	#0000000100008007 
+ ...01c: 00008007
+ ...020: 00000001     	OCTA	#000000010000a007 
+ ...024: 0000a007
+ ...028: 00000001     	OCTA	#000000010000c007 
+ ...02c: 0000c007
+ ...030: 00000001     	OCTA	#000000010000e007 
+ ...034: 0000e007
+ ...038: 00000001     	OCTA	#0000000100010007
+ ...03c: 00010007
+ ...040: 00000001     	OCTA	#0000000100012007
+ ...044: 00012007
+ ...048: 00000001     	OCTA	#0000000100014007
+ ...04c: 00014007
+ ...050: 00000001  	OCTA	#0000000100016007 
+ ...054: 00016007
+ ...058: 00000001  	OCTA	#0000000100018007  
+ ...05c: 00018007
+                      	 
+                   %       Data Segment 8 pages = 80 kByte
+                   	LOC     (@&~#1FFF)+#2000	%data
+8000000000004000:  	OCTA	#000000010001a006  
+ ...000: 00000001
+ ...004: 0001a006
+ ...008: 00000001  	OCTA	#000000010001c006  
+ ...00c: 0001c006
+ ...010: 00000001  	OCTA	#000000010001e006  
+ ...014: 0001e006
+ ...018: 00000001  	OCTA	#0000000100020006  
+ ...01c: 00020006
+ ...020: 00000001  	OCTA	#0000000100022006  
+ ...024: 00022006
+ ...028: 00000001  	OCTA	#0000000100024006  
+ ...02c: 00024006
+ ...030: 00000001  	OCTA	#0000000100026006  
+ ...034: 00026006
+ ...038: 00000001  	OCTA	#0000000100028006  
+ ...03c: 00028006
+                   
+                   %	Pool Segment 2 pages = 16 kByte
+                   	LOC	(@&~#1FFF)+#2000
+8000000000006000:  	OCTA	#000000010002a006	%pool
+ ...000: 00000001
+ ...004: 0002a006
+ ...008: 00000001  	OCTA	#000000010002c006  
+ ...00c: 0002c006
+                   	
+                   %	Stack Segment 2+2 pages = 32 kByte
+                   	LOC	(@&~#1FFF)+#2000
+8000000000008000:  	OCTA	#000000010002e006	%stack
+ ...000: 00000001
+ ...004: 0002e006
+ ...008: 00000001  	OCTA	#0000000100030006  
+ ...00c: 00030006
+                   
+                   	LOC	(@&~#1FFF)+#2000-2*8	
+8000000000009ff0:  	OCTA	#0000000100032006       %gcc memory stack < #6000000000800000
+ ...ff0: 00000001
+ ...ff4: 00032006
+ ...ff8: 00000001  	OCTA	#0000000100034006  
+ ...ffc: 00034006
+                   
+                   	LOC	(@&~#1FFF)+#2000
+                   	
+                   
+                   %       initialize the memory management
+800000000000c000:  memory	SETH    $0,#1234	%set rV register
+ ...000: e0001234
+ ...004: e9000d00  	ORMH    $0,#0D00      
+ ...008: ea000000  	ORML    $0,#0000
+ ...00c: eb002000  	ORL     $0,#2000
+ ...010: f6120000  	PUT	rV,$0
+                   
+ ...014: e0008000  	SETH    $0,#8000       %$0 physical address of RAM
+ ...018: e9000001          ORMH    $0,#0001 
+                           
+ ...01c: c1010000          SET	$1,$0
+ ...020: ea010003  	ORML	$1,#0003
+ ...024: eb018000          ORL     $1,#8000       %address of first empty page
+ ...028: ad010000  	STO	$1,$0,0        %initialize FreeSpace
+ ...02c: e3010000          SET	$1,0
+ ...030: ad010008          STO	$1,$0,#8	%initialize ScreenBufferStart 
+ ...034: ad010010          STO	$1,$0,#10	%initialize ScreenBufferEnd
+ ...038: f8000000  	POP     0,0
+                   
+                   %       TRAP handler for page faults (not yet implemented)       	
+ ...03c: f400xxxx  DTrapPageFault	GETA	$0,1F
+ ...040: fd000005  		SWYM	$0,5		% tell the debugger
+ ...044: f8000000  		POP	0,0
+ ...048: 44454255  1H		BYTE	"DEBUG Unhandled Page Fault",0	
+ ...04c: 4720556e
+ ...050: 68616e64
+ ...054: 6c656420
+ ...058: 50616765
+ ...05c: 20466175
+ ...060: 6c7400  
+                          
+                   
+                   %	allocate a new page in ram and return its address
+ ...064: e0018000  newpage	SETH	$1,#8000
+ ...068: e9010001  	ORMH	$1,#0001	%$= now points to the first byte in ram	
+ ...06c: 8d000100  	LDO	$0,$1,0		% get the FreeSpace
+ ...070: c1020000  	SET	$2,$0
+ ...074: e7022000  	INCL	$2,#2000	% add one page
+ ...078: ad020100  	STO	$2,$1,0		% save the new FreeSpace
+ ...07c: f8010000  	POP 1,0  	
+                   
+                   
+                   %	First Page in RAM: reserved for the OS.
+                   %	The layout follows below.
+                   %	  .section	.bss,"aw",@nobits
+                   %	  .global	FreeSpace
+                   % RAMSTART    LOC	#8000000100000000
+                   
+                   %FreeSpace		OCTA 0              %First page is for OS
+                   %ScreenBufferStart	OCTA 0
+                   %ScreenBufferEnd	OCTA 0
+                   %ScreenBuffer		BYTE 0      255 Byte of screen Buffer
+                   %			LOC	@+#FF
+                   	
+
+Symbol table:
+ Boot = #8000000000000000 (3)
+ DHandler = #8000000000000034 (6)
+ DTrap = #8000000000000024 (2)
+ DTrapHalt = #8000000000000278 (14)
+ DTrapKey = #800000000000015c (15)
+ DTrapPageFault = #800000000000c03c (9)
+ DTrapScreen = #80000000000001d0 (16)
+ DTrapStart = #8000000000000208 (12)
+ DTrapStep = #8000000000000264 (11)
+ DTrapStop = #8000000000000218 (13)
+ DTrapTable = #8000000000000058 (7)
+ DTrapTimer = #8000000000000250 (10)
+ DTrapUnhandled = #8000000000000228 (8)
+ Emulate = #80000000000002d0 (22)
+ FHandler = #800000000000029c (19)
+ FTrap = #800000000000028c (4)
+ FTrapTable = #8000000000000300 (24)
+ KeyboardC = #8000000000000190 (18)
+ Main = #8000000000000000 (1)
+ PageTab = #8000000000002000 (44)
+ Ropcode = #80000000000002b4 (20)
+ ScreenC = #8000000000000628 (40)
+ Trap = #80000000000002e0 (21)
+ TrapFclose = #80000000000004b8 (28)
+ TrapFgets = #80000000000004c0 (30)
+ TrapFgetws = #8000000000000518 (31)
+ TrapFopen = #80000000000004b4 (27)
+ TrapFputs = #80000000000003b4 (33)
+ TrapFputws = #8000000000000560 (34)
+ TrapFread = #80000000000004bc (29)
+ TrapFseek = #8000000000000598 (35)
+ TrapFtell = #800000000000059c (36)
+ TrapFwrite = #800000000000051c (32)
+ TrapGPutPixel = #80000000000005a0 (37)
+ TrapHalt = #8000000000000380 (26)
+ TrapTWait = #80000000000005c8 (38)
+ TrapUnhandled = #8000000000000604 (25)
+ Virtual = #80000000000002d4 (23)
+ console = #0000000000008001 (17)
+ memcpy = #8000000000000440 (41)
+ memory = #800000000000c000 (5)
+ newpage = #800000000000c064 (45)
+ octacpy = #800000000000045c (42)
+ strcpy = #8000000000000464 (39)
+ strcpyw = #800000000000048c (43)
