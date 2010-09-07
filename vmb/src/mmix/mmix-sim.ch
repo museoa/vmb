@@ -619,7 +619,11 @@ bool profile_started; /* have we printed at least one frequency count? */
   else @<Fetch the next instruction@>;
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
-  if (resuming) loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
+  if (resuming)
+  { loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
+    if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
+    { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+  }
   else @<Fetch the next instruction@>;
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
   @<Check for security violation@>
@@ -679,6 +683,8 @@ register mem_tetra *ll; /* current place in the simulated memory */
   if (b&exec_bit) breakpoint=true;
   tracing=breakpoint||(b&trace_bit);
   inst_ptr=incr(inst_ptr,4);
+  if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
+  { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
 }
 @z
 
@@ -829,6 +835,14 @@ void stack_load()
               k,g[rS].h,g[rS].l,l[k].h,l[k].l);
   }
 }
+@z
+
+@x
+   inst_ptr=z;
+@y
+   if ((z.h&sign_bit) && !(loc.h&sign_bit))
+   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+   inst_ptr=z;
 @z
 
 @x
@@ -1069,6 +1083,17 @@ if ((z.h&sign_bit) && !(loc.h&sign_bit))
 inst_ptr=z;
 @z
 
+@x
+ y=g[rJ];@+ z.l=yz<<2;@+ inst_ptr=oplus(y,z);
+@y
+ y=g[rJ];@+ z.l=yz<<2;
+ { octa tmp;
+   tmp=oplus(y,z);
+   if ((tmp.h&sign_bit) && !(loc.h&sign_bit))
+   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   inst_ptr = tmp;
+}
+@z
 
 @x
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
@@ -1174,6 +1199,8 @@ case PRELD: case PRELDI:
 @z
 
 @x
+case GO: case GOI: x=inst_ptr;@+inst_ptr=w;@+goto store_x;
+case JMP: case JMPB: inst_ptr=z;@+break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
  if (zz<=3) break;
 case LDVTS: case LDVTSI: privileged_inst: strcpy(lhs,"!privileged");
@@ -1183,6 +1210,14 @@ break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
  break;
 @y
+case GO: case GOI: 
+   if ((w.h&sign_bit) && !(loc.h&sign_bit))
+   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   x=inst_ptr;@+inst_ptr=w;@+goto store_x;
+case JMP: case JMPB: 
+   if ((z.h&sign_bit) && !(loc.h&sign_bit))
+   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   inst_ptr=z;@+break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
@@ -1568,15 +1603,11 @@ leading to an immediate interrupt.
 @<Check for security violation@>=
 {
   if (loc.h&sign_bit)
-  { g[rQ].h |= P_BIT;
-    new_Q.h |= P_BIT;
-    if (g[rK].h&P_BIT) 
+  { if (g[rK].h&P_BIT) 
       goto security_inst;
   }
   else
-  { g[rQ].h &= ~P_BIT;
-    new_Q.h &= ~P_BIT;
-    if ((g[rK].h&0xff)!=0xff)
+  { if ((g[rK].h&0xff)!=0xff)
     { g[rQ].h |= S_BIT;
       new_Q.h |= S_BIT;
       g[rK].h |= S_BIT;
@@ -1622,7 +1653,9 @@ break;
 @y
 case RESUME:@+if (xx || yy) goto illegal_inst;
 if ( zz == 0)
-{ inst_ptr=z=g[rW];
+{ if (!(loc.h&sign_bit) && (g[rW].h&sign_bit)) 
+  { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+  inst_ptr=z=g[rW];
   b=g[rX];
 }
 else if ( zz == 1)
@@ -1831,7 +1864,7 @@ boot:
     else {
       breakpoint=false;
       if (interacting && 
-         (!(inst_ptr.h&0x80000000) || 
+         (!(inst_ptr.h&sign_bit) || 
           show_operating_system || 
           (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
         @<Interact with the user@>;
