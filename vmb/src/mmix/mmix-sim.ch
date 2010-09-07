@@ -622,7 +622,7 @@ bool profile_started; /* have we printed at least one frequency count? */
   if (resuming)
   { loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
     if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
-    { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+    goto protection_violation;
   }
   else @<Fetch the next instruction@>;
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
@@ -647,6 +647,7 @@ bool interacting; /* are we in interactive mode? */
 @y
 static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
+static bool interact_after_resume = false;
 static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
 static char *bushost=localhost; /* on which host to connect to the bus */
@@ -684,7 +685,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
   tracing=breakpoint||(b&trace_bit);
   inst_ptr=incr(inst_ptr,4);
   if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
-  { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+  goto protection_violation;
 }
 @z
 
@@ -841,7 +842,7 @@ void stack_load()
    inst_ptr=z;
 @y
    if ((z.h&sign_bit) && !(loc.h&sign_bit))
-   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+   goto protection_violation;
    inst_ptr=z;
 @z
 
@@ -1049,7 +1050,9 @@ case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
   }
   else
     x=g[zz];
-  if (zz==rQ) new_Q.h = new_Q.l = 0;
+  if (zz==rQ) { 
+      new_Q.h = new_Q.l = 0;
+  }
   goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
@@ -1059,7 +1062,7 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
     if (xx==rA) @<Get ready to update rA@>@;
     else if (xx==rL) @<Set $L=z=\min(z,L)$@>@;
     else if (xx==rG) @<Get ready to update rG@>@;
-    else if (xx== rQ)
+    else if (xx==rQ)
     { new_Q.h |= z.h &~ g[rQ].h;@+
       new_Q.l |= z.l &~ g[rQ].l;
       z.l |= new_Q.l;@+
@@ -1075,11 +1078,11 @@ case PUSHJ: case PUSHJB: inst_ptr=z;
 @y
 case PUSHGO: case PUSHGOI: 
 if ((w.h&sign_bit) && !(loc.h&sign_bit))
-{ new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+goto protection_violation;
 inst_ptr=w;@+goto push;
 case PUSHJ: case PUSHJB: 
 if ((z.h&sign_bit) && !(loc.h&sign_bit))
-{ new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+goto protection_violation;  
 inst_ptr=z;
 @z
 
@@ -1090,7 +1093,7 @@ inst_ptr=z;
  { octa tmp;
    tmp=oplus(y,z);
    if ((tmp.h&sign_bit) && !(loc.h&sign_bit))
-   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   goto protection_violation;  
    inst_ptr = tmp;
 }
 @z
@@ -1212,11 +1215,11 @@ break_inst: breakpoint=tracing=true;
 @y
 case GO: case GOI: 
    if ((w.h&sign_bit) && !(loc.h&sign_bit))
-   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   goto protection_violation;  
    x=inst_ptr;@+inst_ptr=w;@+goto store_x;
 case JMP: case JMPB: 
    if ((z.h&sign_bit) && !(loc.h&sign_bit))
-   { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}  
+   goto protection_violation;  
    inst_ptr=z;@+break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
@@ -1250,7 +1253,6 @@ case SWYM:
      tracing=interacting;
      breakpoint=true;
      interrupt=false;
-     if (loc.h&sign_bit) show_operating_system=true;
      @<Set |b| from register X@>;
      n=mmgetchars(buf,256,b,0);
      if (strncmp(buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf+6);
@@ -1258,14 +1260,17 @@ case SWYM:
  else
    strcpy(rhs,"");
 break;
-translation_bypassed_inst: strcpy(lhs,"!virtual translation bypassed");
+translation_bypassed_inst: strcpy(lhs,"!LOAD/STORE bypassing virtual translation");
 g[rQ].h |= N_BIT; new_Q.h |= N_BIT; /* set the n bit */
  goto break_inst;
-privileged_inst: strcpy(lhs,"!privileged");
+privileged_inst: strcpy(lhs,"!instruction for kernel only");
 g[rQ].h |= K_BIT; new_Q.h |= K_BIT; /* set the k bit */
  goto break_inst;
-illegal_inst: strcpy(lhs,"!illegal");
+illegal_inst: strcpy(lhs,"!instruction breaks the rules");
 g[rQ].h |= B_BIT; new_Q.h |= B_BIT; /* set the b bit */
+ goto break_inst;
+protection_violation: strcpy(lhs,"!protection violation");
+g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
  goto break_inst;
 security_inst: strcpy(lhs,"!security violation");
 break_inst: breakpoint=tracing=true;
@@ -1319,6 +1324,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
         @<Prepare memory arguments $|ma|={\rm M}[a]$ and $|mb|={\rm M}[b]$ if needed@>;
       }
      else strcpy(rhs, "%#x -> %#y");
+ if (tracing && !show_operating_system) interact_after_resume = true;    
  if (inst == 0) /* Halt */
  {  if (interacting)
       tracing=breakpoint=true, interrupt=false;
@@ -1654,20 +1660,23 @@ break;
 case RESUME:@+if (xx || yy) goto illegal_inst;
 if ( zz == 0)
 { if (!(loc.h&sign_bit) && (g[rW].h&sign_bit)) 
-  { new_Q.h |= P_BIT; g[rQ].h |= P_BIT; goto security_inst;}
+  goto protection_violation;
   inst_ptr=z=g[rW];
   b=g[rX];
 }
 else if ( zz == 1)
 { 
   if (!(loc.h&sign_bit)) goto privileged_inst;
-  inst_ptr=z=g[rWW];
+  loc=inst_ptr=z=g[rWW];
   b=g[rXX];
   g[rK]=g[255];
   x=g[255]=g[rBB];
+  @<Check for security violation@>
+  if (interact_after_resume)
+    breakpoint = true, interact_after_resume = false;
 }
 else goto illegal_inst;
-if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
+if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>
 break;
 @z
 
@@ -1872,7 +1881,8 @@ boot:
     if (halted) break;
     do @<Perform one instruction@>@;
     while ((!interrupt && !breakpoint) || resuming);
-    if (interact_after_break) interacting=true, interact_after_break=false;
+    if (interact_after_break) 
+       interacting=true, interact_after_break=false;
     if (!vmb.power) goto boot;
   }
   end_simulation:
@@ -1934,6 +1944,7 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
     return;
   } 
  case 'O': show_operating_system=true;@+return;
+ case 'o': show_operating_system=false;@+return;
  case 'C': hostclock=true;@+return;
 @z
 
@@ -1953,6 +1964,7 @@ static bool profiling=0; /* should we print the profile at the end? */
 @y
 "-r    trace hidden details of the register stack\n",@|
 "-O    trace inside the operating system\n",@|
+"-o    disable trace inside the operating system\n",@|
 "-C    use host clock for rC\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
@@ -1969,7 +1981,8 @@ static bool profiling=0; /* should we print the profile at the end? */
 "P         set current segment to Pool_Segment\n",@|
 "S         set current segment to Stack_Segment\n",@|
 "N         set current segment to Negative Addresses\n",@|
-"O         toggle tracing inside the operating system\n",@|
+"O         enable tracing inside the operating system\n",@|
+"o         disable tracing inside the operating system\n",@|
 @z
 
 @x
@@ -2062,7 +2075,7 @@ case 'B': show_breaks(mem_root);
 @y
 case 'N': cur_seg.h=0x80000000;@+goto passit;
 case 'B': show_breaks();
-case 'O': show_operating_system=!show_operating_system;@+goto passit;
+case 'O': show_operating_system=true;@+goto passit;
 @z
 
 @x
