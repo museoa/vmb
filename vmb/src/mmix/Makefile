@@ -17,7 +17,7 @@ PROG= mmix
 UTILDIR = ../util
 CC = gcc
 INCDIRS = -I$(UTILDIR)
-LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread
+LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
 all: mmix mmixal mmoboot

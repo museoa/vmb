@@ -3,6 +3,12 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+#include <time.h>
+/* unshure which .h file to get this constant from */
+#ifndef ETIMEDOUT
+#define ETIMEDOUT 145
+#endif
+
 #endif
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +87,7 @@ void vmb_wait_for_event_timed(device_info *vmb, int ms)
   int w = 0;
 #define WAIT_TIMEOUT ETIMEDOUT
   struct timespec ts;
-  clock_gettime(CLOCK_REALTIME, &ts)
+  clock_gettime(CLOCK_REALTIME, &ts);
   ts.tv_sec += ms/1000;
   ts.tv_nsec += (ms%1000)*1000;
   { int rc = pthread_mutex_lock(&vmb->event_mutex);
