@@ -66,7 +66,7 @@ HWND hpower;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.25 $ $Date: 2010-03-02 10:48:24 $";
+char version[] = "$Revision: 1.26 $ $Date: 2010-09-09 11:47:55 $";
 
 char howto[] =
   "\n"
@@ -217,11 +217,9 @@ remove_slot (int slotnr)
 int
 write_to_slot (int i)
 {
-  if (send_msg
-      (slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,
-       mpayload) <= 0)
+  if (send_msg(slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,mpayload) <= 0)
   { if (server_terminating) return 1;
-    vmb_error (__LINE__, "Unable to deliver message");
+  vmb_error2 (__LINE__, "Unable to deliver message to:", slot[i].name);
     remove_slot (i);
     return 1;
   }
@@ -247,7 +245,7 @@ power_on (int i)
   if (!bus_msg (ID_POWERON, i))
     vmb_debugi(VMB_DEBUG_INFO,"Sent Power On to Slot %d", i);
   else
-    vmb_error(__LINE__,"Unable to send Power On");
+	  vmb_error(__LINE__,"Power On was not sent");
 }
 
 static void
@@ -256,7 +254,7 @@ power_off (int i)
   if (!bus_msg (ID_POWEROFF, i))
     vmb_debugi(VMB_DEBUG_INFO,"Sent Power Off to Slot %d", i);
   else if (!server_terminating)
-    vmb_error(__LINE__,"Unable to send Power Off");
+    vmb_error(__LINE__,"Power Off was not sent");
 }
 
 static void
@@ -265,7 +263,7 @@ reset (int i)
   if (!bus_msg (ID_RESET, i))
     vmb_debugi(VMB_DEBUG_INFO,"Sent Reset to Slot %d", i);
   else
-    vmb_error(__LINE__,"Unable to send Reset");
+    vmb_error(__LINE__,"Reset was not sent");
 }
 static void
 terminate (int i)
@@ -273,7 +271,7 @@ terminate (int i)
   if (!bus_msg (ID_TERMINATE, i))
     vmb_debugi(VMB_DEBUG_INFO,"Sent Terminate to Slot %d", i);
   else if (!server_terminating)
-    vmb_error(__LINE__,"Unable to send Terminate");
+    vmb_error(__LINE__,"Terminate was not sent");
 }
 
 static void
@@ -286,7 +284,7 @@ send_dummy_answer (int dest_slot)
     if (!write_to_slot (dest_slot))
       vmb_debugi(VMB_DEBUG_NOTIFY,"Sent dummy answer to Slot %d", dest_slot);
     else if (!server_terminating)
-      vmb_error(__LINE__,"Unable to send dummy answer");
+      vmb_error(__LINE__,"Dummy answer was not sent");
   }
 }
 
@@ -304,7 +302,7 @@ disconnect_device (int slotnr)
    if (!bus_unregister (slot[slotnr].fd))
     vmb_debugi(VMB_DEBUG_NOTIFY,"Shutdown of Slot %d", slotnr);
   else if (!server_terminating)
-    vmb_error(__LINE__,"Unable to shut down slot");
+	  vmb_error2(__LINE__,"Unable to shut down slot",slot[slotnr].name);
 
   if (bus_disconnect (slot[slotnr].fd) >= 0)
     vmb_debugi(VMB_DEBUG_PROGRESS,"Closed socket from Slot %d : Successful", slotnr);
@@ -374,7 +372,7 @@ send_interrupt_to (int i)
     if (!write_to_slot (i))
       vmb_debugi(VMB_DEBUG_PROGRESS,"Sent Interrupt to Slot %d", i);
     else if (!server_terminating)
-      vmb_error(__LINE__,"Unable to send Interrupt");
+      vmb_error(__LINE__,"Interrupt was not sent");
   }
 }
 
@@ -848,9 +846,11 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
       int error = WSAGETSELECTERROR (lParam);
       int event = WSAGETSELECTEVENT (lParam);
-      if (error != 0) 
+	  if (error == WSAECONNABORTED)
+	  { vmb_debug(VMB_DEBUG_PROGRESS,"Socket Connection aborted");
+	  }
+      else if (error != 0) 
 	  {	 vmb_debugi(VMB_DEBUG_ERROR,"Socket error %d", error);
-	     return 0;
 	  }
       if (event == FD_CLOSE || error != 0)
 	  { vmb_debug(VMB_DEBUG_PROGRESS,"Socket Close");

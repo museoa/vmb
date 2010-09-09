@@ -133,7 +133,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:24 $";
+char version[]="$Revision: 1.10 $ $Date: 2010-09-09 11:47:55 $";
 
 char howto[] =
 "\n"
@@ -146,6 +146,10 @@ char howto[] =
 "Writing before the time has expired will cancel the next interrupt.\n"
 "Writing a zero value will terminate the interrupts.\n"
 "Reading this tetra will give the number of miliseconds between interrupts.\n"
+"The following 12 Byte contain the current date and time (win32 version only).\n"
+"Format: YYYY MM WD TTTT, where YYYY is the current year, MM ist the current month,\n"
+"W is the current day of the weeek, D is the current day of the month,\n"
+"and TTTT is the current time in milliseconds since midnight.\n"
 "\n"
 ;
 
@@ -176,10 +180,10 @@ tmem[f]
 
 unsigned char *timer_get_payload(unsigned int offset,int size)
 { SYSTEMTIME now;
-  GetSystemTime(&now);
+  GetLocalTime(&now);
     inttochar(counter,tmem);
 	inttochar(now.wYear,tmem+4);
-    shorttochar(now.wMonth,tmem+8);
+    shorttochar(now.wMonth-1,tmem+8); /* covert range 1-12 to 0-11 */
     tmem[0xa] = (unsigned char)now.wDay;
 	tmem[0xb] = (unsigned char)now.wDayOfWeek;
 	inttochar((((now.wHour*60)+now.wMinute)*60+now.wSecond)*1000+now.wMilliseconds, tmem+0xc);

@@ -622,7 +622,9 @@ bool profile_started; /* have we printed at least one frequency count? */
   if (resuming)
   { loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
     if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
-    goto protection_violation;
+    { resuming = false;
+      goto protection_violation;
+    }
   }
   else @<Fetch the next instruction@>;
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
@@ -1224,7 +1226,7 @@ case JMP: case JMPB:
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
-     vmb_wait_for_event(&vmb);
+     vmb_wait_for_event_timed(&vmb,750);
  else if (zz==5) /* empty write buffer */
    write_all_data_cache();
  else if (zz==6) /* clear VAT cache */
@@ -1989,6 +1991,48 @@ static bool profiling=0; /* should we print the profile at the end? */
 else mmix_fake_stdin(fake_stdin);
 @y
 else fprintf(stderr,"Sorry, I can't fake stdin\n");
+@z
+
+@x
+@ @<Initialize...@>=
+signal(SIGINT,catchint); /* now |catchint| will catch the first interrupt */
+
+@ @<Subr...@>=
+void catchint @,@,@[ARGS((int))@];@+@t}\6{@>
+void catchint(n)
+  int n;
+{
+  interrupt=true;
+  signal(SIGINT,catchint); /* now |catchint| will catch the next interrupt */
+}
+@y
+@ @<Initialize...@>=
+#ifdef WIN32
+SetConsoleCtrlHandler( (PHANDLER_ROUTINE) CtrlHandler, TRUE );
+#else
+signal(SIGINT,catchint); /* now |catchint| will catch the first interrupt */
+#endif
+
+@ @<Subr...@>=
+#ifdef WIN32
+BOOL CtrlHandler( DWORD fdwCtrlType ) 
+{ if (fdwCtrlType==CTRL_C_EVENT)
+  { interrupt=true;
+    show_operating_system=true;
+    printf("Ctrl-C received\n");
+    return TRUE;
+  }
+  return FALSE;
+}
+#else
+void catchint @,@,@[ARGS((int))@];@+@t}\6{@>
+void catchint(n)
+  int n;
+{
+  interrupt=true;
+  signal(SIGINT,catchint); /* now |catchint| will catch the next interrupt */
+}
+#endif
 @z
 
 @x

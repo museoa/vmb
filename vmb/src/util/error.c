@@ -75,6 +75,11 @@ void vmb_error(int line, char *message)
   vmb_message(tmp);
 }
 
+void vmb_error2(int line, char *message, char *info)
+{ static char tmp[1000];
+  sprintf(tmp,"ERROR (%s, %d): %s\r\n%s\r\n",vmb_program_name,line,message,info);
+  vmb_message(tmp);
+}
 
 void vmb_debug(int level, char *msg)
 { 
