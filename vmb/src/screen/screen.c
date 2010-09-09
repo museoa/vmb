@@ -40,7 +40,7 @@ static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.6 $ $Date: 2010-03-02 10:48:24 $";
+char version[]="$Revision: 1.7 $ $Date: 2010-09-09 15:42:29 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -103,7 +103,6 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 	 for(i=0;i<7;i++) //!< cleanout memory (just in case)
 	   cpData[i] = 0;
 	 cpData[DATA] = payload[size-1-offset]; //!< copy the char on the right place
-	 printf("%d,%d\n",offset,size);
 	 payload = cpData;
     }
     if (data[COUNT]<0xFF) data[COUNT]++;

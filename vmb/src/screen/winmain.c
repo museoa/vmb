@@ -9,6 +9,21 @@
 #include "option.h"
 
 HWND hwndEdit;
+static int fontwidth=8, fontheight=15;
+static HFONT hfont=0;
+
+void setfont(void)
+{
+  LOGFONT lgpu_font={0};
+  lgpu_font.lfHeight=fontheight;
+  lgpu_font.lfWidth=fontwidth;
+  lgpu_font.lfCharSet = ANSI_CHARSET;
+  lgpu_font.lfPitchAndFamily=FF_DONTCARE|FIXED_PITCH;
+  if (hfont!=0) 
+	  DeleteObject(hfont);
+  hfont = CreateFontIndirect(&lgpu_font);  
+  SendMessage(hwndEdit, WM_SETFONT, (WPARAM) hfont, 0); 
+}
 
 INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -18,6 +33,12 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  if (fontwidth <= 5 )
+		  CheckDlgButton(hDlg,IDC_SMALL_FONT,BST_CHECKED);
+	  else if (fontwidth >= 10)
+		  CheckDlgButton(hDlg,IDC_LARGE_FONT,BST_CHECKED);
+	  else
+		  CheckDlgButton(hDlg,IDC_MEDIUM_FONT,BST_CHECKED);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -30,6 +51,10 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
 		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontwidth=5, fontheight=12;
+		else if (IsDlgButtonChecked(hDlg,IDC_MEDIUM_FONT)) fontwidth=8, fontheight=15;
+		else fontwidth=10, fontheight=24;
+        setfont();
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -42,6 +67,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 extern void process_input(unsigned char c);
 static int hexoutput=0;
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
@@ -83,7 +109,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	 }
 	 return 0;
   case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,307,240,32,32,hWnd,(HMENU)1,hInst,0);
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,393,330,32,32,hWnd,(HMENU)1,hInst,0);
 	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     hwndEdit = CreateWindow( 
                 "EDIT",     // predefined class 
@@ -91,12 +117,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 WS_CHILD | WS_VISIBLE | 
                     ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
 					/* | WS_VSCROLL */, 
-                25, 30, 315, 210, 
+                25, 25, 400, 300, 
                 hWnd,       // parent window 
                 (HMENU)2,
                 hInst, 
                 NULL);                // pointer not needed 
-     SendMessage(hwndEdit, WM_SETFONT, (WPARAM) GetStockObject(ANSI_FIXED_FONT), 0); 
+	 setfont();
              // Add text to the window. 
      SendMessage(hwndEdit, WM_SETTEXT, 0, 
                 (LPARAM)"");   

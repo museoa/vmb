@@ -19,6 +19,10 @@
 #define IDD_SETTINGS                    124
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
+#define IDC_SMALL_FONT                  1007
+#define IDC_MEDIUM_FONT                 1008
+#define IDC_SMALL_FONT3                 1009
+#define IDC_LARGE_FONT                  1009
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -37,7 +41,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40020
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
