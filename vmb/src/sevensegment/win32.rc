@@ -94,22 +94,6 @@ BEGIN
     LTEXT           "Address",IDC_STATIC,7,7,26,8
 END
 
-IDD_ELEMENT DIALOGEX 0, 0, 108, 90
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CAPTION
-EXSTYLE WS_EX_TRANSPARENT | WS_EX_APPWINDOW
-CAPTION "Dialog"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    CONTROL         126,IDC_STATIC4,"Static",SS_BITMAP,55,7,32,2
-    CONTROL         127,IDC_STATIC1,"Static",SS_BITMAP,86,16,15,26
-    CONTROL         127,IDC_STATIC2,"Static",SS_BITMAP,24,44,15,26
-    CONTROL         127,IDC_STATIC0,"Static",SS_BITMAP,39,15,15,26
-    CONTROL         127,IDC_STATIC3,"Static",SS_BITMAP,75,43,15,26
-    CONTROL         126,IDC_STATIC5,"Static",SS_BITMAP,46,42,32,2
-    CONTROL         126,IDC_STATIC6,"Static",SS_BITMAP,36,73,32,2
-    CONTROL         128,IDC_STATIC7,"Static",SS_BITMAP,82,81,3,2
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -134,26 +118,9 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 88
     END
-
-    IDD_ELEMENT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 101
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 83
-    END
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_HOR                 BITMAP                  "hor.bmp"
-IDB_VERT                BITMAP                  "vert.bmp"
-IDB_DOT                 BITMAP                  "dot.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

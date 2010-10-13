@@ -17,7 +17,6 @@
 #define IDB_BITMAP2                     120
 #define IDD_ABOUT                       121
 #define IDD_SETTINGS                    124
-#define IDD_ELEMENT                     125
 #define IDB_HOR                         126
 #define IDB_VERT                        127
 #define IDB_HOR1                        128
@@ -25,14 +24,6 @@
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define IDC_RAMSIZE                     1006
-#define IDC_STATIC0                     1006
-#define IDC_STATIC1                     1007
-#define IDC_STATIC2                     1008
-#define IDC_STATIC3                     1009
-#define IDC_STATIC4                     1010
-#define IDC_STATIC5                     1011
-#define IDC_STATIC6                     1012
-#define IDC_STATIC7                     1013
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009

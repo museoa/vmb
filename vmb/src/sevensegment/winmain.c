@@ -12,7 +12,7 @@
 
 HINSTANCE hInst;
 HWND hMainWnd;
-HBITMAP hBmp=NULL;;
+HBITMAP hBmp=NULL;
 HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
@@ -48,18 +48,89 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 }
 
 
-static HWND hBits[64];
-static HBITMAP hhor,hvert,hdot;
-static int xpixelpos[8] = {20,12, 4,  10, 2,40,31,  41};
-static int ypixelpos[8] = { 2,26,50,   4,29, 7,32,  49};
-#define DIGITLENGTH 50
-#define WINHEIGHT 55
-#define WINLENGTH (DIGITLENGTH*8)
-static enum {vert, hor, dot} bittyp[8] = {hor,hor,hor,vert,vert,vert,vert,dot};
+static unsigned char segmentbits[8] = {0};
+static unsigned char windowbits[8] = {0};
+static HPEN hpenGreen, hpenBlack, hpenOld;
 
+#define BORDER 6
+#define HEIGHT 48
+#define WIDTH  30
+#define DISTANCE 50
+#define SLANT 15
+#define GAP 5
+#define GAPSLANT ((GAP*SLANT)/HEIGHT)
+#define THICK 5
+#define WINHEIGHT (BORDER+HEIGHT+BORDER)
+#define WINLENGTH (BORDER+DISTANCE*8+BORDER)
 
+void seg_poweron(void);
 void seg_poweroff(void);
 
+void paint_digit(HDC hdc, unsigned char bits, int k)
+{  int x, y, dx, dy; 
+   int i;
+   for (i=0;i<8;i++)
+   { if (bits&0x1) 
+	   SelectObject(hdc,hpenGreen);
+	 else
+	   SelectObject(hdc,hpenBlack);
+     switch (i)
+	 { case 0: /* top mid */
+	     x = BORDER+k*DISTANCE+SLANT+GAP;
+		 dx = WIDTH-2*GAP;
+		 y = BORDER;
+		 dy = 0;
+	   break;
+	   case 1: /* mid mid */
+	     x = BORDER+k*DISTANCE+SLANT/2+GAP;
+		 dx = WIDTH-2*GAP;
+		 y = BORDER+HEIGHT/2;
+		 dy = 0;
+	   break;
+	   case 2: /* bot mid */
+	     x = BORDER+k*DISTANCE+GAP;
+		 dx = WIDTH-2*GAP;
+		 y = BORDER+HEIGHT;
+		 dy = 0;
+	   break;
+	   case 3: /* left top */
+	     x = BORDER+k*DISTANCE+SLANT-GAPSLANT;
+		 dx = -SLANT/2+GAPSLANT;
+		 y = BORDER+GAP;
+		 dy = HEIGHT/2-2*GAP;
+	   break;
+	   case 4: /* left bot */
+	     x = BORDER+k*DISTANCE+ SLANT/2-GAPSLANT;
+		 dx = -SLANT/2+GAPSLANT;
+		 y = BORDER+HEIGHT/2+GAP;
+		 dy = HEIGHT/2-2*GAP;
+	   break;
+	   case 5: /* right top */
+		 x = BORDER+k*DISTANCE+ SLANT+WIDTH-GAPSLANT;
+		 dx = -SLANT/2+GAPSLANT;
+		 y = BORDER+GAP;
+		 dy = HEIGHT/2-2*GAP;
+	   break;
+	   case 6: /* right bot */
+		 x = BORDER+k*DISTANCE+ SLANT/2+WIDTH-GAPSLANT;
+		 dx = -SLANT/2+GAPSLANT;
+		 y = BORDER+HEIGHT/2+GAP;
+		 dy = HEIGHT/2-2*GAP;
+	   break;
+	   case 7: /* dot */
+		 x = BORDER+k*DISTANCE+SLANT/2+WIDTH;
+		 dx = 1;
+		 y = BORDER+HEIGHT;
+		 dy = 0;
+	   break;
+	 }
+	 MoveToEx(hdc,x,y,NULL);
+	 LineTo(hdc,x+dx,y+dy);
+	 bits = bits>>1;
+   }
+}
+
+ 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
@@ -70,35 +141,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
-	seg_poweroff();
- 	return 0;
+	if (vmb.power) 
+		seg_poweron(); 
+	else 
+		seg_poweroff();
+    return 0;
   case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
 	return 0;
-  case WM_PAINT:
-    return (DefWindowProc(hWnd, message, wParam, lParam));
   case WM_CREATE:
-      /* create main dialog */ 
-      { int i,k;
-	    for (k=0;k<8;k++)
-     	  for (i=0;i<8;i++)
-		  {	hBits[i+k*8] = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,
-		                    xpixelpos[i]+k*DIGITLENGTH,ypixelpos[i],0,0,hWnd,NULL,hInst,0);
-            if (bittyp[i] ==vert)
-		      SendMessage(hBits[i+k*8],STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hvert);
-            else if (bittyp[i] == hor)
-		      SendMessage(hBits[i+k*8],STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hhor);
-            else if (bittyp[i] ==dot)
-		      SendMessage(hBits[i+k*8],STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hdot);
-			ShowWindow(hBits[i+k*8],SW_SHOW);
-		  }
-      }	
-    return 0; 
-  }
+	  hpenGreen = CreatePen(PS_SOLID, THICK, RGB(0, 255, 0));
+	  hpenBlack = CreatePen(PS_SOLID, THICK, RGB(0,   0, 0));
+    return 0;
+  case WM_CLOSE:
+	  DeleteObject(hpenGreen);
+	  DeleteObject(hpenBlack);
+	  return 0;
+  case WM_PAINT:
+	{ PAINTSTRUCT ps;
+      HDC hdc;
+	  HPEN hpenOld;
+	  int k;
+      hdc = BeginPaint (hWnd, &ps);
+	  hpenOld = SelectObject(hdc, hpenGreen);
+      for (k=0;k<8;k++) 
+	     paint_digit(hdc, segmentbits[k],k);
+	  SelectObject(hdc, hpenOld);
+      EndPaint (hWnd, &ps);
+    }
+    return 0;   
+ }
  return (OptWndProc(hWnd, message, wParam, lParam));
 }
-
 
 
 
@@ -160,13 +235,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 
-    hvert = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_VERT), 
-				IMAGE_BITMAP, 0, 0, 0);
-    hhor = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_HOR), 
-				IMAGE_BITMAP, 0, 0, 0);
-    hdot = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_DOT), 
-				IMAGE_BITMAP, 0, 0, 0);
-
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
@@ -196,22 +264,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 
-static unsigned char segmentbits[8];
 
 static void update_bits(void)
-{ int i, k;
-  unsigned char c;
-  for (k=0;k<8;k++)
-  { c = segmentbits[k];
-    for (i=0;i<8;i++)
-    {  if (c&0x1) 
-         ShowWindow(hBits[i+8*k],SW_SHOW); 
-        else  
-	      ShowWindow(hBits[i+8*k],SW_HIDE);
-        c = c>>1;
-    }
-  }
-  UpdateWindow(hMainWnd);
+{
+  InvalidateRect(hMainWnd,NULL,FALSE);
 }
    
 
