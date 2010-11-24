@@ -219,7 +219,8 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
    return e.p;
  
 pagetable_error:
-   g[rQ].l = g[rQ].l | BIT(INT_PAGEERROR);
+   g[rQ].l |= BIT(INT_PAGEERROR);
+   new_Q.l |= BIT(INT_PAGEERROR); 
    return 0;
 }
 
@@ -297,7 +298,7 @@ int TC_translate(TC *tc, int s, int i, int n, octa *base)
 #if 0
 
 octa update_vtc(octa key)
-/* implements the LDVTS instruction accordint to mmix-doc */
+/* implements the LDVTS instruction according to mmix-doc */
 {  int i;
    int n;
    int p;
@@ -323,9 +324,9 @@ octa update_vtc(octa key)
    int p;
    int s; 
    octa x;
-   s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
+   s = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
    i = (key.h>>29) & 0x03;
-   n = (key.l>>3) & 0x3FF;
+   n = (key.l>>3) & 0x3FF;	
    p = key.l & 0x07;
    key.h = key.h &0x1FFFFFFF;
    key.l = key.l & ~0x01FF;
@@ -370,20 +371,22 @@ octa update_vtc(octa key)
   else if (p == 6) 
       /* read data translation, read a translation from the data cache, if not present
          read the translation from memory and keep the result in the data VT cache */
-     { p= TC_translate(&data_tc, s, i, n, &key);
+     { int vn    = (g[rV].l>>3)&0x3FF;
+	   p= TC_translate(&data_tc, s, i, vn, &key);
        if (!(p&PAGE_FAULT_BIT))
        { x.h = key.h;
-         x.l = key.l | p;
+         x.l = key.l | (n<<3) | p; /*add in protection bits and page offset */
        }
      }
   else if (p == 7) 
       /* read instruction translation, read a translation from the instruction cache,
          if not present, read the translation from memory 
          and keep the result in the instruction VT cache */
-     { p= TC_translate(&exec_tc, s, i, n, &key);
+     { int vn    = (g[rV].l>>3)&0x3FF;
+       p= TC_translate(&exec_tc, s, i, vn, &key);
        if (!(p&PAGE_FAULT_BIT))
        { x.h = key.h;
-         x.l = key.l | p;
+         x.l = key.l | (n<<3) | p;
        }
      }
     return x;
@@ -465,7 +468,7 @@ int translate_address(octa *address, TC *tc)
 
 
 int load_instruction(tetra *instruction, octa address)
-/* load a tetra into data from the given virtual address 
+/* load a tetra into instruction from the given virtual address 
    raise an interrupt if there is a problem and load 0.
 */
 { if (address.h==last_i_addr.h &&
@@ -485,12 +488,14 @@ int load_instruction(tetra *instruction, octa address)
     int p = translate_address(&address, &exec_tc);
     if (p&PAGE_FAULT_BIT)
     { *instruction = 0;
-      g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+      g[rQ].l |= BIT(INT_PAGEFAULT);
+      new_Q.l |=  BIT(INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&EXEC_BIT)) 
     { *instruction = 0;
-      g[rQ].h = g[rQ].h | BIT(INT_EXEC);
+      g[rQ].h |=  BIT(INT_EXEC);
+      new_Q.h |=  BIT(INT_EXEC);
       return 0;
     }
     last_i_addr.h = last.h;
@@ -533,12 +538,14 @@ int load_data(int size, octa *data, octa address,int signextension)
     int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
     { data->h=data->l = 0;
-      g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+      g[rQ].l |= BIT( INT_PAGEFAULT);
+      new_Q.l |= BIT( INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&READ_BIT)) 
     { data->h=data->l = 0;
-      g[rQ].h = g[rQ].h | BIT(INT_READ);
+      g[rQ].h |= BIT(INT_READ);
+      new_Q.h |= BIT(INT_READ);
       return 0;
     }
     last_d_addr.h = last.h;
@@ -574,11 +581,13 @@ int store_data(int size,octa data, octa address)
   { octa last= address;
     int p = translate_address(&address, &data_tc);
     if (p&PAGE_FAULT_BIT)
-    { g[rQ].l = g[rQ].l | BIT( INT_PAGEFAULT);
+    { g[rQ].l |= BIT( INT_PAGEFAULT);
+      new_Q.l |= BIT( INT_PAGEFAULT);
       return 0;
     }
     else if (!(p&WRITE_BIT)) 
-    { g[rQ].h = g[rQ].h | BIT(INT_WRITE);
+    { g[rQ].h |= BIT(INT_WRITE);
+      new_Q.h |= BIT(INT_WRITE);
       return 0;
     }
     last_d_addr.h = last.h;

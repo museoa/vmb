@@ -169,11 +169,13 @@ At a later point the interface
 should be included here as a literate program.
 
 @<Type...@>=
+#include <time.h>
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
+device_info vmb = {0};
 extern unsigned char get_break(octa a);
-int mmgetchars(unsigned char *buf, int size, octa addr, int stop);
+extern int mmgetchars(unsigned char *buf, int size, octa addr, int stop);
 @z
 
 @x
@@ -625,9 +627,18 @@ bool profile_started; /* have we printed at least one frequency count? */
 @x
   if (resuming) loc=incr(inst_ptr,-4), inst=g[rX].l;
   else @<Fetch the next instruction@>;
+  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
-  if (resuming) loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
+  if (resuming)
+  { loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
+    if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
+    { resuming = false;
+      goto protection_violation;
+    }
+  }
   else @<Fetch the next instruction@>;
+  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
+  @<Check for security violation@>
 @z
 
 @x
@@ -646,16 +657,17 @@ bool profile_started; /* have we printed at least one frequency count? */
 @x
 bool interacting; /* are we in interactive mode? */
 @y
-bool interacting; /* are we in interactive mode? */
-bool stepping; /* should we pause after the next instruction? */
-bool show_operating_system = false; /* do we show negative addresses */
+static bool interacting; /* are we in interactive mode? */
+static bool stepping; /* should we pause after the next instruction? */
+static bool show_operating_system = false; /* do we show negative addresses */
+static bool interact_after_resume = false;
 static char localhost[]="localhost";
 #if defined(WIN32)
-extern int port;
-extern char *host;
+extern int busport;
+extern char *bushost;
 #else
-static int port=9002; /* on which port to connect to the bus */
-static char *host=localhost; /* on which host to connect to the bus */
+static int busport=9002; /* on which port to connect to the bus */
+static char *bushost=localhost; /* on which host to connect to the bus */
 #endif
 int gdbport = 2331; /* port for the remot gdb to connect, with some default */
 extern int gdb_init(int port);
@@ -686,6 +698,8 @@ register mem_tetra *ll; /* current place in the simulated memory */
 { loc=inst_ptr;
   load_instruction(&inst,loc);
   inst_ptr=incr(inst_ptr,4);
+  if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
+  goto protection_violation;
 }
 @z
 
@@ -839,6 +853,14 @@ void stack_load()
 @z
 
 @x
+   inst_ptr=z;
+@y
+   if ((z.h&sign_bit) && !(loc.h&sign_bit))
+   goto protection_violation;
+   inst_ptr=z;
+@z
+
+@x
 case LDB: case LDBI: case LDBU: case LDBUI:@/
  i=56;@+j=(w.l&0x3)<<3; goto fin_ld;
 case LDW: case LDWI: case LDWU: case LDWUI:@/
@@ -860,24 +882,31 @@ case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
  x=load_sf(ll->tet);@+ goto check_ld;
 @y
 case LDB: case LDBI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(1,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDBU: case LDBUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(1,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDW: case LDWI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(2,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDWU: case LDWUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(2,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDT: case LDTI: 
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,1)) goto page_fault;
  goto check_ld;
 case LDTU: case LDTUI:@/
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDHT: case LDHTI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  x.h=x.l;
  x.l = 0;
@@ -885,14 +914,15 @@ case LDHT: case LDHTI:
 case LDO: case LDOI: 
 case LDOU: case LDOUI: 
 case LDUNC: case LDUNCI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(8,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDSF: case LDSFI: 
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
  x=load_sf(x.l);
 check_ld:
  test_load_bkpt(w);
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto privileged_inst;
  goto store_x;
 page_fault:
  if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
@@ -946,7 +976,7 @@ fin_pst:
    a=shift_right(shift_left(b,i),i,0);
    if (a.h!=b.h || a.l!=b.l) exc|=V_BIT;
  }
-fin_st:@+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto privileged_inst;
+fin_st:@+  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!store_data(j,b,w)) goto page_fault;
  test_store_bkpt(w);
  break;
@@ -994,6 +1024,7 @@ The locking of the bus still needs to be implemented!
 
 @<Cases for ind...@>=
 case CSWAP: case CSWAPI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto  translation_bypassed_inst;
  if (!load_data(8,&a,w,0)) goto page_fault;
  if (g[rP].h==a.h && g[rP].l==a.l) {
    x.h=0, x.l=1;
@@ -1012,6 +1043,9 @@ case CSWAP: case CSWAPI:
 
 
 @x
+case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
+  x=g[zz];
+  goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
@@ -1023,6 +1057,12 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   }
   g[xx]=z;@+zz=xx;@+break;
 @y
+case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
+  x=g[zz];
+  if (zz==rQ) { 
+      new_Q.h = new_Q.l = 0;
+  }
+  goto store_x;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
@@ -1030,9 +1070,41 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
     if (xx<=18 && !(loc.h&sign_bit)) goto privileged_inst;
     if (xx==rA) @<Get ready to update rA@>@;
     else if (xx==rL) @<Set $L=z=\min(z,L)$@>@;
-    else if (xx==rG) @<Get ready to update rG@>;
+    else if (xx==rG) @<Get ready to update rG@>@;
+    else if (xx==rQ)
+    { new_Q.h |= z.h &~ g[rQ].h;@+
+      new_Q.l |= z.l &~ g[rQ].l;
+      z.l |= new_Q.l;@+
+      z.h |= new_Q.h;@+
+    }
   }
   g[xx]=z;@+zz=xx;@+break;
+@z
+
+@x
+case PUSHGO: case PUSHGOI: inst_ptr=w;@+goto push;
+case PUSHJ: case PUSHJB: inst_ptr=z;
+@y
+case PUSHGO: case PUSHGOI: 
+if ((w.h&sign_bit) && !(loc.h&sign_bit))
+goto protection_violation;
+inst_ptr=w;@+goto push;
+case PUSHJ: case PUSHJB: 
+if ((z.h&sign_bit) && !(loc.h&sign_bit))
+goto protection_violation;  
+inst_ptr=z;
+@z
+
+@x
+ y=g[rJ];@+ z.l=yz<<2;@+ inst_ptr=oplus(y,z);
+@y
+ y=g[rJ];@+ z.l=yz<<2;
+ { octa tmp;
+   tmp=oplus(y,z);
+   if ((tmp.h&sign_bit) && !(loc.h&sign_bit))
+   goto protection_violation;  
+   inst_ptr = tmp;
+}
 @z
 
 @x
@@ -1139,6 +1211,8 @@ case PRELD: case PRELDI:
 @z
 
 @x
+case GO: case GOI: x=inst_ptr;@+inst_ptr=w;@+goto store_x;
+case JMP: case JMPB: inst_ptr=z;@+break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
  if (zz<=3) break;
 case LDVTS: case LDVTSI: privileged_inst: strcpy(lhs,"!privileged");
@@ -1148,10 +1222,18 @@ break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
  break;
 @y
+case GO: case GOI: 
+   if ((w.h&sign_bit) && !(loc.h&sign_bit))
+   goto protection_violation;  
+   x=inst_ptr;@+inst_ptr=w;@+goto store_x;
+case JMP: case JMPB: 
+   if ((z.h&sign_bit) && !(loc.h&sign_bit))
+   goto protection_violation;  
+   inst_ptr=z;@+break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
-     vmb_wait_for_event();
+     vmb_wait_for_event_timed(&vmb,750);
  else if (zz==5) /* empty write buffer */
    write_all_data_cache();
  else if (zz==6) /* clear VAT cache */
@@ -1167,16 +1249,9 @@ case LDVTS: case LDVTSI:
 { if (!(loc.h&sign_bit)) goto privileged_inst;
   if (w.h&sign_bit) goto illegal_inst;
   x = update_vtc(w);
+  goto store_x;
 }
 break;
-privileged_inst: strcpy(lhs,"!privileged");
-g[rQ].h |= 0x10; /* set the k bit */
- goto break_inst;
-illegal_inst: strcpy(lhs,"!illegal");
-g[rQ].h |= 0x20; /* set the b bit */
-break_inst: breakpoint=tracing=true;
- if (!interacting && !interact_after_break) halted=true;
- break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
  {   unsigned char buf[256];
@@ -1194,7 +1269,23 @@ case SWYM:
  }
  else
    strcpy(rhs,"");
- @+break;
+break;
+translation_bypassed_inst: strcpy(lhs,"!LOAD/STORE bypassing virtual translation");
+g[rQ].h |= N_BIT; new_Q.h |= N_BIT; /* set the n bit */
+ goto break_inst;
+privileged_inst: strcpy(lhs,"!instruction for kernel only");
+g[rQ].h |= K_BIT; new_Q.h |= K_BIT; /* set the k bit */
+ goto break_inst;
+illegal_inst: strcpy(lhs,"!instruction breaks the rules");
+g[rQ].h |= B_BIT; new_Q.h |= B_BIT; /* set the b bit */
+ goto break_inst;
+protection_violation: strcpy(lhs,"!protection violation");
+g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
+ goto break_inst;
+security_inst: strcpy(lhs,"!security violation");
+break_inst: breakpoint=tracing=true;
+ if (!interacting && !interact_after_break) halted=true;
+break;
 @z
 
 @x
@@ -1405,11 +1496,21 @@ void mmputchars(buf,size,addr)
 @y
 @ We do similar things for a trap interrupt.
 
+Interrupt bits in rQ might be lost if they are set between a \.{GET}
+and a~\.{PUT}. Therefore we don't allow \.{PUT} to zero out bits that
+have become~1 since the most recently committed \.{GET}.
+
+@<Glob...@>=
+octa new_Q; /* when rQ increases in any bit position, so should this */
+
+@ Now we can implement external interrupts.
+
 @<Check for trap interrupt@>=
 if (!resuming)
-{ vmb_get_interrupt(&g[rQ].h,&g[rQ].l);
-  if (!vmb_connected)  goto end_simulation;
-  if (!vmb_power || vmb_reset_flag) { breakpoint=true; vmb_reset_flag=0; goto boot;}
+{ if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
+  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
+  if (!vmb.connected)  goto end_simulation;
+  if (!vmb.power || vmb.reset_flag) { breakpoint=true; vmb.reset_flag=0; goto boot;}
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
@@ -1417,6 +1518,45 @@ if (!resuming)
     inst_ptr=y=g[rTT];
   }
 }
+
+@ An instruction will not be executed if it violates the basic
+security rule of \MMIX: An instruction in a nonnegative location
+should not be performed unless all eight of the internal interrupts
+have been enabled in the interrupt mask register~rK.
+Conversely, an instruction in a negative location should not be performed
+if the |P_BIT| is enabled in~rK.
+
+The nonnegative-location case turns on the |S_BIT| of both rK and~rQ\null,
+leading to an immediate interrupt.
+
+@<Check for security violation@>=
+{
+  if (loc.h&sign_bit)
+  { if (g[rK].h&P_BIT) 
+      goto security_inst;
+  }
+  else
+  { if ((g[rK].h&0xff)!=0xff)
+    { g[rQ].h |= S_BIT;
+      new_Q.h |= S_BIT;
+      g[rK].h |= S_BIT;
+      goto security_inst;
+    }
+  }
+}
+
+
+@ Here are the bit codes that affect traps. The first eight
+cases apply to the upper half of~rQ.
+
+@d P_BIT (1<<0) /* instruction in privileged location */
+@d S_BIT (1<<1) /* security violation */
+@d B_BIT (1<<2) /* instruction breaks the rules */
+@d K_BIT (1<<3) /* instruction for kernel only */
+@d N_BIT (1<<4) /* virtual translation bypassed */
+@d PX_BIT (1<<5) /* permission lacking to execute from page */
+@d PW_BIT (1<<6) /* permission lacking to write on page */
+@d PR_BIT (1<<7) /* permission lacking to read from page */
 
 @ We need this:
     
@@ -1442,19 +1582,24 @@ break;
 @y
 case RESUME:@+if (xx || yy) goto illegal_inst;
 if ( zz == 0)
-{ inst_ptr=z=g[rW];
+{ if (!(loc.h&sign_bit) && (g[rW].h&sign_bit)) 
+  goto protection_violation;
+  inst_ptr=z=g[rW];
   b=g[rX];
 }
 else if ( zz == 1)
 { 
   if (!(loc.h&sign_bit)) goto privileged_inst;
-  inst_ptr=z=g[rWW];
+  loc=inst_ptr=z=g[rWW];
   b=g[rXX];
   g[rK]=g[255];
   x=g[255]=g[rBB];
+  @<Check for security violation@>
+  if (interact_after_resume)
+    breakpoint = true, interact_after_resume = false;
 }
 else goto illegal_inst;
-if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
+if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>
 break;
 @z
 
@@ -1629,27 +1774,28 @@ int main(argc,argv)
   @<Process the command line@>;
 #endif
 
-  if (host==NULL) panic("No Bus given. Use Option -B[host:]port");
-  init_mmix_bus(host,port,"MMIX CPU");
+  if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
+  init_mmix_bus(bushost,busport,"MMIX CPU");
  
 boot:
 
   @<Initialize everything@>;
 
   fprintf(stderr,"Power...");
-  while (!vmb_power)
-  {  vmb_wait_for_power();
-     if (!vmb_connected) goto end_simulation;
+  while (!vmb.power)
+  {  vmb_wait_for_power(&vmb);
+     if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  vmb_reset_flag = 0;
+  vmb.reset_flag = 0;
+
   if (interacting && gdb_init(gdbport)) breakpoint = true;
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {
       breakpoint=false;
       if (interacting && 
-         (!(inst_ptr.h&0x80000000) || 
+         (!(inst_ptr.h&sign_bit) || 
           show_operating_system || 
           (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
             if (!interact_with_gdb(5)) goto end_simulation;
@@ -1666,7 +1812,7 @@ boot:
     } while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) interacting=true, interact_after_break=false;
     if (stepping) breakpoint=true,stepping=false;
-    if (!vmb_power) goto boot;
+    if (!vmb.power) goto boot;
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(true);
@@ -1718,19 +1864,20 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
   { char *p;
     p = strchr(arg+1,':');
     if (p==NULL)
-    { host=localhost;
-      port = atoi(arg+1);
+    { bushost=localhost;
+      busport = atoi(arg+1);
     }   
     else
-    { port = atoi(p+1);
-      host = malloc(p+1-arg+1);
-      if (host==NULL) panic("No room for hostname");
-      strncpy(host,arg+1,p-arg-1);
-      host[p-arg-1]=0;
+    { busport = atoi(p+1);
+      bushost = malloc(p+1-arg+1);
+      if (bushost==NULL) panic("No room for hostname");
+      strncpy(bushost,arg+1,p-arg-1);
+      bushost[p-arg-1]=0;
     }
     return;
   } 
  case 'O': show_operating_system=true;@+return;
+ case 'o': show_operating_system=false;@+return;
 @z
 
 @x
@@ -1751,6 +1898,7 @@ static bool profiling=0; /* should we print the profile at the end? */
 @y
 "-r    trace hidden details of the register stack\n",@|
 "-O    trace inside the operating system\n",@|
+"-o    disable trace inside the operating system\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z
@@ -2123,7 +2271,6 @@ for (k=0; k<argc; k++,cur_arg++) {
 x.l=0;@+ll=mem_find(x);@+ll->tet=loc.h, (ll+1)->tet=loc.l;
 @y
 @z
-
 
 @x
 @ @<Get ready to \.{UNSAVE} the initial context@>=

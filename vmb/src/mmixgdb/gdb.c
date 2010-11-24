@@ -39,6 +39,8 @@
 #include "address.h"
 #include "signals.h"
 
+extern device_info vmb;
+
 static int answer_expected = 1;
 static int break_level = 0;
 int async_gdb_command(char *gdb_command)
@@ -49,7 +51,7 @@ int async_gdb_command(char *gdb_command)
 { if (*gdb_command == 3 ) /* break */
   { breakpoint = true;
     break_level++;
-    vmb_cancel_wait_for_event();
+    vmb_cancel_wait_for_event(&vmb);
     if (break_level>1)
       vmb_cancel_all_loads();
     answer_expected=1;

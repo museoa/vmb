@@ -16,7 +16,7 @@ UTILDIR = ../util
 OPTDIR = ../opt
 CC = gcc
 INCDIRS = -I$(UTILDIR) -I$(OPTDIR) 
-LIBS    = -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lm -lvmb -lpthread
+LIBS    = -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
 all: mmix
@@ -25,7 +25,9 @@ utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o \
-        remote-utils.o buffers.o gdb.o optiontab.o
+        remote-utils.o buffers.o gdb.o 
+
+#optiontab.o
 
 abstime.h: abstime
 	./abstime > abstime.h

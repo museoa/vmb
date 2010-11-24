@@ -30,6 +30,8 @@
 #include "vmb.h"
 #include "cache.h"
 
+extern device_info vmb;
+
 
 /* loading data from physical memory */
 
@@ -44,8 +46,8 @@ static void load_uncached_memory(unsigned char *data, int size, octa address)
   da.address_lo = address.l;
   da.data = data;
   da.size = size;
-  vmb_load(&da);
-  vmb_wait_for_valid(&da);
+  vmb_load(&vmb,&da);
+  vmb_wait_for_valid(&vmb,&da);
 }
 
 static void store_uncached_memory(unsigned char *data, int size, octa address)
@@ -58,7 +60,7 @@ static void store_uncached_memory(unsigned char *data, int size, octa address)
   da.address_lo = address.l;
   da.data = data;
   da.size = size;
-  vmb_store(&da);
+  vmb_store(&vmb,&da);
 }
 
 
@@ -119,19 +121,19 @@ void store_uncached_data(int size, octa data, octa address)
 void load_cached_data(int size, octa *data, octa address, int signextension)
 {
   address.l=address.l&~(size-1);  /* round down to next alignment */
-  char_to_octa(size,vmb_cache_read(&vmb_d_cache, address.h, address.l),data,signextension);
+  char_to_octa(size,vmb_cache_read(&vmb,&vmb_d_cache, address.h, address.l),data,signextension);
 }
 
 void load_cached_instruction(tetra *instruction, octa address)
 {
   address.l=address.l&~0x3;  /* round down to next alignment */
-  *instruction = vmb_cache_read_int(&vmb_i_cache, address.h, address.l);
+  *instruction = vmb_cache_read_int(&vmb,&vmb_i_cache, address.h, address.l);
 }
 
 void store_cached_data(int size, octa data, octa address)
 { unsigned char *d;
   address.l=address.l&~(size-1);  /* round down to next alignment */
-  d = vmb_cache_write(&vmb_d_cache, address.h, address.l);
+  d = vmb_cache_write(&vmb,&vmb_d_cache, address.h, address.l);
   if (size == 8)
   { inttochar(data.h,d);
     inttochar(data.l,d+4);
@@ -146,7 +148,7 @@ void store_cached_data(int size, octa data, octa address)
 extern octa incr(octa y,int delta);
 
 void write_all_data_cache(void)
-{ vmb_cache_flush(&vmb_d_cache);
+{ vmb_cache_flush(&vmb,&vmb_d_cache);
 }
 
 void clear_all_data_cache(void)
@@ -162,7 +164,7 @@ void write_data_cache(octa address, int size)
      /* flush the cache starting at address for size byte */
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
-  { vmb_cache_flush_line(&vmb_d_cache, address.h, address.l);
+  { vmb_cache_flush_line(&vmb,&vmb_d_cache, address.h, address.l);
     address=incr(address,LINESIZE);
   }
 }
@@ -189,7 +191,7 @@ void prego_instruction_cache(octa address, int size)
 /* load the instruction cache starting at address for size byte */
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
-  { vmb_cache_preload(&vmb_i_cache, address.h, address.l);
+  { vmb_cache_preload(&vmb,&vmb_i_cache, address.h, address.l);
     address=incr(address,LINESIZE);
   }
 }
@@ -198,20 +200,27 @@ void preload_data_cache(octa address, int size)
 /* load the instruction cache starting at address for size byte */
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
-  { vmb_cache_preload(&vmb_d_cache, address.h, address.l);
+  { vmb_cache_preload(&vmb,&vmb_d_cache, address.h, address.l);
     address=incr(address,LINESIZE);
   }
 }
 
+/* sideeffects of special bus messages */
+
+void vmb_atexit(void)
+{ vmb_disconnect(&vmb);
+  vmb_end();
+}
 
 void init_mmix_bus(char *host, int port, char *name)
-{
+{ vmb_begin();
+  vmb_debug_flag = 0;
   vmb_program_name = "MMIX CPU";
-  vmb_connect(host, port);
-  vmb_register(0,0,0,-1,-1,name);
+  vmb_connect(&vmb,host, port);
+  vmb_register(&vmb,0,0,0,-1,-1,name);
   vmb_cache_init(&vmb_i_cache);
   vmb_cache_init(&vmb_d_cache);
-  atexit(vmb_disconnect);
+  atexit(vmb_atexit);
 }
 
 
