@@ -74,13 +74,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     KillTimer(hMainWnd,1);
 	SetWindowText(hTime,"0.000");
 	vmb_debug(VMB_DEBUG_INFO,"Timer stoped");
-    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
+   // SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	return 0;
   case WM_USER+6: /* Start Timer */
 	{ char timestr[20];
 	  sprintf(timestr,"%6.3f",counter/1000.0);
 	  SetWindowText(hTime,timestr);
-	  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
+	//  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	}
     SetTimer(hMainWnd,1,counter,NULL);
 	vmb_debugi(VMB_DEBUG_INFO,"Timer started %d",counter);
@@ -89,10 +89,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  if (wParam == 1) /* the Real Timer */
 	  { vmb_raise_interrupt(&vmb,interrupt);
 	  	vmb_debugi(VMB_DEBUG_INFO,"Timer expired (interrupt %X)",interrupt);
-	    hold = (HBITMAP)SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hblink);
-#define BLINKTIME 100
+#define BLINKTIME 200
 		if (counter>2*BLINKTIME)
+		{	    
+		  hold = (HBITMAP)SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hblink);
 	      SetTimer(hMainWnd,2,BLINKTIME,NULL);	 
+		}
 	  } 
 	  else if (wParam == 2) /* the Blink Timer */
 	  {  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hold);
@@ -133,7 +135,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-char version[]="$Revision: 1.10 $ $Date: 2010-09-09 11:47:55 $";
+char version[]="$Revision: 1.11 $ $Date: 2010-11-24 13:39:57 $";
 
 char howto[] =
 "\n"

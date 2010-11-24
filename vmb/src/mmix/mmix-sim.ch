@@ -1859,17 +1859,20 @@ boot:
   cur_arg = boot_cur_arg;
 
   @<Initialize everything@>;
-
+  
+ 
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
      if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  vmb.reset_flag = 0;
+  vmb_raise_reset(&vmb);
 
   @<Load object file@>;
   @<Load the command line arguments@>;
+  g[rQ].h=g[rQ].l=0; /*hide problems with loading the command line*/
+  vmb.reset_flag = 0;
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {
