@@ -650,10 +650,9 @@ bool interacting; /* are we in interactive mode? */
 static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
-static int busport=9002; /* on which port to connect to the bus */
 static char localhost[]="localhost";     
+static int busport=9002; /* on which port to connect to the bus */
 static char *bushost=localhost; /* on which host to connect to the bus */
-static bool hostclock=false; /* take rC from the host */
 @z
 
 
@@ -1046,12 +1045,7 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   g[xx]=z;@+zz=xx;@+break;
 @y
 case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
-  if (zz==rC && hostclock)
-  { x.l = clock();
-    x.h = 0;
-  }
-  else
-    x=g[zz];
+  x=g[zz];
   if (zz==rQ) { 
       new_Q.h = new_Q.l = 0;
   }
@@ -1840,6 +1834,11 @@ int main(argc,argv)
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
 @y
+#ifdef WIN32
+DWORD WINAPI mmix_main(LPVOID dummy)
+{
+  @<Local registers@>;
+#else
 int main(argc,argv)
   int argc;
   char *argv[];
@@ -1848,6 +1847,7 @@ int main(argc,argv)
   int boot_argc;
   @<Local registers@>;
   @<Process the command line@>;
+#endif
 
   if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(bushost,busport,"MMIX CPU");
@@ -1950,7 +1950,6 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
   } 
  case 'O': show_operating_system=true;@+return;
  case 'o': show_operating_system=false;@+return;
- case 'C': hostclock=true;@+return;
 @z
 
 @x
@@ -1970,7 +1969,6 @@ static bool profiling=0; /* should we print the profile at the end? */
 "-r    trace hidden details of the register stack\n",@|
 "-O    trace inside the operating system\n",@|
 "-o    disable trace inside the operating system\n",@|
-"-C    use host clock for rC\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z
