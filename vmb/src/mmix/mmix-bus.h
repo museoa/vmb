@@ -31,7 +31,6 @@ extern void prego_instruction_cache(octa address, int size);
 extern void preload_data_cache(octa address, int size);
 extern void load_cached_instruction(tetra *instruction, octa address);
 extern void write_all_data_cache(void);
-extern void write_all_data_cache(void);
 extern void clear_all_data_cache(void);
 extern void clear_all_instruction_cache(void);
 extern void init_mmix_bus(char *host, int port, char *name);

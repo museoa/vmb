@@ -24,6 +24,9 @@
 #ifndef ADDRESS_H
 #define ADDRESS_H
 
+
+
+
 /* these instructions return 0 (false) if a page fault occurs
    they return 1 (true) otherwise even if a protection violation
    occurs in this case they will not alter memory nor deliver a value
@@ -63,5 +66,9 @@ extern void delete_data(octa address,int size);
 extern void delete_instruction(octa address,int size);
 extern void read_instruction(octa address,int size);
 extern void prego_instruction(octa address,int size);
+
+extern int valid_address(octa address);
+/* return 1 if valid, zero otherwise */
+
 
 #endif

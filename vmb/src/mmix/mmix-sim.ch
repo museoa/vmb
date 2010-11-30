@@ -1606,7 +1606,10 @@ leading to an immediate interrupt.
 {
   if (loc.h&sign_bit)
   { if (g[rK].h&P_BIT) 
+    { g[rQ].h |= P_BIT;
+      new_Q.h |= P_BIT;
       goto security_inst;
+    }
   }
   else
   { if ((g[rK].h&0xff)!=0xff)
