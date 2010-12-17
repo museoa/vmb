@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:23 $";
+char version[]="$Revision: 1.10 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"
@@ -154,8 +154,8 @@ void flash_terminate(void)
 
 void flash_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
-{ /* do nothing */
-	write_file();
+{ 
+  write_file();
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
 #endif
@@ -173,28 +173,3 @@ void init_device(device_info *vmb)
 }
 
 
-#ifdef WIN32
-#else
-int main(int argc, char *argv[])
-{
- param_init(argc, argv);
- vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
- vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
- vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
- vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
- close(0); /* stdin */
- init_device(&vmb);
- vmb_debugi(VMB_DEBUG_INFO, "address hi: %x ",vmb_address>>32);
- vmb_debugi(VMB_DEBUG_INFO, "address lo: %x ",vmb_address&0xFFFFFFFF);
- vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
- 
- vmb_connect(&vmb,host,port); 
-
- vmb_register(vmb_address>>32,vmb_address&0xFFFFFFFF,
-              vmb_size, 0, 0, vmb_program_name);
- vmb_wait_for_disconnect();
- write_file();
- return 0;
-}
-
-#endif

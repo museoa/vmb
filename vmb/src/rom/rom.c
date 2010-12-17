@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.8 $ $Date: 2010-03-02 10:48:24 $";
+char version[]="$Revision: 1.9 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"
@@ -138,6 +138,8 @@ void open_file(void)
     char *c;
     struct stat fs;
     
+    f = NULL;
+    
     if (filename==NULL || strcmp(filename,"") == 0 || (f = fopen(filename, "rb")) == NULL)
         vmb_fatal_error(__LINE__,"No filename or file");
         
@@ -195,25 +197,3 @@ void init_device(device_info *vmb)
    vmb->terminate=vmb_terminate;
    vmb->get_payload=rom_get_payload;
 }
-#ifdef WIN32
-#else
-int main(int argc, char *argv[])
-{
- param_init(argc, argv);
- vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
- vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
- vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
- vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
- close(0); /* stdin */
- init_device(&vmb);
- vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
- vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
- vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
- 
- vmb_connect(&vmb,host,port); 
- vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
- vmb_wait_for_disconnect();
- return 0;
-}
-
-#endif

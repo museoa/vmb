@@ -40,7 +40,7 @@ static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.7 $ $Date: 2010-09-09 15:42:29 $";
+char version[]="$Revision: 1.8 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -136,23 +136,27 @@ void init_device(device_info *vmb)
 }
 #ifdef WIN32
 #else
+device_info vmb = {0};
 int main(int argc, char *argv[])
 {
- param_init(argc, argv);
- vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
- vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
- vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
- vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
- close(0); /* stdin */
- init_device(&vmb);
- vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
- vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
- vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
- vmb_connect(&vmb,host,port); 
+  param_init(argc, argv);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  close(0); /* stdin */  init_device(&vmb);
+  init_device(&vmb);
+  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
+  
+  vmb_connect(&vmb,host,port); 
 
- vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
- vmb_wait_for_disconnect();
- return 0;
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
+               0, 0, vmb_program_name);
+
+  vmb_wait_for_disconnect(&vmb);
+  return 0;
 }
 #endif
 

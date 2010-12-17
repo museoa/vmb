@@ -165,7 +165,7 @@ int do_option(option_spec *p, char *arg)
       if (*(p->handler.str)!=NULL)
         free(*(p->handler.str));
       if (arg==NULL)
-	  { vmb_error(__LINE__,"Argument expected");
+	  { vmb_error2(__LINE__,"Argument expected",p->description);
 	    return 1;
 	  }
 	  n = (int)strlen(arg);
@@ -183,24 +183,26 @@ int do_option(option_spec *p, char *arg)
       return 1;
   case int_arg:
 	  if (arg==NULL)
-		  vmb_error(__LINE__,"Argument expected");
+		  vmb_error2(__LINE__,"Argument expected",p->description);
 	  else
           *(p->handler.i)=strtoint(arg);
       return 1;
   case double_arg:
 	  if (arg==NULL)
-		  vmb_error(__LINE__,"Argument expected");
+		  vmb_error2(__LINE__,"Argument expected",p->description);
 	  else
           *(p->handler.d)=strtodouble(arg);
       return 1;   case uint64_arg:
       if (arg==NULL)
-		  vmb_error(__LINE__,"Argument expected");
+		  vmb_error2(__LINE__,"Argument expected",p->description);
 	  else
           *(p->handler.u)=strtouint64(arg);
       return 1;
     case tgl_arg:
       if (arg==NULL)
-	vmb_error(__LINE__,"Argument expected");
+      {	*(p->handler.i)=!(*(p->handler.i));
+        return 0;
+      }
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
@@ -208,14 +210,16 @@ int do_option(option_spec *p, char *arg)
       { *(p->handler.i)=0;
         return 1;
       }
-      *(p->handler.i)= !(*(p->handler.i));
+      *(p->handler.i)=!(*(p->handler.i));
       return 0;
     case inc_arg:
       (*(p->handler.i))++;
       return 0;
     case on_arg:
       if (arg==NULL)
-	 vmb_error(__LINE__,"Argument expected");
+      { *(p->handler.i)= 1;
+        return 0;
+      }
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;
@@ -227,7 +231,9 @@ int do_option(option_spec *p, char *arg)
       return 0;
     case off_arg:
       if (arg==NULL)
-	 vmb_error(__LINE__,"Argument expected");
+      { *(p->handler.i)= 0;
+        return 0;
+      }
       else if (strcmp(arg,"on")==0)
       { *(p->handler.i)=1;
         return 1;

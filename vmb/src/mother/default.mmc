@@ -4,21 +4,16 @@
 port 9002
 host localhost
 debug
-verbosity 0
+verbose
 
 #if mother
-
-
-exec .\rom.exe
-
-exec .\ram.exe
-
-exec .\keyboard.exe
-
-exec .\ram.exe
-
-exec .\winvram.exe
-exec .\mmix.exe -i -O minesweeper.mmo 
+on
+#exec .\rom.exe
+#exec .\ram.exe
+#exec .\keyboard.exe
+#exec .\ram.exe
+#exec .\winvram.exe
+#exec .\mmix.exe -i -O minesweeper.mmo 
 #endif
 
 #if rom

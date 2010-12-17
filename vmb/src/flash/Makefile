@@ -14,8 +14,8 @@ utilities:
 	$(MAKE) -C  $(OPTDIR)
 
 
-$(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
+$(PROG): $(PROG).c  main.c utilities
+	$(CC) $(CFLAGS) $(PROG).c main.c $(LDFLAGS) -o $(PROG)
 
 
 TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h

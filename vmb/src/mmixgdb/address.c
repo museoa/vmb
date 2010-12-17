@@ -31,7 +31,7 @@
 #define EXEC_BIT 0x1
 #define WRITE_BIT 0x2
 #define READ_BIT 0x4
-#define PAGE_FAULT_BIT 0x8
+#define PAGE_TABLE_ERROR 0x8
 
 
 /* TYPES */
@@ -128,7 +128,7 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
 /* given the components b[i], s,r,n, and i from rV,
    translate the virtual address into 
    a pysical address and return the protection code p.
-   return 0 if there is no translation.
+   return PAGE_TABLE_ERROR if there is no translation.
    use the alorithm as given by Don Knuth in section 47 of mmix-doc.
    modified according to my letter to don.
      */
@@ -219,9 +219,7 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
    return e.p;
  
 pagetable_error:
-   g[rQ].l |= BIT(INT_PAGEERROR);
-   new_Q.l |= BIT(INT_PAGEERROR); 
-   return 0;
+   return PAGE_TABLE_ERROR;
 }
 
 /* Handling the Translation Cache */
@@ -264,8 +262,9 @@ static int TC_update(TC *tc, int i, int n, octa *base, int p)
 
 
 int TC_translate(TC *tc, int s, int i, int n, octa *base)
-     /* return 0 if not found;
+     /* return PAGE_TABLE_ERROR if not found; (the rQ bit is then already set)
         return protection on success and replace the virtual base by the pysical
+        if p!=0 store the result in the TLB
      */
 
 { TCE *tce;
@@ -283,8 +282,10 @@ int TC_translate(TC *tc, int s, int i, int n, octa *base)
     r.l  = g[rV].l&~0x1FFF;
     phys=*base;
     p=translate_v2p(b,s,&r,n,i,&phys);
-    if (p==0)
-      return PAGE_FAULT_BIT;
+    if (p==PAGE_TABLE_ERROR)
+      return p;
+    else if (p==0)
+      return 0;
     TC_store(tc,i, n, base, &phys, p);
     *base = phys;
     return p;
@@ -373,7 +374,7 @@ octa update_vtc(octa key)
          read the translation from memory and keep the result in the data VT cache */
      { int vn    = (g[rV].l>>3)&0x3FF;
 	   p= TC_translate(&data_tc, s, i, vn, &key);
-       if (!(p&PAGE_FAULT_BIT))
+       if (!(p&PAGE_TABLE_ERROR) && p!=0)
        { x.h = key.h;
          x.l = key.l | (n<<3) | p; /*add in protection bits and page offset */
        }
@@ -384,7 +385,7 @@ octa update_vtc(octa key)
          and keep the result in the instruction VT cache */
      { int vn    = (g[rV].l>>3)&0x3FF;
        p= TC_translate(&exec_tc, s, i, vn, &key);
-       if (!(p&PAGE_FAULT_BIT))
+       if (!(p&PAGE_TABLE_ERROR) && p!=0)
        { x.h = key.h;
          x.l = key.l | (n<<3) | p;
        }
@@ -450,9 +451,9 @@ void store_exec_translation(octa *virt, octa *phys)
 }
 
 
-int translate_address(octa *address, TC *tc)
+static int translate_address(octa *address, TC *tc)
      /* the virtual address is repaced be the physical address.
-	return the protection p on success, 0 on failure.
+	return the protection p (can be PAGE_TABLE_ERROR or 0 or other)
      */
 { /* Use octa g[rV] for the special rV register */
   int s,i,p;
@@ -464,6 +465,17 @@ int translate_address(octa *address, TC *tc)
   p= TC_translate(tc, s, i, n, &base);
   *address = oplus(base,offset);
   return p;
+}
+
+int valid_address(octa address)
+/* return 1 if valid, zero otherwise */
+{
+  if (address.h&0x80000000) return 1;
+  else 
+  { int p = translate_address(&address, &data_tc);
+  if (p&PAGE_TABLE_ERROR || p==0) return 0;
+  }
+  return 1;
 }
 
 
@@ -486,16 +498,21 @@ int load_instruction(tetra *instruction, octa address)
   else
   { octa last= address;
     int p = translate_address(&address, &exec_tc);
-    if (p&PAGE_FAULT_BIT)
+    if (p&PAGE_TABLE_ERROR)
     { *instruction = 0;
-      g[rQ].l |= BIT(INT_PAGEFAULT);
-      new_Q.l |=  BIT(INT_PAGEFAULT);
+      g[rQ].l |= PT_BIT;
+      new_Q.l |= PT_BIT; 
+      return 0;
+    } else if (p==0)
+    { *instruction = 0;
+      g[rQ].l |=  PA_BIT;
+      new_Q.l |=  PA_BIT;
       return 0;
     }
     else if (!(p&EXEC_BIT)) 
     { *instruction = 0;
-      g[rQ].h |=  BIT(INT_EXEC);
-      new_Q.h |=  BIT(INT_EXEC);
+      g[rQ].h |=  PX_BIT;
+      new_Q.h |=  PX_BIT;
       return 0;
     }
     last_i_addr.h = last.h;
@@ -536,16 +553,22 @@ int load_data(int size, octa *data, octa address,int signextension)
   else 
   { octa last= address;
     int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT)
+    if (p&PAGE_TABLE_ERROR)
     { data->h=data->l = 0;
-      g[rQ].l |= BIT( INT_PAGEFAULT);
-      new_Q.l |= BIT( INT_PAGEFAULT);
+      g[rQ].l |= PT_BIT;
+      new_Q.l |= PT_BIT; 
+      return 0;
+    }
+    else if (p==0) 
+    { data->h=data->l = 0;
+      g[rQ].l |= PA_BIT;
+      new_Q.l |= PA_BIT;
       return 0;
     }
     else if (!(p&READ_BIT)) 
     { data->h=data->l = 0;
-      g[rQ].h |= BIT(INT_READ);
-      new_Q.h |= BIT(INT_READ);
+      g[rQ].h |= PR_BIT;
+      new_Q.h |= PR_BIT;
       return 0;
     }
     last_d_addr.h = last.h;
@@ -580,14 +603,19 @@ int store_data(int size,octa data, octa address)
   else
   { octa last= address;
     int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT)
-    { g[rQ].l |= BIT( INT_PAGEFAULT);
-      new_Q.l |= BIT( INT_PAGEFAULT);
+    if (p&PAGE_TABLE_ERROR)
+    { g[rQ].l |= PT_BIT;
+      new_Q.l |= PT_BIT; 
+      return 0;
+    }
+    else if (p==0) 
+    { g[rQ].l |= PA_BIT;
+      new_Q.l |= PA_BIT;
       return 0;
     }
     else if (!(p&WRITE_BIT)) 
-    { g[rQ].h |= BIT(INT_WRITE);
-      new_Q.h |= BIT(INT_WRITE);
+    { g[rQ].h |= PW_BIT;
+      new_Q.h |= PW_BIT;
       return 0;
     }
     last_d_addr.h = last.h;
@@ -598,7 +626,7 @@ int store_data(int size,octa data, octa address)
   if (address.h & 0xFFFF0000)
     store_uncached_data(size,data,address);
   else
-    store_cached_data(size,data,address);
+     store_cached_data(size,data,address);
   return 1;
 }
 
@@ -613,7 +641,7 @@ void write_data(octa address,int size)
     address.h= address.h&0x7FFFFFFF;
   else
   { int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT ||p==0) 
+    if (p&PAGE_TABLE_ERROR ||p==0) 
       return;
   }
   if (address.h & 0xFFFF0000)
@@ -630,7 +658,7 @@ void delete_data(octa address,int size)
     address.h= address.h&0x7FFFFFFF;
   else
   { int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT ||p==0) 
+    if (p&PAGE_TABLE_ERROR ||p==0) 
       return;
   }
   if (address.h & 0xFFFF0000)
@@ -647,7 +675,7 @@ void delete_instruction(octa address,int size)
     address.h= address.h&0x7FFFFFFF;
   else
   { int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT ||p==0) 
+    if (p&PAGE_TABLE_ERROR ||p==0) 
       return;
   }
   if (address.h & 0xFFFF0000)
@@ -664,7 +692,7 @@ void prego_instruction(octa address,int size)
     address.h= address.h&0x7FFFFFFF;
   else
   { int p = translate_address(&address, &data_tc);
-    if (p&PAGE_FAULT_BIT || !(p&EXEC_BIT)) 
+    if (p&PAGE_TABLE_ERROR || !(p&EXEC_BIT)) 
       return;
   }
   if (address.h & 0xFFFF0000)

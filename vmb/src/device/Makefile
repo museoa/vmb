@@ -11,7 +11,8 @@ utilities:
 
 
 $(PROG): $(PROG).c  maintemplate.c utilities
-	$(CC) $(CFLAGS) -I$(UTILDIR) maintemplate.c $(PROG).c  -L$(UTILDIR) -lvmb -lpthread  -o $(PROG)
+	$(CC) $(CFLAGS) -I$(UTILDIR) maintemplate.c $(PROG).c  \
+	-L$(UTILDIR) -lvmb -lpthread -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)

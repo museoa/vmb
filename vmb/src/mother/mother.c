@@ -42,7 +42,6 @@ HMENU hMenu;
 HBITMAP hon, hoff, hconnect;
 device_info vmb = {0};
 
-static int server_terminating=0;
 
 HWND hpower;
 
@@ -66,7 +65,9 @@ HWND hpower;
 #include "message.h"
 #include "bus-arith.h"
 
-char version[] = "$Revision: 1.26 $ $Date: 2010-09-09 11:47:55 $";
+extern int vmb_power_flag;
+
+char version[] = "$Revision: 1.27 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
   "\n"
@@ -112,6 +113,7 @@ static int exitflag = 0;
 static int powerflag = 0;
 static int read_ops = 0;
 static int write_ops = 0;
+static int server_terminating=0;
 
 static int max_slot = 0;	/* Strict upper Bound on Slot Numbers */
 static int mother_fd = INVALID_SOCKET;	/* Server File Descriptor */
@@ -219,7 +221,7 @@ write_to_slot (int i)
 {
   if (send_msg(slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,mpayload) <= 0)
   { if (server_terminating) return 1;
-  vmb_error2 (__LINE__, "Unable to deliver message to:", slot[i].name);
+  vmb_error2 (__LINE__, "Unable to deliver message to:", (char *)slot[i].name);
     remove_slot (i);
     return 1;
   }
@@ -302,7 +304,7 @@ disconnect_device (int slotnr)
    if (!bus_unregister (slot[slotnr].fd))
     vmb_debugi(VMB_DEBUG_NOTIFY,"Shutdown of Slot %d", slotnr);
   else if (!server_terminating)
-	  vmb_error2(__LINE__,"Unable to shut down slot",slot[slotnr].name);
+	  vmb_error2(__LINE__,"Unable to shut down slot",(char *)slot[slotnr].name);
 
   if (bus_disconnect (slot[slotnr].fd) >= 0)
     vmb_debugi(VMB_DEBUG_PROGRESS,"Closed socket from Slot %d : Successful", slotnr);
@@ -510,6 +512,7 @@ close_slot (int i)
     vmb_error(__LINE__,"Invalid slot number");
 }
 
+#if 0
 static void make_blocking(int fd)
 {  /* make the socket blocking */
 #ifdef WIN32
@@ -533,10 +536,11 @@ static void make_blocking(int fd)
   }
 #endif
 }
+#endif
 
 static int
 connect_new_device (void)
-/* return true if successful possibly more connections can be made */
+/* return true if successful, possibly more connections can be made */
 {
   int i;
   for (i = 0; i < SLOTS; i++)
@@ -546,8 +550,10 @@ connect_new_device (void)
       addrlen = sizeof (slot[i].addr);
       fd = (int)accept (mother_fd, &(slot[i].addr), &addrlen);
 	  if (!valid_socket (fd))
-	  { int error = WSAGetLastError();
-        if (error == WSAEWOULDBLOCK) return 0; /* we are done */
+	  {
+#ifdef WIN32
+	    int error = WSAGetLastError();
+            if (error == WSAEWOULDBLOCK) return 0; /* we are done */
 		if (error == WSAECONNRESET ||
 			error == WSAEINTR ||
 			error == WSAEINPROGRESS ||
@@ -556,7 +562,8 @@ connect_new_device (void)
 		{ vmb_debug(VMB_DEBUG_NOTIFY,"Connection delays");
 			return 1; /* try again */
 		}
-		vmb_debug(VMB_DEBUG_NOTIFY,"Unsuccessful connection attempt");
+#endif
+	    vmb_debug(VMB_DEBUG_NOTIFY,"Unsuccessful connection attempt");
 	    return 0; /* give up */
 	  }
 	  slot[i].fd = fd; 
@@ -572,7 +579,9 @@ connect_new_device (void)
 	setsockopt (slot[i].fd, IPPROTO_TCP, TCP_NODELAY,
 		    (char *) &tmp, sizeof (tmp));
       }
-/*	  make_blocking(slot[i].fd);  */
+#if 0
+	  make_blocking(slot[i].fd);  
+#endif
       return 1;
     }
   vmb_error(__LINE__,"Can't connect any more client's");
@@ -971,6 +980,7 @@ WinMain (HINSTANCE hInstance,
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
   create_server ();
   do_commands ();
+  if (vmb_power_flag) power_all(1);
 
   while (GetMessage (&msg, NULL, 0, 0))
     if (!TranslateAccelerator (msg.hwnd, hAccelTable, &msg))
@@ -1071,6 +1081,7 @@ process_stdin ()
     }
 }
 
+
 int
 main (int argc, char *argv[])
 {
@@ -1079,6 +1090,7 @@ main (int argc, char *argv[])
   initialize_slots ();
   create_server ();
   do_commands ();
+  if (vmb_power_flag) power_all(1);
   while (!exitflag)
   {
     build_read_fdset ();

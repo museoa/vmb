@@ -116,7 +116,7 @@ void get_settings(void)
  
 #endif
 
-char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:02 $";
+char version[]="$Revision: 1.6 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"
@@ -249,57 +249,30 @@ static void execute_command(int cmd)
 
 
 
-unsigned char *get_payload(unsigned int offset,int size)
+unsigned char *disk_get_payload(unsigned int offset,int size)
 {   return mem+offset;
 }
 
-void put_payload(unsigned int offset,int size, unsigned char *payload)
+void disk_put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(mem+offset,payload,size);
- vmb_debugi(0, "writing to %d",offset);
- vmb_debugi(0, " %d bytes", size);
+  vmb_debugi(0, "writing to %d",offset);
+  vmb_debugi(0, " %d bytes", size);
   if (offset+size > HD_COMMAND && offset <  HD_COMMAND+8)
-   execute_command(disk_command);
-}
-
-int reply_payload(unsigned char address[8], int size,unsigned char *payload)
-{ return 1;
+    execute_command(disk_command);
 }
 
 
 
-void init_device(void)
-{  vmb_size = HD_SIZE;
-   vmb_debugi(0, "address hi: %x",vmb_address_hi);
-   vmb_debugi(0, "address lo: %x",vmb_address_lo);
-   vmb_debugi(0, "size: %d",vmb_size);
-   close(0);
+void init_device(device_info *vmb)
+{ vmb_size = HD_SIZE;
+ close (0);
+  vmb->poweron=vmb_poweron;
+  vmb->poweroff=vmb_poweroff;
+  vmb->disconnected=vmb_disconnected;
+  vmb->reset=vmb_reset;
+  vmb->terminate=vmb_terminate;
+  vmb->put_payload=disk_put_payload;
+  vmb->get_payload=disk_get_payload;
 }
 
-void process_input(unsigned char c) 
-{
-}
-
-int process_interrupt(unsigned char interrupt)
-{ return 0;
-}	
-
-int process_poweron(void)
-{ 
-#ifdef WIN32
-	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon); 
-#endif
-	return 0;
-}
-
-int process_poweroff(void)
-{  
-#ifdef WIN32
-  SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
-#endif
-  return 0;
-}
-
-int process_reset(void)
-{ return 0;
-}
 

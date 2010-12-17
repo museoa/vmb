@@ -14,8 +14,8 @@ utilities:
 	$(MAKE) -C  $(OPTDIR)
 
 
-$(PROG): $(PROG).c  utilities
-	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
+$(PROG): $(PROG).c optiontab.c utilities
+	$(CC) $(CFLAGS) $(PROG).c optiontab.c $(LDFLAGS) -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)

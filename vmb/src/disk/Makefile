@@ -2,7 +2,7 @@ PROG= disk
 UTILDIR = ../util
 OPTDIR = ../opt
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
-LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
+LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread 
 CC = gcc
 
 all: $(PROG) TAGS

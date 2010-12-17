@@ -30,23 +30,25 @@
 #include "option.h"
 #include "param.h"
 
+device_info vmb = {0};
 
 int main(int argc, char *argv[])
 {
- param_init(argc, argv);
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
- close(0);
-  vmb_debugi(0, "address hi: %x",vmb_address_hi);
-  vmb_debugi(0, "address lo: %x",vmb_address_lo);
+  param_init(argc, argv);
+  vmb_debugs(0, "%s ",vmb_program_name);
+  vmb_debugs(0, "%s ", version);
+  vmb_debugs(0, "host: %s ",host);
+  vmb_debugi(0, "port: %d ",port);
+  close(0);
+  vmb_debugi(0, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(0, "address lo: %x",LO32(vmb_address));
   vmb_debugi(0, "size: %x ",vmb_size);
 
- vmb_connect(host,port); 
-  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+  vmb_connect(&vmb, host,port); 
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
                0, 0, vmb_program_name);
 
- vmb_wait_for_disconnect();
- return 0;
+  vmb_wait_for_disconnect(&vmb);
+  return 0;
 }
+

@@ -31,23 +31,19 @@
 #include "param.h"
 
 device_info vmb = {0};
-extern void init_device(device_info *vmb);
 
 
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);
-  if (vmb_verbose_flag) vmb_debug_mask=0;
-  else vmb_debug_mask=VMB_DEBUG_DEFAULT;
-  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
-  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
-  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
-  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  vmb_debugs(0, "%s ",vmb_program_name);
+  vmb_debugs(0, "%s ", version);
+  vmb_debugs(0, "host: %s ",host);
+  vmb_debugi(0, "port: %d ",port);
   close(0);
-  init_device(&vmb);
-  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
-  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
-  vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
+  vmb_debugi(0, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(0, "address lo: %x",LO32(vmb_address));
+  vmb_debugi(0, "size: %x ",vmb_size);
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,

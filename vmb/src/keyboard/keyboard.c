@@ -42,7 +42,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.12 $ $Date: 2010-03-02 10:48:23 $";
+char version[]="$Revision: 1.13 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"
@@ -71,6 +71,8 @@ char howto[] =
 "The complete ocatbyte will be reset to zero after a read operation to ZZ.\n"
 "\n"
 ;
+
+extern device_info vmb;
 
 static unsigned char data[8];
 #define ERROR 0
@@ -206,6 +208,9 @@ void init_device(device_info *vmb)
 
 #ifdef WIN32
 #else
+
+device_info vmb = {0};
+
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);
@@ -214,16 +219,16 @@ int main(int argc, char *argv[])
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
   vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
   init_device(&vmb);
-  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",vmb_address_hi);
-  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",vmb_address_lo);
+  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
   
   vmb_connect(&vmb,host,port); 
 
-  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
                0, 0, vmb_program_name);
 
-  while (vmb_connected)
+  while (vmb.connected)
   { unsigned char c;
     int i;
     vmb_debug(VMB_DEBUG_INFO, "reading character:");
@@ -237,7 +242,7 @@ int main(int argc, char *argv[])
     vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
     process_input(c);
   }
-  vmb_disconnect();
+  vmb_disconnect(&vmb);
   return 0;
 }
 

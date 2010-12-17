@@ -59,27 +59,19 @@ static void ram_clean(void)
    the ram. Hence no synchronization is needed.
 */
 
-void vmb_poweron(void)
+void device_poweron(void)
 /* this function is called when the virtual power is turned on */
 {  ram_clean();
 }
 
-void vmb_poweroff(void)
-/* this function is called when the virtual power is turned off */
-{ /* do nothing */
-}
 
-void vmb_reset(void)
+void device_reset(void)
 /* this function is called when the virtual reset button is pressed */
 { ram_clean();
 }
 
-void vmb_interrupt(unsigned char interrupt)
-/* this function is called when the device receives a virtual interrupt */
-{ /* ignore the interrupt */
-}
 
-unsigned char *vmb_get_payload(unsigned int offset,int size)
+unsigned char *device_get_payload(unsigned int offset,int size)
 /* this function is called if some other device on the virtual bus
    wants to read size byte from this device at the given offset.
    offset and size are checked to fall completely within the
@@ -89,7 +81,7 @@ unsigned char *vmb_get_payload(unsigned int offset,int size)
 { return ram+offset;
 }
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
+void device_put_payload(unsigned int offset,int size, unsigned char *payload)
 /* this function is called if some other device on the virtual bus
    wants to write size byte to this device at the given offset.
    The new byte are contained in the payload.
@@ -99,19 +91,16 @@ void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
 {  memmove(ram+offset,payload,size);
 }
 
-void vmb_unknown(unsigned char type,
-                 unsigned char size,
-                 unsigned char slot,
-                 unsigned char id,
-                 unsigned int offset,
-                 unsigned char *payload)
-/* this function is called if some other device on the virtual bus
-   has send some unknown message to this device.
-   The offset is checked to fall within the
-   address space ocupied by this device.
-   The other information, size, slot, and payload are unchanged
-   from the message received from the virtual bus.
-*/
-{ /* ignore the message */ 
+
+
+void init_device(device_info *vmb)
+{  vmb->poweron=device_poweron;
+ vmb->poweroff=vmb_poweroff; /* use default */
+   vmb->disconnected=vmb_disconnected;  /* use default */
+   vmb->reset=device_reset;
+   vmb->terminate=vmb_terminate; /* use default */
+   vmb->get_payload=device_get_payload;
+   vmb->put_payload=device_put_payload;
+
 }
 

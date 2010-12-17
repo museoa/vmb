@@ -38,8 +38,9 @@
 #include "param.h"
 #include "vmb.h"
 
+device_info vmb = {0};
 
-char version[]="$Revision: 1.5 $ $Date: 2008-09-16 09:11:05 $";
+char version[]="$Revision: 1.6 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"
@@ -455,28 +456,29 @@ void vmb_poweroff(void)
 
 void vmb_reset(void)
 { memset(vram,0, VRAMSIZE);
- if (vmb_power)
+ if (vmb.power)
     vram_blank();
 }
 
 
 int main(int argc, char *argv[])
 {
- param_init(argc, argv);
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
- init_device();
- vmb_debugi(0, "address hi: %x",vmb_address_hi);
- vmb_debugi(0, "address lo: %x",vmb_address_lo);
- vmb_debugi(0, "size: %x ",vmb_size);
- 
- vmb_connect(host,port); 
- vmb_register(vmb_address_hi,vmb_address_lo,vmb_size, 0, 0, vmb_program_name);
+  param_init(argc, argv);
+  vmb_debugs(0, "%s ",vmb_program_name);
+  vmb_debugs(0, "%s ", version);
+  vmb_debugs(0, "host: %s ",host);
+  vmb_debugi(0, "port: %d ",port);
+  close(0);
+  vmb_debugi(0, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(0, "address lo: %x",LO32(vmb_address));
+  vmb_debugi(0, "size: %x ",vmb_size);
 
- vmb_wait_for_disconnect();
- vram_fini ();
- return 0;
+  vmb_connect(&vmb, host,port); 
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
+               0, 0, vmb_program_name);
+
+  vmb_wait_for_disconnect(&vmb);
+  vram_fini ();
+  return 0;
 }
 

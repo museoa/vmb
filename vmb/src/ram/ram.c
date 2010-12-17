@@ -33,7 +33,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 
 
-char version[]="$Revision: 1.9 $ $Date: 2010-03-02 10:48:24 $";
+char version[]="$Revision: 1.10 $ $Date: 2010-12-17 08:52:26 $";
 
 char howto[] =
 "\n"

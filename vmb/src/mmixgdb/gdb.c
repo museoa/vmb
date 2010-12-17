@@ -32,6 +32,7 @@
 #include <signal.h>
 #include "vmb.h"
 #include "mmix-internals.h"
+#include "mmix-bus.h"
 #include "gdb.h"
 #include "bus-arith.h"
 #include "breaks.h"
@@ -394,6 +395,8 @@ static int ocmp(octa x, octa y)
 }
 /* auxiliar function to read and write memory */
 
+
+
 int mmgetchars(unsigned char *buf,
 	       int size,
 	       octa addr,
@@ -403,6 +406,12 @@ int mmgetchars(unsigned char *buf,
   register int m;
   octa x;
   octa a;
+
+  if (addr.h==0xFFFFFFFF || !valid_address(addr) ) /* gdb goes over segment boundaries */
+  { memset(buf,0,size);
+    return size;
+  }
+
   for (p=buf,m=0,a=addr; m<size;) {
     if ((a.l&0x7) || m+8>size)
       { /* Read and store one byte; |return| if done */
@@ -440,6 +449,8 @@ int mmgetchars(unsigned char *buf,
   return size;
 }
 
+int write_to_text = 0;
+
 void mmputchars(unsigned char *buf,
 		int size,
 		octa addr)
@@ -448,6 +459,10 @@ void mmputchars(unsigned char *buf,
   register int m;
   octa x;
   octa a;
+ 
+  if (addr.h==0xFFFFFFFF || !valid_address(addr) ) /* gdb goes over segment boundaries */
+    return;
+ 
   for (p=buf,m=0,a=addr; m<size;) {
     if ((a.l&0x7) || m+8>size) /* Load and write one byte */
       {
@@ -466,7 +481,7 @@ void mmputchars(unsigned char *buf,
 	m+=8,a=incr(a,8);
       }
   }
-  write_data(addr, size);
+  if ((addr.h&0xe0000000) == 0) write_to_text = 1;
 }
 
 /* gdb commands to read and write memory */
@@ -641,6 +656,7 @@ static void setBreakPoint(char *buffer)
 	OK_msg(buffer);
 }
 
+octa save_rQ, save_newrQ;
 
 int handle_gdb_commands(void)
 /* the command is in the buffer,
@@ -701,6 +717,10 @@ int handle_gdb_commands(void)
      case '?':
          termination_msg(buffer);
        break;
+#if 1
+       /* disabling p and P command will force gdb to use the more efficient 
+          (at least for multiple registers) g and G command 
+       */
      case 'p':
 	/* pn... -- read reg (reserved)
  	  Reply:
@@ -722,6 +742,7 @@ int handle_gdb_commands(void)
 	*/
        setSingleRegister(buffer);
        break;
+#endif
      case 'H':
 	/* Hct
            Set thread for subsequent operations (m, M, g, G,
@@ -776,7 +797,8 @@ int handle_gdb_commands(void)
 
 int interact_with_gdb(int signal)
   /* this function should be called when the simulator stops */
-{ break_level=0;
+{ int r;
+  break_level=0;
   if (answer_expected)
   { char buffer[PBUFSIZ];
     gdb_signal = signal;
@@ -784,5 +806,15 @@ int interact_with_gdb(int signal)
     putpkt (buffer);
     answer_expected = 0;
   }
-  return handle_gdb_commands();
+  save_rQ = g[rQ];   /* debuger actions by default do not change rQ */
+  save_newrQ = new_Q;
+  write_to_text = 0;
+  r = handle_gdb_commands();
+  g[rQ] = save_rQ;
+  new_Q = save_newrQ;
+  if (write_to_text) {
+    write_all_data_cache();
+    clear_all_instruction_cache();
+  }
+  return r;
 }
