@@ -36,16 +36,16 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     return 0;
   case WM_PAINT:
     { PAINTSTRUCT ps;
-      HDC hdc;
-      hdc = BeginPaint (hWnd, &ps);
-      if (hBmp)
-      {	HDC memdc = CreateCompatibleDC(NULL);
+      HDC hdc = BeginPaint (hWnd, &ps);
+	  if (hBmp)
+	  { HDC memdc = CreateCompatibleDC(NULL);
         HBITMAP h = (HBITMAP)SelectObject(memdc, hBmp);
         BITMAP bm;
         GetObject(hBmp, sizeof(bm), &bm);
         BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, memdc, 0, 0, SRCCOPY);
         SelectObject(memdc, h);
-      }
+	    DeleteDC(memdc);
+	  }
       EndPaint (hWnd, &ps);
     }
     return 0;

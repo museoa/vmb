@@ -115,8 +115,8 @@ static int strtoint(char *arg)
 	while (isxdigit(*arg))
 	{ unsigned int x;
 	  if (isdigit(*arg)) x = *arg - '0'; 
-	  else if (isupper(*arg)) x = *arg - 'A';
-	  else x = *arg -'a';
+	  else if (isupper(*arg)) x = *arg - 'A' +10;
+	  else x = *arg -'a'+10;
 	  r = (r<<4) + x;
 	  arg++;
 	}

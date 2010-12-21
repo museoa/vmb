@@ -5,7 +5,7 @@ SUBDIRS  = util opt device mother\
            mmix mmixgdb \
            screen keyboard vram \
            ram rom flash \
-           disk hostdisk   
+           disk hostdisk led  
 
 .PHONY: hardware $(SUBDIRS) clean
      
