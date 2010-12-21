@@ -40,10 +40,10 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 
+int nleds=8;
+unsigned char led;
 
-
-
-char version[]="$Revision: 1.1 $ $Date: 2010-12-17 10:05:48 $";
+char version[]="$Revision: 1.2 $ $Date: 2010-12-21 16:50:52 $";
 
 char howto[] =
 "\n"
@@ -53,8 +53,14 @@ char howto[] =
 "\n"
 ;
 
-static unsigned char led;
 
+#ifdef WIN32
+
+void display_led( unsigned char diff, unsigned char led)
+{  InvalidateRect(hMainWnd,NULL,FALSE); 
+}
+
+#else
 void display_led(unsigned char diff, unsigned char led)
 { int i;
   for (i=7;i>=0;i--)
@@ -64,7 +70,7 @@ void display_led(unsigned char diff, unsigned char led)
       printf("OFF ");
   printf("\n");
 }
-
+#endif
 
 
 /* Interface to the virtual motherboard */

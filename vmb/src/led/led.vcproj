@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\optiontab.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winmain.c"
 				>
 			</File>
@@ -215,23 +219,27 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\connect.bmp"
-				>
-			</File>
-			<File
 				RelativePath=".\icon.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\main.bmp"
+				RelativePath=".\ledDisconnect.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\off.bmp"
+				RelativePath=".\ledOffB.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\on.bmp"
+				RelativePath=".\ledOffW.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\ledOnB.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\ledOnW.bmp"
 				>
 			</File>
 			<File
