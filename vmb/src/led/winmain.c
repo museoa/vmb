@@ -12,12 +12,11 @@
 
 
 extern unsigned char led;
-extern void open_file(void);
+extern int nleds; /* number of leds to display */
+extern int colors[];
 
 HBITMAP ledOnB, ledOffB, ledOnW, ledOffW, ledDisconnected;
-extern int nleds; /* number of leds to display */
-int colors[8] = {RGB(0x80,0x80,0xFF),RGB(0xFF,0x80,0x80),RGB(0,0xFF,0xFF),RGB(0xFF,0,0xFF),
-                 RGB(0xFF,0xFF,0),RGB(0,0,0xFF),RGB(0,0xFF,0),RGB(0xFF,0,0)};
+
 int hcolors[8] = {IDC_COLOR0, IDC_COLOR1, IDC_COLOR2, IDC_COLOR3, 
                   IDC_COLOR4, IDC_COLOR5, IDC_COLOR6, IDC_COLOR7};
 HBITMAP hOn[8] = {0};

@@ -42,8 +42,13 @@ extern HWND hMainWnd;
 
 int nleds=8;
 unsigned char led;
+#ifndef RGB
+#define RGB(r,g,b) ((r)|((g)<<8)|((b)<<16))
+#endif
+int colors[8] = {RGB(0x80,0x80,0xFF),RGB(0xFF,0x80,0x80),RGB(0,0xFF,0xFF),RGB(0xFF,0,0xFF),
+                 RGB(0xFF,0xFF,0),RGB(0,0,0xFF),RGB(0,0xFF,0),RGB(0xFF,0,0)};
 
-char version[]="$Revision: 1.2 $ $Date: 2010-12-21 16:50:52 $";
+char version[]="$Revision: 1.3 $ $Date: 2010-12-23 16:43:44 $";
 
 char howto[] =
 "\n"

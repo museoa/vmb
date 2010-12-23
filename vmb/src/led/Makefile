@@ -15,7 +15,7 @@ utilities:
 
 
 $(PROG): $(PROG).c  main.c utilities
-	$(CC) $(CFLAGS) $(PROG).c main.c $(LDFLAGS) -o $(PROG)
+	$(CC) $(CFLAGS) $(PROG).c main.c optiontab.c $(LDFLAGS) -o $(PROG)
 
 
 TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
