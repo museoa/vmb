@@ -1,8 +1,108 @@
 <HTML>
 <BODY>
-<H1>Timer Device Specification</H1>
+<H1>New Timer Device Specification</H1>
 
-<H2>Memmory Layout</H2>
+<H2>Memory Layout</H2>
+<p>
+<table border=1>
+<tr><th>Byte<th>Mode<th>Name<th>Description
+<tr><td>00-01<td>R <td>y<td> current year
+<tr><td>02<td>R <td>m<td> current month (0 = January, 1 = February, ... , 11 = December)
+<tr><td>03   <td>R <td>d<td> current day
+<tr><td>04   <td>R <td> <td> always zero
+<tr><td>05   <td>R <td>dst<td> 1 if daylight saving time else 0
+<tr><td>06   <td>R <td>yd<td> current day of the year (0-355)
+<tr><td>07   <td>R <td>wd<td> current day of the week (0 = Sunday ... 6 = Saturday)
+<tr><td>08   <td>R <td> <td> always zero
+<tr><td>09   <td>R <td>h<td> current hour
+<tr><td>0A   <td>R <td>m<td> current minute
+<tr><td>0B   <td>R <td>s<td> current second
+<tr><td>0C-0F<td>R <td>ms<td> current total time since midnight in milliseconds
+<tr><td>10-13<td>RW<td>t<td> Offset: number of milliseconds to wait for interrupt
+<tr><td>14-17<td>RW<td>i<td> Interval: number of milliseconds to repeat interrupt
+<tr><td>18-1B<td>RW<td>t0<td> t0: base time for next interrupt in milliseconds
+<tr><td>1C-1F<td>RW<td>dt<td> dt: delta time for next  interrupt in milliseconds
+</table>
+
+<H2>Current Time and Date</H2>
+The values y, m, d, dst, yd, wd, h, m, s, ms specify the current time
+and date as given by the host operating system.
+These values are read only.
+
+<H2>Timer Interrupts</H2>
+The timer uses the interval i and offset t (both in milliseconds)
+to specify timer interrupts. If t is set to a non-zero value, the timer
+will wait t milliseconds  and then raise an interrupt.
+If at the time of the interrupt i has a non-zero value, the interrupt will 
+be repeated i milliseconds later again (until i is set to zero).
+<p>
+If the timer offset t is set while the timer is already waiting,
+the waiting period will start over from zero to the new value of t.
+<p>
+If the timer offset t is set to zero, there will be no further
+interrupts.
+<p>
+Reading the timer offset t will return zero, if there is no interrupt pending. It will return a nonzero value if there is an interrupt pending. The value will not reflect the time remaining until the interrupt occurs but the value last written to t. To obtain the remaining time you should read t0 and dt (see below) and compare the result with the value read from ms.
+<p>
+Reading the timer interval i will return a nonzero value if the inerrupt will repeat after it ist raised. It will return zero if there is only a single (or none) interrupt in the future.
+<p> 
+If the timer interval i is set to a different value, this change will have
+an effect only at the time the next interrupt occurs.
+<p>
+The values t0 and dt are an alternative way to specify t. Setting t will
+automatically set t0 and dt, while setting t0 and/or dt will automatically
+set t.
+<p>
+Storing a nonzero value to either t0 or dt will cause the timer device to
+wait until the absolute time ms reaches the value t0+dt and then raise an
+interrupt. Setting t0 and/or dt is (almost) the same as setting t to t0+dt-ms.
+<p>
+There is a slight difference between the use of t and of t0/dt.
+An interrupt will occur immediately if t0+dt is less or equal 
+to ms (a time in the past).  
+Storing to t0/dt can therefore not be used to disable or stop interrupts.
+For this  purpose store zero to t (t is always in the future).
+<p>
+In the other direction, storing a nonzero value to t is 
+the same as storing ms to t0 and t to dt.
+<p>
+The use of t0 and dt, is necessary if repeated use of the timer should not
+result in a timer drift. If, for example, an interrupt is needed at the beginning
+of every second and 10 millisecond after the full second, using the timer interval
+is not efficient. Using just the offset t will cause the timer to slowly
+drift because of the computation needed between sending the interrupt and reseting
+it again. In this case, the application should read ms at the very beginning
+of the program keeping the value in a local base variable. Then it can call for 
+the first interrupts at t0=base, dt=1000 a second later. The next interrupt is then
+requested at t0=base+1000, dt=10. Further interrupts are called for at
+t0=base+1010, dt=990; t0=base+2000,dt=10; ...
+The time to reschedule the interrupt will not cause a timer drift, since the time
+of the interrupt is specified as an absolute time.
+
+<H2>Timer Configuration</H2>
+The timer has the following configurable parameters:
+<p>
+<table>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> default <td> address where the resource is located </tr>
+<tr> <td>interrupt <td> default <td>interrupt send by device  </tr>
+<tr> <td> x        <td> 0<td>the x position of the window </tr>
+<tr> <td> y        <td> 0<td>the y position of the window </tr>
+<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+These should be set in default.mmc
+Later versions of the timer device might specify a resolution, to change
+the units of ms, t, i, t0 an dt. Currently, only a millisecond timer is available.
+
+<H1>OLD Timer Device Specification</H1>
+
+<H2>Memory Layout</H2>
 <p>
 <table border=1>
 <tr><th>Byte<th>Mode<th>Name<th>Description
@@ -22,7 +122,7 @@ milliseconds (1/1000 second).
 <p>
 If the timer interval is set to a value n, where n is not zero,
 the timer will wait n milliseconds and then send an interrupt
-with a configuarble interupt number. Then the timer will wait
+with a configurable interrupt number. Then the timer will wait
 again and send further interrupts
 <p>
 If the timer interval is set while the timer is already waiting,
@@ -37,7 +137,7 @@ and date as given by the host operating system.
 These values are read only.
 
 <H2>Timer Configuration</H2>
-The timer has the following configuarble parameters:
+The timer has the following configurable parameters:
 <p>
 <table>
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
