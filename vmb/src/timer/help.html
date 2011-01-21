@@ -10,14 +10,14 @@
 <tr><td>02<td>R <td>m<td> current month (0 = January, 1 = February, ... , 11 = December)
 <tr><td>03   <td>R <td>d<td> current day
 <tr><td>04   <td>R <td> <td> always zero
-<tr><td>05   <td>R <td>dst<td> 1 if daylight saving time else 0
-<tr><td>06   <td>R <td>yd<td> current day of the year (0-355)
+<tr><td>05   <td>R <td>dst<td> (unix only) 1 if daylight saving time else 0
+<tr><td>06   <td>R <td>yd<td> (unix only) current day of the year (0-355)
 <tr><td>07   <td>R <td>wd<td> current day of the week (0 = Sunday ... 6 = Saturday)
 <tr><td>08   <td>R <td> <td> always zero
 <tr><td>09   <td>R <td>h<td> current hour
 <tr><td>0A   <td>R <td>m<td> current minute
 <tr><td>0B   <td>R <td>s<td> current second
-<tr><td>0C-0F<td>R <td>ms<td> current total time since midnight in milliseconds
+<tr><td>0C-0F<td>R <td>ms<td> current total time since midnight on the day of system start in milliseconds
 <tr><td>10-13<td>RW<td>t<td> Offset: number of milliseconds to wait for interrupt
 <tr><td>14-17<td>RW<td>i<td> Interval: number of milliseconds to repeat interrupt
 <tr><td>18-1B<td>RW<td>t0<td> t0: base time for next interrupt in milliseconds
@@ -26,7 +26,8 @@
 
 <H2>Current Time and Date</H2>
 The values y, m, d, dst, yd, wd, h, m, s, ms specify the current time
-and date as given by the host operating system.
+and date as given by the host operating system. The value of ms will grow larger than the number of milliseconds of a single day, if the system runs over midnight. 
+It will wrap around eventually after approximately 50 days.
 These values are read only.
 
 <H2>Timer Interrupts</H2>
@@ -53,7 +54,7 @@ The values t0 and dt are an alternative way to specify t. Setting t will
 automatically set t0 and dt, while setting t0 and/or dt will automatically
 set t.
 <p>
-Storing a nonzero value to either t0 or dt will cause the timer device to
+Storing a value to either t0 or dt will cause the timer device to
 wait until the absolute time ms reaches the value t0+dt and then raise an
 interrupt. Setting t0 and/or dt is (almost) the same as setting t to t0+dt-ms.
 <p>
