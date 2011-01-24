@@ -56,7 +56,10 @@ set t.
 <p>
 Storing a value to either t0 or dt will cause the timer device to
 wait until the absolute time ms reaches the value t0+dt and then raise an
-interrupt. Setting t0 and/or dt is (almost) the same as setting t to t0+dt-ms.
+interrupt. The value of t0 is allways assumed to be in the past. So even if the value ms
+wraps around you can get reliable timer interrupts. 
+Setting t0 and/or dt is (almost, except for setting t to zero)
+the same as setting t to t0+dt-ms.
 <p>
 There is a slight difference between the use of t and of t0/dt.
 An interrupt will occur immediately if t0+dt is less or equal 
@@ -66,6 +69,9 @@ For this  purpose store zero to t (t is always in the future).
 <p>
 In the other direction, storing a nonzero value to t is 
 the same as storing ms to t0 and t to dt.
+<p>
+As soon a the timer expires, t0 is set to t0+dt and dt is set to ti.
+If ti is not zero, this will also schedule the next interrupt.
 <p>
 The use of t0 and dt, is necessary if repeated use of the timer should not
 result in a timer drift. If, for example, an interrupt is needed at the beginning

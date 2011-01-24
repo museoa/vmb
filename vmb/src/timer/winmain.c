@@ -168,21 +168,23 @@ void timer_start(void)
     PostMessage(hMainWnd,WM_USER+6,0,0); /* Start the timer */
 }
 
+void update_display(void);
+
 void timer_signal()
 /* raise the timer interrupt after the timer has expired */
 { vmb_raise_interrupt(&vmb,interrupt);
   vmb_debugi(VMB_DEBUG_INFO,"Timer expired (interrupt %X)",interrupt);
+  t0 = t0+dt;
+  dt = ti;
+  SETT0(t0);
+  SETDT(dt);
   if (ti==0) 
   { tt = 0;
     SETTT(0);
+	update_display();
   }
   else
-  { t0 = t0+dt;
-    dt = ti;
-    SETT0(t0);
-	SETDT(dt);
     timer_start();
-  }
 }
 
 INT_PTR CALLBACK   
@@ -215,9 +217,20 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
-static HWND hTime;
+
 static HFONT hTimeFont;
 static HBITMAP hblink,hold;
+
+static HWND hTime;
+void update_display(void)
+{ static char timestr[20] = {0};
+  static unsigned int last_dt=0;
+  if (last_dt!=dt)
+	  { sprintf(timestr,"%6.3f",dt/1000.0);
+	    SetWindowText(hTime,timestr);
+		last_dt=dt;
+	  }
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { static HDC BitmapDC ;
@@ -241,26 +254,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	vmb_debug(VMB_DEBUG_INFO,"Timer stoped");
 	return 0;
   case WM_USER+6: /* Start Timer */
-	  { static char timestr[20] = {0};
+	  { 
 	  unsigned int d,ms;
-	  static unsigned int last_dt=0;
-	  if (last_dt!=dt)
-	  { sprintf(timestr,"%6.3f",dt/1000.0);
-	    SetWindowText(hTime,timestr);
-		last_dt=dt;
-	  }
+	  update_display();
 	  ms = timer_get_now(); /* might be too small by timer_delay */
 	  d = ms-t0; /* t0 is always in the past */
 	  if (d>=dt)
-	  {	vmb_debugi(VMB_DEBUG_NOTIFY,"Timer signaled in the past t0: %u",t0);
-	    vmb_debugi(VMB_DEBUG_NOTIFY,"Timer signaled in the past now: %u",ms);
+	  {	vmb_debugi(VMB_DEBUG_NOTIFY,"Timer signaled in the past: %u",d-dt);
 		if (time_delay>0)
 	    { expire_time=ms+time_delay;
 	      SetTimer(hMainWnd,1,time_delay,NULL);
 	  	  vmb_debugi(VMB_DEBUG_INFO,"Timer started %u",dt-d);
 	    }
 		else
-		  timer_signal(); /* too late */
+		timer_signal(); /* too late */
 	  }
 	  else
 	  { expire_time=t0+dt;
@@ -274,6 +281,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  { KillTimer(hMainWnd,1); 
 	    advance_time(expire_time);
 	    timer_signal();
+		if (ti==0)
 		vmb_debugi(VMB_DEBUG_INFO,"Timer signaled at %u",timer_get_now());
 #define BLINKTIME 200
 		if (ti>2*BLINKTIME || ti==0)
@@ -331,7 +339,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-char version[]="$Revision: 1.12 $ $Date: 2011-01-21 08:41:52 $";
+char version[]="$Revision: 1.13 $ $Date: 2011-01-24 11:35:23 $";
 
 char howto[] =
 "\n"
@@ -365,7 +373,7 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
   if (offset<0x10)  /* the first 16 byte are read only */
   { int d = 0x10-offset;
 	offset = offset+d;
-	size = size+d;
+	size = size-d;
   }
   if (size>0)
   { int to_tt=offset<0x14; /* write to offset */
