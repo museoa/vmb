@@ -13,28 +13,32 @@ LD=$(MMIXDIR)/mmix-ld
 CFLAGS = -ggdb -D_REENTRANT -Wall 
 #CFLAGS = -O3 -D_REENTRANT -Wall 
 
-PROG= mmix
 UTILDIR = ../util
 CC = gcc
 INCDIRS = -I$(UTILDIR)
 LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
-all: mmix mmixal mmoboot
+all: mmix gmmix mmixal mmoboot mmotype
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
 
-OBJECTS=mmix-arith.o mmix-sim.o address.o mmix-bus.o breaks.o 
+VMBOBJECTS=mmix-arith.o address.o mmix-bus.o breaks.o 
+GDBOBJECTS=gdb.o remote-utils.o buffers.o
 
 abstime.h: abstime
 	./abstime > abstime.h
 
-$(PROG):  utilities  abstime.h $(OBJECTS)
-	$(CC) $(CFLAGS) $(INCDIRS)  $(OBJECTS) $(LIBS)  -o $(PROG)
+mmix:  mmix-vmb.c abstime utilities  $(VMBOBJECTS)
+	./abstime > abstime.h
+	$(CC) $(CFLAGS) $(INCDIRS) mmix-vmb.c $(VMBOBJECTS) $(LIBS)  -o mmix
 	rm abstime.h
 
-
+gmmix:  mmix-gdb.c abstime utilities $(VMBOBJECTS) $(GDBOBJECTS)
+	./abstime > abstime.h
+	$(CC) $(CFLAGS) $(INCDIRS) mmix-gdb.c $(VMBOBJECTS) $(GDBOBJECTS) $(LIBS)  -o gmmix
+	rm abstime.h
 
 
 #   Uncomment the second line if you use pdftex to bypass .dvi files:
@@ -49,11 +53,19 @@ PDFTEX = dvipdfm
 .dvi.ps:
 	dvips $* -o $*.ps
 
-%.c: %.w %.ch
-	if test -r $*.ch; then ctangle $*.w $*.ch; else ctangle $*.w; fi
+mmix-vmb.c: mmix-sim.w vmb.ch
+	ctangle mmix-sim.w vmb.ch mmix-vmb.c
+
+mmix-gdb.c: mmix-sim.w vmb.ch gdb.ch
+	ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch
+	ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c
+
 
 %.tex: %.w %.ch
 	if test -r $*.ch; then cweave $*.w $*.ch; else cweave $*.w; fi
+
+%.c: %.w %.ch
+	if test -r $*.ch; then ctangle $*.w $*.ch; else ctangle $*.w; fi
 
 
 %.o: %.c
@@ -108,8 +120,10 @@ install: all
 
 
 clean:
-	rm -f *~ *.o *.tex *.log *.dvi *.toc *.idx *.scn *.ps core $(PROG)
-
+	rm -f *~ *.o *.tex *.log *.dvi *.toc *.idx *.scn *.ncb *.ps core 
+	rm -f mmix-arith.c mmix-sim.c mmixal.c mmoboot.c mmotype.c 
+	rm -f mmix-vmb.w mmix-gdb.w mmix-vmb.c mmix-gdb.c vmb-gdb.ch
+	rm -f abstime mmix gmmix mmixal mmotype mmoboot
 
 mmixal: mmix-arith.o mmixal.c
 	$(CC) $(CFLAGS) mmixal.c mmix-arith.o -o mmixal

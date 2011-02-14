@@ -24,6 +24,7 @@
 #ifndef INTERNALS_H
 #define INTERNALS_H
 
+typedef enum{false=0,true}bool;
 typedef unsigned int tetra;
 typedef struct{tetra h,l;} octa;
 
@@ -42,6 +43,11 @@ typedef enum{
 rB,rD,rE,rH,rJ,rM,rR,rBB,
 rC,rN,rO,rS,rI,rT,rTT,rK,rQ,rU,rV,rG,rL,
 rA,rF,rP,rW,rX,rY,rZ,rWW,rXX,rYY,rZZ} special_reg;
+
+#define trace_bit ((unsigned char)(1<<3))
+#define read_bit  ((unsigned char)(1<<2))
+#define write_bit ((unsigned char)(1<<1))
+#define exec_bit  ((unsigned char)(1<<0))  
 
 
 

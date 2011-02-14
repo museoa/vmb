@@ -21,11 +21,8 @@
 
 */
 
-
-#define trace_bit ((unsigned char)(1<<3))
-#define read_bit  ((unsigned char)(1<<2))
-#define write_bit ((unsigned char)(1<<1))
-#define exec_bit  ((unsigned char)(1<<0))  
+#ifndef BREAKS_H
+#define BREAKS_H
 
 extern unsigned char get_break(octa a);
 /* returns a byte with break information for the given address */
@@ -35,3 +32,5 @@ extern void set_break(octa a, unsigned char b);
 
 extern void show_breaks(void);
 /* display the breakpoints */
+
+#endif
