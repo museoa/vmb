@@ -63,6 +63,7 @@ typedef struct
                         unsigned char id,
                         unsigned int offset,
 			unsigned char *payload);
+  void (*buserror)(unsigned char type, unsigned char address[8]);
 
   /* used only locally */
   unsigned int interrupt_lo;
@@ -144,5 +145,7 @@ extern void vmb_unknown(unsigned char type,
                  unsigned char id,
                  unsigned int offset,
                  unsigned char *payload);
+extern void vmb_buserror(unsigned char type, unsigned char address[8]);
+
 
 #endif

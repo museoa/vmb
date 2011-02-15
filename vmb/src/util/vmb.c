@@ -4,10 +4,7 @@
 #else
 #include <pthread.h>
 #include <time.h>
-/* unshure which .h file to get this constant from */
-#ifndef ETIMEDOUT
-#define ETIMEDOUT 145
-#endif
+#include <errno.h>
 
 #endif
 #include <stdlib.h>
@@ -465,6 +462,14 @@ static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned 
   if (vmb->put_payload)  vmb->put_payload(offset,s,p);
 }
 
+static void bus_error(device_info *vmb, unsigned char type, unsigned char a[8])
+{ char hex[17]={0};
+  chartohex(a,hex,8);
+  vmb_debugs(VMB_DEBUG_ERROR, "Bus error detected at %s",hex);
+  if (vmb->buserror) vmb->buserror(type,a);
+  return;
+}
+
 
 static void dispatch_message(device_info *vmb, unsigned char type, 
                              unsigned char size, 
@@ -513,13 +518,17 @@ static void dispatch_message(device_info *vmb, unsigned char type,
         return;
       case ID_NOREPLY:
 	reply_payload(vmb, address,0,payload);
+        bus_error(vmb, ID_NOREPLY, address);
         return;
-	  case ID_TERMINATE:
-		  if (vmb->terminate) vmb->terminate();
-		  return;
+      case ID_NOWRITE:
+        bus_error(vmb, ID_NOWRITE, address);
+        return;
+      case ID_TERMINATE:
+        if (vmb->terminate) vmb->terminate();
+	return;
       case ID_RESET:
         change_event(vmb, &vmb->reset_flag, 1);
-	      if(vmb->reset) vmb->reset();
+	if(vmb->reset) vmb->reset();
         return;
       case ID_POWEROFF:
         vmb->reset_flag = 0;
@@ -564,8 +573,10 @@ static int get_request(device_info *vmb,
 
 static void clean_up_read_thread(void *dummy)
 { device_info *vmb = (device_info *)dummy;
+  vmb_debug(VMB_DEBUG_PROGRESS, "Terminating bus interface.");
   if (vmb->fd>=0)
-  { bus_unregister(vmb->fd);
+  { vmb_debug(VMB_DEBUG_PROGRESS, "closing connection.");
+    bus_unregister(vmb->fd);
     bus_disconnect(vmb->fd); 
     vmb->fd = INVALID_SOCKET;
   }

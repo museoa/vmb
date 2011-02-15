@@ -19,7 +19,7 @@ INCDIRS = -I$(UTILDIR) -I$(OPTDIR)
 LIBS    = -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
-all: mmix
+all: 
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)

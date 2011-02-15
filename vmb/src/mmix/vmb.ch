@@ -1256,7 +1256,7 @@ case LDVTS: case LDVTSI:
 break;
 case SWYM:
  if ((inst&0xFFFFFF)!=0) 
- {   char buf[256];
+ {   char buf[256+1];
      int n;
      strcpy(rhs,"$%x,%z");
      z.h=0, z.l=yz;
@@ -1267,24 +1267,26 @@ case SWYM:
      if (loc.h&sign_bit) show_operating_system=true;
      @<Set |b| from register X@>;
      n=mmgetchars((unsigned char *)buf,256,b,0);
-     if (strncmp(buf,"DEBUG ",6)==0) printf("\n\t%s!\n\n",buf+6);
+     buf[n]=0;
+     if (strncmp(buf,"DEBUG ",6)==0) 
+       sprintf(rhs,"\n%s!\nrF=#%08X%08X\n",buf+6,g[rF].h, g[rF].l);
  }
  else
    strcpy(rhs,"");
 break;
-translation_bypassed_inst: strcpy(lhs,"!LOAD/STORE bypassing virtual translation");
+translation_bypassed_inst: strcpy(lhs,"!absolute address");
 g[rQ].h |= N_BIT; new_Q.h |= N_BIT; /* set the n bit */
  goto break_inst;
-privileged_inst: strcpy(lhs,"!instruction for kernel only");
+privileged_inst: strcpy(lhs,"!kernel only");
 g[rQ].h |= K_BIT; new_Q.h |= K_BIT; /* set the k bit */
  goto break_inst;
-illegal_inst: strcpy(lhs,"!instruction breaks the rules");
+illegal_inst: strcpy(lhs,"!broken");
 g[rQ].h |= B_BIT; new_Q.h |= B_BIT; /* set the b bit */
  goto break_inst;
-protection_violation: strcpy(lhs,"!protection violation");
+protection_violation: strcpy(lhs,"!protected");
 g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
  goto break_inst;
-security_inst: strcpy(lhs,"!security violation");
+security_inst: strcpy(lhs,"!insecure");
 break_inst: breakpoint=tracing=true;
  if (!interacting && !interact_after_break) halted=true;
 break;
@@ -1830,6 +1832,15 @@ if (lhs[0]=='!') { printf("%s instruction!\n",lhs+1); /* privileged or illegal *
   lhs[0]='\0';
 }
 @z
+
+@x
+char switchable_string[48]; /* holds |rhs|; position 0 is ignored */
+ /* |switchable_string| must be able to hold any |trap_format| */
+@y
+char switchable_string[300] ={0}; /* holds |rhs|; position 0 is ignored */
+ /* |switchable_string| must be able to hold any debug message */
+@z
+
 
 @x
 int main(argc,argv)

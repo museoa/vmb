@@ -41,6 +41,7 @@
 #include "signals.h"
 
 extern device_info vmb;
+int gdbport = 2331;
 
 static int answer_expected = 1;
 static int break_level = 0;
@@ -119,7 +120,7 @@ static void OK_msg(char *buffer)
 }
 
 
-static int gdb_signal =  TARGET_SIGNAL_TRAP;
+int gdb_signal =  TARGET_SIGNAL_TRAP;
 
 #define rBB 7
 

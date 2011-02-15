@@ -501,18 +501,21 @@ int load_instruction(tetra *instruction, octa address)
     if (p&PAGE_TABLE_ERROR)
     { *instruction = 0;
       g[rQ].l |= PT_BIT;
-      new_Q.l |= PT_BIT; 
+      new_Q.l |= PT_BIT;
+      g[rF]=address; 
       return 0;
     } else if (p==0)
     { *instruction = 0;
       g[rQ].l |=  PA_BIT;
       new_Q.l |=  PA_BIT;
+      g[rF]=address; 
       return 0;
     }
     else if (!(p&EXEC_BIT)) 
     { *instruction = 0;
       g[rQ].h |=  PX_BIT;
       new_Q.h |=  PX_BIT;
+      g[rF]=address; 
       return 0;
     }
     last_i_addr.h = last.h;
@@ -557,18 +560,21 @@ int load_data(int size, octa *data, octa address,int signextension)
     { data->h=data->l = 0;
       g[rQ].l |= PT_BIT;
       new_Q.l |= PT_BIT; 
+      g[rF]=address; 
       return 0;
     }
     else if (p==0) 
     { data->h=data->l = 0;
       g[rQ].l |= PA_BIT;
       new_Q.l |= PA_BIT;
+      g[rF]=address; 
       return 0;
     }
     else if (!(p&READ_BIT)) 
     { data->h=data->l = 0;
       g[rQ].h |= PR_BIT;
       new_Q.h |= PR_BIT;
+      g[rF]=address; 
       return 0;
     }
     last_d_addr.h = last.h;
@@ -606,16 +612,19 @@ int store_data(int size,octa data, octa address)
     if (p&PAGE_TABLE_ERROR)
     { g[rQ].l |= PT_BIT;
       new_Q.l |= PT_BIT; 
+      g[rF]=address; 
       return 0;
     }
     else if (p==0) 
     { g[rQ].l |= PA_BIT;
       new_Q.l |= PA_BIT;
+      g[rF]=address; 
       return 0;
     }
     else if (!(p&WRITE_BIT)) 
     { g[rQ].h |= PW_BIT;
       new_Q.h |= PW_BIT;
+      g[rF]=address; 
       return 0;
     }
     last_d_addr.h = last.h;

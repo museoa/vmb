@@ -8,6 +8,7 @@
 %	LOC	#8000000000000000
 	
 % page table setup (see small model in address.howto)
+
 Main	IS	@  dummy	%Main, to keep mmixal happy
 Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	PUT	rTT,$0
@@ -30,7 +31,7 @@ Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	NEG	$255,1	% enable interrupt $255->rK with resume 1
 	RESUME	1	% loading a file sets up special registers for that
 
-	
+
 DTrap	PUSHJ	$255,DHandler
 	PUT	rJ,$255
 	NEG	$255,1		% enable interrupt $255->rK with resume 1
@@ -151,7 +152,6 @@ KeyboardC 	SETH	$1,console
 
 
 
-
 DTrapScreen	SETH    $0,#8000
         ORMH	$0,#0001	%address of bios ram
 	LDT	$1,$0,8	        %index screen buffer start
@@ -169,7 +169,6 @@ DTrapScreen	SETH    $0,#8000
 
 DTrapUnhandled	SWYM	5               % inform the debugger
 		POP	0,0
- 
 %	Entry point for a forced TRAP
 FTrap	PUSHJ	$255,FHandler
 	PUT	rJ,$255
@@ -194,15 +193,14 @@ Ropcode	SRU	$0,$0,56		%the ropcode
 	POP     0,0             %ignore the rest
 
 
-	
 %       Emulate the instruction
 Emulate POP     0,0		%not implemented
-
 
 %	Do pagetable translation in software
 Virtual SET	$0,#1230         %the dummy physical address
 	PUT	rZZ,$0
 	POP     0,0
+
 
 %       Handle a forced Trap
 Trap    GETA	$2,FTrapTable
@@ -248,7 +246,6 @@ FTrapTable JMP   TrapHalt      %0
 	  JMP   TrapUnhandled %1f
 
 %         The individual Trap routines
-
 TrapHalt	NEG	$0,1            %  enable interrupts
   		PUT	rK,$0
 1H		SYNC	4		%go to power save mode
@@ -308,7 +305,8 @@ memcpy	BP	$2,1B
 	SUB	$2,$2,8
 octacpy	BP	$2,1B
 	POP	0,0
-	
+
+
 %       strcpy utility
 strcpy	SET	$3,0
 	JMP	2F
@@ -321,6 +319,7 @@ strcpy	SET	$3,0
 	SET	$0,$3
 	POP	1,0
 
+
 %       strcpy utility for wide characters
 strcpyw	SET	$3,0
 	JMP	2F
@@ -332,12 +331,13 @@ strcpyw	SET	$3,0
 	BNZ	$2,1B
 	SET	$0,$3
 	POP	1,0
-	
+
 TrapFopen POP	0,0
 
 TrapFclose POP	0,0
 
 TrapFread POP	0,0
+
 
 TrapFgets AND     $0,$0,#0FF    %get the Z value 
         BZ      $0,1F     %this is stdin
@@ -366,7 +366,6 @@ TrapFgets AND     $0,$0,#0FF    %get the Z value
 2H	PUT	rBB,$0     %the result is returned with resume 1
 	PUT	rJ,$4
 	POP	0,0
-
 
 TrapFgetws POP	0,0
 
@@ -413,7 +412,6 @@ TrapFputws  AND     $0,$0,#0FF    %get the Z value
 	PUT	rJ,$1
 1H	POP	0,0
 
-
 TrapFseek POP	0,0
 
 TrapFtell  POP	0,0
@@ -428,7 +426,6 @@ TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
               STTU      $0,$2,$1
               PUT	rBB,0		%the result is returned with resume 1
 	      POP	0,0
-
 
 TrapUnhandled	SWYM	5		% tell the debugger
 		POP	0,0
@@ -460,7 +457,6 @@ ScreenC	SETH    $1,#8000
 	AND	$3,$3,#FF
 	STTU	$3,$1,8
 	POP	0,0
-
 
 %       The ROM Page Table
 %       the table maps each segement with up to 1024 pages

@@ -3,11 +3,7 @@
 #else
   #include <pthread.h>
   #include <time.h>
-
-/* unshure which .h file to get this constant from */
-  #ifndef ETIMEDOUT
-  #define ETIMEDOUT 145
-  #endif
+  #include <errno.h>
 
   extern void clean_up_event_mutex(void *vmb);
 
@@ -18,7 +14,7 @@
 
 void vmb_wait_for_event_timed(device_info *vmb, int ms)
 /* waits for a  power off, reset, disconnect, or an interrupt
-   or untim the Time in ms expires.
+   or until the Time in ms expires.
 */
 { 
 #ifndef WIN32
@@ -27,7 +23,11 @@ void vmb_wait_for_event_timed(device_info *vmb, int ms)
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
   ts.tv_sec += ms/1000;
-  ts.tv_nsec += (ms%1000)*1000;
+  ts.tv_nsec += (ms%1000)*1000000;
+  if (ts.tv_nsec>=1000000000)
+  {  ts.tv_sec += 1;
+     ts.tv_nsec -= 1000000000;
+  }
   { int rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
@@ -50,7 +50,7 @@ void vmb_wait_for_event_timed(device_info *vmb, int ms)
 #ifdef WIN32
      w = WaitForSingleObject(vmb->hevent,ms);
 #else
-     pthread_cond_timedwait(&vmb->event_cond,&vmb->event_mutex, &ts);
+     w = pthread_cond_timedwait(&vmb->event_cond,&vmb->event_mutex, &ts);
   pthread_cleanup_pop(1);
 #endif
   vmb->cancel_wait_for_event=0;

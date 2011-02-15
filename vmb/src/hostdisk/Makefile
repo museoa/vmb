@@ -22,7 +22,7 @@ install: all
 
 
 TAGS: *.c $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
-	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
+	etags *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
 
 clean:
 	rm -f $(PROG) *.o *~ TAGS

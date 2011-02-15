@@ -170,6 +170,7 @@ should be included here as a literate program.
 
 @<Type...@>=
 #include <time.h>
+#include "signals.h"
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
@@ -630,10 +631,13 @@ bool profile_started; /* have we printed at least one frequency count? */
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
   if (resuming)
-  { loc=incr(inst_ptr,-4), inst=g[zz?rXX:rX].l;
-    if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
-    { resuming = false;
-      goto protection_violation;
+  { loc=incr(inst_ptr,-4), inst=g[rzz?rXX:rX].l;
+     if (rzz==0)
+    { if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
+      { resuming = false;
+        goto protection_violation;
+      }
+      @<Check for security violation@>
     }
   }
   else @<Fetch the next instruction@>;
@@ -655,11 +659,19 @@ bool profile_started; /* have we printed at least one frequency count? */
 @z
 
 @x
+int rop; /* ropcode of a resumed instruction */
+@y
+int rop; /* ropcode of a resumed instruction */
+int rzz; /* Z field of a resumed instruction */
+@z
+
+@x
 bool interacting; /* are we in interactive mode? */
 @y
 static bool interacting; /* are we in interactive mode? */
 static bool stepping; /* should we pause after the next instruction? */
 static bool show_operating_system = false; /* do we show negative addresses */
+static int  gdb_signal; /* signal to send to GDB */
 static bool interact_after_resume = false;
 static char localhost[]="localhost";
 #if defined(WIN32)
@@ -696,6 +708,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 @y
 @ @<Fetch the next instruction@>=
 { loc=inst_ptr;
+  @<Check for security violation@>
   load_instruction(&inst,loc);
   inst_ptr=incr(inst_ptr,4);
   if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
@@ -816,7 +829,7 @@ void stack_load()
   }
 }
 @y
-@d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true
+@d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP;
 
 @<Sub...@>=
 void stack_store @,@,@[ARGS((void))@];@+@t}\6{@>
@@ -834,7 +847,7 @@ void stack_store()
 
 @ The |stack_load| routine is essentially the inverse of |stack_store|.
 
-@d test_load_bkpt(a) if (get_break(a)&read_bit) breakpoint=tracing=true
+@d test_load_bkpt(a) if (get_break(a)&read_bit) breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
 
 @<Sub...@>=
 void stack_load @,@,@[ARGS((void))@];@+@t}\6{@>
@@ -1261,6 +1274,7 @@ case SWYM:
      x.h=0, x.l=xx;
      tracing=interacting;
      breakpoint=true;
+     gdb_signal=yz;
      interrupt=false;
      if (loc.h&sign_bit) show_operating_system=true;
      @<Set |b| from register X@>;
@@ -1284,6 +1298,7 @@ g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
  goto break_inst;
 security_inst: strcpy(lhs,"!security violation");
 break_inst: breakpoint=tracing=true;
+ gdb_signal=TARGET_SIGNAL_TRAP;
  if (!interacting && !interact_after_break) halted=true;
 break;
 @z
@@ -1334,10 +1349,6 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
         @<Prepare memory arguments $|ma|={\rm M}[a]$ and $|mb|={\rm M}[b]$ if needed@>;
       }
      else strcpy(rhs, "%#x -> %#y");
- if (inst == 0) /* Halt */
- {  if (interacting)
-      interact_with_gdb(17);
- }
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
  inst_ptr=y=g[rT];
@@ -1508,9 +1519,17 @@ octa new_Q; /* when rQ increases in any bit position, so should this */
 @<Check for trap interrupt@>=
 if (!resuming)
 { if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
-  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
+  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; 
+    printf("Interrupt: rQ=%08x%08x rK=%08x%08x\n",
+            g[rQ].h, g[rQ].l, g[rK].h, g[rK].l);
+  }
   if (!vmb.connected)  goto end_simulation;
-  if (!vmb.power || vmb.reset_flag) { breakpoint=true; vmb.reset_flag=0; goto boot;}
+  if (!vmb.power || vmb.reset_flag) 
+  { breakpoint=true; 
+    gdb_signal=TARGET_SIGNAL_KILL;
+    vmb.reset_flag=0; 
+    goto boot;
+  }
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
@@ -1584,13 +1603,14 @@ if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>;
 break;
 @y
 case RESUME:@+if (xx || yy) goto illegal_inst;
-if ( zz == 0)
+rzz=zz;
+if ( rzz == 0)
 { if (!(loc.h&sign_bit) && (g[rW].h&sign_bit)) 
   goto protection_violation;
   inst_ptr=z=g[rW];
   b=g[rX];
 }
-else if ( zz == 1)
+else if ( rzz == 1)
 { 
   if (!(loc.h&sign_bit)) goto privileged_inst;
   loc=inst_ptr=z=g[rWW];
@@ -1599,7 +1619,10 @@ else if ( zz == 1)
   x=g[255]=g[rBB];
   @<Check for security violation@>
   if (interact_after_resume)
-    breakpoint = true, interact_after_resume = false;
+  { breakpoint = true;
+    interact_after_resume = false;
+    gdb_signal=TARGET_SIGNAL_TRAP;
+  }
 }
 else goto illegal_inst;
 if (!(b.h&sign_bit)) @<Prepare to perform a ropcode@>
@@ -1655,7 +1678,7 @@ if (rop==RESUME_SET) {
    if (k>=L && k<G) goto illegal_inst;
  case RESUME_AGAIN:@+if ((b.l>>24)==RESUME) goto illegal_inst;
    break;
- case RESUME_TRANS:@+if (zz==0) goto illegal_inst;
+ case RESUME_TRANS:@+if (rzz==0) goto illegal_inst;
    break;
  default: goto illegal_inst;
   }
@@ -1663,7 +1686,7 @@ if (rop==RESUME_SET) {
 }
 
 @ @<Install special operands when resuming an interrupted operation@>=
-if (zz == 0)
+if (rzz == 0)
 { if (rop==RESUME_SET) {
     op=ORI;
     y=g[rZ];
@@ -1792,7 +1815,10 @@ boot:
   fprintf(stderr,"ON\n");
   vmb.reset_flag = 0;
 
-  if (interacting && gdb_init(gdbport)) breakpoint = true;
+  if (interacting && gdb_init(gdbport)) 
+  { breakpoint = true;
+    gdb_signal=TARGET_SIGNAL_TRAP;
+  }
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {
@@ -1801,7 +1827,7 @@ boot:
          (!(inst_ptr.h&sign_bit) || 
           show_operating_system || 
           (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
-            if (!interact_with_gdb(5)) goto end_simulation;
+            if (!interact_with_gdb(gdb_signal)) goto end_simulation;
     }
     if (halted) break;
     do
@@ -1809,12 +1835,19 @@ boot:
       @<Perform one instruction@>@;
       { unsigned char b;
         b = get_break(inst_ptr);
-        if (b&exec_bit) breakpoint=true;
+        if (b&exec_bit) 
+        { breakpoint=true;
+          gdb_signal=TARGET_SIGNAL_TRAP;
+        }
         tracing=breakpoint||(b&trace_bit);
       }
     } while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) interacting=true, interact_after_break=false;
-    if (stepping) breakpoint=true,stepping=false;
+    if (stepping) 
+    { breakpoint=true;
+      gdb_signal=TARGET_SIGNAL_TRAP;
+      stepping=false;
+    }
     if (!vmb.power) goto boot;
   }
   end_simulation:

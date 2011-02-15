@@ -13,8 +13,9 @@ utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 
-$(PROG): main.c  utilities
-	$(CC) $(CFLAGS)  main.c  $(LDFLAGS) -o $(PROG)
+
+$(PROG): main.o timer.o  utilities
+	$(CC) $(CFLAGS)  main.o timer.o  $(LDFLAGS) -o $(PROG)
 
 install: all
 	install $(PROG) $(BINDIR)

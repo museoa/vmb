@@ -31,161 +31,185 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
 #include "vmb.h"
 #include "option.h"
 #include "param.h"
 #include "bus-arith.h"
+#include "timer.h"
 
-#define RAMSIZE 8
+/* implementing the timer */
 
-static unsigned char ram[RAMSIZE];
-static pthread_mutex_t ms_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t ms_cond = PTHREAD_COND_INITIALIZER;
-static long int ms;
-
-static void clean_up_ms_mutex(void *_dummy)
-{ pthread_mutex_unlock(&ms_mutex); /* needed if canceled waiting */
+static pthread_mutex_t action_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t action_cond = PTHREAD_COND_INITIALIZER;
+static void clean_up_action_mutex(void *_dummy)
+{ pthread_mutex_unlock(&action_mutex); /* needed if canceled waiting */
 }
 
-static void ram_clean(void)
-/* clean the ram, done after power on and reset */
-{ int i;
-  for (i=0;i<RAMSIZE;i++)
-    ram[i] = 0;
-  { int rc = pthread_mutex_lock(&ms_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Locking ms mutex failed");
-      pthread_exit(NULL);
-    }
-  }
-  ms = 0;
-  { int rc = pthread_mutex_unlock(&ms_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Unlocking ms mutex failed");
-      pthread_exit(NULL);
-    }
-  }
+static volatile enum action { idle=0, expired, quit } event_action = idle;
+
+void alarm_handler(int signum)
+{ int rc;
+  event_action=expired;
+  rc = pthread_cond_signal(&action_cond);
+  if (rc) 
+    vmb_debug(VMB_DEBUG_ERROR, "signaling failed");
 }
 
-static void wait_for_non_zero_ram(void)
-{ vmb_debug(0, "waiting for non zero");
-  { int rc = pthread_mutex_lock(&ms_mutex);
+
+static void set_handler(void)
+{ static struct sigaction action;
+  sigset_t block_mask;
+
+  event_action = idle;
+   
+  sigemptyset (&block_mask);
+  action.sa_mask = block_mask;
+
+  action.sa_flags = SA_RESTART;
+  action.sa_handler = alarm_handler;
+  sigaction(SIGALRM,&action,NULL);
+}
+
+
+static void wait_for_action(void)
+{ vmb_debug(VMB_DEBUG_INFO, "waiting ...");
+  { int rc = pthread_mutex_lock(&action_mutex);
     if (rc) 
-    { vmb_error(__LINE__,"Locking ms mutex failed");
+    { vmb_error(__LINE__,"Locking action mutex failed");
       pthread_exit(NULL);
     }
   }
-  pthread_cleanup_push(clean_up_ms_mutex,NULL);
+  pthread_cleanup_push(clean_up_action_mutex,NULL);
   /* in the meantime the event might have happend */
-  if (ms == 0)
-     pthread_cond_wait(&ms_cond,&ms_mutex);
+  if (event_action == idle)
+     pthread_cond_wait(&action_cond,&action_mutex);
   pthread_cleanup_pop(1);
-  vmb_debug(0, "starting timer");
+  vmb_debug(VMB_DEBUG_INFO, "done waiting.");
 }
 
 
-void vmb_poweron(void)
-/* this function is called when the virtual power is turned on */
-{  ram_clean();
+
+
+/* things we have to provide */
+
+device_info vmb = {0};
+
+extern void update_display(void)
+/* make sure things get reflected in the GUI */
+{ }
+
+static struct timeval T0; /* the global T0 of my program at0:00:00 midnight*/
+
+extern void timer_set_T0(void)
+/* initialize host time and set the host time Reference T0 */
+{ int r;
+  struct tm D;
+  r = gettimeofday(&T0,NULL); 
+  if (r!=0)
+     vmb_error(__LINE__,"Setting T0 failed");
+  D = *localtime(&T0.tv_sec);
+  T0.tv_usec = 0;
+  T0.tv_sec = T0.tv_sec - D.tm_hour*60*60 - T0.tv_sec%(60*60);
 }
 
-void vmb_reset(void)
-/* this function is called when the virtual reset button is pressed */
-{ ram_clean();
+extern unsigned int timer_since_T0(void)
+/* return the host time in ms since T0 */ 
+{ int r;
+  struct timeval t0;
+  r = gettimeofday(&t0,NULL); 
+  if (r!=0)
+     vmb_error(__LINE__,"Getting time failed");
+  return ((t0.tv_sec-T0.tv_sec)*1000 + 
+          (t0.tv_usec-T0.tv_usec)/1000)%(24*60*60*1000);
 }
 
 
-void vmb_terminate(void)
-/* this function is called when the motherboard asks the client to terminate */
-{ vmb_debug(0, "signal end of waiting"); 
-  int rc = pthread_cond_signal(&ms_cond);
-     if (rc) 
-     { vmb_error(__LINE__,"Locking ms mutex failed");
-       pthread_exit(NULL);
-     }
-     vmb_disconnect();
+extern void timer_set(unsigned int delay)
+/* arrange the host timer to signal at absolute time T0 + delay */
+{  struct itimerval delta = {{0}};
+   delta.it_value.tv_sec = delay/1000;
+   delta.it_value.tv_usec = (delay%1000)*1000;
+   setitimer(ITIMER_REAL,&delta,NULL);
+
 }
 
-void vmb_put_payload(unsigned int offset,int size, unsigned char *payload)
-/* this function is called if some other device on the virtual bus
-   wants to write size byte to this device at the given offset.
-   The new byte are contained in the payload.
-   offset and size are checked to fall completely within the
-   address space ocupied by this device.
-*/
-{ 
-   memmove(ram+offset,payload,size);
-   /* protect ms by mutex and set up condition variable */
-  { int rc = pthread_mutex_lock(&ms_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Locking ms mutex failed");
-      pthread_exit(NULL);
-    }
-  }
-  ms = chartoint(ram);
-  if (ms != 0)
-  {  int rc = pthread_cond_signal(&ms_cond);
-     if (rc) 
-     { vmb_error(__LINE__,"Locking ms mutex failed");
-       pthread_exit(NULL);
-     }
-  }
-  { int rc = pthread_mutex_unlock(&ms_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Unlocking ms mutex failed");
-      pthread_exit(NULL);
-    }
-  }
+extern void timer_stop(void)
+/* cancel a running timer */
+{  struct itimerval delta = {{0}};
+   setitimer(ITIMER_REAL,&delta,NULL);
 }
 
-#include <sys/select.h>
-void sleep_ms(long int ms)
-{ /* sleep the specified number of miliseconds */
-  struct timeval timeout;
-  while (ms > 0 && vmb_connected)
-  { if (ms > 5000)
-    { timeout.tv_sec = 5;
-      timeout.tv_usec = 0;
-      ms = ms - 5000;
-    }
-    else
-    { timeout.tv_sec =  ms / 1000;
-      timeout.tv_usec = (ms % 1000)*1000;
-      ms = 0;
-    }
-    select(0,NULL,NULL,NULL,&timeout);
-  }
+
+extern void timer_get_DateTime(void)
+/* set the first two octas of the timer from host time */
+{ struct tm D;
+  unsigned int ms;
+  struct timeval t;
+
+  gettimeofday(&t,NULL); 
+  D = *localtime(&t.tv_sec);
+  ms = timer_get_now();
+
+  SETYEAR(D.tm_year+1900);
+  MONTH = (unsigned char)(D.tm_mon);
+  DAY = (unsigned char)D.tm_mday;
+  DST = (unsigned char)D.tm_isdst;
+  SETYEARDAY(D.tm_yday);
+  WEEKDAY = (unsigned char)D.tm_wday;
+  HOUR = (unsigned char)D.tm_hour;
+  MIN = (unsigned char) D.tm_min;
+  SEC = (unsigned char) D.tm_sec;
+  SETMILLISEC(ms);
+}
+
+
+void timer_terminate(void)
+{ int rc;
+  vmb_debug(VMB_DEBUG_INFO, "terminating.");
+  event_action=quit;
+  rc = pthread_cond_signal(&action_cond);
+  if (rc) 
+    vmb_debug(VMB_DEBUG_ERROR, "signaling failed");
 }
 
 
 int main(int argc, char *argv[])
 {
- param_init(argc, argv);
- vmb_size = 8;
- vmb_debugs(0, "%s ",vmb_program_name);
- vmb_debugs(0, "%s ", version);
- vmb_debugs(0, "host: %s ",host);
- vmb_debugi(0, "port: %d ",port);
- close(0);
- vmb_debugi(0, "address hi: %x",vmb_address_hi);
- vmb_debugi(0, "address lo: %x",vmb_address_lo);
- vmb_debugi(0, "size: %x ",vmb_size);
+  param_init(argc, argv);
+  if (vmb_verbose_flag) vmb_debug_mask=0;
+  else vmb_debug_mask=VMB_DEBUG_DEFAULT;
+  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  init_device(&vmb);
+  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
+  vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
 
- vmb_connect(host,port); 
- vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
+  set_handler();
+
+  vmb_connect(&vmb, host,port); 
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
                0, 0, vmb_program_name);
- 
- while (vmb_connected)
-   { if (ms == 0) 
-       wait_for_non_zero_ram();
-     else 
-     { vmb_debug(0, "sleeping ...");
-       sleep_ms(ms);
-       vmb_debug(0, "done");
-       if (ms != 0 && vmb_connected)
-         vmb_raise_interrupt(interrupt);  
-     }
-   }
 
+ 
+  while (vmb.connected) 
+  { if (event_action == idle)
+      wait_for_action();
+    if (event_action == expired)
+    { event_action = idle; 
+      timer_signal();
+    }
+    else if  (event_action == quit)
+    { vmb_disconnect(&vmb);
+      break;
+    }
+  }
+
+ vmb_debug(VMB_DEBUG_INFO, "exit.");
  return 0;
 }

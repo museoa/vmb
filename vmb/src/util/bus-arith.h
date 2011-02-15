@@ -32,6 +32,12 @@
 extern void inttochar(int val, unsigned char buffer[4]);
 extern void shorttochar(int val, unsigned char buffer[2]);
 extern int chartoint(const unsigned char buffer[4]);
+/* macro versions */
+#define GET2(a)   ((unsigned int)(((a)[0]<<8)+(a)[1]))
+#define GET4(a)   ((unsigned int)(((a)[0]<<24)+((a)[1]<<16)+((a)[2]<<8)+(a)[3]))
+#define SET2(a,x) ((a)[0]=((unsigned char)(((x)>>8)&0xFF)),(a)[1]=((unsigned char)((x)&0xFF)))
+#define SET4(a,x) ((a)[0]=((unsigned char)(((x)>>24)&0xFF)),(a)[1]=((unsigned char)(((x)>>16)&0xFF)), \
+                   (a)[2]=((unsigned char)(((x)>>8)&0xFF)), (a)[3]=((unsigned char)((x)&0xFF)))
 
 /* utility functions to compare addresses */
 extern int less_equal(unsigned char low[8],unsigned char addr[8]);

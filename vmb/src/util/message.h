@@ -97,6 +97,7 @@ extern int message_size(unsigned char msg[4]);
 #define ID_BYTEREPLY  11
 #define ID_WYDEREPLY  12
 #define ID_TETRAREPLY 13
+#define ID_NOWRITE    14
 
 /* predefined IDs for BUS messages */
 /* a polite request to terminate the device */

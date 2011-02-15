@@ -28,6 +28,7 @@
 #include <windows.h>
 #endif
 
+#include "signals.h"
 
 /* this is taken from tm-mmix.h in gdb/config/mmix/ it must agree with the values given there
  */
@@ -65,16 +66,18 @@ typedef long long CORE_ADDR;
 
 /* Functions from remote-utils.c */
 
-int putpkt (char *buf);
-int getpkt (char *buf);
-int remote_server (int port);
-int remote_open (void);
-int dual_wait(int s1, int s2);
-void single_wait(int s);
-int remote_interrupt(int s);
-void remote_close (void);
+extern int gdb_init(int port);
 
-void wsa_init(void);
+extern int putpkt (char *buf);
+extern int getpkt (char *buf);
+extern int remote_server (int port);
+extern int remote_open (void);
+extern int dual_wait(int s1, int s2);
+extern void single_wait(int s);
+extern int remote_interrupt(int s);
+extern void remote_close (void);
+
+extern void wsa_init(void);
 
 extern char *get_free_buffer(void);
 extern void put_free_buffer(char *buffer);
@@ -85,10 +88,15 @@ extern char *get_gdb_command(void);
 typedef enum{false,true} bool;
 extern int gdbport;
 extern bool breakpoint;
-extern bool stepping;
+extern bool stepping; /* should we pause after the next instruction? */
+extern int  gdb_signal; /* signal to send to GDB */
+extern int gdbport; /* port for the remot gdb to connect, with default */
+extern int mmgetchars(unsigned char *buf, int size, octa addr, int stop);
 
 /* from gdb.c */
 
 extern int async_gdb_command(char *buffer);
+extern int interact_with_gdb(int signal);
+extern void handle_gdb_commands(void);
 
 #endif

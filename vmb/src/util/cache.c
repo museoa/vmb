@@ -145,7 +145,7 @@ unsigned int vmb_cache_read_int(device_info *vmb,
 /* return a four byte integer from the cache.
    there is no alignment check or enforcement 
    and access must not cross line boundaries
-   make sure alignment is propper and linesizes ar multiples of the maximum
+   make sure alignment is propper and linesizes are multiples of the maximum
    alignment requirements.
 */
 { vmb_cache_line *line = get_valid_line(vmb,c, address_hi, LINESTART(address_lo));
