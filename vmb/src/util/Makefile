@@ -1,5 +1,5 @@
 
-CFLAGS= -ggdb -D_REENTRANT -Wall 
+CFLAGS= -ggdb -O0 -D_REENTRANT -Wall 
 #CFLAGS= -O3 -D_REENTRANT -Wall 
 CC= gcc
 AR = ar

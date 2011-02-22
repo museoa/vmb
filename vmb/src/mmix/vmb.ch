@@ -1338,6 +1338,7 @@ case TRAP:@+if (xx==0 && yy<=max_sys_call)
         @<Prepare memory arguments $|ma|={\rm M}[a]$ and $|mb|={\rm M}[b]$ if needed@>;
       }
      else strcpy(rhs, "%#x -> %#y");
+ if (tracing && !show_operating_system) interact_after_resume = true;    
  x.h=sign_bit, x.l=inst;
  @<Initiate a trap interrupt@>
  inst_ptr=y=g[rT];
@@ -1595,6 +1596,7 @@ octa new_Q; /* when rQ increases in any bit position, so should this */
 if (!resuming)
 { if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
   { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; 
+    if (tracing)
     printf("Interrupt: rQ=%08x%08x rK=%08x%08x\n",
             g[rQ].h, g[rQ].l, g[rK].h, g[rK].l);
   }
@@ -2054,6 +2056,7 @@ signal(SIGINT,catchint); /* now |catchint| will catch the first interrupt */
 BOOL CtrlHandler( DWORD fdwCtrlType ) 
 { if (fdwCtrlType==CTRL_C_EVENT)
   { interrupt=true;
+    vmb_cancel_wait_for_event(&vmb);
     show_operating_system=true;
     printf("Ctrl-C received\n");
     return TRUE;
@@ -2066,6 +2069,9 @@ void catchint(n)
   int n;
 {
   interrupt=true;
+  vmb_cancel_wait_for_event(&vmb);
+  show_operating_system=true;
+  printf("Ctrl-C received\n");
   signal(SIGINT,catchint); /* now |catchint| will catch the next interrupt */
 }
 #endif

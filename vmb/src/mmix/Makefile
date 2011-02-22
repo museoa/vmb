@@ -10,7 +10,7 @@
 MMIXDIR=/usr/local/bin
 AS=$(MMIXDIR)/mmix-as
 LD=$(MMIXDIR)/mmix-ld
-CFLAGS = -ggdb -D_REENTRANT -Wall 
+CFLAGS = -ggdb -O0 -D_REENTRANT -Wall 
 #CFLAGS = -O3 -D_REENTRANT -Wall 
 
 UTILDIR = ../util

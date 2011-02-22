@@ -135,8 +135,7 @@ void do_commands(void)
 		{ intptr_t p;
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
-		  {  vmb_debugs(VMB_DEBUG_ERROR, "could not start %s",argv[0]);
-	             vmb_error(__LINE__,"Unable to execute command");
+		  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
 		  }
 		}
 #else
@@ -145,7 +144,7 @@ void do_commands(void)
           if (p<0) vmb_error(__LINE__,"Unable to create new process");
           else if (p==0) /* child */
 		  { execvp(argv[0],argv);
-	        vmb_error(__LINE__,"Unable to execute command");
+	        vmb_error2(__LINE__,"Unable to execute command",argv[0]);
 		  }
 		}
 #endif

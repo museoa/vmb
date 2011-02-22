@@ -751,6 +751,7 @@ void vmb_store(device_info *vmb, data_address *da)
  
     inttochar(da->address_hi,address);
     inttochar(da->address_lo,address+4);
+    vmb_debugx(VMB_DEBUG_PROGRESS, "Writing to address %s",address,8);
     send_msg(vmb->fd,
            (unsigned char)(TYPE_ADDRESS|TYPE_PAYLOAD),
            size,0,id,0,address,da->data);
@@ -775,7 +776,7 @@ void vmb_load(device_info *vmb, data_address *da)
     inttochar(da->address_hi,address);
     inttochar(da->address_lo,address+4);
     enqueue_read_request(da);
-    vmb_debugx(VMB_DEBUG_PROGRESS, "Pending read request added for address %s",address,8);
+    vmb_debugx(VMB_DEBUG_PROGRESS, "Read request added for address %s",address,8);
     send_msg(vmb->fd,
            (unsigned char)(TYPE_ADDRESS|TYPE_REQUEST),
            size,0,id,0,address,NULL);

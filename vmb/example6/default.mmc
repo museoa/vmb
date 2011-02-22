@@ -10,11 +10,11 @@ host localhost
 debug
 exec ./rom
 exec ./ram
-exec ./disk
+exec xterm -geometry 40x10 -fn 7x13 -e ./disk -d -v
 exec xterm -geometry 40x10 -fn 7x13 -e ./keyboard
 exec xterm -geometry 40x10 -fn 7x13 -e ./screen
-exec xterm -e ./mmix -i -O -B9002 
-exec C:\home\vmb\src\mmixgdb\mingw\bin\mmix-insight.exe hello.elf
+#exec xterm -e ./mmix -i -O hello.mmo
+#exec C:\home\vmb\src\mmixgdb\mingw\bin\mmix-insight.exe hello.elf
 #endif
 
 
@@ -39,13 +39,8 @@ address 0x0000000100000000
 #endif
 
 #if disk
-<<<<<<< default.mmc
 debug
-verbosity 0
-=======
-#debug
-#verbosity 0
->>>>>>> 1.4
+verbose
 address 0x3000000000000
 interrupt 19
 file disk.bin

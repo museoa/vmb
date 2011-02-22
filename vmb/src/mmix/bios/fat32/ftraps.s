@@ -92,10 +92,13 @@ TrapHalt        GETA    $0,2F
 		LDO	$254,$254,0
 		SET	$253,0              % the frame pointer for gcc
 		PUSHJ	$0,fat32_shutdown
-                NEG     $0,1            % enable interrupts
-                PUT     rK,$0
+        		
 1H              SYNC    4               % go to power save mode
+		GET	$0,rQ
+		BZ	$0,1B
+		PUSHJ	$0,DHandler
                 JMP     1B              % and loop idle
+	
 2H              BYTE    "DEBUG Program terminated",0
 	
 		.global	TrapFputs

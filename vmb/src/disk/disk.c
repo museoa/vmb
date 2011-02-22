@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.14 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.15 $ $Date: 2011-02-22 08:24:46 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -521,6 +521,8 @@ device_info vmb = {0};
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);
+  if (vmb_verbose_flag) vmb_debug_mask=0;
+  else vmb_debug_mask=VMB_DEBUG_DEFAULT;
   vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
   vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
