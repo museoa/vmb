@@ -4,13 +4,13 @@
 
 
 <H2>The Video Ram</H2>
-The video ram uses 4 Byte (one TETRA) for each pixel: IIRRGGBB
-The high order byte is ignored, the next byte specifies the red value
-in the range 0 (black) to 255 (full red), then the green and finally in the low order byte
+The video ram uses 4 Byte (one TETRA) for each pixel: II RR GG BB
+The high order byte II is ignored, the next byte RR specifies the red value
+in the range 0 (black) to 255 (full red), then GG the green and finally in the low order byte BB
 the blue value - again in the range 0 to 255.
 <p>
-The first TETRA belongs to the top left pixel. the second TETRA to the next pixel
-just to the right of it. line by line from top to bottom, each TETRA in memory 
+The first TETRA belongs to the top left pixel. The second TETRA to the next pixel
+just to the right of it. Line by line from top to bottom, each TETRA in memory 
 belongs to one pixel. The size of the video ram depends on the configuration.
 The default gives a frame buffer 640 pixel wide and 480 Pixel high. Other sizes
 are possible. It is possible to configure the visible size smaller than the
@@ -21,11 +21,11 @@ part very fast using the GPU.
 
 <H2>The Mouse device</H2>
 
-The Mouse device uses 16 Byte, that are read-only.
+The Mouse device uses 16 Byte that are read-only.
 <p>
 <table border=1>
 <tr><th>Index<th>Name<th>Description
-<tr><td>00-01<td>buttons<td> the values indicate which buttons are down when
+<tr><td>00-01<td>buttons<td> The value indicates which buttons are down when
 		the event happens:
                 <table>
 		<tr><td>0x01 <td>= MK_LBUTTON <td>The left mouse button is down. 
@@ -53,7 +53,7 @@ The GPU uses 56 Byte as follows:
 <table border=1>
 <tr><th>Index<th>Name<th>Description
 <tr><td>0x00<td>command<td> see below.
-<tr><td>0x01-0x03<td>command aux<td> 
+<tr><td>0x01-0x03<td>command aux<td> see below.
 <tr><td>0x04-0x05<td>x2<td> secondary x position
 <tr><td>0x06-0x07<td>y2<td> secondary y position
 <tr><td>0x08-0x09<td>w<td> width 
@@ -61,25 +61,25 @@ The GPU uses 56 Byte as follows:
 <tr><td>0x0c-0x0d<td>x<td> x position
 <tr><td>0x0e-0x0f<td>y<td> y position
 <tr><td>0x10-0x17<td>bba<td> bit block address
-<tr><td>0x18     <td><td> ignored
-<tr><td>0x19     <td>tbr><td> text background color red
+<tr><td>0x18     <td> - <td> ignored
+<tr><td>0x19     <td>tbr<td>  text background color red
 <tr><td>0x1a     <td>tbg<td>  text background color green
 <tr><td>0x1b     <td>tbb<td>  text background color blue
-<tr><td>0x1c     <td><td> ignored
-<tr><td>0x1d     <td>tfr><td> text foreground color red
+<tr><td>0x1c     <td> - <td> ignored
+<tr><td>0x1d     <td>tfr<td>  text foreground color red
 <tr><td>0x1e     <td>tfg<td>  text foreground color green
 <tr><td>0x1f     <td>tfb<td>  text foreground color blue
-<tr><td>0x20     <td><td> ignored
-<tr><td>0x21     <td>fr><td> fill color red
+<tr><td>0x20     <td> - <td> ignored
+<tr><td>0x21     <td>fr<td>  fill color red
 <tr><td>0x22     <td>fg<td>  fill color green
 <tr><td>0x23     <td>fb<td>  fill color blue
-<tr><td>0x24     <td><td> ignored
-<tr><td>0x25     <td>lr><td> line color red
+<tr><td>0x24     <td> - <td> ignored
+<tr><td>0x25     <td>lr<td>  line color red
 <tr><td>0x26     <td>lg<td>  line color green
 <tr><td>0x27     <td>lb<td>  line color blue
 <tr><td>0x28-0x29<td>cw<td> character width 
 <tr><td>0x2a-0x2b<td>ch<td> charcter height
-<tr><td>0x2c-0x2f<td><td> unused
+<tr><td>0x2c-0x2f<td> - <td> unused
 <tr><td>0x30-0x31<td>fw<td> frame width
 <tr><td>0x32-0x33<td>fh<td> frame height
 <tr><td>0x34-0x35<td>sh<td> screen width
@@ -91,8 +91,8 @@ bytes will trigger the execution of the command.
 The command may be split into a command number (byte 0) and some
 auxiliary information (1-3).
 <p>
-Most commands require a position. the coordinates are taken
-from Bytes c,d (x) and e,f (y).  If appropriate, executing of a command
+Most commands require a position. The coordinates are taken
+from Bytes c,d (x) and e,f (y).  If appropriate, executing a command
 will update these values to make the two values work like a cursor.
 <p>
 Bit Block transfers from/to non graphic memory need a physical
@@ -119,11 +119,13 @@ Scroll up the screen, if a newline happens to be in the last line of the screen.
 Draw a filled Rectangle using the fill color, using the x,y position as top left
 and the secondary x,y as bottom right. No update of the position occurs.
 <H4> command == 3 Draw Line</H4>
-Draw a line using the line color from the x,y position to the secondary x,y
+Draw a line using the current line color from the x,y position to the secondary x,y.
 The secondary x,y will then replace the position x,y to support drawing joint lines.
+If command aux is zero, the default line width is used (usually 1 pixel). If command aux
+is not zero, it will be used as the line width in pixel.
 <H4> command == 4 Bit Block Transfer</H4>
 Transfers a rectangular block of pixels from one part of the video ram to another part
-od the video ram. The x,y position is the top left coordinate of 
+of the video ram. The x,y position is the top left coordinate of 
 the destination. the secondary x,y is the top left coordinate of the source. 
 the width and height values of the second OCTA define the destination rectangle.
 clipping (if needed) occurs on the destination rectangle.
@@ -159,9 +161,48 @@ clipping (if needed) occurs on the destination rectangle.
 The command aux value should be used for the raster mode ar specified above,
 however this is currently not implemented. The values are just copied from source to destination.
 <p>
+The GPU will raise an interrupt when the data transfer has completed.
+<p>
 
 <H4> command == 6 Outgoing Bit Block Transfer</H4> 
-Not yet implemented.
+Transfers a rectangular block of pixels from the video memory into regular memory.
+The x,y position is the top left coordinate of 
+the source. The bit block address (bba) ist the destination physical adress where
+the bit pattern is stored as a sequence of TETRA byte.
+The width and height values of the second OCTA define the source (and the destination) rectangle.
+The command aux value should be used for the raster mode ar specified above,
+however this is currently not implemented. The values are just copied from source to destination.
 <p>
+The GPU will raise an interrupt when the data transfer has completed.
+<p>
+
+<H2>WINVRAM Configuration</H2>
+The win32 vram device has the following configurable parameters:
+<p>
+<table>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> 0x0002000000000000 <td> address where the video ram is located </tr>
+<tr> <td>mouseaddress   <td> 0x0001000000000010 <td> address where the mouse device is located </tr>
+<tr> <td>gpuaddress   <td> 0x0001000000000020 <td> address where the GPU is located </tr>
+<tr> <td>interrupt <td> 19 <td>interrupt send by the mouse  </tr>
+<tr> <td>moveinterrupt <td> false <td>whether mouse movements produce interrupts</tr>
+<tr> <td>gpuinterrupt <td> 20 <td>interrupt send by the GPU  </tr>
+<tr> <td>debug    <td> false<td>to generate debug output </tr>
+<tr> <td>width <td> 640 <td>visible width in pixel  </tr>
+<tr> <td>height <td>480 <td>visible height in pixel  </tr>
+<tr> <td>fwidth <td> 640 <td>frame width in pixel  </tr>
+<tr> <td>fheight <td>480 <td>frame height in pixel  </tr>
+<tr> <td>fontwidth <td> 10 <td>desired width of characters in pixel  </tr>
+<tr> <td>fontheight <td>20 <td>desired height of characters in pixel  </tr>
+<tr> <td>zoom <td> 1 <td>initial zoom factor  </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+These values should be set in default.mmc
+
+
+
 </BODY>
 </HTML>

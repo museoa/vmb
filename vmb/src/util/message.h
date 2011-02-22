@@ -148,7 +148,7 @@ extern  int bus_register(int socket,
 extern  int bus_unregister(int socket);
 extern int bus_disconnect(int socket);
 
-#if !defined(INVALID_SOCKET)
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET  (~0)
 #endif
 

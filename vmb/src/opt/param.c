@@ -32,6 +32,7 @@
 #pragma warning(disable : 4996)
 #else
 #include <unistd.h>
+#include <stdint.h>
 #endif
 
 #include "param.h"
@@ -50,13 +51,6 @@ int interrupt = 16;
 int xpos=0, ypos=0; /* Window position */
 int minimized = 0;  /* start the window minimized */
 
-#ifdef WIN32
-#include <windows.h>
-extern UINT64 vmb_address;
-#else
-#include <stdint.h>
-extern uint64_t vmb_address;
-#endif
 
 uint64_t vmb_address;
 unsigned int vmb_size;

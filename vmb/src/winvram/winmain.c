@@ -56,6 +56,14 @@ static void put_one_pixel(int x, int y, unsigned char color[4])
    c = RGB(color[1],color[2],color[3]);
    c = SetPixel(hCanvas,x,y,c);
 }
+static void get_one_pixel(int x, int y, unsigned char color[4])
+{  COLORREF c;
+      c = GetPixel(hCanvas,x,y);
+	  color[0]=0;
+	  color[1]=GetRValue(c);
+	  color[2]=GetGValue(c);
+	  color[3]=GetBValue(c);
+}
 
 void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 { RECT rect;
@@ -378,6 +386,8 @@ and the secondary x,y as bottom right. No update of the position occurs.
 2.3 command == 3 Draw Line
 Draw a line using the line color from the x,y position to the secondary x,y
 The secondary x,y will then replace the position x,y to support drawing joint lines.
+If command aux is zero, the default line width is used (usually 1 pixel). If command aux
+is not zero, it will be used as the line width in pixel.
 2.4 command == 4 Bit Block Transfer
 Transfers a rectangular block of pixels. The x,y position is the top left coordinate of 
 the destination. the secondary x,y is the top left coordinate of the source. 
@@ -554,6 +564,8 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		break;
 	case GPU_BLT_IN:
 	    PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
+	case GPU_BLT_OUT:
+	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
 		break;
 
   }
@@ -732,8 +744,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 			DrawMenuBar(hMainWnd);
 		return 0;
-	case WM_VMB_OTHER:
-	    { int x,y,w,h,i,k,n,size, d;
+	case WM_VMB_OTHER: /* called for GPU_BLT_IN */
+	    { int x,y,w,h,i,k,n,size,d;
 		  static unsigned char sector_buffer[256*8];
           data_address da ={sector_buffer,0,0,256*8,STATUS_INVALID};
 		  RECT rect;
@@ -771,6 +783,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  rect.left = (int)(x*zoom);
 		  rect.right = (int)((x+w)*zoom);  
           InvalidateRect(hMainWnd,&rect,FALSE);
+		  return 0;
+		}
+	case WM_VMB_OTHER+1: /* called for GPU_BLT_OUT */
+			    { int x,y,w,h,i,k,n,size,d;
+		  static unsigned char sector_buffer[256*8];
+          data_address da ={sector_buffer,0,0,256*8,STATUS_INVALID};
+
+		  vmb_debug(VMB_DEBUG_INFO,"Outgoing Bit Block Transfer");
+		  x = GPU_X;
+		  y = GPU_Y;
+		  w = GPU_W; i = 0;  /* below we have 0<=i<w and 0<=k<h */
+		  h = GPU_H; k = 0;
+		  size = w*h*4;
+		  da.address_hi = chartoint(gpu_mem+0x10);
+          da.address_lo = chartoint(gpu_mem+0x14);
+		  d = 0x100*8;
+          while (size>0)
+		  { if (d>size) d = size;
+			da.size = d;
+			EnterCriticalSection (&bitmap_section);
+            for (n=0;n<da.size;n=n+4)
+			{ get_one_pixel(x+i,y+k,da.data+n);
+			  i++;
+			  if (i >= w)
+			  { i=0; k++;
+			  }
+			}
+            LeaveCriticalSection (&bitmap_section);
+		    vmb_store(&vmb_gpu, &da);
+			size=size-d;
+			if (da.address_lo+d<da.address_lo) da.address_hi++;
+			da.address_lo += d;
+		  }
+		  vmb_raise_interrupt(&vmb_gpu, gpu_interrupt);
 		  return 0;
 		}
 	case WM_CREATE:

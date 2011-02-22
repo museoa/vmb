@@ -172,6 +172,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\vmberror.c"
+				>
+			</File>
+			<File
 				RelativePath=".\vmbpoweroff.c"
 				>
 			</File>
@@ -185,6 +189,10 @@
 			</File>
 			<File
 				RelativePath=".\vmbterminate.c"
+				>
+			</File>
+			<File
+				RelativePath=".\vmbtimewait.c"
 				>
 			</File>
 		</Filter>

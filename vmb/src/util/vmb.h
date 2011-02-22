@@ -35,6 +35,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#pragma warning(disable : 4996)
 #else
 #include <pthread.h>
 #endif
