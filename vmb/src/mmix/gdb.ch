@@ -275,13 +275,15 @@ aux.h=0x60000000;
 @x
 @d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true
 @y
-@d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP;
+@d do_store_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
+@d test_store_bkpt(a) if (get_break(a)&write_bit) do_store_bkpt;
 @z
 
 @x
 @d test_load_bkpt(a) if (get_break(a)&read_bit) breakpoint=tracing=true
 @y
-@d test_load_bkpt(a) if (get_break(a)&read_bit) breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
+@d do_load_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
+@d test_load_bkpt(a) if (get_break(a)&read_bit) do_load_bkpt;
 @z
 
 

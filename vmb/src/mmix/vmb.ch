@@ -660,13 +660,8 @@ static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
 static char localhost[]="localhost";
-#if defined(WIN32)
-extern int busport;
-extern char *bushost;
-#else
 static int busport=9002; /* on which port to connect to the bus */
 static char *bushost=localhost; /* on which host to connect to the bus */
-#endif
 @z
 
 
@@ -1874,9 +1869,12 @@ int main(argc,argv)
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
 @y
-#ifdef WIN32
+#ifdef WIN32GUI
 DWORD WINAPI mmix_main(LPVOID dummy)
-{
+{ 
+  int argc =0;
+  char **boot_cur_arg;
+  int boot_argc;
   @<Local registers@>;
 #else
 int main(argc,argv)

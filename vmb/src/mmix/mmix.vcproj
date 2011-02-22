@@ -24,8 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="rebuild mmix-sim "
-				CommandLine="ctangle mmix-sim.w mmix-sim.ch"
+				Description="build mmix-vmb.c "
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,8 +105,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="rebuild mmix-sim "
-				CommandLine="ctangle mmix-sim.w mmix-sim.ch"
+				Description="build mmix-vmb.c "
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -204,7 +204,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-sim.c"
+				RelativePath=".\mmix-vmb.c"
 				>
 			</File>
 		</Filter>
@@ -229,7 +229,7 @@
 			>
 		</Filter>
 		<File
-			RelativePath=".\mmix-sim.ch"
+			RelativePath=".\vmb.ch"
 			>
 		</File>
 	</Files>

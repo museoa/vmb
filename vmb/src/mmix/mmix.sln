@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmix", "mmix.vcproj", "{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
@@ -8,6 +7,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixal", "mmixal.vcproj", "{B0BD2341-516A-4FC7-B239-0BC4996426C9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmoboot", "mmoboot.vcproj", "{1ED92422-F16F-419A-BC94-6EC9628DEA0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmmix", "gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +32,10 @@ Global
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Debug|Win32.Build.0 = Debug|Win32
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Release|Win32.ActiveCfg = Release|Win32
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Release|Win32.Build.0 = Release|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Debug|Win32.Build.0 = Debug|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Release|Win32.ActiveCfg = Release|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
