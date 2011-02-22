@@ -1268,8 +1268,11 @@ case SWYM:
      @<Set |b| from register X@>;
      n=mmgetchars((unsigned char *)buf,256,b,0);
      buf[n]=0;
-     if (strncmp(buf,"DEBUG ",6)==0) 
+     if (n>6 && strncmp(buf,"DEBUG ",6)==0) 
+     {
        sprintf(rhs,"\n%s!\nrF=#%08X%08X\n",buf+6,g[rF].h, g[rF].l);
+       tracing= true;
+     }
  }
  else
    strcpy(rhs,"");

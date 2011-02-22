@@ -101,7 +101,7 @@ derr("can %s pure values only",verb)  \
 #define ORL 0xeb \
 
 /*139:*/
-#line 3137 "./mmixal.w"
+#line 3137 "mmixal.w"
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -110,7 +110,7 @@ derr("can %s pure values only",verb)  \
 #include <time.h> 
 
 /*31:*/
-#line 1008 "./mmixal.w"
+#line 1008 "mmixal.w"
 
 #ifdef __STDC__
 #define ARGS(list) list
@@ -119,17 +119,17 @@ derr("can %s pure values only",verb)  \
 #endif
 
 /*:31*//*39:*/
-#line 1105 "./mmixal.w"
+#line 1105 "mmixal.w"
 
 #ifndef FILENAME_MAX
 #define FILENAME_MAX 256
 #endif
 
 /*:39*/
-#line 3144 "./mmixal.w"
+#line 3144 "mmixal.w"
 
 /*26:*/
-#line 943 "./mmixal.w"
+#line 943 "mmixal.w"
 
 typedef unsigned int tetra;
 
@@ -137,12 +137,12 @@ typedef struct{tetra h,l;}octa;
 typedef enum{false,true}bool;
 
 /*:26*//*30:*/
-#line 999 "./mmixal.w"
+#line 999 "mmixal.w"
 
 typedef unsigned char Char;
 
 /*:30*//*57:*/
-#line 1427 "./mmixal.w"
+#line 1427 "mmixal.w"
 
 typedef struct ternary_trie_struct{
 unsigned short ch;
@@ -152,19 +152,19 @@ struct sym_tab_struct*sym;
 }trie_node;
 
 /*:57*//*61:*/
-#line 1531 "./mmixal.w"
+#line 1531 "mmixal.w"
 
-#line 112 "./mmixal.ch"
+#line 112 "mmixal.ch"
 typedef struct sym_tab_struct{
 int serial;
 struct sym_tab_struct*link;
 octa equiv;
 int linenr;
 }sym_node;
-#line 1537 "./mmixal.w"
+#line 1537 "mmixal.w"
 
 /*:61*//*65:*/
-#line 1612 "./mmixal.w"
+#line 1612 "mmixal.w"
 
 typedef struct{
 Char*name;
@@ -177,7 +177,7 @@ SET= 0x100,IS,LOC,PREFIX,BSPEC,ESPEC,GREG,LOCAL,
 BYTE,WYDE,TETRA,OCTA}pseudo_op;
 
 /*:65*//*71:*/
-#line 1976 "./mmixal.w"
+#line 1976 "mmixal.w"
 
 typedef struct{
 Char*name;
@@ -185,7 +185,7 @@ tetra h,l;
 }predef_spec;
 
 /*:71*//*85:*/
-#line 2281 "./mmixal.w"
+#line 2281 "mmixal.w"
 
 typedef enum{negate,serialize,complement,registerize,inner_lp,
 plus,minus,times,over,frac,mod,shl,shr,and,or,xor,
@@ -199,10 +199,10 @@ stat status;
 }val_node;
 
 /*:85*/
-#line 3145 "./mmixal.w"
+#line 3145 "mmixal.w"
 
 /*27:*/
-#line 949 "./mmixal.w"
+#line 949 "mmixal.w"
 
 extern octa zero_octa;
 extern octa neg_one;
@@ -210,7 +210,7 @@ extern octa aux;
 extern bool overflow;
 
 /*:27*//*33:*/
-#line 1031 "./mmixal.w"
+#line 1031 "mmixal.w"
 
 Char*buffer;
 Char*buf_ptr;
@@ -220,7 +220,7 @@ Char*operand_list;
 Char*err_buf;
 
 /*:33*//*36:*/
-#line 1062 "./mmixal.w"
+#line 1062 "mmixal.w"
 
 int cur_file;
 int line_no;
@@ -228,14 +228,14 @@ bool line_listed;
 bool long_warning_given;
 
 /*:36*//*37:*/
-#line 1072 "./mmixal.w"
+#line 1072 "mmixal.w"
 
 Char*filename[257];
 
 int filename_count;
 
 /*:37*//*43:*/
-#line 1156 "./mmixal.w"
+#line 1156 "mmixal.w"
 
 octa cur_loc;
 octa listing_loc;
@@ -246,12 +246,12 @@ bool spec_mode;
 tetra spec_mode_loc;
 
 /*:43*//*46:*/
-#line 1240 "./mmixal.w"
+#line 1240 "mmixal.w"
 
 int err_count;
 
 /*:46*//*51:*/
-#line 1370 "./mmixal.w"
+#line 1370 "mmixal.w"
 
 octa mmo_cur_loc;
 int mmo_line_no;
@@ -259,14 +259,14 @@ int mmo_cur_file;
 char filename_passed[256];
 
 /*:51*//*55:*/
-#line 37 "./mmixal.ch"
+#line 37 "mmixal.ch"
 
 Char tex_res[TEX_MAXSYM_LEN];
 Char*start_comment= NULL;
 int string_mode= 0;
 
 /*:55*//*59:*/
-#line 1452 "./mmixal.w"
+#line 1452 "mmixal.w"
 
 trie_node*trie_root;
 trie_node*op_root;
@@ -274,7 +274,7 @@ trie_node*next_trie_node,*last_trie_node;
 trie_node*cur_prefix;
 
 /*:59*//*63:*/
-#line 1566 "./mmixal.w"
+#line 1566 "mmixal.w"
 
 int serial_number;
 sym_node*sym_root;
@@ -282,7 +282,7 @@ sym_node*next_sym_node,*last_sym_node;
 sym_node*sym_avail;
 
 /*:63*//*66:*/
-#line 1623 "./mmixal.w"
+#line 1623 "mmixal.w"
 
 op_spec op_init_table[]= {
 {"TRAP",0x00,0x27554},
@@ -610,7 +610,7 @@ op_spec op_init_table[]= {
 int op_init_size;
 
 /*:66*//*70:*/
-#line 1970 "./mmixal.w"
+#line 1970 "mmixal.w"
 
 Char*special_name[32]= {"rB","rD","rE","rH","rJ","rM","rR","rBB",
 "rC","rN","rO","rS","rI","rT","rTT","rK","rQ","rU","rV","rG","rL",
@@ -618,7 +618,7 @@ Char*special_name[32]= {"rB","rD","rE","rH","rJ","rM","rR","rBB",
 
 
 /*:70*//*72:*/
-#line 1982 "./mmixal.w"
+#line 1982 "mmixal.w"
 
 predef_spec predefs[]= {
 {"ROUND_CURRENT",0,0},
@@ -713,13 +713,13 @@ int predef_size;
 
 
 /*:72*//*80:*/
-#line 2219 "./mmixal.w"
+#line 2219 "mmixal.w"
 
 Char sym_buf[1000];
 Char*sym_ptr;
 
 /*:80*//*86:*/
-#line 2297 "./mmixal.w"
+#line 2297 "mmixal.w"
 
 stack_op*op_stack;
 int op_ptr;
@@ -732,53 +732,53 @@ stack_op rt_op;
 octa acc;
 
 /*:86*//*93:*/
-#line 2386 "./mmixal.w"
+#line 2386 "mmixal.w"
 
 trie_node forward_local_host[10],backward_local_host[10];
 sym_node forward_local[10],backward_local[10];
 
 /*:93*//*108:*/
-#line 2634 "./mmixal.w"
+#line 2634 "mmixal.w"
 
 tetra opcode;
 tetra op_bits;
 
 /*:108*//*123:*/
-#line 2867 "./mmixal.w"
+#line 2867 "mmixal.w"
 
 tetra z,y,x,yz,xyz;
 int future_bits;
 
 /*:123*//*136:*/
-#line 3100 "./mmixal.w"
+#line 3100 "mmixal.w"
 
 octa greg_val[256];
 
 /*:136*//*142:*/
-#line 3207 "./mmixal.w"
+#line 3207 "mmixal.w"
 
 char*src_file_name;
 char obj_file_name[FILENAME_MAX+1];
-#line 257 "./mmixal.ch"
+#line 257 "mmixal.ch"
 char listing_name[FILENAME_MAX+1];
 char tex_file_name[FILENAME_MAX+1];
 FILE*src_file,*obj_file,*listing_file,*tex_file;
-#line 3212 "./mmixal.w"
+#line 3212 "mmixal.w"
 int expanding;
 int buf_size;
 
 /*:142*//*146:*/
-#line 3239 "./mmixal.w"
+#line 3239 "mmixal.w"
 
 int greg= 255;
 int cur_greg;
 int lreg= 32;
 
 /*:146*/
-#line 3146 "./mmixal.w"
+#line 3146 "mmixal.w"
 
 /*28:*/
-#line 961 "./mmixal.w"
+#line 961 "mmixal.w"
 
 extern octa oplus ARGS((octa y,octa z));
 
@@ -798,7 +798,7 @@ extern octa odiv ARGS((octa x,octa y,octa z));
 
 
 /*:28*//*41:*/
-#line 1127 "./mmixal.w"
+#line 1127 "mmixal.w"
 
 void flush_listing_line ARGS((char*));
 void flush_listing_line(s)
@@ -812,7 +812,7 @@ line_listed= true;
 }
 
 /*:41*//*42:*/
-#line 1143 "./mmixal.w"
+#line 1143 "mmixal.w"
 
 void update_listing_loc ARGS((int));
 void update_listing_loc(k)
@@ -827,7 +827,7 @@ listing_loc.l= (cur_loc.l&-4)|k;
 }
 
 /*:42*//*44:*/
-#line 1177 "./mmixal.w"
+#line 1177 "mmixal.w"
 
 void listing_clear ARGS((void));
 void listing_clear()
@@ -848,7 +848,7 @@ listing_bits= 0;
 }
 
 /*:44*//*45:*/
-#line 1211 "./mmixal.w"
+#line 1211 "mmixal.w"
 
 void report_error ARGS((char*));
 void report_error(message)
@@ -879,7 +879,7 @@ if(message[0]=='!')exit(-2);
 }
 
 /*:45*//*47:*/
-#line 1254 "./mmixal.w"
+#line 1254 "mmixal.w"
 
 void mmo_clear ARGS((void));
 void mmo_out ARGS((void));
@@ -904,7 +904,7 @@ mmo_write(mmo_buf);
 }
 
 /*:47*//*48:*/
-#line 1277 "./mmixal.w"
+#line 1277 "mmixal.w"
 
 void mmo_tetra ARGS((tetra));
 void mmo_byte ARGS((unsigned char));
@@ -943,7 +943,7 @@ mmo_out();
 }
 
 /*:48*//*49:*/
-#line 1317 "./mmixal.w"
+#line 1317 "mmixal.w"
 
 void mmo_loc ARGS((void));
 void mmo_loc()
@@ -964,7 +964,7 @@ mmo_cur_loc= cur_loc;
 }
 
 /*:49*//*50:*/
-#line 1339 "./mmixal.w"
+#line 1339 "mmixal.w"
 
 void mmo_sync ARGS((void));
 void mmo_sync()
@@ -997,7 +997,7 @@ mmo_line_no= line_no;
 }
 
 /*:50*//*52:*/
-#line 1381 "./mmixal.w"
+#line 1381 "mmixal.w"
 
 void assemble ARGS((char,tetra,unsigned char));
 void assemble(k,dat,x_bits)
@@ -1010,14 +1010,14 @@ if(spec_mode)l= spec_mode_loc;
 else{
 l= cur_loc.l;
 /*53:*/
-#line 1409 "./mmixal.w"
+#line 1409 "mmixal.w"
 
 if(cur_loc.h!=mmo_cur_loc.h||((cur_loc.l^mmo_cur_loc.l)&0xfffffffc))
-#line 4 "./mmixal.ch"
+#line 4 "mmixal.ch"
 mmo_loc();
 
 /*:53*/
-#line 1392 "./mmixal.w"
+#line 1392 "mmixal.w"
 ;
 if(!held_bits&&!(cur_loc.h&0xe0000000))mmo_sync();
 }
@@ -1036,7 +1036,7 @@ if(spec_mode)spec_mode_loc+= k;else cur_loc= incr(cur_loc,k);
 }
 
 /*:52*//*56:*/
-#line 42 "./mmixal.ch"
+#line 42 "mmixal.ch"
 
 Char*toTex(Char*symbol)
 {int i,j;
@@ -1050,32 +1050,32 @@ case'%':
 tex_res[j++]= '\\';break;
 case'{':if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_braceopen))
 strcat(tex_res,tex_braceopen);
-i++,j+= strlen(tex_braceopen);
+i++,j+= (int)strlen(tex_braceopen);
 continue;
 case'}':if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_braceclose))
 strcat(tex_res,tex_braceclose);
-i++,j+= strlen(tex_braceclose);
+i++,j+= (int)strlen(tex_braceclose);
 continue;
 case'|':if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_pipe))
 strcat(tex_res,tex_pipe);
-i++,j+= strlen(tex_pipe);
+i++,j+= (int)strlen(tex_pipe);
 continue;
 case'^':if(strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_hat))
 strcat(tex_res,tex_hat);
-i++,j+= strlen(tex_hat);
+i++,j+= (int)strlen(tex_hat);
 continue;
 case'>':if(symbol[i+1]=='>'&&strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_gg))
 strcat(tex_res,tex_gg);
-i+= 2,j+= strlen(tex_gg);
+i+= 2,j+= (int)strlen(tex_gg);
 continue;
 case'<':if(symbol[i+1]=='<'&&strlen(tex_res)<TEX_MAXSYM_LEN-strlen(tex_ll))
 strcat(tex_res,tex_ll);
-i+= 2,j+= strlen(tex_ll);
+i+= 2,j+= (int)strlen(tex_ll);
 continue;
 case' ':if(string_mode&&j+strlen(tex_blank)<TEX_MAXSYM_LEN){
 tex_res[j]= '\0';
 strcat(tex_res,tex_blank);
-j+= strlen(tex_blank);}
+j+= (int)strlen(tex_blank);}
 
 
 else break;
@@ -1098,10 +1098,10 @@ tex_res[j++]= symbol[i++];
 tex_res[j]= '\0';
 return tex_res;
 }
-#line 1412 "./mmixal.w"
+#line 1412 "mmixal.w"
 
 /*:56*//*58:*/
-#line 1437 "./mmixal.w"
+#line 1437 "mmixal.w"
 
 trie_node*new_trie_node ARGS((void));
 trie_node*new_trie_node()
@@ -1118,7 +1118,7 @@ return t;
 }
 
 /*:58*//*60:*/
-#line 1465 "./mmixal.w"
+#line 1465 "mmixal.w"
 
 trie_node*trie_search ARGS((trie_node*,Char*));
 Char*terminator;
@@ -1156,7 +1156,7 @@ store_new_char:tt->ch= *p++;
 }
 
 /*:60*//*62:*/
-#line 1544 "./mmixal.w"
+#line 1544 "mmixal.w"
 
 sym_node*new_sym_node ARGS((bool));
 sym_node*new_sym_node(serialize)
@@ -1180,7 +1180,7 @@ return p;
 }
 
 /*:62*//*76:*/
-#line 2130 "./mmixal.w"
+#line 2130 "mmixal.w"
 
 trie_node*prune ARGS((trie_node*));
 trie_node*prune(t)
@@ -1208,7 +1208,7 @@ else return NULL;
 }
 
 /*:76*//*77:*/
-#line 2158 "./mmixal.w"
+#line 2158 "mmixal.w"
 
 void out_stab ARGS((trie_node*));
 void out_stab(t)
@@ -1224,7 +1224,7 @@ if(t->sym){
 if(t->sym->link==REGISTER)m+= 0xf;
 else if(t->sym->link==DEFINED)
 /*79:*/
-#line 2206 "./mmixal.w"
+#line 2206 "mmixal.w"
 
 {register tetra x;
 if((t->sym->equiv.h&0xffff0000)==0x20000000)
@@ -1236,10 +1236,10 @@ m+= j;
 }
 
 /*:79*/
-#line 2172 "./mmixal.w"
+#line 2172 "mmixal.w"
 
 else if(t->sym->link||t->sym->serial==1)/*82:*/
-#line 2242 "./mmixal.w"
+#line 2242 "mmixal.w"
 
 {
 *sym_ptr= (m&0x80?'?':t->ch);
@@ -1251,13 +1251,13 @@ m+= 2;
 }
 
 /*:82*/
-#line 2173 "./mmixal.w"
+#line 2173 "mmixal.w"
 ;
 }
 mmo_byte(m);
 if(t->left)out_stab(t->left);
 if(m&0x2f)/*78:*/
-#line 2186 "./mmixal.w"
+#line 2186 "mmixal.w"
 
 {
 if(m&0x80)mmo_byte(t->ch>>8);
@@ -1265,7 +1265,7 @@ mmo_byte(t->ch&0xff);
 *sym_ptr++= (m&0x80?'?':t->ch);
 m&= 0xf;if(m&&t->sym->link){
 if(listing_file)/*81:*/
-#line 2229 "./mmixal.w"
+#line 2229 "mmixal.w"
 
 {
 *sym_ptr= '\0';
@@ -1276,16 +1276,16 @@ fprintf(listing_file,"#%08x%08x",pp->equiv.h,pp->equiv.l);
 else if(pp->link==REGISTER)
 fprintf(listing_file,"$%03d",pp->equiv.l);
 else fprintf(listing_file,"?");
-#line 123 "./mmixal.ch"
+#line 123 "mmixal.ch"
 fprintf(listing_file," (%d)\n",pp->serial);
 if(tex_file)fprintf(tex_file,"%s%s%s: %s%d%s %s\n",tex_startop,toTex(sym_buf+1),
 tex_endop,tex_startlinenr,
 pp->linenr,tex_endlinenr,tex_nl);
-#line 2240 "./mmixal.w"
+#line 2240 "mmixal.w"
 }
 
 /*:81*/
-#line 2192 "./mmixal.w"
+#line 2192 "mmixal.w"
 ;
 if(m==15)m= 1;
 else if(m> 8)m-= 8;
@@ -1301,13 +1301,13 @@ sym_ptr--;
 }
 
 /*:78*/
-#line 2177 "./mmixal.w"
+#line 2177 "mmixal.w"
 ;
 if(t->right)out_stab(t->right);
 }
 
 /*:77*/
-#line 3147 "./mmixal.w"
+#line 3147 "mmixal.w"
 
 
 int main(argc,argv)
@@ -1316,28 +1316,28 @@ char*argv[];
 {
 register int j,k;
 /*40:*/
-#line 1110 "./mmixal.w"
+#line 1110 "mmixal.w"
 
 register Char*p,*q;
 
 /*:40*//*68:*/
-#line 1958 "./mmixal.w"
+#line 1958 "mmixal.w"
 
 register trie_node*tt;
 register sym_node*pp,*qq;
 
 /*:68*/
-#line 3154 "./mmixal.w"
+#line 3154 "mmixal.w"
 ;
 /*140:*/
-#line 3174 "./mmixal.w"
+#line 3174 "mmixal.w"
 
 for(j= 1;j<argc-1&&argv[j][0]=='-';j++)if(!argv[j][2]){
 if(argv[j][1]=='x')expanding= 1;
-#line 233 "./mmixal.ch"
+#line 233 "mmixal.ch"
 else if(argv[j][1]=='o')j++,strcpy(obj_file_name,argv[j]);
 else if(argv[j][1]=='t')j++,strcpy(tex_file_name,argv[j]);
-#line 3178 "./mmixal.w"
+#line 3178 "mmixal.w"
 else if(argv[j][1]=='l')j++,strcpy(listing_name,argv[j]);
 else if(argv[j][1]=='b'&&sscanf(argv[j+1],"%d",&buf_size)==1)j++;
 else break;
@@ -1345,25 +1345,25 @@ else break;
 if(j!=argc-1){
 fprintf(stderr,"Usage: %s %s sourcefilename\n",
 
-#line 240 "./mmixal.ch"
+#line 240 "mmixal.ch"
 argv[0],"[-x] [-l listingname] [-t TeXfilename] [-b buffersize] [-o objectfilename]");
-#line 3186 "./mmixal.w"
+#line 3186 "mmixal.w"
 exit(-1);
 }
 src_file_name= argv[j];
 
 /*:140*/
-#line 3155 "./mmixal.w"
+#line 3155 "mmixal.w"
 ;
 /*29:*/
-#line 981 "./mmixal.w"
+#line 981 "mmixal.w"
 
 acc= shift_left(neg_one,1);
 if(acc.h!=0xffffffff)panic("Type tetra is not implemented correctly");
 
 
 /*:29*//*32:*/
-#line 1020 "./mmixal.w"
+#line 1020 "mmixal.w"
 
 if(buf_size<72)buf_size= 72;
 buffer= (Char*)calloc(buf_size+1,sizeof(Char));
@@ -1376,7 +1376,7 @@ panic("No room for the buffers");
 
 
 /*:32*//*64:*/
-#line 1577 "./mmixal.w"
+#line 1577 "mmixal.w"
 
 trie_root= new_trie_node();
 cur_prefix= trie_root;
@@ -1385,7 +1385,7 @@ trie_root->mid= op_root;
 trie_root->ch= ':';
 op_root->ch= '^';
 /*67:*/
-#line 1949 "./mmixal.w"
+#line 1949 "mmixal.w"
 
 op_init_size= (sizeof op_init_table)/sizeof(op_spec);
 for(j= 0;j<op_init_size;j++){
@@ -1396,10 +1396,10 @@ pp->equiv.h= op_init_table[j].code,pp->equiv.l= op_init_table[j].bits;
 }
 
 /*:67*/
-#line 1584 "./mmixal.w"
+#line 1584 "mmixal.w"
 ;
 /*69:*/
-#line 1962 "./mmixal.w"
+#line 1962 "mmixal.w"
 
 for(j= 0;j<32;j++){
 tt= trie_search(trie_root,special_name[j]);
@@ -1409,10 +1409,10 @@ pp->equiv.l= j;
 }
 
 /*:69*/
-#line 1585 "./mmixal.w"
+#line 1585 "mmixal.w"
 ;
 /*73:*/
-#line 2075 "./mmixal.w"
+#line 2075 "mmixal.w"
 
 predef_size= (sizeof predefs)/sizeof(predef_spec);
 for(j= 0;j<predef_size;j++){
@@ -1423,16 +1423,16 @@ pp->equiv.h= predefs[j].h,pp->equiv.l= predefs[j].l;
 }
 
 /*:73*/
-#line 1586 "./mmixal.w"
+#line 1586 "mmixal.w"
 ;
 
 /*:64*//*74:*/
-#line 2089 "./mmixal.w"
+#line 2089 "mmixal.w"
 
 trie_search(trie_root,"Main")->sym= new_sym_node(true);
 
 /*:74*//*87:*/
-#line 2308 "./mmixal.w"
+#line 2308 "mmixal.w"
 
 op_stack= (stack_op*)calloc(buf_size,sizeof(stack_op));
 val_stack= (val_node*)calloc(buf_size,sizeof(val_node));
@@ -1440,7 +1440,7 @@ if(!op_stack||!val_stack)panic("No room for the stacks");
 
 
 /*:87*//*94:*/
-#line 2392 "./mmixal.w"
+#line 2392 "mmixal.w"
 
 for(j= 0;j<10;j++){
 forward_local_host[j].sym= &forward_local[j];
@@ -1449,10 +1449,10 @@ backward_local[j].link= DEFINED;
 }
 
 /*:94*//*143:*/
-#line 3215 "./mmixal.w"
+#line 3215 "mmixal.w"
 
 /*141:*/
-#line 3190 "./mmixal.w"
+#line 3190 "mmixal.w"
 
 src_file= fopen(src_file_name,"r");
 if(!src_file)dpanic("Can't open the source file %s",src_file_name);
@@ -1465,40 +1465,40 @@ strcpy(obj_file_name,src_file_name);obj_file_name[j-1]= 'o';
 }
 obj_file= fopen(obj_file_name,"wb");
 if(!obj_file)dpanic("Can't open the object file %s",obj_file_name);
-#line 246 "./mmixal.ch"
+#line 246 "mmixal.ch"
 if(tex_file_name[0]){
 tex_file= fopen(tex_file_name,"w");
 if(!tex_file)dpanic("Can't open the TeX file %s",tex_file_name);
 }
 if(listing_name[0]){
-#line 3203 "./mmixal.w"
+#line 3203 "mmixal.w"
 listing_file= fopen(listing_name,"w");
 if(!listing_file)dpanic("Can't open the listing file %s",listing_name);
 }
 
 /*:141*/
-#line 3216 "./mmixal.w"
+#line 3216 "mmixal.w"
 ;
 filename[0]= src_file_name;
 filename_count= 1;
 /*144:*/
-#line 3221 "./mmixal.w"
+#line 3221 "mmixal.w"
 
 mmo_lop(lop_pre,1,1);
 mmo_tetra(time(NULL));
 mmo_cur_file= -1;
 
 /*:144*/
-#line 3219 "./mmixal.w"
+#line 3219 "mmixal.w"
 ;
 
 /*:143*/
-#line 3156 "./mmixal.w"
+#line 3156 "mmixal.w"
 ;
 while(1){
-#line 214 "./mmixal.ch"
+#line 214 "mmixal.ch"
 /*34:*/
-#line 1039 "./mmixal.w"
+#line 1039 "mmixal.w"
 
 if(!fgets(buffer,buf_size+1,src_file))break;
 line_no++;
@@ -1507,7 +1507,7 @@ j= strlen(buffer);
 if(buffer[j-1]=='\n')buffer[j-1]= '\0';
 else if((j= fgetc(src_file))!=EOF)
 /*35:*/
-#line 1050 "./mmixal.w"
+#line 1050 "mmixal.w"
 
 {
 while(j!='\n'&&j!=EOF)j= fgetc(src_file);
@@ -1521,10 +1521,10 @@ fprintf(stderr,
 }
 
 /*:35*/
-#line 1046 "./mmixal.w"
+#line 1046 "mmixal.w"
 ;
 if(buffer[0]=='#')/*38:*/
-#line 1080 "./mmixal.w"
+#line 1080 "mmixal.w"
 
 {
 for(p= buffer+1;isspace(*p);p++);
@@ -1549,30 +1549,30 @@ line_no= j-1;
 }
 
 /*:38*/
-#line 1047 "./mmixal.w"
+#line 1047 "mmixal.w"
 ;
 buf_ptr= buffer;
 
 /*:34*/
-#line 214 "./mmixal.ch"
+#line 214 "mmixal.ch"
 ;
 if(tex_file)
 fprintf(tex_file,"%s%d %s",tex_startlinenr,line_no,tex_endlinenr);
-#line 3159 "./mmixal.w"
+#line 3159 "mmixal.w"
 while(1){
 /*105:*/
-#line 2578 "./mmixal.w"
+#line 2578 "mmixal.w"
 
 p= buf_ptr;buf_ptr= "";
 /*106:*/
-#line 2599 "./mmixal.w"
+#line 2599 "mmixal.w"
 
-#line 132 "./mmixal.ch"
+#line 132 "mmixal.ch"
 if(!*p){if(tex_file)fprintf(tex_file,"%s%s",tex_nolabel,tex_nl);goto bypass;}
-#line 2601 "./mmixal.w"
+#line 2601 "mmixal.w"
 q= lab_field;
 if(!isspace(*p)){
-#line 138 "./mmixal.ch"
+#line 138 "mmixal.ch"
 if(!isdigit(*p)&&!isletter(*p)){
 
 if(tex_file&&*p)
@@ -1583,7 +1583,7 @@ else
 fprintf(tex_file,"%s%s%s\n",tex_startcomment,p,tex_endcomment);
 goto bypass;
 }
-#line 2604 "./mmixal.w"
+#line 2604 "mmixal.w"
 for(*q++= *p++;isdigit(*p)||isletter(*p);p++,q++)*q= *p;
 if(*p&&!isspace(*p))derr("label syntax error at `%c'",*p);
 
@@ -1592,50 +1592,50 @@ if(*p&&!isspace(*p))derr("label syntax error at `%c'",*p);
 if(isdigit(lab_field[0])&&(lab_field[1]!='H'||lab_field[2]))
 derr("improper local label `%s'",lab_field);
 
-#line 153 "./mmixal.ch"
+#line 153 "mmixal.ch"
 if(tex_file)
 fprintf(tex_file,"%s %s %s",tex_labelstart,toTex(lab_field),tex_labelend);
 for(p++;isspace(*p);p++);
-#line 2613 "./mmixal.w"
+#line 2613 "mmixal.w"
 
 /*:106*/
-#line 2580 "./mmixal.w"
+#line 2580 "mmixal.w"
 ;
 /*107:*/
-#line 2617 "./mmixal.w"
+#line 2617 "mmixal.w"
 
 q= op_field;
 while(isletter(*p)||isdigit(*p))*q++= *p++;
 *q= '\0';
-#line 161 "./mmixal.ch"
+#line 161 "mmixal.ch"
 if(!isspace(*p)&&*p&&op_field[0]){
 if(tex_file&&op_field)fprintf(tex_file,"%s%s%s%s",op_field,tex_tab,p,tex_nl);
 derr("opcode syntax error at `%c'",*p);
 }
-#line 2622 "./mmixal.w"
+#line 2622 "mmixal.w"
 
 pp= trie_search(op_root,op_field)->sym;
-#line 170 "./mmixal.ch"
+#line 170 "mmixal.ch"
 if(!pp){
 if(tex_file)fprintf(tex_file,tex_nl);
-#line 2625 "./mmixal.w"
+#line 2625 "mmixal.w"
 if(op_field[0])derr("unknown operation code `%s'",op_field);
 
 if(lab_field[0])derr("*no opcode; label `%s' will be ignored",lab_field);
 
 goto bypass;
 }
-#line 177 "./mmixal.ch"
+#line 177 "mmixal.ch"
 opcode= pp->equiv.h,op_bits= pp->equiv.l;
 if(tex_file)fprintf(tex_file,"%s %s %s",tex_opcodestart,toTex(op_field),tex_opcodeend);
-#line 2632 "./mmixal.w"
+#line 2632 "mmixal.w"
 while(isspace(*p))p++;
 
 /*:107*/
-#line 2581 "./mmixal.w"
+#line 2581 "mmixal.w"
 ;
 /*109:*/
-#line 2641 "./mmixal.w"
+#line 2641 "mmixal.w"
 
 q= operand_list;
 while(*p){
@@ -1656,17 +1656,17 @@ if(isspace(*p))break;
 }
 while(isspace(*p))p++;
 if(*p==';')p++;
-#line 184 "./mmixal.ch"
+#line 184 "mmixal.ch"
 else start_comment= p,p= "";
-#line 2662 "./mmixal.w"
+#line 2662 "mmixal.w"
 if(q==operand_list)*q++= '0';
-#line 190 "./mmixal.ch"
+#line 190 "mmixal.ch"
 *q= '\0';
 if(tex_file)fprintf(tex_file,"%s%s%s",tex_startop,toTex(operand_list),tex_endop);
-#line 2664 "./mmixal.w"
+#line 2664 "mmixal.w"
 
 /*:109*/
-#line 2582 "./mmixal.w"
+#line 2582 "mmixal.w"
 ;
 buf_ptr= p;
 if(spec_mode&&!(op_bits&spec_bit))
@@ -1678,7 +1678,7 @@ lab_field[0]= '\0';
 }
 
 if(op_bits&align_bits)/*110:*/
-#line 2668 "./mmixal.w"
+#line 2668 "mmixal.w"
 
 {
 j= (op_bits&align_bits)>>16;
@@ -1687,10 +1687,10 @@ cur_loc= oand(incr(cur_loc,(1<<j)-1),acc);
 }
 
 /*:110*/
-#line 2592 "./mmixal.w"
+#line 2592 "mmixal.w"
 ;
 /*88:*/
-#line 2317 "./mmixal.w"
+#line 2317 "mmixal.w"
 
 p= operand_list;
 val_ptr= 0;
@@ -1698,10 +1698,10 @@ op_stack[0]= outer_lp,op_ptr= 1;
 
 while(1){
 /*89:*/
-#line 2333 "./mmixal.w"
+#line 2333 "mmixal.w"
 
 scan_open:if(isletter(*p))/*90:*/
-#line 2359 "./mmixal.w"
+#line 2359 "mmixal.w"
 
 {
 if(*p==':')tt= trie_search(trie_root,p+1);
@@ -1717,31 +1717,31 @@ undefined);
 }
 
 /*:90*/
-#line 2334 "./mmixal.w"
+#line 2334 "mmixal.w"
 
 else if(isdigit(*p)){
 if(*(p+1)=='F')/*91:*/
-#line 2373 "./mmixal.w"
+#line 2373 "mmixal.w"
 
 {
 tt= &forward_local_host[*p-'0'];p+= 2;goto symbol_found;
 }
 
 /*:91*/
-#line 2336 "./mmixal.w"
+#line 2336 "mmixal.w"
 
 else if(*(p+1)=='B')/*92:*/
-#line 2378 "./mmixal.w"
+#line 2378 "mmixal.w"
 
 {
 tt= &backward_local_host[*p-'0'];p+= 2;goto symbol_found;
 }
 
 /*:92*/
-#line 2337 "./mmixal.w"
+#line 2337 "mmixal.w"
 
 else/*97:*/
-#line 2415 "./mmixal.w"
+#line 2415 "mmixal.w"
 
 acc.h= 0,acc.l= *p-'0';
 for(p++;isdigit(*p);p++){
@@ -1754,11 +1754,11 @@ top_val.equiv= acc;
 top_val.status= pure;
 
 /*:97*/
-#line 2338 "./mmixal.w"
+#line 2338 "mmixal.w"
 ;
 }else switch(*p++){
 case'#':/*98:*/
-#line 2426 "./mmixal.w"
+#line 2426 "mmixal.w"
 
 if(!isxdigit(*p))err("illegal hexadecimal constant");
 
@@ -1771,20 +1771,20 @@ else if(*p>='A')acc= incr(acc,'0'-'A'+10);
 goto constant_found;
 
 /*:98*/
-#line 2340 "./mmixal.w"
+#line 2340 "mmixal.w"
 ;break;
 case'\'':/*95:*/
-#line 2401 "./mmixal.w"
+#line 2401 "mmixal.w"
 
 acc.h= 0,acc.l= *p;
 p+= 2;
 goto constant_found;
 
 /*:95*/
-#line 2341 "./mmixal.w"
+#line 2341 "mmixal.w"
 ;break;
 case'\"':/*96:*/
-#line 2406 "./mmixal.w"
+#line 2406 "mmixal.w"
 
 acc.h= 0,acc.l= *p;
 if(*p=='\"'){
@@ -1795,16 +1795,16 @@ else*p= '\"',*--p= ',';
 goto constant_found;
 
 /*:96*/
-#line 2342 "./mmixal.w"
+#line 2342 "mmixal.w"
 ;break;
 case'@':/*99:*/
-#line 2437 "./mmixal.w"
+#line 2437 "mmixal.w"
 
 acc= cur_loc;
 goto constant_found;
 
 /*:99*/
-#line 2343 "./mmixal.w"
+#line 2343 "mmixal.w"
 ;break;
 case'-':op_stack[op_ptr++]= negate;
 case'+':goto scan_open;
@@ -1822,10 +1822,10 @@ derr("syntax error after character `%c'",*(p-2));
 }
 
 /*:89*/
-#line 2323 "./mmixal.w"
+#line 2323 "mmixal.w"
 ;
 scan_close:/*100:*/
-#line 2441 "./mmixal.w"
+#line 2441 "mmixal.w"
 
 switch(*p++){
 case'+':rt_op= plus;break;
@@ -1848,11 +1848,11 @@ default:derr("syntax error at `%c'",*(p-1));
 }
 
 /*:100*/
-#line 2324 "./mmixal.w"
+#line 2324 "mmixal.w"
 ;
 while(precedence[top_op]>=precedence[rt_op])
 /*101:*/
-#line 2462 "./mmixal.w"
+#line 2462 "mmixal.w"
 
 switch(op_stack[--op_ptr]){
 case inner_lp:if(rt_op==inner_rp)goto scan_close;
@@ -1873,7 +1873,7 @@ err("*missing left parenthesis");
 goto scan_close;
 }
 /*103:*/
-#line 2508 "./mmixal.w"
+#line 2508 "mmixal.w"
 
 case negate:unary_check("negate");
 
@@ -1892,10 +1892,10 @@ top_val.equiv.h= 0,top_val.equiv.l= top_val.link->sym->serial;
 top_val.status= pure;goto delink;
 
 /*:103*/
-#line 2481 "./mmixal.w"
+#line 2481 "mmixal.w"
 
 /*102:*/
-#line 2492 "./mmixal.w"
+#line 2492 "mmixal.w"
 
 case plus:if(top_val.status==undefined)
 err("cannot add an undefined quantity");
@@ -1910,7 +1910,7 @@ val_ptr--;
 delink:top_val.link= NULL;break;
 
 /*:102*//*104:*/
-#line 2529 "./mmixal.w"
+#line 2529 "mmixal.w"
 
 case minus:if(top_val.status==undefined)
 err("cannot subtract an undefined quantity");
@@ -1955,22 +1955,22 @@ next_val.equiv.h^= top_val.equiv.h,next_val.equiv.l^= top_val.equiv.l;
 goto fin_bin;
 
 /*:104*/
-#line 2482 "./mmixal.w"
+#line 2482 "mmixal.w"
 
 }
 
 /*:101*/
-#line 2326 "./mmixal.w"
+#line 2326 "mmixal.w"
 ;
 hold_op:op_stack[op_ptr++]= rt_op;
 }
 operands_done:
 
 /*:88*/
-#line 2593 "./mmixal.w"
+#line 2593 "mmixal.w"
 ;
 if(opcode==GREG)/*111:*/
-#line 2675 "./mmixal.w"
+#line 2675 "mmixal.w"
 
 {
 if(val_stack[0].equiv.l||val_stack[0].equiv.h){
@@ -1988,10 +1988,10 @@ got_greg:;
 }
 
 /*:111*/
-#line 2594 "./mmixal.w"
+#line 2594 "mmixal.w"
 ;
 if(lab_field[0])/*112:*/
-#line 2702 "./mmixal.w"
+#line 2702 "mmixal.w"
 
 {
 sym_node*new_link= DEFINED;
@@ -2001,7 +2001,7 @@ cur_loc= val_stack[0].equiv;
 if(val_stack[0].status==reg_val)new_link= REGISTER;
 }else if(opcode==GREG)cur_loc.h= 0,cur_loc.l= cur_greg,new_link= REGISTER;
 /*114:*/
-#line 2741 "./mmixal.w"
+#line 2741 "mmixal.w"
 
 if(isdigit(lab_field[0]))pp= &forward_local[lab_field[0]-'0'];
 else{
@@ -2012,7 +2012,7 @@ if(!pp)pp= tt->sym= new_sym_node(true);
 }
 
 /*:114*/
-#line 2710 "./mmixal.w"
+#line 2710 "mmixal.w"
 ;
 if(pp->link==DEFINED||pp->link==REGISTER){
 if(pp->equiv.l!=cur_loc.l||pp->equiv.h!=cur_loc.h||pp->link!=new_link){
@@ -2027,14 +2027,14 @@ else if(pp->link){
 if(new_link==REGISTER)err("future reference cannot be to a register");
 
 do/*115:*/
-#line 2750 "./mmixal.w"
+#line 2750 "mmixal.w"
 
 {
 qq= pp->link;
 pp->link= qq->link;
 mmo_loc();
 if(qq->serial==fix_o)/*116:*/
-#line 2760 "./mmixal.w"
+#line 2760 "mmixal.w"
 
 {
 if(qq->equiv.h&0xffffff){
@@ -2045,10 +2045,10 @@ mmo_tetra(qq->equiv.l);
 }
 
 /*:116*/
-#line 2755 "./mmixal.w"
+#line 2755 "mmixal.w"
 
 else/*117:*/
-#line 2769 "./mmixal.w"
+#line 2769 "mmixal.w"
 
 {
 octa o;
@@ -2076,21 +2076,21 @@ qq->equiv.h,qq->equiv.l);
 }
 
 /*:117*/
-#line 2756 "./mmixal.w"
+#line 2756 "mmixal.w"
 ;
 recycle_fixup(qq);
 }
 
 /*:115*/
-#line 2723 "./mmixal.w"
+#line 2723 "mmixal.w"
 while(pp->link);
 }
 if(isdigit(lab_field[0]))pp= &backward_local[lab_field[0]-'0'];
-#line 197 "./mmixal.ch"
+#line 197 "mmixal.ch"
 pp->equiv= cur_loc;pp->link= new_link;pp->linenr= line_no;
-#line 2727 "./mmixal.w"
+#line 2727 "mmixal.w"
 /*113:*/
-#line 2733 "./mmixal.w"
+#line 2733 "mmixal.w"
 
 if(!isdigit(lab_field[0]))
 for(j= 0;j<val_ptr;j++)
@@ -2100,11 +2100,11 @@ val_stack[j].equiv= cur_loc;
 }
 
 /*:113*/
-#line 2727 "./mmixal.w"
+#line 2727 "mmixal.w"
 ;
 if(listing_file&&(opcode==IS||opcode==LOC))
 /*118:*/
-#line 2795 "./mmixal.w"
+#line 2795 "mmixal.w"
 
 if(new_link==DEFINED){
 fprintf(listing_file,"(%08x%08x)",cur_loc.h,cur_loc.l);
@@ -2115,24 +2115,24 @@ flush_listing_line("             ");
 }
 
 /*:118*/
-#line 2729 "./mmixal.w"
+#line 2729 "mmixal.w"
 ;
 cur_loc= acc;
 }
 
 /*:112*/
-#line 2595 "./mmixal.w"
+#line 2595 "mmixal.w"
 ;
 /*119:*/
-#line 2804 "./mmixal.w"
+#line 2804 "mmixal.w"
 
 future_bits= 0;
 if(op_bits&many_arg_bit)/*120:*/
-#line 2826 "./mmixal.w"
+#line 2826 "mmixal.w"
 
 for(j= 0;j<val_ptr;j++){
 /*121:*/
-#line 2842 "./mmixal.w"
+#line 2842 "mmixal.w"
 
 if(val_stack[j].status==reg_val)
 err("*register number used as a constant")
@@ -2149,7 +2149,7 @@ qq->equiv= cur_loc;
 }
 
 /*:121*/
-#line 2828 "./mmixal.w"
+#line 2828 "mmixal.w"
 ;
 k= 1<<(opcode-BYTE);
 if((val_stack[j].equiv.h&&opcode<OCTA)||
@@ -2165,19 +2165,19 @@ else assemble(4,val_stack[j].equiv.h,0),assemble(4,val_stack[j].equiv.l,0);
 }
 
 /*:120*/
-#line 2806 "./mmixal.w"
+#line 2806 "mmixal.w"
 
 else switch(val_ptr){
 case 1:if(!(op_bits&one_arg_bit))
 derr("opcode `%s' needs more than one operand",op_field);
 
 /*132:*/
-#line 3018 "./mmixal.w"
+#line 3018 "mmixal.w"
 
 if(val_stack[0].status==undefined){
 if(op_bits&rel_addr_bit)
 /*133:*/
-#line 3041 "./mmixal.w"
+#line 3041 "mmixal.w"
 
 {
 pp= val_stack[0].link->sym;
@@ -2192,7 +2192,7 @@ goto assemble_inst;
 }
 
 /*:133*/
-#line 3021 "./mmixal.w"
+#line 3021 "mmixal.w"
 
 else if(opcode!=PREFIX)err("the operand is undefined");
 
@@ -2205,7 +2205,7 @@ if(op_bits&xyzr_bit)
 derr("*operand of `%s' should be a register number",op_field);
 if(op_bits&rel_addr_bit)
 /*134:*/
-#line 3054 "./mmixal.w"
+#line 3054 "mmixal.w"
 
 {
 octa source,dest;
@@ -2229,11 +2229,11 @@ goto assemble_inst;
 }
 
 /*:134*/
-#line 3032 "./mmixal.w"
+#line 3032 "mmixal.w"
 ;
 }
 if(opcode> 0xff)/*135:*/
-#line 3076 "./mmixal.w"
+#line 3076 "mmixal.w"
 
 switch(opcode){
 case LOC:cur_loc= val_stack[0].equiv;
@@ -2242,7 +2242,7 @@ case PREFIX:if(!val_stack[0].link)err("not a valid prefix");
 
 cur_prefix= val_stack[0].link;goto bypass;
 case GREG:if(listing_file)/*137:*/
-#line 3103 "./mmixal.w"
+#line 3103 "mmixal.w"
 
 if(val_stack[0].equiv.l||val_stack[0].equiv.h){
 fprintf(listing_file,"($%03d=#%08x",cur_greg,val_stack[0].equiv.h);
@@ -2255,7 +2255,7 @@ flush_listing_line("             ");
 }
 
 /*:137*/
-#line 3083 "./mmixal.w"
+#line 3083 "mmixal.w"
 ;
 goto bypass;
 case LOCAL:if(val_stack[0].equiv.l> lreg)lreg= val_stack[0].equiv.l;
@@ -2274,7 +2274,7 @@ case ESPEC:spec_mode= false;goto bypass;
 }
 
 /*:135*/
-#line 3034 "./mmixal.w"
+#line 3034 "mmixal.w"
 ;
 if(val_stack[0].equiv.h||val_stack[0].equiv.l> 0xffffff)
 err("*XYZ field doesn't fit in three bytes");
@@ -2283,19 +2283,19 @@ xyz= val_stack[0].equiv.l&0xffffff;
 goto assemble_inst;
 
 /*:132*/
-#line 2811 "./mmixal.w"
+#line 2811 "mmixal.w"
 ;
 case 2:if(!(op_bits&two_arg_bit))
 if(op_bits&one_arg_bit)
 derr("opcode `%s' must not have two operands",op_field)
 else derr("opcode `%s' must have more than two operands",op_field);
 /*127:*/
-#line 2916 "./mmixal.w"
+#line 2916 "mmixal.w"
 
 if(val_stack[1].status==undefined){
 if(op_bits&rel_addr_bit)
 /*128:*/
-#line 2946 "./mmixal.w"
+#line 2946 "mmixal.w"
 
 {
 pp= val_stack[1].link->sym;
@@ -2310,7 +2310,7 @@ goto assemble_X;
 }
 
 /*:128*/
-#line 2919 "./mmixal.w"
+#line 2919 "mmixal.w"
 
 else err("YZ field is undefined");
 
@@ -2324,7 +2324,7 @@ val_stack[1].equiv.l<<= 8,opcode++;
 }else{
 if(op_bits&mem_bit)
 /*130:*/
-#line 2981 "./mmixal.w"
+#line 2981 "mmixal.w"
 
 {
 octa o;
@@ -2337,7 +2337,7 @@ if(o.l<=0xff&&!o.h&&k)yz= (k<<8)+o.l,opcode++;
 else if(!expanding)err("no base address is close enough to the address A")
 
 else/*131:*/
-#line 3000 "./mmixal.w"
+#line 3000 "mmixal.w"
 
 {
 for(j= SETH;j<=ORL;j++){
@@ -2357,13 +2357,13 @@ else yz= 255<<8,opcode++;
 }
 
 /*:131*/
-#line 2992 "./mmixal.w"
+#line 2992 "mmixal.w"
 ;
 goto assemble_X;
 }
 
 /*:130*/
-#line 2931 "./mmixal.w"
+#line 2931 "mmixal.w"
 ;
 if(opcode==SET)opcode= 0xe3;
 else if(op_bits&immed_bit)opcode++;
@@ -2372,7 +2372,7 @@ derr("*YZ field of `%s' should be a register number",op_field);
 }
 if(op_bits&rel_addr_bit)
 /*129:*/
-#line 2959 "./mmixal.w"
+#line 2959 "mmixal.w"
 
 {
 octa source,dest;
@@ -2396,7 +2396,7 @@ goto assemble_X;
 }
 
 /*:129*/
-#line 2938 "./mmixal.w"
+#line 2938 "mmixal.w"
 ;
 }
 if(val_stack[1].equiv.h||val_stack[1].equiv.l> 0xffff)
@@ -2406,15 +2406,15 @@ yz= val_stack[1].equiv.l&0xffff;
 goto assemble_X;
 
 /*:127*/
-#line 2816 "./mmixal.w"
+#line 2816 "mmixal.w"
 ;
 case 3:if(!(op_bits&three_arg_bit))
 derr("opcode `%s' must not have three operands",op_field);
 /*122:*/
-#line 2857 "./mmixal.w"
+#line 2857 "mmixal.w"
 
 /*124:*/
-#line 2871 "./mmixal.w"
+#line 2871 "mmixal.w"
 
 if(val_stack[2].status==undefined)err("Z field is undefined");
 
@@ -2431,10 +2431,10 @@ err("*Z field doesn't fit in one byte");
 z= val_stack[2].equiv.l&0xff;
 
 /*:124*/
-#line 2858 "./mmixal.w"
+#line 2858 "mmixal.w"
 ;
 /*125:*/
-#line 2886 "./mmixal.w"
+#line 2886 "mmixal.w"
 
 if(val_stack[1].status==undefined)err("Y field is undefined");
 
@@ -2451,10 +2451,10 @@ y= val_stack[1].equiv.l&0xff;
 yz= (y<<8)+z;
 
 /*:125*/
-#line 2859 "./mmixal.w"
+#line 2859 "mmixal.w"
 ;
 assemble_X:/*126:*/
-#line 2901 "./mmixal.w"
+#line 2901 "mmixal.w"
 
 if(val_stack[0].status==undefined)err("X field is undefined");
 
@@ -2471,48 +2471,48 @@ x= val_stack[0].equiv.l&0xff;
 xyz= (x<<16)+yz;
 
 /*:126*/
-#line 2860 "./mmixal.w"
+#line 2860 "mmixal.w"
 ;
 assemble_inst:assemble(4,(opcode<<24)+xyz,future_bits);
 break;
 
 /*:122*/
-#line 2819 "./mmixal.w"
+#line 2819 "mmixal.w"
 ;
 default:derr("too many operands for opcode `%s'",op_field);
 
 }
 
 /*:119*/
-#line 2596 "./mmixal.w"
+#line 2596 "mmixal.w"
 ;
 bypass:
 
 /*:105*/
-#line 3160 "./mmixal.w"
+#line 3160 "mmixal.w"
 ;
 if(!*buf_ptr)break;
 }
-#line 222 "./mmixal.ch"
+#line 222 "mmixal.ch"
 if(tex_file&&start_comment){
 if(*start_comment)
 fprintf(tex_file,"%s%s%s\n",tex_startlcomment,start_comment,tex_nl);
 else fprintf(tex_file,"%s%s\n",tex_line_wo_comment,tex_nl);
 start_comment= NULL;}
 if(listing_file){
-#line 3164 "./mmixal.w"
+#line 3164 "mmixal.w"
 if(listing_bits)listing_clear();
 else if(!line_listed)flush_listing_line("                   ");
 }
 }
 /*145:*/
-#line 3226 "./mmixal.w"
+#line 3226 "mmixal.w"
 
 if(lreg>=greg)
 dpanic("Danger: Must reduce the number of GREGs by %d",lreg-greg+1);
 
 /*147:*/
-#line 3244 "./mmixal.w"
+#line 3244 "mmixal.w"
 
 mmo_lop(lop_post,0,greg);
 greg_val[255]= trie_search(trie_root,"Main")->sym->equiv;
@@ -2522,10 +2522,10 @@ mmo_tetra(greg_val[j].l);
 }
 
 /*:147*/
-#line 3230 "./mmixal.w"
+#line 3230 "mmixal.w"
 ;
 /*83:*/
-#line 2252 "./mmixal.w"
+#line 2252 "mmixal.w"
 
 op_root->mid= NULL;
 prune(trie_root);
@@ -2537,17 +2537,17 @@ while(mmo_ptr&3)mmo_byte(0);
 mmo_lopp(lop_end,mmo_ptr>>2);
 
 /*:83*/
-#line 3231 "./mmixal.w"
+#line 3231 "mmixal.w"
 ;
 /*148:*/
-#line 3252 "./mmixal.w"
+#line 3252 "mmixal.w"
 
 for(j= 0;j<10;j++)if(forward_local[j].link)
 err_count++,fprintf(stderr,"undefined local symbol %dF\n",j);
 
 
 /*:148*/
-#line 3232 "./mmixal.w"
+#line 3232 "mmixal.w"
 ;
 if(err_count){
 if(err_count> 1)fprintf(stderr,"(%d errors were found.)\n",err_count);
@@ -2556,7 +2556,7 @@ else fprintf(stderr,"(One error was found.)\n");
 exit(err_count);
 
 /*:145*/
-#line 3168 "./mmixal.w"
+#line 3168 "mmixal.w"
 ;
 }
 
