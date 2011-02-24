@@ -21,8 +21,12 @@
 
 */
 
-
+#ifdef WIN32
+#include <windows.h>
+extern HWND hMainWnd;
+#else
 #include <unistd.h>
+#endif
 #include <string.h>
 #include "vmb.h"
 #include "bus-arith.h"
@@ -78,7 +82,7 @@ tmem[1F]
 see help.html
 */
 
-static unsigned int tt=0, ti=0, t0=0, dt=0; /* copies of tmem fields */
+unsigned int tt=0, ti=0, t0=0, dt=0; /* copies of tmem fields */
 
 /* functions to operate the timer simulation */
 static unsigned int last_time=0;
@@ -185,7 +189,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.1 $ $Date: 2011-02-15 14:19:18 $";
+char version[]="$Revision: 1.2 $ $Date: 2011-02-24 13:58:17 $";
 
 char howto[] =
 "\n"
@@ -306,7 +310,6 @@ void timer_disconnected(void)
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
 #endif
-  timer_terminate();
 }
 
 
@@ -325,6 +328,5 @@ void init_device(device_info *vmb)
   vmb->terminate=timer_terminate;
   vmb->put_payload=timer_put_payload;
   vmb->get_payload=timer_get_payload;
-  close(0);
 }
 

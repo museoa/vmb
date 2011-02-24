@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.15 $ $Date: 2011-02-22 08:24:46 $";
+char version[]="$Revision: 1.16 $ $Date: 2011-02-24 13:58:17 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -495,7 +495,7 @@ void disk_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { diskExit();
 #ifdef WIN32
-  PostMessage(hMainWnd,WM_QUIT,0,0);
+  PostMessage(hMainWnd,WM_CLOSE,0,0);
 #endif
 }
 

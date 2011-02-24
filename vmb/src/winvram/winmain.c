@@ -274,6 +274,7 @@ void init_mouse(void)
 	vmb_mouse.get_payload=mouse_get_payload;
 	vmb_mouse.poweron = mouse_poweron;
 	vmb_mouse.reset = mouse_poweron;
+	vmb_mouse.terminate = NULL;
 }
 
 
@@ -490,11 +491,11 @@ unsigned char *gpu_get_payload(unsigned int offset,int size)
 void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 { RECT rect;
   int minx=0,miny=0,maxx=0,maxy=0;
+  rect.top=rect.left=rect.bottom=rect.right=0;
   memmove(gpu_mem+offset,payload, size);
   if (offset>3) return;
   if (GPU_COMMAND == GPU_NOP) return;
   EnterCriticalSection (&bitmap_section);
-  rect.top=rect.left=rect.bottom=rect.right=0;
   switch (GPU_COMMAND)
   { case GPU_WRITE_CHAR: 
 		if (GPU_COMMAND_AUX_LO == '\n')
@@ -564,10 +565,12 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		break;
 	case GPU_BLT_IN:
 	    PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
+		LeaveCriticalSection (&bitmap_section);
+		return;
 	case GPU_BLT_OUT:
 	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
-		break;
-
+		LeaveCriticalSection (&bitmap_section);
+        return;
   }
   rect.top=(int)(rect.top*zoom);
   rect.left=(int)(rect.left*zoom);
@@ -609,6 +612,7 @@ void init_gpu(void)
 	vmb_gpu.put_payload=gpu_put_payload;
 	vmb_gpu.poweron = gpu_poweron;
 	vmb_gpu.reset= gpu_poweron;
+	vmb_gpu.terminate = NULL;
 }
 
 /*
@@ -946,9 +950,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  hCanvas=NULL;
 		  DeleteCriticalSection(&bitmap_section);
 		}
-		set_pos_key(hMainWnd,defined);
-		PostQuitMessage(0);
-		return 0;
+	   break;
   }
  return (OptWndProc(hWnd, message, wParam, lParam));
 }

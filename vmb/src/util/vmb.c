@@ -437,7 +437,7 @@ static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned 
     vmb_raise_interrupt(vmb, INT_NOMEM);
     return;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "sending answer");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Processing Read Request");
   if (vmb->get_payload)  data = vmb->get_payload(offset,s);
   else data = NULL;
   answer_readrequest(vmb, slot,a,s,data);
@@ -457,7 +457,7 @@ static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned 
     vmb_raise_interrupt(vmb, INT_NOMEM);
     return;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "Sending Write Request");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Processing Write Request");
   if (vmb->put_payload)  vmb->put_payload(offset,s,p);
 }
 

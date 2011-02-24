@@ -8,8 +8,8 @@
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
+#include "timer.h"
 #pragma warning(disable : 4996)
-SET4
 
 /* variables to operate the timer */
 static uint64_t T0;   /* global base time T0, filetime at midnight of system start */
@@ -71,7 +71,8 @@ void timer_set(unsigned int delay)
 }
 
 void timer_terminate(void)
-{ PostQuitMessage(hMain);
+{
+  PostMessage(hMainWnd,WM_CLOSE,0,0);
 }
 
 
@@ -143,7 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	vmb_debug(VMB_DEBUG_INFO,"Timer stoped");
 	return 0;
   case WM_USER+6: /* Start Timer */
-	SetTimer(hMainWnd,1,lParam,NULL);
+	SetTimer(hMainWnd,1,(UINT)lParam,NULL);
 	return 0;
   case WM_TIMER: /* Timer expired */
 	  if (wParam == 1) /* the Real Timer */

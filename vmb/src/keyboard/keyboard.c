@@ -42,7 +42,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.13 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.14 $ $Date: 2011-02-24 13:58:17 $";
 
 char howto[] =
 "\n"
@@ -110,7 +110,7 @@ void kb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { 
 #ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+   PostMessage(hMainWnd,WM_CLOSE,0,0);
 #else
    close(0);
 #endif

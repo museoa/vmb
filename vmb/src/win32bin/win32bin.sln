@@ -37,6 +37,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "button", "..\button\button.
 		{5A384688-86B5-439D-B700-C52330851681} = {5A384688-86B5-439D-B700-C52330851681}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmmix", "..\mmix\gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -107,6 +109,10 @@ Global
 		{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}.Debug|Win32.Build.0 = Debug|Win32
 		{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}.Release|Win32.ActiveCfg = Release|Win32
 		{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}.Release|Win32.Build.0 = Release|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Debug|Win32.Build.0 = Debug|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Release|Win32.ActiveCfg = Release|Win32
+		{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

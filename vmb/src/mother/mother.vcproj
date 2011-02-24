@@ -192,6 +192,10 @@
 				RelativePath=".\mother.c"
 				>
 			</File>
+			<File
+				RelativePath=".\optiontab.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

@@ -154,10 +154,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  hpenGreen = CreatePen(PS_SOLID, THICK, RGB(0, 255, 0));
 	  hpenBlack = CreatePen(PS_SOLID, THICK, RGB(0,   0, 0));
     return 0;
-  case WM_CLOSE:
+  case WM_DESTROY:
 	  DeleteObject(hpenGreen);
 	  DeleteObject(hpenBlack);
-	  return 0;
+	  break;
   case WM_PAINT:
 	{ PAINTSTRUCT ps;
       HDC hdc;

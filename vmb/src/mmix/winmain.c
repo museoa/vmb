@@ -10,7 +10,7 @@
 
 HBITMAP hwait;
 
-char version[]="$Revision: 1.1 $ $Date: 2011-02-15 14:19:18 $";
+char version[]="$Revision: 1.2 $ $Date: 2011-02-24 13:58:17 $";
 
 char howto[] =
 "\n"
@@ -32,7 +32,7 @@ void vmb_poweroff(void)
 void vmb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { 
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+   PostMessage(hMainWnd,WM_CLOSE,0,0);
 }
 
 void vmb_disconnected(void)

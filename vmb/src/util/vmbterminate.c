@@ -49,7 +49,7 @@ void vmb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 { 
 #ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+   PostMessage(hMainWnd,WM_CLOSE,0,0);
 #endif
 }
 

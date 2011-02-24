@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.10 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.11 $ $Date: 2011-02-24 13:58:17 $";
 
 char howto[] =
 "\n"
@@ -147,7 +147,7 @@ void flash_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
 {  write_file();
 #ifdef WIN32
-   PostMessage(hMainWnd,WM_QUIT,0,0);
+   PostMessage(hMainWnd,WM_CLOSE,0,0);
 #endif
 }
 

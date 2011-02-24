@@ -49,6 +49,7 @@ extern void timer_terminate(void);
 
 /* things provided for others to call */
 
+extern unsigned int tt, ti, t0, dt; /* copies of tmem fields */
 
 extern void init_device(device_info *vmb);
 

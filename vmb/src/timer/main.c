@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
   vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
   vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  close(0);
   init_device(&vmb);
   vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));

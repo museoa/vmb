@@ -57,7 +57,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     if (HIWORD(wParam)==0) /* Menu */
       switch(LOWORD(wParam))
 	{ case ID_EXIT:
-	    PostQuitMessage(0);
+        PostMessage(hMainWnd,WM_CLOSE,0,0);
 	    return 0;
 	case ID_CONNECT:
 	  if (!vmb.connected)
