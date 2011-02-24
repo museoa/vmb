@@ -421,6 +421,11 @@ static void answer_readrequest(device_info *vmb, unsigned char slot,
   send_msg(vmb->fd, type,(unsigned char)size,slot,id,0,address,data);
 }
 
+static void failed_writerequest(device_info *vmb, unsigned char slot,
+   			   unsigned char address[8])
+{ send_msg(vmb->fd, TYPE_ADDRESS|TYPE_ROUTE,0,slot,ID_NOWRITE,0,address,NULL);
+}
+
 
 static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned char slot, unsigned char p[])
 { unsigned int offset;
@@ -433,8 +438,6 @@ static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned 
     vmb_debugs(VMB_DEBUG_ERROR, "Read request out of range %s",hex);
     vmb_debug(VMB_DEBUG_ERROR, "Sending empty answer");
     answer_readrequest(vmb, slot, a,0,NULL);
-    vmb_debug(VMB_DEBUG_NOTIFY, "raising interrupt");
-    vmb_raise_interrupt(vmb, INT_NOMEM);
     return;
   }
   vmb_debug(VMB_DEBUG_PROGRESS, "Processing Read Request");
@@ -443,7 +446,7 @@ static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned 
   answer_readrequest(vmb, slot,a,s,data);
 }
 
-static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned char p[])
+static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned char slot, unsigned char p[])
 { unsigned int offset;
   offset = get_offset(vmb->address,a);
   if (hi_offset || overflow_offset || offset + s > vmb->size)
@@ -453,9 +456,8 @@ static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned 
     vmb_debugx(VMB_DEBUG_ERROR, "Address: %s",vmb->address,8);
     vmb_debugi(VMB_DEBUG_ERROR, "Size:    %d",vmb->size);
     vmb_debugi(VMB_DEBUG_ERROR, "Offset:  %ud", offset);
-    vmb_debug(VMB_DEBUG_NOTIFY, "raising interrupt");
-    vmb_raise_interrupt(vmb, INT_NOMEM);
-    return;
+    failed_writerequest(vmb, slot,a);
+	return;
   }
   vmb_debug(VMB_DEBUG_PROGRESS, "Processing Write Request");
   if (vmb->put_payload)  vmb->put_payload(offset,s,p);
@@ -492,16 +494,16 @@ static void dispatch_message(device_info *vmb, unsigned char type,
 	read_request(vmb, address, 4, slot, payload);
         return;
       case ID_WRITE:
-	write_request(vmb, address, (size+1)*8, payload);
+	write_request(vmb, address, (size+1)*8,  slot, payload);
         return;
       case ID_WRITEBYTE:
-	write_request(vmb, address, 1, payload);
+	write_request(vmb, address, 1,  slot, payload);
         return;
       case ID_WRITEWYDE:
-	write_request(vmb, address, 2, payload);
+	write_request(vmb, address, 2,  slot, payload);
         return;
       case ID_WRITETETRA:
-	write_request(vmb, address, 4, payload);
+	write_request(vmb, address, 4,  slot, payload);
         return;
       case ID_READREPLY:
 	reply_payload(vmb, address,(size+1)*8,payload);

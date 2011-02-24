@@ -67,7 +67,7 @@ HWND hpower;
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.27 $ $Date: 2010-12-17 08:52:26 $";
+char version[] = "$Revision: 1.28 $ $Date: 2011-02-24 15:02:35 $";
 
 char howto[] =
   "\n"
@@ -277,12 +277,12 @@ terminate (int i)
 }
 
 static void
-send_dummy_answer (int dest_slot)
+send_dummy_answer (unsigned char id, int dest_slot)
 {
   if (valid_socket (slot[dest_slot].fd))
   {
     mtype =  TYPE_ADDRESS | TYPE_ROUTE; /* mark it as an answer with address */
-    mid = ID_NOREPLY;     /* this is a dummy reply */
+    mid = id;     /* this is a dummy reply */
     if (!write_to_slot (dest_slot))
       vmb_debugi(VMB_DEBUG_NOTIFY,"Sent dummy answer to Slot %d", dest_slot);
     else if (!server_terminating)
@@ -296,7 +296,7 @@ disconnect_device (int slotnr)
   while (slot[slotnr].answers_pending > 0)
   { vmb_debugs(VMB_DEBUG_NOTIFY,"\tpending answers for %s", (char *)slot[slotnr].name);
     vmb_debugi(VMB_DEBUG_NOTIFY,"\tpending answers:    %d", slot[slotnr].answers_pending);
-    send_dummy_answer (slotnr);
+    send_dummy_answer (ID_NOREPLY, slotnr);
   }
   if (powerflag)
     power_off (slotnr);
@@ -476,13 +476,15 @@ interpret_message (int source_slot)
     {
       vmb_debugi(VMB_DEBUG_ERROR,"Slot number %d not available", mslot);
       if (mtype & TYPE_REQUEST)
-	send_dummy_answer (source_slot);
+	     send_dummy_answer (ID_NOREPLY, source_slot);
+	  else
+	     send_dummy_answer (ID_NOWRITE, source_slot);
       return;
     }
     if (mtype & TYPE_REQUEST)
       mslot = source_slot;
     if (write_to_slot (dest_slot) && (mtype & TYPE_REQUEST))
-      send_dummy_answer (source_slot);
+      send_dummy_answer (ID_NOREPLY, source_slot);
   }
   else if (mtype & TYPE_ADDRESS)
   {
@@ -491,14 +493,18 @@ interpret_message (int source_slot)
     {
       vmb_debugx(VMB_DEBUG_ERROR,"Address #%s not available", maddress, 8);
       if (mtype & TYPE_REQUEST)
-	send_dummy_answer (source_slot);
-      //raise interrupt for non existing memory
-      interrupt_all (INT_NOMEM);
+	     send_dummy_answer (ID_NOREPLY, source_slot);
+	  else
+	     send_dummy_answer (ID_NOWRITE, source_slot);
     }
     else
     {
       if (write_to_slot (dest_slot) && (mtype & TYPE_REQUEST))
-	send_dummy_answer (source_slot);
+	  { if (mtype & TYPE_REQUEST)
+	      send_dummy_answer (ID_NOREPLY, source_slot);
+	    else
+	      send_dummy_answer (ID_NOWRITE, source_slot);
+	  }
     }
   }
 }
