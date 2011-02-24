@@ -24,6 +24,7 @@ helpdirs := $(patsubst src/%/help.html,%,$(helpfiles))
 
 htdocs:
 	for f in $(helpdirs); do \
+	  echo copying src/$$f/help.html to htdocs/"$$f"_help.html; \
 	  cp src/$$f/help.html htdocs/"$$f"_help.html ; \
 	done
 

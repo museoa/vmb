@@ -64,7 +64,7 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %14
            JMP DTrapUnhandled  %15
            JMP DTrapUnhandled  %16
-           JMP DTrapKey        517
+           JMP DTrapKey        %17
            JMP DTrapScreen     %18
            JMP DTrapUnhandled  %19
            JMP DTrapUnhandled  %20
@@ -170,7 +170,7 @@ DTrapScreen	SETH    $0,#8000
 DTrapUnhandled	GETA	$0,1F
 		SWYM	$0,5               % inform the debugger
 		POP	0,0
-1H		BYTE	"DEBUG Unhandled Exception"
+1H		BYTE	"DEBUG Unhandled Exception",0
  
 %	Entry point for a forced TRAP
 FTrap	PUSHJ	$255,FHandler
@@ -253,11 +253,12 @@ FTrapTable JMP   TrapHalt      %0
 
 TrapHalt	GETA	$0,2F
 		SWYM	$0,5               % inform the debugger
-		NEG	$0,1          	%  enable interrupts
-  		PUT	rK,$0
 1H		SYNC	4		%go to power save mode
+		GET	$0,rQ
+		BZ	$0,1B
+		PUSHJ	$0,DHandler
 		JMP	1B              % and loop idle
-2H		BYTE	"DEBUG Program halted"
+2H		BYTE	"DEBUG Program halted",0
 
 
 TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
@@ -439,7 +440,7 @@ TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
 TrapUnhandled	GETA	$0,1F
 		SWYM	$0,5               % inform the debugger
 		POP	0,0
-1H		BYTE	"DEBUG Unhandled TRAP"
+1H		BYTE	"DEBUG Unhandled TRAP",0
 
 %	Put one character contained in $0 on the screen
 ScreenC	SETH    $1,#8000

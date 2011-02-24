@@ -58,14 +58,14 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %8
            JMP DTrapUnhandled  %9
            JMP DTrapUnhandled  %10
-           JMP DTrapUnhandled  %11
-           JMP DTrapUnhandled  %12
-           JMP DTrapUnhandled  %13
-           JMP DTrapUnhandled  %14
-           JMP DTrapUnhandled  %15
+           JMP DTrapTimer      %11
+           JMP DTrapStep       %12
+           JMP DTrapStart      %13
+           JMP DTrapStop       %14
+           JMP DTrapHalt       %15
            JMP DTrapUnhandled  %16
-           JMP DTrapKey        517
-           JMP DTrapScreen     %18
+           JMP DTrapUnhandled  517
+           JMP DTrapUnhandled  %18
            JMP DTrapUnhandled  %19
            JMP DTrapUnhandled  %20
            JMP DTrapUnhandled  %21
@@ -114,61 +114,41 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %64  rQ was zero
 
 
-console   IS	#8001             %   hi wyde of console	
 
-DTrapKey	SETH	$1,console    
-	LDO	$2,$1,0		%keyboard status/data
-	BN	$2,1F	
-	SR	$3,$2,32
-	AND	$3,$3,#FF
-	BZ	$3,1F	
-	AND	$2,$2,#FF
-	STO	$2,$1,8		%echo
-	CMP	$2,$2,#0D	%carriage return
-	BNZ	$2,1F		
-	SET	$2,#0A		%line feed
-	STO	$2,$1,8
-1H	POP	0,0
+DTrapStart	SETH	$0,#8003	% timer address
+		SET	$1,1000		%1000 ms
+		STO	$1,$0,0		%enable timer interrupts
+		POP 0,0
 
-%	read blocking a character from the keyboard
-KeyboardC 	SETH	$1,console    
-3H	LDO	$2,$1,0		%keyboard status/data
-	BN	$2,2F	
-	SR	$3,$2,32
-	AND	$3,$3,#FF
-	BZ	$3,2F	
-	AND	$2,$2,#FF
-	STO	$2,$1,8		%echo
-	CMP	$3,$2,#0D	%carriage return
-	BNZ	$3,1F		
-	SET	$2,#0A		%line feed
-	STO	$2,$1,8
-1H	SET	$0,$2
-	POP	1,0
-%	wait
-2H	SYNC	4		%go to power save mode
-	JMP	3B
-
-
-
-
-DTrapScreen	SETH    $0,#8000
-        ORMH	$0,#0001	%address of bios ram
-	LDT	$1,$0,8	        %index screen buffer start
-	LDT	$2,$0,12        % index screen buffer limit
-	CMP	$3,$1,$2
-	BZ	$3,1F		%buffer empty
-	ADDU	$3,$0,16	 %       screen buffer address
-	LDBU	$3,$3,$1
-	SETH	$4,console 
-	STO	$3,$4,8                 
-	ADD     $1,$1,1
-	AND	$1,$1,#FF       %256 byte wrap around buffer
-	STTU	$1,$0,8
-1H	POP	0,0
-
-DTrapUnhandled	SWYM	5               % inform the debugger
+DTrapStop	SETH	$0,#8003	% timer address
+		SET	$1,0		% 
+		STO	$1,$0,0		%disable timer interrupts
+		POP 0,0
+DTrapTimer	SETH	$1,#8000
+		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+		SET	$0,1
+		STO	$0,$1,16	% third octa is the step flag
 		POP	0,0
+
+DTrapStep	SETH	$1,#8000
+		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+		SET	$0,1
+		STO	$0,$1,16	% third octa is the step flag
+		POP	0,0
+
+DTrapHalt	SETH	$1,#8000
+		ORMH	$1,#0001	%$1 now points to the first byte in ram	
+		SET	$0,1
+		STO	$0,$1,8		% second octa is the terminate flag
+		POP	0,0
+				
+DTrapUnhandled	GETA	$0,1F
+		SWYM	$0,5               % inform the debugger
+		POP	0,0
+1H		BYTE	"DEBUG Unhandled Interrupt",0
+
+
+		
  
 %	Entry point for a forced TRAP
 FTrap	PUSHJ	$255,FHandler
@@ -215,23 +195,23 @@ Trap    GETA	$2,FTrapTable
 1H	GO	$2,$2,$1		%Jump into the Trap Table
 	
 FTrapTable JMP   TrapHalt      %0
-	  JMP   TrapFopen      %1
-	  JMP   TrapFclose     %2
-	  JMP   TrapFread      %3
-	  JMP   TrapFgets      %4
-	  JMP   TrapFgetws     %5
-	  JMP   TrapFwrite     %6
-	  JMP   TrapFputs      %7 
-	  JMP   TrapFputws     %8
-	  JMP   TrapFseek      %9
-	  JMP   TrapFtell      %a
+	  JMP   TrapUnhandled  %1
+	  JMP   TrapUnhandled  %2
+	  JMP   TrapUnhandled  %3
+	  JMP   TrapUnhandled  %4
+	  JMP   TrapUnhandled  %5
+	  JMP   TrapUnhandled  %6
+	  JMP   TrapUnhandled  %7 
+	  JMP   TrapUnhandled  %8
+	  JMP   TrapUnhandled  %9
+	  JMP   TrapUnhandled  %a
 	  JMP   TrapUnhandled  %b
 	  JMP   TrapUnhandled  %c
 	  JMP   TrapUnhandled  %d
 	  JMP   TrapUnhandled  %e
 	  JMP   TrapUnhandled  %f
 	  JMP   TrapGPutPixel %10
-	  JMP   TrapUnhandled %11
+	  JMP   TrapTWait     %11
 	  JMP   TrapUnhandled %12
 	  JMP   TrapUnhandled %13
 	  JMP   TrapUnhandled %14
@@ -249,174 +229,14 @@ FTrapTable JMP   TrapHalt      %0
 
 %         The individual Trap routines
 
-TrapHalt	NEG	$0,1            %  enable interrupts
+TrapHalt	GETA	$0,2F
+		SWYM	$0,5		% tell the debugger
+		NEG	$0,1            % enable interrupts
   		PUT	rK,$0
-1H		SYNC	4		%go to power save mode
+1H		SYNC	4		% go to power save mode
 		JMP	1B              % and loop idle
+2H		BYTE	"DEBUG Program terminated",0		
 
-TrapFputs 	AND     $0,$0,#0FF    %get the Z value 
-        	BZ      $0,1F     %this is stdin
-        	CMP     $1,$0,2
-        	BNP     $1,4F     %this is stdout or stderr
-%       	this is a file 
-		SETH	$2,#8002
-		SL	$1,$0,17
-		OR	$1,$1,$2   %base addess of file descriptor
-        	GET	$0,rJ
-		SETML	$3,#0001 %offset for buffer
-		ADD	$3,$3,$1  %address of disk buffer
-        	GET	$4,rBB    %get the $255 parameter: address of string
-		PUSHJ	$2,strcpy	
-		STTU	$2,$1,20   %nmeb
-        	SET     $2,#1
-		STTU	$2,$1,16   %size
-		SET	$2,4
-		STO	$2,$1,8    %Fwrite to command
-		LDTU    $2,$1,28   %result
-		PUT	rBB,$2     %the result is returned with resume 1
-		PUT	rJ,$0
-		POP	0,0
-
-%       	Fputs to the screen
-4H      	GET	$0,rBB    %get the $255 parameter
-		GET	$1,rJ
-		JMP 	2F
-3H		PUSHJ	$2,ScreenC
-        	ADD	$0,$0,1
-2H		LDB	$3,$0,0
-        	BNZ     $3,3B
-		PUT	rJ,$1
-1H		POP	0,0
-
-
-%	Utilities
-
-%       memcpy utility: copy $2 bytes from $1 to $0
-1H	LDBU	$3,$1,0  
-	STBU    $3,$0,0
-        ADD	$0,$0,1
-	ADD	$1,$1,1
-	SUB	$2,$2,1
-memcpy	BP	$2,1B
-	POP	0,0
-
-%       octacpy utility: like memcpy but with a multiple of octas
-1H	LDOU	$3,$1,0  %copy $2 octas from $1 to $0
-	STOU    $3,$0,0
-        ADD	$0,$0,8
-	ADD	$1,$1,8
-	SUB	$2,$2,8
-octacpy	BP	$2,1B
-	POP	0,0
-	
-%       strcpy utility
-strcpy	SET	$3,0
-	JMP	2F
-1H      ADD	$0,$0,1
-	ADD	$1,$1,1
-	ADD	$3,$3,1   %counting bytes
-2H	LDBU    $2,$1,0
-	STBU    $2,$0,0   %bytes from $1 to $0 until zero byte returns size
-	BNZ	$2,1B
-	SET	$0,$3
-	POP	1,0
-
-%       strcpy utility for wide characters
-strcpyw	SET	$3,0
-	JMP	2F
-1H      ADD	$0,$0,2
-	ADD	$1,$1,2
-	ADD	$3,$3,2   %counting bytes
-2H	LDWU    $2,$1,0
-	STWU    $2,$0,0   %bytes from $1 to $0 until zero byte returns size
-	BNZ	$2,1B
-	SET	$0,$3
-	POP	1,0
-	
-TrapFopen POP	0,0
-
-TrapFclose POP	0,0
-
-TrapFread POP	0,0
-
-TrapFgets AND     $0,$0,#0FF    %get the Z value 
-        BZ      $0,1F     %this is stdin
-%       this is stdout stderr or a file
-	NEG	$0,1
-	PUT	rBB,$1     %the error code is returned with resume 1
-	POP	0,0
-
-%	read from stdin = keyboard
-1H      GET	$1,rBB    %get the $255 parameter: buffer, size
-	LDO	$2,$1,0   %buffer
-        LDO     $3,$1,8   %size
-	SET	$0,0	  %number of chars read
-	GET	$4,rJ	  %prepare for subroutine
-	JMP	1F
-%	loop
-2H	PUSHJ	$5,KeyboardC	% read blocking from the keyboard
-	STBU	$5,$2,0
-	ADDU	$2,$2,1
-	SUB	$3,$3,1
-	ADD	$0,$0,1
-	CMP	$6,$5,10	%newline
-	BZ	$6,2F
-1H	BP	$3,2B
-% 	size is zero, done
-2H	PUT	rBB,$0     %the result is returned with resume 1
-	PUT	rJ,$4
-	POP	0,0
-
-
-TrapFgetws POP	0,0
-
-
-
-
-TrapFwrite AND     $0,$0,#0FF    %get the Z value 
-        BZ      $0,1F     %this is stdin
-        CMP     $1,$0,2
-        BNP     $1,4F     %this is stdout or stderr
-%       this is a file 
-	POP	0,0
-
-%       Fwrite to the screen
-4H      GET	$0,rBB    %get the $255 parameter
-	LDO	$1,$0,8   %size
-	LDO	$0,$0,0   %buffer
-	GET	$2,rJ
-	JMP 	2F
-
-3H	LDBU    $4,$0,0
-	ADD	$0,$0,1
-	PUSHJ	$3,ScreenC
-	SUB	$1,$1,1
-2H      BP      $1,3B
-	PUT	rJ,$2
-1H	POP	0,0
-
-TrapFputws  AND     $0,$0,#0FF    %get the Z value 
-        BZ      $0,1F     %this is stdin
-        CMP     $1,$0,2
-        BNP     $1,4F     %this is stdout or stderr
-%       this is a file 
-	POP	0,0
-
-%       Fputsw to the screen
-4H      GET	$0,rBB    %get the $255 parameter
-	GET	$1,rJ
-	JMP 	2F
-3H	PUSHJ	$2,ScreenC
-        ADD	$0,$0,2
-2H	LDWU	$3,$0,0
-        BNZ     $3,3B
-	PUT	rJ,$1
-1H	POP	0,0
-
-
-TrapFseek POP	0,0
-
-TrapFtell  POP	0,0
 
 
 %		Put one pixel on the graphics display. 
@@ -430,36 +250,32 @@ TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
 	      POP	0,0
 
 
-TrapUnhandled	SWYM	5		% tell the debugger
+1H		SYNC	4		% go to power save mode
+		GET	$0,rJ
+		PUSHJ	$1,DHandler     % handle interrupts
+		PUT	rJ,$0
+TrapTWait	SETH	$1,#8000
+		ORMH	$1,#0001	%$= now points to the first byte in ram	
+		LDO	$0,$1,8		% second octa is our terminate flag
+		BNZ	$0,2F
+		LDO	$0,$1,16	% third octa is the step flag
+		BZ	$0,1B		% wait more
+		SET	$0,0
+		STO	$0,$1,16	% reset step flag
+		PUT	rBB,1		%the result 1 is returned with resume 1	
 		POP	0,0
 
-%	Put one character contained in $0 on the screen
-ScreenC	SETH    $1,#8000
-        ORMH	$1,#0001	%address of bios ram
-2H	LDTU	$2,$1,8	        %index screen buffer start
-	LDTU	$3,$1,12        % index screen buffer limit
-	SUB	$4,$3,$2
-	BNZ	$4,1F		%buffer not empty, char->buffer
+2H		GET	$0,rJ
+		PUSHJ	$1,DTrapStop
+		PUT	rJ,$0
+		PUT	rBB,0		%the result 0 is returned with resume 1	
+		POP	0,0
 
-	SETH	$1,console	%try direct output
-	LDO	$2,$1,8		%screen status/data
-	SR	$2,$2,32	%get error and count data
-	BNZ	$2,1F           %char->buffer
-	STO	$0,$1,8		%direct output
-	POP	0,0
 
-1H	AND	$4,$4,#FF
-	CMP	$5,$4,#FF	
-	BN	$5,1F		%Still space in the Buffer
-	SYNC	4		%wait idle for a screen interrupt 
-	JMP	2B		%telling that the screen may again accept characters
-
-1H	ADD	$2,$1,16	%address of screen buffer
-	STB	$0,$2,$3
-	ADD	$3,$3,1
-	AND	$3,$3,#FF
-	STTU	$3,$1,8
-	POP	0,0
+TrapUnhandled	GETA	$0,1F
+		SWYM	$0,5		% tell the debugger
+		POP	0,0
+1H		BYTE	"DEBUG Unhandled TRAP",0		
 
 
 %       The ROM Page Table
@@ -540,17 +356,11 @@ memory	SETH    $0,#1234	%set rV register
 	POP     0,0
 
 %       TRAP handler for page faults (not yet implemented)       	
-DTrapPageFault	POP     0,0              
-
-%	allocate a new page in ram and return its address
-newpage	SETH	$1,#8000
-	ORMH	$1,#0001	%$= now points to the first byte in ram	
-	LDO	$0,$1,0		% get the FreeSpace
-	SET	$2,$0
-	INCL	$2,#2000	% add one page
-	STO	$2,$1,0		% save the new FreeSpace
-	POP 1,0  	
-
+DTrapPageFault	GETA	$0,1F
+		SWYM	$0,5		% tell the debugger
+		POP	0,0
+1H		BYTE	"DEBUG Unhandled Page Fault",0	
+       
 
 %	First Page in RAM: reserved for the OS.
 %	The layout follows below.
