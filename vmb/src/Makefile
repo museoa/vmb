@@ -2,7 +2,7 @@
 CFLAGS= -g -Wall
 
 SUBDIRS  = util opt device mother\
-           mmix mmixgdb \
+           mmix \
            screen keyboard vram \
            ram rom flash \
            disk hostdisk led  
