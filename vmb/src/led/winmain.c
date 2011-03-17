@@ -16,7 +16,7 @@ extern int nleds; /* number of leds to display */
 extern int colors[];
 
 HBITMAP ledOnB, ledOffB, ledOnW, ledOffW, ledDisconnected;
-
+int ledwidth, ledheight;
 int hcolors[8] = {IDC_COLOR0, IDC_COLOR1, IDC_COLOR2, IDC_COLOR3, 
                   IDC_COLOR4, IDC_COLOR5, IDC_COLOR6, IDC_COLOR7};
 HBITMAP hOn[8] = {0};
@@ -106,11 +106,15 @@ extern HBITMAP hOn[], hOff[];
 void paint_leds(HDC dest, HDC src, unsigned char led)
 { int i;
 for (i=7;i>=8-nleds;i--) {
-    if (led & (1<<i))
+	if (!vmb.connected)
+      SelectObject(src, ledOffW);
+	else if (!vmb.power)
+      SelectObject(src, ledOffB);
+    else if (led & (1<<i))
       SelectObject(src, hOn[i]);
     else
       SelectObject(src, hOff[i]);
-	BitBlt(dest, (7-i)*32, 0, 32, 32, src, 0, 0, SRCCOPY);
+	BitBlt(dest, (7-i)*ledwidth, 0, ledwidth, ledheight, src, 0, 0, SRCCOPY);
   } 
 }
 
@@ -131,6 +135,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR5),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[5]);
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR6),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[6]);
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR7),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[7]);
+	  SetDlgItemInt(hDlg,IDC_NLEDS,nleds,FALSE);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -142,6 +147,11 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+	    nleds = GetDlgItemInt(hDlg,IDC_NLEDS,NULL,FALSE);
+	    if (nleds>8) nleds=8;
+	    if (nleds<1) nleds=1;
+		SetWindowPos(hMainWnd,HWND_TOP,0,0,ledwidth*nleds,ledheight,
+			SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
       }	  
 	  if (HIWORD(wparam) == STN_CLICKED)
 	  { if (LOWORD(wparam)== IDC_CBUTTON0) choose_color(hDlg, 0);
@@ -166,19 +176,20 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {  switch (message) 
   { case WM_VMB_ON: /* Power On */
-    
+       InvalidateRect(hWnd,NULL,FALSE);
 	return 0;
   case WM_VMB_OFF: /* Power Off */
-    
+       InvalidateRect(hWnd,NULL,FALSE);
 	return 0;
   case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
+	  InvalidateRect(hWnd,NULL,FALSE);
  	return 0;
   case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
-	 
+	  InvalidateRect(hWnd,NULL,FALSE);
 	return 0;
   case WM_CREATE: 
 	  return 0;
@@ -188,7 +199,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       HDC memdc = CreateCompatibleDC(NULL);
       HBITMAP h = (HBITMAP)SelectObject(memdc, hOn[0]);
       paint_leds(hdc,memdc,led);
-
       SelectObject(memdc, h);
 	  DeleteDC(memdc);
       EndPaint (hWnd, &ps);
@@ -202,8 +212,9 @@ HINSTANCE hInst;
 HWND hMainWnd;
 HBITMAP hBmp=NULL;
 HMENU hMenu;
-device_info vmb = {0};
 HBITMAP hon,hoff,hconnect;
+device_info vmb = {0};
+
 
 
 
@@ -250,12 +261,6 @@ BOOL InitInstance(HINSTANCE hInstance)
                             xpos, ypos,0, 0,
 	                        NULL, NULL, hInstance, NULL);
 
-    if (hMainWnd && hBmp) 
-	{ 
-	  HRGN h = BitmapToRegion(hBmp);
-	  if (h) SetWindowRgn(hMainWnd, h, TRUE);
-	}
-
    return TRUE;
 }
 
@@ -291,7 +296,25 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     get_pos_key(&xpos,&ypos,defined);
     init_device(&vmb);
     init_colors();
-	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,32*nleds,32,SWP_NOZORDER|SWP_SHOWWINDOW);
+	{ BITMAP bm;
+      GetObject(ledOnB,sizeof(bm),&bm);
+	  ledwidth=bm.bmWidth;
+	  ledheight=bm.bmHeight;
+	  SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,ledwidth*nleds,ledheight,SWP_NOZORDER|SWP_SHOWWINDOW);
+#if 0
+	  HRGN hrg;
+	  int i;
+
+	  hrg = CreateEllipticRgn(0,0,ledwidth+1,ledheight+1);
+      for(i=1;i<nleds;i++)
+	  { HRGN rg;
+	    rg = CreateEllipticRgn(ledwidth*i,0,ledwidth*(i+1)+1,ledheight+1);
+	    CombineRgn(hrg, hrg, rg, RGN_OR);
+	    DeleteObject(rg);
+	  }	
+	  SetWindowRgn(hMainWnd, hrg, TRUE);
+#endif
+	}
 	if (minimized)CloseWindow(hMainWnd); 
 	UpdateWindow(hMainWnd);
 	vmb_begin();

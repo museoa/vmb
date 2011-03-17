@@ -20,6 +20,7 @@
 #define IDC_CBUTTON7                    1009
 #define IDC_COLOR6                      1010
 #define IDC_CBUTTON6                    1011
+#define IDC_NLEDS                       1013
 #define IDC_COLOR5                      1014
 #define IDC_CBUTTON5                    1015
 #define IDC_COLOR4                      1016
@@ -30,9 +31,9 @@
 #define IDC_CBUTTON2                    1021
 #define IDC_COLOR1                      1022
 #define IDC_CBUTTON1                    1023
-#define IDC_COLOR14                     1024
 #define IDC_COLOR0                      1024
 #define IDC_CBUTTON0                    1025
+#define IDC_SPINLEDS                    1027
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -49,7 +50,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40019
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_CONTROL_VALUE         1028
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
