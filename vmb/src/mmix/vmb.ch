@@ -1909,7 +1909,7 @@ boot:
 
   @<Load object file@>;
   @<Load the command line arguments@>;
-  g[rQ].h=g[rQ].l=0; /*hide problems with loading the command line*/
+  g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
   vmb.reset_flag = 0;
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
@@ -2208,7 +2208,7 @@ for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
-x.l=0;@+ store_data(8,aux,x);
+x.l=0;@+ store_data(8,aux,x); 
 @z
 
 @x

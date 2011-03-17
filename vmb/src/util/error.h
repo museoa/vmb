@@ -43,7 +43,9 @@ extern int vmb_debug_mask;
 extern void vmb_message(char *msg);
 extern void vmb_error(int line, char *msg);
 extern void vmb_error2(int line, char *msg, char *info);
+extern void vmb_errori(int line, char *msg, int code);
 extern void vmb_fatal_error(int line,char *msg); /* no return */
+extern void vmb_fatal_errori(int line,char *msg, int code); /* no return */
 extern void vmb_debug(int level, char *msg);
 extern void vmb_debugi(int level, char *msg,int i);
 extern void vmb_debugs(int level, char *msg, char *s);

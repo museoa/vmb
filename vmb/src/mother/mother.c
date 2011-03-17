@@ -67,7 +67,7 @@ HWND hpower;
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.28 $ $Date: 2011-02-24 15:02:35 $";
+char version[] = "$Revision: 1.29 $ $Date: 2011-03-17 23:29:27 $";
 
 char howto[] =
   "\n"
@@ -148,41 +148,24 @@ initialize_slots ()
 void
 create_server ()
 {
-  mother_fd = (int)socket (AF_INET, SOCK_STREAM, 0);
+  mother_fd = (int)socket (AF_INET, SOCK_STREAM, IPPROTO_TCP /* was 0 */);
   if (!valid_socket (mother_fd))
     vmb_fatal_error (__LINE__, "Can't create new server socket");
 
-  /* make the socket non blocking */
-#ifdef WIN32
-  if (hMainWnd)
-    WSAAsyncSelect(mother_fd, hMainWnd, WM_SOCKET, FD_READ | FD_CONNECT |FD_ACCEPT | FD_CLOSE);
-  else
-  {
-    WSAEVENT e;
-    e = WSACreateEvent ();
-    WSAEventSelect (mother_fd, e,
-		    FD_READ | FD_CONNECT | FD_ACCEPT | FD_CLOSE);
-  }
-#else
-  {
-    int flags;
-    flags = fcntl (mother_fd, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl (mother_fd, F_SETFL, flags);
-  }
-#endif
+  
 
   /* Allow rapid reuse of this port. */
   {
     int tmp = 1;
-    setsockopt (mother_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &tmp,
-		sizeof (tmp));
+    if (0!=setsockopt (mother_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &tmp,
+		sizeof (tmp)))
+      vmb_fatal_errori(__LINE__,"Unable to set socket options",WSAGetLastError());
   }
   max_fd = mother_fd;
 
   mother_addr.sin_family = AF_INET;
   mother_addr.sin_port = htons ((unsigned short) port);
-  mother_addr.sin_addr.s_addr = INADDR_ANY;
+  mother_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
   if ((bind
        (mother_fd, (struct sockaddr *) &mother_addr,
@@ -192,11 +175,30 @@ create_server ()
     vmb_fatal_error (__LINE__, "Can't bind server socket to address");
   }
 
-  if (listen (mother_fd, 5) != 0)
+
+  if (listen (mother_fd, SOMAXCONN) != 0)
   {
     bus_disconnect (mother_fd);
     vmb_fatal_error (__LINE__, "Can't listen");
   }
+
+
+
+/* make the socket non blocking */
+#ifdef WIN32
+  if (!hMainWnd) vmb_fatal_error(__LINE__,"Window undefined");
+  if (0!=WSAAsyncSelect(mother_fd, hMainWnd, WM_SOCKET, FD_READ | FD_CONNECT |FD_ACCEPT | FD_CLOSE))
+    vmb_fatal_errori(__LINE__,"Unable to set up events",WSAGetLastError());
+#else
+  {
+    int flags;
+    flags = fcntl (mother_fd, F_GETFL);
+    flags |= O_NONBLOCK;
+    fcntl (mother_fd, F_SETFL, flags);
+  }
+#endif
+
+
   vmb_debugi(VMB_DEBUG_PROGRESS,"Created server at Port %d", port);
 }
 
@@ -555,6 +557,7 @@ connect_new_device (void)
 	  socklen_t addrlen;
       addrlen = sizeof (slot[i].addr);
       fd = (int)accept (mother_fd, &(slot[i].addr), &addrlen);
+	  vmb_debugi(VMB_DEBUG_PROGRESS,"Got new device on fd %d",fd);
 	  if (!valid_socket (fd))
 	  {
 #ifdef WIN32
@@ -569,7 +572,7 @@ connect_new_device (void)
 			return 1; /* try again */
 		}
 #endif
-	    vmb_debug(VMB_DEBUG_NOTIFY,"Unsuccessful connection attempt");
+	    vmb_debug(VMB_DEBUG_ERROR,"Unsuccessful connection attempt");
 	    return 0; /* give up */
 	  }
 	  slot[i].fd = fd; 
@@ -579,15 +582,24 @@ connect_new_device (void)
       if (slot[i].fd > max_fd)
 	    max_fd = slot[i].fd;
       vmb_debugi(VMB_DEBUG_PROGRESS,"New Connection established on slot %d",i);
-	  {	  /* to delay small packets.  This greatly speeds up
+	  /* to delay small packets.  This greatly speeds up
 				   interactive response. */
-	int tmp = 1;
-	setsockopt (slot[i].fd, IPPROTO_TCP, TCP_NODELAY,
-		    (char *) &tmp, sizeof (tmp));
-      }
+	  { int tmp = 1;
+	    if (setsockopt (slot[i].fd, IPPROTO_TCP, TCP_NODELAY,
+		    (char *) &tmp, sizeof (tmp))!=0)
+        {
+#ifdef WIN32
+		  vmb_debugi(VMB_DEBUG_ERROR,"Unable to set socket options, error: %d", WSAGetLastError());
+#else
+		  vmb_debug(VMB_DEBUG_ERROR,"Unable to set socket options");
+#endif
+          return 1; /* try again */
+        }
+	  }
 #if 0
 	  make_blocking(slot[i].fd);  
 #endif
+	vmb_debug(VMB_DEBUG_PROGRESS,"Socket connected");
       return 1;
     }
   vmb_error(__LINE__,"Can't connect any more client's");
@@ -877,12 +889,14 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  }
       else if (event == FD_ACCEPT)
 	  { vmb_debug(VMB_DEBUG_PROGRESS,"Socket Accept");
-	    connect_new_device ();
+	    do ; while(connect_new_device () == 1);
 	  }
       else if (event == FD_WRITE)
-	    ;
+	    vmb_debug(VMB_DEBUG_PROGRESS,"Socket Write");
       else if (event == FD_CONNECT)
-        ;
+        vmb_debug(VMB_DEBUG_PROGRESS,"Socket Connect");
+	  else
+		vmb_debug(VMB_DEBUG_NOTIFY,"Unknown Socket Event");
     }
     return 0;
   case WM_COMMAND:

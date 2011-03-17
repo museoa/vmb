@@ -1,5 +1,6 @@
 
 #ifdef WIN32
+#include <winsock2.h>
 #include <windows.h>
 #else
 #include <pthread.h>
@@ -432,35 +433,50 @@ static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned 
   unsigned char *data;
 
   offset = get_offset(vmb->address,a);
-  if (hi_offset || overflow_offset || offset + s > vmb->size)
-  { char hex[17]={0};
-    chartohex(a,hex,8);
-    vmb_debugs(VMB_DEBUG_ERROR, "Read request out of range %s",hex);
+  if (hi_offset || overflow_offset || offset >= vmb->size)
+  { vmb_debugx(VMB_DEBUG_ERROR, "Read request out of range at %s",a,8);
     vmb_debug(VMB_DEBUG_ERROR, "Sending empty answer");
     answer_readrequest(vmb, slot, a,0,NULL);
-    return;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "Processing Read Request");
-  if (vmb->get_payload)  data = vmb->get_payload(offset,s);
-  else data = NULL;
-  answer_readrequest(vmb, slot,a,s,data);
+  else if (offset + s > vmb->size)
+  { vmb_debugx(VMB_DEBUG_NOTIFY, "Read request partly out of range %s",a,8);
+	s = vmb->size-offset;
+	vmb_debug(VMB_DEBUG_PROGRESS, "Processing Read Request");
+    if (vmb->get_payload)  data = vmb->get_payload(offset,s);
+    else data = NULL;
+    answer_readrequest(vmb, slot,a,s,data);
+  }
+  else
+  { vmb_debug(VMB_DEBUG_PROGRESS, "Processing Read Request");
+    if (vmb->get_payload)  data = vmb->get_payload(offset,s);
+    else data = NULL;
+    answer_readrequest(vmb, slot,a,s,data);
+  }
 }
 
 static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned char slot, unsigned char p[])
 { unsigned int offset;
   offset = get_offset(vmb->address,a);
-  if (hi_offset || overflow_offset || offset + s > vmb->size)
+  if (hi_offset || overflow_offset || offset >= vmb->size)
   { char hex[17]={0};
     chartohex(a,hex,8);
-    vmb_debugs(VMB_DEBUG_ERROR, "Write request out of range %s",hex);
+	vmb_debugx(VMB_DEBUG_ERROR, "Write request out of range at %s",a,8);
     vmb_debugx(VMB_DEBUG_ERROR, "Address: %s",vmb->address,8);
     vmb_debugi(VMB_DEBUG_ERROR, "Size:    %d",vmb->size);
     vmb_debugi(VMB_DEBUG_ERROR, "Offset:  %ud", offset);
     failed_writerequest(vmb, slot,a);
 	return;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "Processing Write Request");
-  if (vmb->put_payload)  vmb->put_payload(offset,s,p);
+  else if (offset + s > vmb->size)
+  { vmb_debugx(VMB_DEBUG_NOTIFY, "Write request partly out of range %s",a,8);
+	s = vmb->size-offset;
+	vmb_debug(VMB_DEBUG_PROGRESS, "Processing Write Request");
+    if (vmb->put_payload)  vmb->put_payload(offset,s,p);
+  }
+  else
+  { vmb_debug(VMB_DEBUG_PROGRESS, "Processing Write Request");
+    if (vmb->put_payload)  vmb->put_payload(offset,s,p);
+  }
 }
 
 static void bus_error(device_info *vmb, unsigned char type, unsigned char a[8])
@@ -707,14 +723,27 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
    must be called before any of the other funcions
 */
 {  unsigned char limit[8];
+   int r;
    inttochar(address_hi,vmb->address);
    inttochar(address_lo,vmb->address+4);
    vmb->size = size;
    add_offset(vmb->address,size,limit);
    vmb->lo_mask = lo_mask;
    vmb->hi_mask = hi_mask;
-   if (bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name)<0)
-      vmb_fatal_error(__LINE__,"Unable to register with motherboard");
+   r = bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name);
+#ifdef WIN32
+   if (r<0)
+   { TIMEVAL tv;
+     vmb_debug(VMB_DEBUG_ERROR,"Second attempt to register");
+     tv.tv_sec=0;
+	 tv.tv_usec= 10000;
+	 select(0,NULL,NULL,NULL,&tv);
+	 /* wait and try again */
+	 r = bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name);
+   }
+#endif
+   if (r<0)
+       vmb_fatal_errori(__LINE__,"Unable to register with motherboard",r);
 }
 
 void vmb_init_data_address(data_address *da, int size)

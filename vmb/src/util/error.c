@@ -67,6 +67,10 @@ void vmb_fatal_error(int line, char *message)
 {   vmb_error(line, message);
     exit(1);
 }
+void vmb_fatal_errori(int line, char *message, int code)
+{   vmb_errori(line, message,code);
+    exit(1);
+}
 
 
 void vmb_error(int line, char *message)
@@ -81,6 +85,11 @@ void vmb_error2(int line, char *message, char *info)
   vmb_message(tmp);
 }
 
+void vmb_errori(int line, char *message, int code)
+{ static char tmp[1000];
+  sprintf(tmp,"ERROR %d (%s, %d): %s\r\n",code,vmb_program_name,line,message);
+  vmb_message(tmp);
+}
 void vmb_debug(int level, char *msg)
 { 
   if (!vmb_debug_flag) return;

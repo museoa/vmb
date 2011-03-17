@@ -104,6 +104,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (minimized)CloseWindow(hMainWnd); 
 	UpdateWindow(hMainWnd);
 	vmb_begin();
+	Sleep(50);
  	vmb_connect(&vmb,host,port);
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */

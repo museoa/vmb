@@ -104,6 +104,7 @@ extern void option_defaults(void);
 /* from error.h/error.c */
 extern void vmb_fatal_error(int line, char *message);
 /* a function to call if something goes wrong (should not return)*/
+/* a function to call if something goes wrong (should not return)*/
 extern void vmb_debug(int level, char *msg);
 /* a function to call to display messages */
 extern void vmb_error(int line, char *message);

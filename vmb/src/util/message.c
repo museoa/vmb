@@ -51,21 +51,22 @@ static int write_socket(int socket, unsigned char *msg, int size)
   { int i;
     i = send(socket, &msg[snd], size-snd,0);
     if (i<0) /* error */
-    { 
+    {   int e;
 #ifdef WIN32 
-		i = WSAGetLastError();
-		if (i == WSAEWOULDBLOCK)
+		e = WSAGetLastError();
+		if (e == WSAEWOULDBLOCK)
 		{  /* if the socket was used in nonblocking mode (motherboadr) 
 		      it might return 0 */
 			continue; /* Bussy wait */
 		}
+		i= -e;
 #endif		
 		bus_disconnect(socket);
-	  return -1;
+	  return i;
 	}
     else if (i==0) /* connection has closed */
     { bus_disconnect(socket);
-      return -1;
+      return -3;
     }
     else
       snd += i;
@@ -230,7 +231,8 @@ static int connections=0;
 
 
 int bus_connect(char *hostname,int port)
-{ int fd = 0;
+{ int i;
+  int fd = 0;
   struct sockaddr_in host_addr;
   static char localhost[] = "localhost";
 
@@ -250,7 +252,7 @@ int bus_connect(char *hostname,int port)
   connections++;
 #endif
   fd = (int)socket( PF_INET, SOCK_STREAM, 0);
-
+  vmb_debug(VMB_DEBUG_PROGRESS,"Creating socket");
   if (!valid_socket(fd))
   {
 #ifdef WIN32
@@ -292,11 +294,12 @@ int bus_connect(char *hostname,int port)
   }
   host_addr.sin_addr.s_addr = server_ip;
 }
-
+  vmb_debug(VMB_DEBUG_PROGRESS,"Got server IP");
   host_addr.sin_family = AF_INET;
   host_addr.sin_port = htons((unsigned short)port);
-{ int i;
+
   i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
+  vmb_debugi(VMB_DEBUG_PROGRESS,"Connecting to server (%d)",i);
   if (i < 0 )
   { 
 #ifdef WIN32
@@ -322,7 +325,8 @@ int bus_connect(char *hostname,int port)
     fd_set write_set;
     FD_ZERO(&write_set);
     FD_SET((unsigned)fd, &write_set);
-    if (select (fd+1, NULL, &write_set, NULL, NULL)<0)
+	i = select (fd+1, NULL, &write_set, NULL, NULL);
+	if (i!=1)
     {
 #ifdef WIN32
 	  connections--;
@@ -332,15 +336,19 @@ int bus_connect(char *hostname,int port)
 	  vmb_error(__LINE__,"Unable to get a writeable socket");    
       return INVALID_SOCKET;
     }
+	vmb_debug(VMB_DEBUG_PROGRESS,"Socket is writable");
   }
-}
+
   {
     /* Tell TCP not to delay small packets.  This greatly speeds up
        interactive response. */
     int tmp = 1;
-    setsockopt (fd, IPPROTO_TCP, TCP_NODELAY,
+    i = setsockopt (fd, IPPROTO_TCP, TCP_NODELAY,
 		(char *) &tmp, sizeof (tmp));
-
+	if (i==0)
+	  vmb_debug(VMB_DEBUG_PROGRESS,"Socket is set to TCP_NODELAY");
+	else
+	  vmb_debugi(VMB_DEBUG_ERROR,"Unable to set Socket to TCP_NODELAY, error %d",WSAGetLastError());
   }
   return fd; 
 }
@@ -353,7 +361,7 @@ int bus_register(int socket,
 { unsigned char size;
   unsigned char msg[MAXMESSAGE] = {0};
   if (socket<0)
-    return -1;
+    return -4;
   if (address!=NULL && limit!=NULL)
   { memmove(msg, address, 8);
     memmove(msg+8, limit, 8);
