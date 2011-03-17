@@ -168,7 +168,7 @@ extern void timer_get_DateTime(void)
 
 void timer_terminate(void)
 { int rc;
-  vmb_debug(VMB_DEBUG_INFO, "terminating.");
+  vmb_debug(VMB_DEBUG_PROGRESS, "terminating.");
   event_action=quit;
   rc = pthread_cond_signal(&action_cond);
   if (rc) 
@@ -180,7 +180,6 @@ int main(int argc, char *argv[])
 {
   param_init(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0;
-  else vmb_debug_mask=VMB_DEBUG_DEFAULT;
   vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
   vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
@@ -211,6 +210,6 @@ int main(int argc, char *argv[])
     }
   }
 
- vmb_debug(VMB_DEBUG_INFO, "exit.");
+ vmb_debug(VMB_DEBUG_PROGRESS, "exit.");
  return 0;
 }

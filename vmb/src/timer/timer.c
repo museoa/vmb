@@ -93,6 +93,7 @@ static unsigned int expire_time=0;
 static void debug_last_time(void)
 { char tstr[15];
   int t,h,m,s,ms; 
+  if (!VMB_DEBUGGING(VMB_DEBUG_INFO)) return;
   ms = last_time%1000;
   t = last_time/1000;
   s = t%60;
@@ -134,7 +135,7 @@ void timer_start(void)
     if (time_delay>0)
     { expire_time=ms+time_delay;
       timer_set(time_delay);
-      vmb_debugi(VMB_DEBUG_INFO,"Timer delayed %u",time_delay);
+      vmb_debugi(VMB_DEBUG_NOTIFY,"Timer delayed %u",time_delay);
     }
     else
       timer_signal(); /* too late */
@@ -142,7 +143,7 @@ void timer_start(void)
   else
   { expire_time=t0+dt;
     timer_set(dt+time_delay-d);
-    vmb_debugi(VMB_DEBUG_INFO,"Timer started %u",dt-d);
+    vmb_debugi(VMB_DEBUG_PROGRESS,"Timer started %u",dt-d);
   }
 }
 
@@ -171,7 +172,7 @@ void timer_signal()
 /* raise the timer interrupt after the timer has expired */
 { advance_time(expire_time);
   vmb_raise_interrupt(&vmb,interrupt);
-  vmb_debugi(VMB_DEBUG_INFO,"Timer expired (interrupt %X)",interrupt);
+  vmb_debugi(VMB_DEBUG_PROGRESS,"Timer expired (interrupt %X)",interrupt);
   debug_last_time();
   t0 = t0+dt;
   dt = ti;
@@ -189,7 +190,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.2 $ $Date: 2011-02-24 13:58:17 $";
+char version[]="$Revision: 1.3 $ $Date: 2011-03-17 23:54:53 $";
 
 char howto[] =
 "\n"
@@ -249,7 +250,7 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (to_tt) tt = TT;
     if (to_tt && tt==0)
     {  timer_stop();
-       vmb_debug(VMB_DEBUG_INFO,"stopped");
+       vmb_debug(VMB_DEBUG_PROGRESS,"stopped");
     }
     else
     { if (to_t0 || to_dt)

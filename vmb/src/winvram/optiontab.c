@@ -36,6 +36,7 @@ option_spec options[] = {
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
+{"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"address where the vram is located",'a', "address", "start address",   uint64_arg, "0x0002000000000000", {&vmb_address}},
 {"address where the mouse is located",'m', "mouseaddress", "start address",   uint64_arg, "0x0001000000000010", {&vmb_mouse_address}},

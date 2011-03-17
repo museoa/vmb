@@ -249,7 +249,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
-	if (vmb_verbose_flag) vmb_debug_mask=0; else vmb_debug_mask=VMB_DEBUG_DEFAULT;
+	if (vmb_verbose_flag) vmb_debug_mask=0; 
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 

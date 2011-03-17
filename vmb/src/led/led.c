@@ -48,7 +48,7 @@ unsigned char led;
 int colors[8] = {RGB(0x80,0x80,0xFF),RGB(0xFF,0x80,0x80),RGB(0,0xFF,0xFF),RGB(0xFF,0,0xFF),
                  RGB(0xFF,0xFF,0),RGB(0,0,0xFF),RGB(0,0xFF,0),RGB(0xFF,0,0)};
 
-char version[]="$Revision: 1.3 $ $Date: 2010-12-23 16:43:44 $";
+char version[]="$Revision: 1.4 $ $Date: 2011-03-17 23:54:53 $";
 
 char howto[] =
 "\n"
@@ -68,7 +68,7 @@ void display_led( unsigned char diff, unsigned char led)
 #else
 void display_led(unsigned char diff, unsigned char led)
 { int i;
-  for (i=7;i>=0;i--)
+  for (i=nleds-1;i>=0;i--)
     if (led & (1<<i))
       printf("ON  ");
     else

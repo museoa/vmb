@@ -42,7 +42,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.14 $ $Date: 2011-02-24 13:58:17 $";
+char version[]="$Revision: 1.15 $ $Date: 2011-03-17 23:54:53 $";
 
 char howto[] =
 "\n"
@@ -122,11 +122,11 @@ void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
   f = fopen(filename,"rb");
-  if (f==NULL) {vmb_debug(VMB_DEBUG_CRITICAL, "Unable to open input file"); return;}
+  if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
-  if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_CRITICAL, "Unable to read input file");
-  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_CRITICAL, "Empty file"); return;}
+  if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_ERROR, "Unable to read input file");
+  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_ERROR, "Empty file"); return;}
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;

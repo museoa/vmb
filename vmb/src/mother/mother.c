@@ -67,7 +67,7 @@ HWND hpower;
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.29 $ $Date: 2011-03-17 23:29:27 $";
+char version[] = "$Revision: 1.30 $ $Date: 2011-03-17 23:54:53 $";
 
 char howto[] =
   "\n"
@@ -159,7 +159,14 @@ create_server ()
     int tmp = 1;
     if (0!=setsockopt (mother_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &tmp,
 		sizeof (tmp)))
-      vmb_fatal_errori(__LINE__,"Unable to set socket options",WSAGetLastError());
+      { int e;
+#ifdef WIN32
+	e = WSAGetLastError();
+#else
+        e = errno;
+#endif
+      vmb_fatal_errori(__LINE__,"Unable to set socket options",e);
+      }
   }
   max_fd = mother_fd;
 
@@ -995,7 +1002,7 @@ WinMain (HINSTANCE hInstance,
   initialize_slots ();
   if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
   if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
-  if (vmb_verbose_flag) vmb_debug_mask=0; else vmb_debug_mask=VMB_DEBUG_DEFAULT;
+  if (vmb_verbose_flag) vmb_debug_mask=0; 
   CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
   create_server ();
@@ -1075,6 +1082,10 @@ process_stdin ()
     }
   else if (strncmp (buffer, "verbose", 7) == 0)
     { vmb_debug_mask=0;
+      vmb_debugi(VMB_DEBUG_NOTIFY,"debug mask is now %x",vmb_debug_mask);
+    }
+   else if (strncmp (buffer, "mask", 4) == 0)
+    { vmb_debug_mask=atoi (&buffer[4]);
       vmb_debugi(VMB_DEBUG_NOTIFY,"debug mask is now %x",vmb_debug_mask);
     }
   else if (strncmp (buffer, "quit", 4) == 0)

@@ -110,8 +110,8 @@ void show_tab(HWND hDlg,int t)
    {IDC_HIDE_INFO,SW_HIDE},
    {IDC_HIDE_PROGRESS,SW_HIDE},
    {IDC_HIDE_NOTIFY,SW_HIDE},
+   {IDC_HIDE_WARN,SW_HIDE},
    {IDC_HIDE_ERROR,SW_HIDE},
-   {IDC_HIDE_CRITICAL,SW_HIDE},
    {IDC_HIDE_FATAL,SW_HIDE},
    {IDC_HIDE_ALL,SW_HIDE}},
   /* tab 1 */
@@ -121,8 +121,8 @@ void show_tab(HWND hDlg,int t)
    {IDC_HIDE_INFO,SW_SHOW},
    {IDC_HIDE_PROGRESS,SW_SHOW},
    {IDC_HIDE_NOTIFY,SW_SHOW},
+   {IDC_HIDE_WARN,SW_SHOW},
    {IDC_HIDE_ERROR,SW_SHOW},
-   {IDC_HIDE_CRITICAL,SW_SHOW},
    {IDC_HIDE_FATAL,SW_SHOW},
    {IDC_HIDE_ALL,SW_SHOW}}
 	};
@@ -134,8 +134,8 @@ void show_tab(HWND hDlg,int t)
 
 void show_filter(HWND hDlg)
 { CheckDlgButton(hDlg,IDC_HIDE_FATAL,(vmb_debug_mask&VMB_DEBUG_FATAL)?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_HIDE_CRITICAL,(vmb_debug_mask&VMB_DEBUG_CRITICAL)?BST_CHECKED:BST_UNCHECKED);
   CheckDlgButton(hDlg,IDC_HIDE_ERROR,(vmb_debug_mask&VMB_DEBUG_ERROR)?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_HIDE_WARN,(vmb_debug_mask&VMB_DEBUG_WARN)?BST_CHECKED:BST_UNCHECKED);
   CheckDlgButton(hDlg,IDC_HIDE_NOTIFY,(vmb_debug_mask&VMB_DEBUG_NOTIFY)?BST_CHECKED:BST_UNCHECKED);
   CheckDlgButton(hDlg,IDC_HIDE_PROGRESS,(vmb_debug_mask&VMB_DEBUG_PROGRESS)?BST_CHECKED:BST_UNCHECKED);
   CheckDlgButton(hDlg,IDC_HIDE_INFO,(vmb_debug_mask&VMB_DEBUG_INFO)?BST_CHECKED:BST_UNCHECKED);
@@ -190,8 +190,8 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
      { int flag = 0;
 	   switch (LOWORD(wparam)) 
 	   { case IDC_HIDE_FATAL: flag = VMB_DEBUG_FATAL; break;
-		 case IDC_HIDE_CRITICAL: flag = VMB_DEBUG_CRITICAL; break;	
 		 case IDC_HIDE_ERROR: flag = VMB_DEBUG_ERROR; break;	
+		 case IDC_HIDE_WARN: flag = VMB_DEBUG_WARN; break;	
 		 case IDC_HIDE_NOTIFY: flag = VMB_DEBUG_NOTIFY; break;	
 		 case IDC_HIDE_PROGRESS: flag = VMB_DEBUG_PROGRESS; break;	
 		 case IDC_HIDE_INFO: flag = VMB_DEBUG_INFO; break;	

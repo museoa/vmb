@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
 {
   param_init(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0;
-  else vmb_debug_mask=VMB_DEBUG_DEFAULT;
   vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
   vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);

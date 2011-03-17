@@ -348,7 +348,12 @@ int bus_connect(char *hostname,int port)
 	if (i==0)
 	  vmb_debug(VMB_DEBUG_PROGRESS,"Socket is set to TCP_NODELAY");
 	else
-	  vmb_debugi(VMB_DEBUG_ERROR,"Unable to set Socket to TCP_NODELAY, error %d",WSAGetLastError());
+	{
+#ifdef WIN32
+          i = WSAGetLastError();
+#endif
+	  vmb_debugi(VMB_DEBUG_ERROR,"Unable to set Socket to TCP_NODELAY, error %d",i);
+	}
   }
   return fd; 
 }

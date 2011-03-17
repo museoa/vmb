@@ -158,8 +158,8 @@ static double strtodouble(char *arg)
 static 
 int do_option(option_spec *p, char *arg)
 { unsigned int n;
-  vmb_debug(VMB_DEBUG_PROGRESS, "processing option:");
-  vmb_debug(VMB_DEBUG_PROGRESS, p->longopt);
+  vmb_debug(VMB_DEBUG_INFO, "processing option:");
+  vmb_debug(VMB_DEBUG_INFO, p->longopt);
   switch (p->kind)
   { case str_arg: 
       if (*(p->handler.str)!=NULL)
@@ -244,7 +244,7 @@ int do_option(option_spec *p, char *arg)
       *(p->handler.i)= 0;
       return 0;
     case fun_arg:
-      vmb_debug(VMB_DEBUG_PROGRESS, "calling handler");
+      vmb_debug(VMB_DEBUG_INFO, "calling handler");
       return (p->handler.f)(arg);
     default:
       /* ignore unknown options */
@@ -257,14 +257,11 @@ int  do_option_long(char *cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
    static char msg[100];
-   vmb_debug(VMB_DEBUG_PROGRESS, "searching for option:");
-   vmb_debug(VMB_DEBUG_PROGRESS, cmd);
+   vmb_debugs(VMB_DEBUG_INFO, "searching for option: %s",cmd);
    i=0;
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(VMB_DEBUG_NOTIFY, "option ignored:");
-        strncpy(msg,cmd,99);
-        vmb_debug(VMB_DEBUG_NOTIFY, msg);
+       { vmb_debugs(VMB_DEBUG_NOTIFY, "option ignored: %s",cmd);
         return 0;
       }
       if (cmd[strlen(options[i].longopt)] == '=')
@@ -283,17 +280,13 @@ static
 int  do_option_short(char cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
-   static char cmdstr[] = "- ";
 
    i=0;   
-   cmdstr[1] = cmd;
-   vmb_debug(VMB_DEBUG_PROGRESS, "searching for option:");
-   vmb_debug(VMB_DEBUG_PROGRESS, cmdstr);
+   vmb_debugi(VMB_DEBUG_PROGRESS, "searching for option: -%c",cmd);
    
    while (1)
    { if (options[i].description==NULL)
-      { vmb_debug(VMB_DEBUG_NOTIFY, "option ignored:");
-        vmb_debug(VMB_DEBUG_NOTIFY, cmdstr);
+       { vmb_debugi(VMB_DEBUG_NOTIFY, "option ignored: -%c",cmd);
         return 0;
       }
       if (cmd==options[i].shortopt)
@@ -348,8 +341,7 @@ int write_configfile(char *filename)
   { vmb_error(__LINE__,"Filename expected");
     return 0;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "writing configfile");
-  vmb_debug(VMB_DEBUG_PROGRESS, filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "writing configfile %s",filename);
   out=fopen(filename,"w");
   if (out==NULL) 
 	  {  vmb_error(__LINE__,"Could not write configuration file");
@@ -411,8 +403,7 @@ int parse_configfile(char *filename, char *condition)
   { vmb_error(__LINE__,"Argument expected");
     return 0;
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "reading configfile");
-  vmb_debug(VMB_DEBUG_PROGRESS, filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "reading configfile %s",filename);
   in=fopen(filename,"r");
   if (in==NULL)
 	return 0;
@@ -460,7 +451,7 @@ int parse_configfile(char *filename, char *condition)
      { if (conditional ==1) 
          conditional=0;
        else
-         vmb_debug(VMB_DEBUG_ERROR, "Unmatched #endif"); 
+         vmb_debug(VMB_DEBUG_NOTIFY, "Unmatched #endif"); 
        continue;
      }
   
@@ -493,7 +484,7 @@ int parse_configfile(char *filename, char *condition)
      do_option_long(cmd,arg);
   }
   fclose(in);
-  vmb_debug(VMB_DEBUG_PROGRESS, "done configfile");
+  vmb_debug(VMB_DEBUG_INFO, "done configfile");
   return 1;
 }
 
@@ -596,7 +587,7 @@ static void do_configfile(char *condition)
 void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;    
-  vmb_debug(VMB_DEBUG_PROGRESS, "reading commandstr");
+  vmb_debugs(VMB_DEBUG_PROGRESS, "reading commandstr %s",p);
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
   arguments++;
@@ -650,7 +641,7 @@ void parse_commandstr(char *p)
      else
        do_argument(arguments++, parse_argument(&p));
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "done commandstr");
+  vmb_debug(VMB_DEBUG_INFO, "done commandstr");
 }
 
 void parse_commandline(int argc, char *argv[])
@@ -674,6 +665,6 @@ void parse_commandline(int argc, char *argv[])
       do_argument(i, argv[i]);
 
   }
-  vmb_debug(VMB_DEBUG_PROGRESS, "done commandline");
+  vmb_debug(VMB_DEBUG_INFO, "done commandline");
 }
 
