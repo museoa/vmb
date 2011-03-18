@@ -33,6 +33,23 @@
 device_info vmb = {0};
 extern void init_device(device_info *vmb);
 
+
+extern unsigned char led;
+extern int nleds; /* number of leds to display */
+
+void update_display(void)
+{ int i;
+  printf("LED: ");
+  for (i=nleds-1;i>=0;i--)
+    if (led & (0x01<<i))
+      printf("ON  ");
+    else
+      printf("OFF ");
+  printf("\n");
+}
+
+
+
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);

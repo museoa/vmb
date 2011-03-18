@@ -168,7 +168,7 @@ extern void timer_get_DateTime(void)
 
 void timer_terminate(void)
 { int rc;
-  vmb_debug(VMB_DEBUG_PROGRESS, "terminating.");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Timer terminating.");
   event_action=quit;
   rc = pthread_cond_signal(&action_cond);
   if (rc) 
@@ -210,6 +210,6 @@ int main(int argc, char *argv[])
     }
   }
 
- vmb_debug(VMB_DEBUG_PROGRESS, "exit.");
+ vmb_debug(VMB_DEBUG_PROGRESS, "Timer exit.");
  return 0;
 }

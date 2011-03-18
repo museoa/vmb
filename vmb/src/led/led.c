@@ -48,7 +48,7 @@ unsigned char led;
 int colors[8] = {RGB(0x80,0x80,0xFF),RGB(0xFF,0x80,0x80),RGB(0,0xFF,0xFF),RGB(0xFF,0,0xFF),
                  RGB(0xFF,0xFF,0),RGB(0,0,0xFF),RGB(0,0xFF,0),RGB(0xFF,0,0)};
 
-char version[]="$Revision: 1.4 $ $Date: 2011-03-17 23:54:53 $";
+char version[]="$Revision: 1.5 $ $Date: 2011-03-18 22:06:20 $";
 
 char howto[] =
 "\n"
@@ -58,25 +58,7 @@ char howto[] =
 "\n"
 ;
 
-
-#ifdef WIN32
-
-void display_led( unsigned char diff, unsigned char led)
-{  InvalidateRect(hMainWnd,NULL,FALSE); 
-}
-
-#else
-void display_led(unsigned char diff, unsigned char led)
-{ int i;
-  for (i=nleds-1;i>=0;i--)
-    if (led & (1<<i))
-      printf("ON  ");
-    else
-      printf("OFF ");
-  printf("\n");
-}
-#endif
-
+extern void update_display(void);
 
 /* Interface to the virtual motherboard */
 unsigned char *led_get_payload(unsigned int offset,int size)
@@ -86,16 +68,14 @@ unsigned char *led_get_payload(unsigned int offset,int size)
 }
 
 void led_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ unsigned char diff;
-  vmb_debugi(VMB_DEBUG_INFO, "LED SET: %2X",payload[0]);
-  diff = led ^ payload[0];
-  led = payload[0];
-  display_led(diff,led); 
+{ led = payload[0];
+  vmb_debugi(VMB_DEBUG_INFO, "LED SET: %2X",led);
+  update_display();
 }
 
 void led_poweroff(void)
-{ display_led(led,0);
-  led=0;
+{ led=0;
+  update_display();
   vmb_debug(VMB_DEBUG_INFO, "POWER OFF");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_OFF,0,0);
@@ -103,8 +83,8 @@ void led_poweroff(void)
 }
 
 void led_poweron(void)
-{ display_led(led,0);
-  led=0;
+{ led=0;
+  update_display();
   vmb_debug(VMB_DEBUG_INFO, "POWER ON");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
@@ -112,8 +92,8 @@ void led_poweron(void)
 }
 
 void led_reset(void)
-{ display_led(led,0);
-  led=0;
+{ led=0;
+  update_display();
   vmb_debug(VMB_DEBUG_INFO, "RESET");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_RESET,0,0);

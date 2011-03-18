@@ -118,6 +118,10 @@ for (i=7;i>=8-nleds;i--) {
   } 
 }
 
+void update_display(void);
+{  InvalidateRect(hMainWnd,NULL,FALSE); 
+}
+
 
 INT_PTR CALLBACK  
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -176,17 +180,17 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {  switch (message) 
   { case WM_VMB_ON: /* Power On */
-       InvalidateRect(hWnd,NULL,FALSE);
 	return 0;
-  case WM_VMB_OFF: /* Power Off */
-       InvalidateRect(hWnd,NULL,FALSE);
+    case WM_VMB_OFF: /* Power Off */
 	return 0;
-  case WM_VMB_CONNECT: /* Connected */
+    case WM_VMB_RESET: /* Reset */
+	return 0;
+    case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
 	  InvalidateRect(hWnd,NULL,FALSE);
  	return 0;
-  case WM_VMB_DISCONNECT: /* Disconnected */
+    case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
 	  InvalidateRect(hWnd,NULL,FALSE);

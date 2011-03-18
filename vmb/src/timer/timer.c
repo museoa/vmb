@@ -126,7 +126,7 @@ static void advance_time(unsigned int new_time)
 void timer_start(void)
 /* arrange the timer to signal at absolute time T0 + t0 +dt */
 { unsigned int d, ms;
-  
+  vmb_debugi(VMB_DEBUG_INFO,"Timer requested to  start at %u", t0 +dt); 
   update_display();
   ms = timer_get_now(); /* might be too small by timer_delay */
   d = ms-t0; /* t0 is always in the past */
@@ -138,12 +138,14 @@ void timer_start(void)
       vmb_debugi(VMB_DEBUG_NOTIFY,"Timer delayed %u",time_delay);
     }
     else
+    { vmb_debug(VMB_DEBUG_NOTIFY,"Timer signaled immediately");
       timer_signal(); /* too late */
+    }
   }
   else
   { expire_time=t0+dt;
     timer_set(dt+time_delay-d);
-    vmb_debugi(VMB_DEBUG_PROGRESS,"Timer started %u",dt-d);
+    vmb_debugi(VMB_DEBUG_PROGRESS,"Timer started %u",dt+time_delay-d);
   }
 }
 
@@ -172,7 +174,7 @@ void timer_signal()
 /* raise the timer interrupt after the timer has expired */
 { advance_time(expire_time);
   vmb_raise_interrupt(&vmb,interrupt);
-  vmb_debugi(VMB_DEBUG_PROGRESS,"Timer expired (interrupt %X)",interrupt);
+  vmb_debugi(VMB_DEBUG_PROGRESS,"Timer expired sending interrupt %d",interrupt);
   debug_last_time();
   t0 = t0+dt;
   dt = ti;
@@ -181,7 +183,7 @@ void timer_signal()
   if (ti==0) 
   { tt = 0;
     SETTT(0);
-	update_display();
+    update_display();
   }
   else
     timer_start();
@@ -190,7 +192,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.3 $ $Date: 2011-03-17 23:54:53 $";
+char version[]="$Revision: 1.4 $ $Date: 2011-03-18 22:06:20 $";
 
 char howto[] =
 "\n"
@@ -208,36 +210,42 @@ char howto[] =
 /* Interface to the virtual motherboard */
 
 unsigned char *timer_get_payload(unsigned int offset,int size)
-{ if (offset<0x10)
-  { timer_get_DateTime();
-    if (offset<0x08)
-    { vmb_debugi(VMB_DEBUG_INFO,"year:        %d", YEAR);
-      vmb_debugi(VMB_DEBUG_INFO,"month:       %d", MONTH);
-      vmb_debugi(VMB_DEBUG_INFO,"day:         %d", DAY);
-      vmb_debugi(VMB_DEBUG_INFO,"weekday:     %d", WEEKDAY);
-    }
-    if (offset<0x0C && offset+size>0x08)
-    { vmb_debugi(VMB_DEBUG_INFO,"hour:        %d", HOUR);
-      vmb_debugi(VMB_DEBUG_INFO,"minute:      %d", MIN);
-      vmb_debugi(VMB_DEBUG_INFO,"second:      %d", SEC);
-    }
-    if (offset+size>0x0C)
-      vmb_debugi(VMB_DEBUG_INFO,"millisecond: %d", MILLISEC);
-  } 
+{  vmb_debug(VMB_DEBUG_INFO,"Reading timer information");
+   if (offset<0x10)
+   { timer_get_DateTime();
+     if (offset<0x08)
+     { vmb_debugi(VMB_DEBUG_INFO,"year:        %d", YEAR);
+       vmb_debugi(VMB_DEBUG_INFO,"month:       %d", MONTH);
+       vmb_debugi(VMB_DEBUG_INFO,"day:         %d", DAY);
+       vmb_debugi(VMB_DEBUG_INFO,"weekday:     %d", WEEKDAY);
+     }
+     if (offset<0x0C && offset+size>0x08)
+     { vmb_debugi(VMB_DEBUG_INFO,"hour:        %d", HOUR);
+       vmb_debugi(VMB_DEBUG_INFO,"minute:      %d", MIN);
+       vmb_debugi(VMB_DEBUG_INFO,"second:      %d", SEC);
+     }
+     if (offset+size>0x0C)
+       vmb_debugi(VMB_DEBUG_INFO,"millisecond: %d", MILLISEC);
+   }
+   if  (offset+size>0x10)
+   { int d = offset<0x10?0x10-offset:0;
+     vmb_debugx(VMB_DEBUG_INFO,"extended information: %s",tmem+offset+d,size-d);
+   }
   return tmem+offset;
 }
 
 
 void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ 
+{ vmb_debug(VMB_DEBUG_INFO,"Writing timer information");
   if (!vmb.power)
   { vmb_debug(VMB_DEBUG_NOTIFY,"Power off, Write ignored.");
 	return;
   }
   if (offset<0x10)  /* the first 16 byte are read only */
   { int d = 0x10-offset;
-	offset = offset+d;
-	size = size-d;
+    offset = offset+d;
+    size = size-d;
+    vmb_debugi(VMB_DEBUG_NOTIFY,"Writing of %d byte readonly data ignored.",d);
   }
   if (size>0)
   { int to_tt=offset<0x14; /* write to offset */
@@ -245,36 +253,47 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
 	int to_t0= offset<0x1C&& offset+size>0x18; 
 	int to_dt= offset+size>0x1C;
 	memmove(tmem+offset,payload, size);
+    vmb_debugi(VMB_DEBUG_PROGRESS,"Writing %d byte of data.",size);
 
-    if (to_ti) ti = TI;
+    if (to_ti) {
+      ti = TI;
+      vmb_debugi(VMB_DEBUG_INFO,"Writing %d to i",ti);
+    }
     if (to_tt) tt = TT;
     if (to_tt && tt==0)
-    {  timer_stop();
-       vmb_debug(VMB_DEBUG_PROGRESS,"stopped");
+    {  vmb_debug(VMB_DEBUG_INFO,"Writing zero to t");
+       timer_stop();
+       vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
     }
     else
     { if (to_t0 || to_dt)
-	  { /* takes precedence over writing to tt */
+      { /* takes precedence over writing to tt */
         t0 = TT0;
-	    dt = TDT;
-		tt = 1;
-		SETTT(tt);
-		timer_start();
-	  } 
-	  else if (to_tt && tt!=0)
-	  { t0 = timer_get_now();;
-	    dt = tt;
-	    SETT0(t0);
-	    SETDT(dt);
-	    timer_start();
-	  }
+	dt = TDT;
+	tt = 1;
+	SETTT(tt);
+        vmb_debug(VMB_DEBUG_INFO,"Writing to t0/dt");
+ 	timer_start();
+      } 
+      else if (to_tt && tt!=0)
+      { t0 = timer_get_now();;
+	dt = tt;
+	SETT0(t0);
+	SETDT(dt);
+        vmb_debug(VMB_DEBUG_INFO,"Writing to t, set t0/dt");
+        timer_start();
+      }
     }
   }
 }
 
 void timer_poweroff(void)
 /* this function is called when the virtual power is turned off */
-{ if (tt!=0) timer_stop();
+{ vmb_debug(VMB_DEBUG_PROGRESS,"Timer power off");
+  if (tt!=0) 
+  { timer_stop();
+    vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
+  }
   tt = 0; 
   SETTT(tt);
 #ifdef WIN32
@@ -284,7 +303,8 @@ void timer_poweroff(void)
 
 void timer_poweron(void)
 /* this function is called when the virtual power is turned off */
-{ tt = ti = t0 = dt = 0;
+{ vmb_debug(VMB_DEBUG_PROGRESS,"Timer power on");
+  tt = ti = t0 = dt = 0;
   SETTT(tt);
   SETTI(ti);
   SETT0(t0);
@@ -295,7 +315,11 @@ void timer_poweron(void)
 }
 
 void timer_reset(void)
-{ if (tt!=0) timer_stop();
+{ vmb_debug(VMB_DEBUG_PROGRESS,"Timer reset");
+  if (tt!=0) 
+  { timer_stop();
+    vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
+  }
   tt = ti = t0 = dt = 0;
   SETTT(tt);
   SETTI(ti);
@@ -306,7 +330,7 @@ void timer_reset(void)
 void timer_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { 
-  vmb_debug(VMB_DEBUG_PROGRESS,"disconnected.");
+  vmb_debug(VMB_DEBUG_PROGRESS,"Timer disconnected");
   timer_reset();
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
@@ -315,7 +339,8 @@ void timer_disconnected(void)
 
 
 void init_device(device_info *vmb)
-{ tt = ti = t0 = dt = 0;
+{ vmb_debug(VMB_DEBUG_PROGRESS,"Timer initializing");
+  tt = ti = t0 = dt = 0;
   memset(tmem,0,sizeof(tmem));
   timer_set_T0();
   last_time = timer_since_T0();
