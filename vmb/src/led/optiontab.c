@@ -42,7 +42,7 @@ option_spec options[] = {
 {"the color of led 3",                   '3',"color3",  "RGB value",     int_arg, "0x00FFFF", {&colors[4]}},
 {"the color of led 2",                   '2',"color2",  "RGB value",     int_arg, "0xFF0000", {&colors[5]}},
 {"the color of led 1",                   '1',"color1",  "RGB value",     int_arg, "0x00FF00", {&colors[6]}},
-{"the color of led 0,                    '0',"color0",  "RGB value",     int_arg, "0x0000FF", {&colors[7]}},
+{"the color of led 0",                    '0',"color0",  "RGB value",     int_arg, "0x0000FF", {&colors[7]}},
 {"the number of leds to display",        'n',"leds",    "int value",     int_arg, "8", {&nleds}},
 {"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
 {"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
