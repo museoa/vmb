@@ -1,7 +1,7 @@
 #   produce an object file from the assembler file
 BIN=/home/ruckert/mmixmb/bitrange/install/bin
 AFLAGS= -gdwarf2
-AS=$(BIN)/mmixal
+AS=mmixal
 MAS=$(BIN)/mmix-as
 MLD=$(BIN)/mmix-ld
 MCC=$(BIN)/mmix-gcc

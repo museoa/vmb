@@ -53,11 +53,11 @@ disk_read	BNN	buffer,1F
 
 		SET	control,#3    IEN|STRT   to make it read
 		STO	control,base,controlOffset
-
+		JMP	5F
 3H		SYNC	4		%go to power save mode
-		GET	tmp,rQ
-	        AND     diskflag,diskflag,tmp
-		BZ	diskflag,3B	% this was not the disk interrupt
+5H		GET	tmp,rQ
+	        AND     tmp+1,tmp,diskflag
+		BZ	tmp+1,3B	% this was not the disk interrupt
 	        ANDN	tmp,tmp,diskflag   % delete the bit
 	        PUT     rQ,tmp
 
@@ -98,11 +98,11 @@ disk_write	BNN	buffer,1F
 
 		SET	control,#7    WRITE|IEN|STRT   to make it write
 		STO	control,base,controlOffset
+		JMP	5F
 3H		SYNC	4		%go to power save mode
-
-		GET	tmp,rQ
-	        AND     diskflag,diskflag,tmp
-		BZ	diskflag,3B	% this was not the disk interrupt
+5H		GET	tmp,rQ
+	        AND     tmp+1,tmp,diskflag
+		BZ	tmp+1,3B	% this was not the disk interrupt
 	        ANDN	tmp,tmp,diskflag   % delete the bit
 	        PUT     rQ,tmp
 

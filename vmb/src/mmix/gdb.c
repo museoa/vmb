@@ -119,6 +119,18 @@ static void OK_msg(char *buffer)
   buffer[2]= 0;
 }
 
+static void NOT_SUPPORTED_msg(char *buffer)
+{
+  buffer[0]=0;
+}
+
+static void ERROR_msg(char *buffer, unsigned char n)
+{ buffer[0]='E';
+  buffer[1]= tohex((n>>4)&0x0F);
+  buffer[2]= tohex(n&0x0F);
+  buffer[3]=0;  
+}
+
 
 int gdb_signal =  TARGET_SIGNAL_TRAP;
 
@@ -543,6 +555,7 @@ static void removeBreakPoint(char *buffer)
 
 	//buffPtr first points on the destination address
 	buffPtr = hextoocta(buffPtr, &dstAddr,1);
+        /* sorry, selective removing of individual bits not supported */
 	set_break(dstAddr, 0);
 	OK_msg(buffer);
 }
@@ -563,14 +576,23 @@ static void setBreakPoint(char *buffer)
 	buffPtr = hextoocta(buffPtr, &dstAddr,1);
 
 	switch(buffer[1]){
-		case '2':
+	case '0': /* memory breakpoint; not supported */
+                  NOT_SUPPORTED_msg(buffer);
+                  return;
+	case '1': /* hardware breakpoint */
+        	set_break(dstAddr, exec_bit);
+		break;
+	case '2': /* write watchpoint */
         	set_break(dstAddr, write_bit);
 		break;
-		case '3':
+	case '3': /* read watchpoint */
         	set_break(dstAddr, read_bit);
 		break;
-      		default:
-           	set_break(dstAddr, exec_bit);
+	case '4':
+        	set_break(dstAddr, write_bit|read_bit);
+		break;
+      	default:
+           	set_break(dstAddr,  write_bit|read_bit|exec_bit);
 		break;
 	}
 	OK_msg(buffer);

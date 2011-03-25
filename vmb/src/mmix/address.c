@@ -592,7 +592,7 @@ int load_data(int size, octa *data, octa address,int signextension)
 
 int store_data(int size,octa data, octa address)
 /* store an octa from data into the given virtual address 
-   raise an interrupt if there is a problem
+   raise an interrupt and return 0 if there is a problem
 */
 { if (address.h==last_d_addr.h &&
       (address.l&0xFFFFE000)==last_d_addr.l)

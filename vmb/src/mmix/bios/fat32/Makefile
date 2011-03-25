@@ -4,7 +4,10 @@ BIN=/usr/local/bin
 MAS=$(BIN)/mmix-as
 MLD=$(BIN)/mmix-ld
 MCC=$(BIN)/mmix-gcc
-MCFLAGS= -ggdb -Wall -melf -mabi=mmixware -mno-base-addresses -O2 
+MOCP=$(BIN)/mmix-objcopy
+
+#MCFLAGS= -ggdb  -O0 -Wall -melf -mabi=mmixware -mno-base-addresses 
+MCFLAGS=         -O3 -Wall -melf -mabi=mmixware -mno-base-addresses
 #MLDFLAGS=--entry=_start.
 MLDFLAGS=  -static \
           --section-start .text=0x8000000000000000 \
@@ -18,15 +21,21 @@ MASFLAGS= -gdwarf2 -x
 # -static do not link to dynamic libraries
 # -nostdlib do not link in standard libraries
 
-OBJECTS= bios.o dtraps.o ftraps.o terminal.o diskio.o
+OBJECTS= bios.o tables.o dtraps.o ftraps.o terminal.o diskio.o
 LIBS=libfat32/libfat32.a
 SUBDIRS = libfat32
+LFLAGS= -L libfat32 -lfat32  -lc
 
 all:  bios.img bios.elf
 
+pagetab.s: mkpagetab.sh
+	mkpagetab.sh > pagetab.s
+
+bios.o: bios.s pagetab.s
+	$(MAS) $(MASFLAGS) bios.s -o $@
 
 %.o: %.s
-	$(MAS) $(MASFLAGS) -no-expand $^ -o $@
+	$(MAS) $(MASFLAGS) $^ -o $@
 
 
 tables.o: tables.s
@@ -38,13 +47,12 @@ tables.o: tables.s
 	$(MCC) $(MCFLAGS) -c $^ -o $@
 
 
-bios.img: $(OBJECTS) $(LIBS)
-	$(MLD)  $(MLDFLAGS) --oformat binary $(OBJECTS)    -L libfat32 -lfat32  -lc -o $@
-
-
+bios.img: bios.elf
+	$(MOCP) -O binary bios.elf bios.img
 
 bios.elf: $(OBJECTS) $(LIBS)
-	$(MLD) $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) -L libfat32 -lfat32 -lc  -o $@
+	$(MLD) $(MLDFLAGS) --oformat elf64-mmix $(OBJECTS) $(LFLAGS)  -o $@
+	$(MOCP) -O binary bios.elf bios.img
 
 
 

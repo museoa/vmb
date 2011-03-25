@@ -5,10 +5,8 @@
 %	virtual address 8000 0000 0000 0000
 
 	.section    .text,"ax",@progbits
-	.global PageTab		
+	.global Boot	
 %	LOC	#8000000000000000
-	
-% page table setup (see small model in address.howto)
 
 Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	PUT	rTT,$0
@@ -16,12 +14,12 @@ Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	PUT	rT,$0
 	SET	$0,#e0
 	PUT	rG,$0               % allocate 32 global registers for gcc
-	GETA	$254,pOSStackStart
-	LDO	$254,$254,0
+	GETA	$254,OSStackStart
 	SET	$253,0              % the frame pointer for gcc
 	PUSHJ	$0,initMemory	%initialize the memory setup
         PUSHJ	$0,initTerminal
 	PUSHJ	$0,fat32_initialize
+	GET	$0,rQ
 	SET	$0,0
 	PUT     rQ,$0		%clear interrupts
 
@@ -38,26 +36,40 @@ Boot	GETA	$0,DTrap	%set dynamic- and forced-trap  handler
 	NEG	$255,1	% enable interrupt $255->rK with resume 1
 	RESUME	1	% loading a file sets up special registers for that
 
-	.global pOSStackStart
-pOSRam OCTA OSRam
-pFreeSpace OCTA FreeSpace
-p__Ebss	OCTA	__Ebss
-pOSStackStart OCTA OSStackStart
 	
 %	Entry point for a dynamic TRAP	
-DTrap	PUSHJ	$255,DHandler
+DTrap	PUSHJ	$255,1F		% save local registers
 	PUT	rJ,$255
 	NEG	$255,1		% enable interrupt $255->rK with resume 1
 	RESUME	1
-	
 
+1H	SET 	$0,$255		%save global registers
+	SET	$1,$254
+	SET	$2,$253
+	GET 	$3,rJ
+	PUSHJ	$4,DHandler
+	PUT	rJ,$3
+	SET     $253,$2
+	SET	$254,$1
+	SET	$255,$0
+	POP	0,0
 
 	
 %	Entry point for a forced TRAP
-FTrap	PUSHJ	$255,FHandler
+FTrap	PUSHJ	$255,1F
 	PUT	rJ,$255
 	NEG	$255,1	  %enable interrupt $255->rK with resume 1
 	RESUME	1
+1H	SET 	$0,$255		%save global registers
+	SET	$1,$254
+	SET	$2,$253
+	GET 	$3,rJ
+	PUSHJ	$4,FHandler
+	PUT	rJ,$3
+	SET     $253,$2
+	SET	$254,$1
+	SET	$255,$0
+	POP	0,0
 
 
 %       The ROM Page Table
@@ -82,10 +94,8 @@ initMemory	SETH    $0,#1234	%set rV register
 		PUT	rV,$0
 
 
-		GETA	$0,pFreeSpace
-		LDO	$0,$0,0
-		GETA	$1,p__Ebss
-		LDO	$1,$1,0         % end of the statically allocated RAM
+		GETA	$0,FreeSpace
+		GETA	$1,__Ebss	% end of the statically allocated RAM
 	        SET	$2,#1FFF
 	        ADD	$1,$1,$2
 		ANDN	$1,$1,$2        % round to next multiple of #2000
@@ -96,8 +106,7 @@ initMemory	SETH    $0,#1234	%set rV register
 DTrapPageFault	POP     0,0              
 
 %	allocate a new page in ram and return its address
-newpage	GETA	$1,pFreeSpace
-	LDO	$1,$1,0
+newpage	GETA	$1,FreeSpace
 	LDO	$0,$1,0		% get the FreeSpace
 	SET	$2,$0
 	INCL	$2,#2000	% add one page
@@ -105,72 +114,28 @@ newpage	GETA	$1,pFreeSpace
 	POP 1,0  	
 
 
+FirstUserPage IS 0x2000	%nedded for the pagetable 
 
-        .org #2000              % the position of the page table at 8000000000002000
-	                        % is used in mmix-sim.ch to initioalize rV
-	                        % to be able to load mmo files from the simulator
+	.include "pagetab.s"   % defines UserRamSize
 	
-%       Text Segment 11 pages = 88kByte
-PageTab OCTA	#0000000100000007	%text, should be ...001 for execute only
-	OCTA	#0000000100002007	
-   	OCTA	#0000000100004007 
-   	OCTA	#0000000100006007 
-   	OCTA	#0000000100008007 
-   	OCTA	#000000010000a007 
-   	OCTA	#000000010000c007 
-   	OCTA	#000000010000e007 
-   	OCTA	#0000000100010007
-   	OCTA	#0000000100012007
-   	OCTA	#0000000100014007
-	OCTA	#0000000100016007 
-	OCTA	#0000000100018007  
-   	 
-%       Data Segment 8 pages = 80 kByte
-	LOC     (@&~#1FFF)+#2000	%data
-	OCTA	#000000010001a006  
-	OCTA	#000000010001c006  
-	OCTA	#000000010001e006  
-	OCTA	#0000000100020006  
-	OCTA	#0000000100022006  
-	OCTA	#0000000100024006  
-	OCTA	#0000000100026006  
-	OCTA	#0000000100028006  
-
-%	Pool Segment 2 pages = 16 kByte
-	LOC	(@&~#1FFF)+#2000
-	OCTA	#000000010002a006	%pool
-	OCTA	#000000010002c006  
+%	First Pages in RAM are for the OS.
 	
-%	Stack Segment 2+2 pages = 32 kByte
-	LOC	(@&~#1FFF)+#2000
-	OCTA	#000000010002e006	%stack
-	OCTA	#0000000100030006  
-
-	LOC	(@&~#1FFF)+#2000-2*8	
-	OCTA	#0000000100032006       %gcc memory stack < #6000000000800000
-	OCTA	#0000000100034006  
-
-	LOC	(@&~#1FFF)+#2000
-
-UserRamSize IS #36000  % size of memory allocated for user programs
-
-
-%	First Page in RAM: reserved for the OS.
-%	The layout follows below.
 	  .section	.bss,"aw",@nobits
 	.org	0
-OSRam	     IS	  @	
-FreeSpace    OCTA 0              %First page is for OS
-	
-%       leave room for the pages staticaly allocated to user programms
-	.org	UserRamSize
+OSRam	     IS	  @
+FreeSpace    OCTA 	0
 
-%       here we start the space for the operating system	
+	.org	FirstUserPage
+	OCTA	0
+
+	.org	FirstUserPage+UserRamSize
+	OCTA	0
 
 
-OSStackLow   OCTA	0
-	     LOC	@+#4000	
+OSStackSize	IS	16*0x2000 % what we need for the gcc memory stack
 
+	.org	FirstUserPage+UserRamSize+OSStackSize
 	.global OSStackStart
-OSStackStart OCTA	0
+OSStackStart	IS	@
+	OCTA	0	% first OCTA after preallocated space, it follows OS RAM until __Ebss
 

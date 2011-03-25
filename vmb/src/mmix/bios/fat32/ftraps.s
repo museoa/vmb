@@ -2,76 +2,17 @@
 	.global FHandler
 
 FHandler	GET	$0,rXX
-		BNN	$0,1F		%check the ropcode
+		BNN	$0,TrapUnhandled
 		SRU	$1,$0,24       
-		AND	$1,$1,#FF		%the opcode
-		BZ	$1,4F		
-
-		POP	0,0			%not a TRAP and ropcode<0
-       
-1H		SRU	$0,$0,56		%the ropcode
-		BZ	$0,1F		%0 means page fault
-		CMP	$1,$0,2         
-		BZ      $1,2F		%2 means emulate the instruction
-		CMP	$1,$0,3	        
-		BZ	$1,3F		%page table translation in software
-
-
-%       TRAP handler for page faults (not yet implemented)       	
-1H		SWYM	5		% Page Fault tell the debugger
-		POP     0,0              
-
-%       Emulate the instruction
-2H		SWYM	5		% Emulate tell the debugger
-		POP     0,0              
-
-%	Do pagetable translation in software
-3H		SET	$0,#1234		%the dummy physical address
-		PUT	rZZ,$0			%thats where the translation is suposed to go
-		POP     0,0
-
-%       Handle a Trap Instruction
-4H		SRU	$1,$0,8
-		AND	$1,$1,#FF		%the Y value (the function code)
-	        CMP     $3,$1,#1F
-		BP	$3,TrapUnhandled	% in the moment we handle only very few Traps
+		AND	$1,$1,#FF         
+		BNZ	$1,TrapUnhandled  		
+		SRU	$1,$0,8
+		AND	$1,$1,#FF	%the Y value (the function code)
 		SL	$1,$1,2
-		GETA	$2,1F
+		GETA	$2,FTrapTable
 		GO	$2,$2,$1		%Jump into the Trap Table
+	
 
-1H	   JMP   TrapHalt       %0
-	   JMP   TrapFopen      %1
-	   JMP   TrapFclose     %2
-	   JMP   TrapFread      %3
-	   JMP   TrapFgets      %4
-	   JMP   TrapFgetws     %5
-	   JMP   TrapFwrite     %6
-	   JMP   TrapFputs      %7 
-	   JMP   TrapFputws     %8
-	   JMP   TrapFseek      %9
-	   JMP   TrapFtell      %a
-	   JMP   TrapUnhandled  %b
-	   JMP   TrapUnhandled  %c
-	   JMP   TrapUnhandled  %d
-	   JMP   TrapUnhandled  %e
-	   JMP   TrapUnhandled  %f
-	   JMP   TrapGPutPixel %10
-	   JMP   TrapUnhandled %11
-	   JMP   TrapUnhandled %12
-	   JMP   TrapUnhandled %13
-	   JMP   TrapUnhandled %14
-	   JMP   TrapUnhandled %15
-	   JMP   TrapUnhandled %16
-	   JMP   TrapUnhandled %17
-	   JMP   TrapUnhandled %18
-	   JMP   TrapUnhandled %19
-	   JMP   TrapUnhandled %1a
-	   JMP   TrapUnhandled %1b
-	   JMP   TrapUnhandled %1c
-	   JMP   TrapUnhandled %1d
-	   JMP   TrapUnhandled %1e
-	   JMP   TrapUnhandled %1f
-		
 
 %         The individual Trap routines
 
@@ -88,16 +29,15 @@ TrapHalt        GETA    $0,2F
                 SWYM    0,5            % tell the debugger
 		SET	$0,#e0
 		PUT	rG,$0               % allocate 32 global registers for gcc
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
+		GETA	$254,OSStackStart
 		SET	$253,0              % the frame pointer for gcc
 		PUSHJ	$0,fat32_shutdown
-        		
+        	JMP	2F	
 1H              SYNC    4               % go to power save mode
-		GET	$0,rQ
+2H		GET	$0,rQ
 		BZ	$0,1B
 		PUSHJ	$0,DHandler
-                JMP     1B              % and loop idle
+                JMP     2B              % and loop idle
 	
 2H              BYTE    "DEBUG Program terminated",0
 	
@@ -116,9 +56,7 @@ TrapFputs 	AND     $8,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$7,rBB    %get the $255 parameter string
 		PUSHJ   $6,fat32_fputs
@@ -151,8 +89,7 @@ TrapFopen 	AND     $8,$0,#0FF	% get the Z value is the handle
 		GET	$4,rG
 		PUT	rG,#e0               % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$6,$5,0   %the name string
@@ -177,9 +114,7 @@ TrapFclose	AND     $6,$0,#0FF	% get the Z value is the handle
 		GET	$4,rG
 		PUT	rG,#e0           % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 		PUSHJ   $5,fat32_fclose
 		PUT	rBB,$5     %the error code is returned with resume 1
@@ -207,9 +142,7 @@ TrapFread	AND     $10,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$8,$5,0   %the buffer
@@ -240,9 +173,7 @@ TrapFgets 	AND     $8,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$6,$5,0   %the buffer
@@ -298,9 +229,7 @@ TrapFgetws 	AND     $8,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$6,$5,0   %the buffer
@@ -360,8 +289,7 @@ TrapFwrite 	AND     $9,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$5,rBB    %get the $255 parameter
 		LDO	$7,$5,0   %the buffer
@@ -388,6 +316,7 @@ TrapFwrite 	AND     $9,$0,#0FF    %get the Z value
 		PUSHJ	$3,ScreenC
 2H        	SUB	$1,$1,1
         	BNN     $1,3B
+		PUT	rBB,0
 		PUT	rJ,$2
 1H		POP	0,0
 
@@ -406,9 +335,7 @@ TrapFputws 	AND     $8,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$7,rBB    %get the $255 parameter string
 		PUSHJ   $6,fat32_fputws
@@ -447,9 +374,7 @@ TrapFseek 	AND     $9,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 	      	GET	$7,rBB    %get the $255 parameter string
 		BN	$7,2F
@@ -489,9 +414,7 @@ TrapFtell	AND     $6,$0,#0FF    %get the Z value
 		GET	$4,rG
 		PUT	rG,#e0          % allocate 32 global registers for gcc
 	
-		GETA	$254,pOSStackStart
-		LDO	$254,$254,0
-
+		GETA	$254,OSStackStart
 		SET	$253,0
 		PUSHJ   $5,fat32_ftell
 		PUT	rBB,$5     %the error code is returned with resume 1
@@ -507,16 +430,4 @@ TrapFtell	AND     $6,$0,#0FF    %get the Z value
 		POP	0,0
 
 
-
-		.global	TrapGPutPixel
-	
-%		Put one pixel on the graphics display. 
-%		In $255 we havein the Hi 32 bit the offset
-%               and in the low 24 bit the RGB value 
-TrapGPutPixel GET	$0,rBB		%get the $255 parameter: address and RGB
-	      SRU       $1,$0,32	%offset
-              SETH      $2,#8002	%base address of vram
-              STTU      $0,$2,$1
-              PUT	rBB,0		%the result is returned with resume 1
-	      POP	0,0
 

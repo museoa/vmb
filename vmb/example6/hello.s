@@ -29,7 +29,6 @@ Main	LDA	$255,orarg
 	LDA	$255,buffer
 	TRAP	0,Fputs,StdOut
 
-
         LDA	$255,owarg
 	TRAP	0,Fopen,6
 	LDA	$255,warg

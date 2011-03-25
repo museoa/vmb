@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.17 $ $Date: 2011-03-17 23:54:53 $";
+char version[]="$Revision: 1.18 $ $Date: 2011-03-25 18:53:13 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -109,7 +109,7 @@ static void clean_up_action_mutex(void *_dummy)
 
 void set_diskCtrl(int value)
 { int start;
-  vmb_debugi(VMB_DEBUG_PROGRESS, "Setting diskCtrl 0x%X",value);
+  vmb_debugi(VMB_DEBUG_INFO, "Setting diskCtrl 0x%X",value);
   start = 0;
 #ifdef WIN32
   EnterCriticalSection (&action_section);
@@ -229,7 +229,7 @@ void start_disk_server(void)
 
 void stop_disk_server(void)
 { 
-  vmb_debug(VMB_DEBUG_INFO, "stopping disk server");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Stopping disk server");
   disk_server_shutdown = 1;
   while (disk_server_running)
   {
@@ -265,16 +265,13 @@ static void register_to_mem(void)
 }
 
 static void mem_to_register(int offset, int size)
-{  vmb_debugi(VMB_DEBUG_INFO, "mem to registers offset: %d",offset);
-   vmb_debugi(VMB_DEBUG_INFO, "mem to registers size: %d",size);
-
-   if (offset < DISK_CTRL+8 && offset+size > DISK_CTRL)
+{  if (offset < DISK_CTRL+8 && offset+size > DISK_CTRL)
      set_diskCtrl(chartoint(mem+DISK_CTRL+4));
    diskCnt  = chartoint(mem+DISK_CNT+4);
    diskSct  = chartoint(mem+DISK_SCT+4);
    diskDma_hi =  chartoint(mem+DISK_DMA);
    diskDma_lo =  chartoint(mem+DISK_DMA+4);
-/* its read only diskCap  = chartoint(mem+DISK_CAP+4); */
+/* its read only: diskCap  = chartoint(mem+DISK_CAP+4); */
 }
 
 void inc_DiskDma(int i)
@@ -304,7 +301,7 @@ static void diskInit(void) {
   diskImage = NULL;
   diskCap = 0;
   diskReset();
-  vmb_debug(VMB_DEBUG_INFO, "Initializing Disk");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
   if (filename != NULL) {
     /* try to install disk */
     diskImage = fopen(filename, "r+b");
@@ -327,7 +324,7 @@ static void diskExit(void) {
   if (diskImage == NULL) 
     /* disk not installed */
     return;
-  vmb_debug(VMB_DEBUG_INFO, "Closing Disk");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Closing Disk");
   fclose(diskImage);
   diskImage = NULL;
   diskCap = 0;
@@ -356,12 +353,12 @@ static void diskDone(void)
   set_diskCtrl(diskCtrl & ~DISK_BUSY);
   if (diskCtrl & DISK_IEN) {
     vmb_raise_interrupt(&vmb,interrupt);
-    vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
+    vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
   }
 }
 
 static int diskPosition(void)
-{ vmb_debugi(VMB_DEBUG_INFO, "Positioning to sector %d",diskSct);
+{ vmb_debugi(VMB_DEBUG_PROGRESS, "Positioning to sector %d",diskSct);
 
   if (diskCap > 0 &&
       diskCnt > 0 &&
@@ -369,7 +366,7 @@ static int diskPosition(void)
       diskSct < diskCap &&
       diskSct + diskCnt <= diskCap &&
       (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) == 0))
-    { vmb_debug(VMB_DEBUG_PROGRESS, "Positioned");
+    { vmb_debug(VMB_DEBUG_INFO, "Positioned");
       return 1;
     }
   else
@@ -382,7 +379,7 @@ static int diskPosition(void)
 
 
 static unsigned char sector_buffer[SECTOR_SIZE];
-data_address da ={sector_buffer,0,0,SECTOR_SIZE,STATUS_INVALID};
+data_address da ={sector_buffer,0,0,0,SECTOR_SIZE,STATUS_INVALID};
 
 static void diskRead(void) 
 { 
@@ -398,8 +395,9 @@ static void diskRead(void)
       da.address_lo = diskDma_lo;
       da.address_hi = diskDma_hi;
       da.status = STATUS_VALID;
+      da.size = SECTOR_SIZE;
       vmb_store(&vmb,&da);
-      vmb_debugi(VMB_DEBUG_INFO, "Read sector %d",diskSct);
+      vmb_debugi(VMB_DEBUG_PROGRESS, "Read sector %d",diskSct);
       inc_DiskDma(SECTOR_SIZE);
       diskCnt--;
       diskSct++;
@@ -452,7 +450,7 @@ void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
      /* write an octabyte  (one of the five registers)*/
 {  
    if ( diskCtrl &DISK_BUSY)
-   {  vmb_debug(VMB_DEBUG_ERROR, "Write ignored, disk bussy");
+   {  vmb_debug(VMB_DEBUG_NOTIFY, "Write ignored, disk bussy");
       return; /* no writing while we are bussy */
    }
    register_to_mem();

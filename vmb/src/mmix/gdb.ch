@@ -131,7 +131,8 @@ void mmo_load (loc, val)
         load_data(4,&x,loc,0);
         x.h = 0;
         x.l = x.l^val;
-	store_data(4,x,loc);
+	if (!store_data(4,x,loc))
+          panic("Unable to store mmo file to RAM");
 }
 
 @ @<Load |tet| as a normal item@>=
@@ -182,7 +183,8 @@ case lop_fixo:@+if (zbyte==2) {
  }@+else if (zbyte==1) tmp.h=ybyte<<24;
  else mmo_err;
  read_tet();@+ tmp.l=tet;
- store_data(8,tmp,cur_loc);
+ if (!store_data(8,tmp,cur_loc))
+   panic("Unable to store mmo file to RAM");
  continue;
 case lop_fixr: delta=yzbytes; goto fixr;
 case lop_fixrx:j=yzbytes;@+if (j!=16 && j!=24) mmo_err;
@@ -226,22 +228,30 @@ followed by rG and rA packed into eight byte.
 @<Load the postamble@>=
 aux.h=0x60000000;
 { octa x;
-  x.h=0;@+x.l=argc;@+aux.l=0x00;@+store_data(8,x,aux); /* and $\$0=|argc|$ */
-  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;@+store_data(8,x,aux); /* and $\$1=\.{Pool\_Segment}+8$ */
-  x.h=0;@+x.l=2;@+aux.l=0x10;@+store_data(8,x,aux); /* this will ultimately set |rL=2| */
+  x.h=0;@+x.l=argc;@+aux.l=0x00;
+  if (!store_data(8,x,aux)) /* and $\$0=|argc|$ */
+     panic("Unable to store mmo file to RAM");
+  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;
+  if (!store_data(8,x,aux)) /* and $\$1=\.{Pool\_Segment}+8$ */
+     panic("Unable to store mmo file to RAM");
+  x.h=0;@+x.l=2;@+aux.l=0x10;
+  if (!store_data(8,x,aux)) /* this will ultimately set |rL=2| */
+     panic("Unable to store mmo file to RAM");
   G=zbyte;@+ L=0;
   aux.l=0x18;
   for (j=G;j<256;j++,aux.l+=8)
   { read_tet(); x.h=tet;
     read_tet(), x.l=tet;
-    store_data(8,x,aux);
+    if (!store_data(8,x,aux))
+       panic("Unable to store mmo file to RAM");
   }
   g[rWW] = x;  /* last octa stored is address of \.{Main} */
   if (interacting) set_break(x,exec_bit);
   g[rXX].h = 0; g[rXX].l = 0xFB0000FF; /* |UNSAVE| \$255 */
   g[rBB]=aux=incr(aux,12*8); /* we can |UNSAVE| from here, to get going */
   x.h=G<<24; x.l=0 /* rA */;
-  store_data(8,x,aux);
+  if (!store_data(8,x,aux))
+     panic("Unable to store mmo file to RAM");
 }
 @y
 @z
@@ -720,10 +730,13 @@ octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));
 for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
-  store_data(8,aux,x);
+  if (!store_data(8,aux,x))
+     panic("Unable to store command line to RAM");
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
-x.l=0;@+ store_data(8,aux,x);
+x.l=0;
+if (!store_data(8,aux,x))
+     panic("Unable to store command line to RAM");
 @y
 @z
