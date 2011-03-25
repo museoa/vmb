@@ -21,8 +21,9 @@
 #define IDC_INTERRUPT                   1006
 #define IDC_SMALL_FONT                  1007
 #define IDC_MEDIUM_FONT                 1008
-#define IDC_SMALL_FONT3                 1009
 #define IDC_LARGE_FONT                  1009
+#define IDC_LARGE_FONT2                 1010
+#define IDC_CUSTOM_FONT                 1010
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009

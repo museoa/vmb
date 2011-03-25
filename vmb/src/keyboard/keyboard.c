@@ -42,7 +42,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.15 $ $Date: 2011-03-17 23:54:53 $";
+char version[]="$Revision: 1.16 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
 "\n"
@@ -80,7 +80,7 @@ static unsigned char data[8];
 #define DATA  7
 
 
-#define MAXIBUFFER 10000
+#define MAXIBUFFER (32*1024)
 static char input_buffer[MAXIBUFFER];
 static int input_buffer_first=0, input_buffer_last=0;
 
@@ -126,32 +126,34 @@ void process_input_file(char *filename)
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
   if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_ERROR, "Unable to read input file");
-  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_ERROR, "Empty file"); return;}
+  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_NOTIFY, "Empty file"); return;}
+  if (input_buffer_last==MAXIBUFFER) 
+	  vmb_debugi(VMB_DEBUG_ERROR, "Maximum File size %d reached, File truncated",MAXIBUFFER);
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
   vmb_raise_interrupt(&vmb,interrupt);
-  vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
+  vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
 }
 
 void process_input(unsigned char c) 
 { /* The keyboard Interface */
   if (c<0x20 || c >= 0x7F)
-    vmb_debugi(VMB_DEBUG_INFO, "input (#%x)\n",c);
+    vmb_debugi(VMB_DEBUG_PROGRESS, "input (#%x)\n",c);
   else
-    vmb_debugi(VMB_DEBUG_INFO, "input %c",c);
+    vmb_debugi(VMB_DEBUG_PROGRESS, "input %c",c);
   if (input_buffer_first < input_buffer_last)
-	  vmb_debugi(VMB_DEBUG_INFO, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
+	  vmb_debugi(VMB_DEBUG_NOTIFY, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
   else if (vmb.power)
   { data[DATA] = c;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
     vmb_raise_interrupt(&vmb,interrupt);
-    vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");
+    vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
   }
   else
-  { vmb_debug(VMB_DEBUG_NOTIFY, "no power character ignored");
+  { vmb_debug(VMB_DEBUG_NOTIFY, "No power, character ignored");
 #ifdef WIN32
    Beep(800,100);
 #else

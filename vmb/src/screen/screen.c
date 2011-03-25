@@ -40,7 +40,7 @@ static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.8 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.9 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -80,7 +80,7 @@ static unsigned char data[8];
 static void display_char(char c)
 { 
 #ifdef WIN32	
-   SendMessage(hMainWnd,WM_USER+6,(WPARAM)c,0);
+   SendMessage(hMainWnd,WM_VMB_OTHER+2,(WPARAM)c,0);
 #else
     printf("%c",c);
 #endif

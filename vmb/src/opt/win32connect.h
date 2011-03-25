@@ -30,7 +30,6 @@
 #define IDC_HIDE_NOTIFY                 1010
 #define IDC_HIDE_WARN                  1011
 #define IDC_HIDE_ERROR               1012
-#define IDC_DEBUG_FATAL                 1013
 #define IDC_HIDE_FATAL                  1013
 #define IDC_HIDE_PAYLOAD                1015
 #define ID_CONNECT                      40007

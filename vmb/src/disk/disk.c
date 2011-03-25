@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.18 $ $Date: 2011-03-25 18:53:13 $";
+char version[]="$Revision: 1.19 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -336,7 +336,7 @@ static void diskBussy(void)
 { if ( diskCtrl & DISK_BUSY)
      return;
 #ifdef WIN32
-  SendMessage(hMainWnd,WM_USER+5,0,0);
+  SendMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
 #endif
   vmb_debug(VMB_DEBUG_INFO, "Disk is Bussy");
   set_diskCtrl((diskCtrl | DISK_BUSY) & ~DISK_ERR);
@@ -347,7 +347,7 @@ static void diskDone(void)
 { if ( !(diskCtrl & DISK_BUSY))
      return;
 #ifdef WIN32
-  SendMessage(hMainWnd,WM_USER+1,0,0);
+  SendMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
   vmb_debug(VMB_DEBUG_INFO, "Disk is Idle");
   set_diskCtrl(diskCtrl & ~DISK_BUSY);

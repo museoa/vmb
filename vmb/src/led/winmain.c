@@ -105,7 +105,7 @@ extern HBITMAP hOn[], hOff[];
 
 void paint_leds(HDC dest, HDC src, unsigned char led)
 { int i;
-for (i=7;i>=8-nleds;i--) {
+for (i=nleds-1;i>=0;i--) {
 	if (!vmb.connected)
       SelectObject(src, ledOffW);
 	else if (!vmb.power)
@@ -114,11 +114,11 @@ for (i=7;i>=8-nleds;i--) {
       SelectObject(src, hOn[i]);
     else
       SelectObject(src, hOff[i]);
-	BitBlt(dest, (7-i)*ledwidth, 0, ledwidth, ledheight, src, 0, 0, SRCCOPY);
+	BitBlt(dest, (nleds-1-i)*ledwidth, 0, ledwidth, ledheight, src, 0, 0, SRCCOPY);
   } 
 }
 
-void update_display(void);
+void update_display(void)
 {  InvalidateRect(hMainWnd,NULL,FALSE); 
 }
 

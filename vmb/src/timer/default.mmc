@@ -1,10 +1,46 @@
-# default.mmc configuration file for  the MMIX hardware
+# default.mmc configuration file for the example
 
 
 port 9002
 host localhost
 
-#if timer
-address 0x0001000000000060
-interrupt 21
+
+#if mother
+debug
+on
+exec ./rom
+exec ./ram
+exec ./led
+exec ./timer
+#exec xterm -geometry 40x10 -fn 7x13 -e ./keyboard
+#exec xterm -geometry 40x10 -fn 7x13 -e ./screen
+#exec xterm -e ./gmmix -i -O
+exec ./mmix -i -O main.mmo
 #endif
+
+
+#if rom
+address 0x0000000000000000
+file bios.img
+#endif
+
+#if ram
+size 3145728
+address 0x0000000100000000
+#debug
+#verbose
+#endif
+
+#if led
+address 0x0001000000000080
+leds 8
+#endif
+
+#if timer
+address 0x0001000000000090
+interrupt 40
+debug
+debugmask 0xFFC0
+#verbose
+#endif
+

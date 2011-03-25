@@ -127,6 +127,7 @@ void do_commands(void)
         if (!mk_argv(argv,commands[i]))
           continue;
 #ifdef WIN32
+		Sleep(50); /* start processes in order given */
 		{ intptr_t p;
 		  p = spawnvp(_P_NOWAIT,argv[0],argv);
 		  if (p<0)
@@ -134,6 +135,7 @@ void do_commands(void)
 		  }
 		}
 #else
+		sleep is missing here !
         { pid_t p;
           p = fork();
           if (p<0) vmb_error(__LINE__,"Unable to create new process");

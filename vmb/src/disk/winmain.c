@@ -70,9 +70,14 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
   {  
-  case WM_USER+5: /* Disk bussy */
+  case WM_VMB_OTHER+1: /* Disk bussy */
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hbussy);
 	return 0;
+  case WM_CREATE: 
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,15,65,32,32,hWnd,NULL,hInst,0);
+    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
+    return 0;
+
   default:
     return (OptWndProc(hWnd, message, wParam, lParam));
   }

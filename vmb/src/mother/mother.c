@@ -67,7 +67,7 @@ HWND hpower;
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.30 $ $Date: 2011-03-17 23:54:53 $";
+char version[] = "$Revision: 1.31 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
   "\n"
@@ -864,16 +864,16 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       h =
 	CreateDialog (hInst, MAKEINTRESOURCE (IDD_ONOFF), hWnd,
 		      OnOffDialogProc);
-      SetWindowPos (h, HWND_TOP, 25, 222, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
+      SetWindowPos (h, HWND_TOP, 235, 15, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
       h =
 	CreateDialog (hInst, MAKEINTRESOURCE (IDD_RESET), hWnd,
 		      ResetDialogProc);
-      SetWindowPos (h, HWND_TOP, 25, 260, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
+      SetWindowPos (h, HWND_TOP, 235, 55, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
     }
     hpower =
       CreateWindow ("STATIC", NULL,
 		    WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_REALSIZEIMAGE,
-		    20, 300, 32, 32, hWnd, NULL, hInst, 0);
+		    265, 10, 32, 32, hWnd, NULL, hInst, 0);
     SendMessage (hpower, STM_SETIMAGE, (WPARAM) IMAGE_BITMAP, (LPARAM) hoff);
     return 0;
   case WM_SOCKET:

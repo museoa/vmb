@@ -23,7 +23,7 @@
 
 #ifndef VMB_H
 #define VMB_H
-#define	WM_VMB				0x8000
+#define	WM_VMB				(WM_APP)       
 #define WM_VMB_ON			(WM_VMB+1)
 #define WM_VMB_OFF			(WM_VMB+2)
 #define WM_VMB_RESET		(WM_VMB+3)

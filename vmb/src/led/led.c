@@ -45,10 +45,10 @@ unsigned char led;
 #ifndef RGB
 #define RGB(r,g,b) ((r)|((g)<<8)|((b)<<16))
 #endif
-int colors[8] = {RGB(0x80,0x80,0xFF),RGB(0xFF,0x80,0x80),RGB(0,0xFF,0xFF),RGB(0xFF,0,0xFF),
-                 RGB(0xFF,0xFF,0),RGB(0,0,0xFF),RGB(0,0xFF,0),RGB(0xFF,0,0)};
+int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
+                 RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 
-char version[]="$Revision: 1.5 $ $Date: 2011-03-18 22:06:20 $";
+char version[]="$Revision: 1.6 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
 "\n"

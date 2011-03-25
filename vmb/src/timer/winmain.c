@@ -59,15 +59,11 @@ void timer_get_DateTime(void)
 
 void timer_stop(void)
 /* cancel a running timer */
-{ PostMessage(hMainWnd,WM_USER+5,0,0); /* Stop the timer */  
+{ SendMessage(hMainWnd,WM_VMB_OTHER+1,0,0); /* Stop the timer */  
 }
 
 void timer_set(unsigned int delay)
-{  SetTimer(hMainWnd,1,delay,NULL);
-#if 0
-/* alternative */
-    PostMessage(hMainWnd,WM_USER+6,0,(LPARAM)delay); /* Start the timer */
-#endif
+{ SendMessage(hMainWnd,WM_VMB_OTHER+2,0,(LPARAM)delay); /* Start the timer */
 }
 
 void timer_terminate(void)
@@ -138,12 +134,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ KillTimer(hMainWnd,1);  
 	}
 	break;
-  case WM_USER+5: /* Stop Timer */
+  case WM_VMB_OTHER+1: /* Stop Timer */
     KillTimer(hMainWnd,1);
 	SetWindowText(hTime,"0.000");
-	vmb_debug(VMB_DEBUG_INFO,"Timer stoped");
-	return 0;
-  case WM_USER+6: /* Start Timer */
+    return 0;
+  case WM_VMB_OTHER+2: /* Start Timer */
 	SetTimer(hMainWnd,1,(UINT)lParam,NULL);
 	return 0;
   case WM_TIMER: /* Timer expired */
@@ -174,7 +169,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 "STATIC",     // predefined class 
                 NULL,       // no window title 
                 WS_CHILD | WS_VISIBLE | SS_RIGHT,
-                50, 15, 200, 40, 
+                70, 15, 200, 40, 
                 hWnd,       // parent window 
                 (HMENU)2,
                 hInst, 

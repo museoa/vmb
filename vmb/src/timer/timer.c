@@ -192,7 +192,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.4 $ $Date: 2011-03-18 22:06:20 $";
+char version[]="$Revision: 1.5 $ $Date: 2011-03-25 22:48:11 $";
 
 char howto[] =
 "\n"
@@ -269,17 +269,17 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
     { if (to_t0 || to_dt)
       { /* takes precedence over writing to tt */
         t0 = TT0;
-	dt = TDT;
-	tt = 1;
-	SETTT(tt);
+	    dt = TDT;
+        tt = 1;
+        SETTT(tt);
         vmb_debug(VMB_DEBUG_INFO,"Writing to t0/dt");
- 	timer_start();
+        timer_start();
       } 
       else if (to_tt && tt!=0)
-      { t0 = timer_get_now();;
-	dt = tt;
-	SETT0(t0);
-	SETDT(dt);
+      { t0 = timer_get_now();
+        dt = tt;
+        SETT0(t0);
+        SETDT(dt);
         vmb_debug(VMB_DEBUG_INFO,"Writing to t, set t0/dt");
         timer_start();
       }

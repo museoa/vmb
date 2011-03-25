@@ -9,20 +9,56 @@
 #include "option.h"
 
 HWND hwndEdit;
-static int fontwidth=8, fontheight=15;
+static int fontwidth=8;
 static HFONT hfont=0;
+static HFONT hCustomfont=0;
+static CHOOSEFONT cf;
+static LOGFONT lf={0};
+void choosefont(void)
+{ 
+  if (hCustomfont==0) 
+  { cf.lStructSize = sizeof(CHOOSEFONT); 
+    cf.hwndOwner = (HWND)NULL; 
+    cf.hDC = (HDC)NULL; 
+    cf.lpLogFont = &lf; 
+    cf.iPointSize = 0; 
+    cf.Flags = CF_SCREENFONTS|CF_FIXEDPITCHONLY|CF_INITTOLOGFONTSTRUCT; 
+    cf.rgbColors = RGB(0,0,0); 
+    cf.lCustData = 0L; 
+    cf.lpfnHook = (LPCFHOOKPROC)NULL; 
+    cf.lpTemplateName = (LPSTR)NULL; 
+    cf.hInstance = (HINSTANCE) NULL; 
+    cf.lpszStyle = (LPSTR)NULL; 
+    cf.nFontType = SCREEN_FONTTYPE; 
+    cf.nSizeMin = 0; 
+    cf.nSizeMax = 0; 
+  }
+
+  if (ChooseFont(&cf))
+  { if (hCustomfont!=0)
+	  DeleteObject(hCustomfont);
+    if (hfont!=0) 
+	  DeleteObject(hfont);
+	hCustomfont=hfont = CreateFontIndirect(&lf); 
+    SendMessage(hwndEdit, WM_SETFONT, (WPARAM) hfont, 0); 
+    InvalidateRect(hwndEdit,NULL,FALSE);
+  }
+} 
 
 void setfont(void)
-{
-  LOGFONT lgpu_font={0};
-  lgpu_font.lfHeight=fontheight;
-  lgpu_font.lfWidth=fontwidth;
-  lgpu_font.lfCharSet = ANSI_CHARSET;
-  lgpu_font.lfPitchAndFamily=FF_DONTCARE|FIXED_PITCH;
+{ 
   if (hfont!=0) 
 	  DeleteObject(hfont);
-  hfont = CreateFontIndirect(&lgpu_font);  
+  lf.lfHeight=0;
+  lf.lfWidth=fontwidth;
+  lf.lfOutPrecision=OUT_OUTLINE_PRECIS;
+  lf.lfCharSet = ANSI_CHARSET;
+  lf.lfWeight = FW_BOLD;
+  lf.lfPitchAndFamily=FF_MODERN|FIXED_PITCH;
+  strncpy(lf.lfFaceName,"Courier New",32);
+  hfont = CreateFontIndirect(&lf);  
   SendMessage(hwndEdit, WM_SETFONT, (WPARAM) hfont, 0); 
+  InvalidateRect(hwndEdit,NULL,FALSE);
 }
 
 INT_PTR CALLBACK   
@@ -33,7 +69,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
-	  if (fontwidth <= 5 )
+	  if (hCustomfont!=0)
+		  CheckDlgButton(hDlg,IDC_CUSTOM_FONT,BST_CHECKED);
+	  else if (fontwidth <= 5 )
 		  CheckDlgButton(hDlg,IDC_SMALL_FONT,BST_CHECKED);
 	  else if (fontwidth >= 10)
 		  CheckDlgButton(hDlg,IDC_LARGE_FONT,BST_CHECKED);
@@ -51,10 +89,11 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
 		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
-		if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontwidth=5, fontheight=12;
-		else if (IsDlgButtonChecked(hDlg,IDC_MEDIUM_FONT)) fontwidth=8, fontheight=15;
-		else fontwidth=10, fontheight=24;
-        setfont();
+		if (IsDlgButtonChecked(hDlg,IDC_CUSTOM_FONT))
+			choosefont();
+		else if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontwidth=5,setfont();
+		else if (IsDlgButtonChecked(hDlg,IDC_MEDIUM_FONT)) fontwidth=8,setfont();
+		else fontwidth=10,setfont();
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -83,7 +122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
  case WM_VMB_RESET: /* Reset */
 	SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM) ""); 
 	return 0;
- case WM_USER+6: /* Got character to display */
+ case WM_VMB_OTHER+2: /* Got character to display */
 	 { char str[4];
        LRESULT n;
 	   char c = (char)wParam;

@@ -52,14 +52,14 @@ static unsigned char segmentbits[8] = {0};
 static unsigned char windowbits[8] = {0};
 static HPEN hpenGreen, hpenBlack, hpenOld;
 
-#define BORDER 6
-#define HEIGHT 48
-#define WIDTH  30
-#define DISTANCE 50
-#define SLANT 15
-#define GAP 5
+#define BORDER 5
+#define HEIGHT 36
+#define WIDTH  23
+#define DISTANCE 38
+#define SLANT 11
+#define GAP 4
 #define GAPSLANT ((GAP*SLANT)/HEIGHT)
-#define THICK 5
+#define THICK 3
 #define WINHEIGHT (BORDER+HEIGHT+BORDER)
 #define WINLENGTH (BORDER+DISTANCE*8+BORDER)
 

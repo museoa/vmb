@@ -111,18 +111,19 @@ DTrapTable JMP DTrapUnhandled  %0
            JMP DTrapUnhandled  %61
            JMP DTrapUnhandled  %62
            JMP DTrapUnhandled  %63
-           JMP DTrapUnhandled  %64  rQ was zero
+           POP 0,0		   %64  rQ was zero
 
 
 
 DTrapStart	SETH	$0,#8003	% timer address
 		SET	$1,1000		%1000 ms
-		STO	$1,$0,0		%enable timer interrupts
+		ORMH	$1,1000
+		STO	$1,$0,#10		%enable timer interrupts
 		POP 0,0
 
 DTrapStop	SETH	$0,#8003	% timer address
 		SET	$1,0		% 
-		STO	$1,$0,0		%disable timer interrupts
+		STO	$1,$0,#10		%disable timer interrupts
 		POP 0,0
 DTrapTimer	SETH	$1,#8000
 		ORMH	$1,#0001	%$1 now points to the first byte in ram	
