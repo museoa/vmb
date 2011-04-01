@@ -38,30 +38,12 @@ int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo)
      */
 {
   if (vmb->interrupt_lo == 0 && vmb->interrupt_hi ==0) return 0;
-#ifdef WIN32
-  EnterCriticalSection (&vmb->event_section);
-#else
-  { int rc = pthread_mutex_lock(&vmb->event_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Locking event mutex failed");
-      pthread_exit(NULL);
-    }
-  }
-#endif
+  acquire(vmb);
   *hi |= vmb->interrupt_hi; 
   *lo |= vmb->interrupt_lo; 
   vmb->interrupt_hi = 0;
   vmb->interrupt_lo = 0;
-#ifdef WIN32
-  LeaveCriticalSection (&vmb->event_section);
-#else
-  { int rc = pthread_mutex_unlock(&vmb->event_mutex);
-    if (rc) 
-    { vmb_error(__LINE__,"Unlocking event mutex failed");
-      pthread_exit(NULL);
-    }
-  }
-#endif
+  release(vmb);
   if (vmb->connected) return 1;
   else return -1;
 }
@@ -153,26 +135,14 @@ void vmb_wait_for_disconnect(device_info *vmb)
 static void change_event(device_info *vmb, unsigned int *event, unsigned int value)
 /* change one of the variables protected by the event mutex */
 { 
- #ifdef WIN32
-  EnterCriticalSection (&vmb->event_section);
-#else
-  int rc = pthread_mutex_lock(&vmb->event_mutex);
-  if (rc) 
-    { vmb_error(__LINE__,"Locking event mutex failed");
-      pthread_exit(NULL);
-    }
-#endif 
+  acquire(vmb);
   *event = value;
 #ifdef WIN32
-  LeaveCriticalSection (&vmb->event_section);
+  release(vmb);
   SetEvent (vmb->hevent);
 #else
-  rc = pthread_cond_signal(&vmb->event_cond);
-  rc = pthread_mutex_unlock(&vmb->event_mutex);
-  if (rc) 
-  { vmb_error(__LINE__,"Unlocking event mutex failed");
-    pthread_exit(NULL);
-  }
+  pthread_cond_signal(&vmb->event_cond);
+  release(vmb);
 #endif
 }
 
@@ -310,6 +280,7 @@ static void clean_up_valid_mutex(void *_dummy)
 
 static void deliver_answer(data_address *da, int size, unsigned char *payload)
 {  
+  
 #ifdef WIN32
   EnterCriticalSection (&valid_section);
 #else

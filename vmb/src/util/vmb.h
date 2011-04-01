@@ -71,6 +71,20 @@ typedef struct
   unsigned int interrupt_hi;  
   int fd;
   unsigned int cancel_wait_for_event;
+  /* the following mutex/critical section is used to modify
+     data from outside the bus thread, that "belongs" to the
+     bus thread.
+     this includes, but is not limited to:
+     the interrupt_lo/hi variables
+     the connected, power, reset_flag, cancel_wait_for_event variables
+     the event_cond/hevent
+     it might be used by applications for other data
+     that is used for instance in get_payload or put_payload functions
+     
+     actually, I think also using raise_interrupt in other threads is
+     not save without such a protection ...
+  */
+
 #ifdef WIN32
   HANDLE hevent;
   CRITICAL_SECTION   event_section;
@@ -78,12 +92,27 @@ typedef struct
   pthread_mutex_t event_mutex;
   pthread_cond_t event_cond;
 #endif
-
-
-
 } device_info;
 
-/* Functions and Varaibles called by the CPU thread */
+/* macros to acquire and release the vmb semaphore */
+
+#ifdef WIN32
+#define acquire(vmb)  EnterCriticalSection (&vmb->event_section)
+#else
+#define acquire(vmb)  ((pthread_mutex_lock(&vmb->event_mutex))?	\
+		       (vmb_error(__LINE__,"Locking event mutex failed"), \
+			pthread_exit(NULL)):0)
+#endif 
+
+#ifdef WIN32
+#define release(vmb)  LeaveCriticalSection (&vmb->event_section);
+#else
+#define release(vmb)  ((pthread_mutex_unlock(&vmb->event_mutex))? \
+                       (vmb_error(__LINE__,"Unlocking event mutex failed"), \
+			pthread_exit(NULL)):0)
+#endif
+
+/* Functions and Varaibles called by the device thread */
 extern void vmb_begin(void);
 extern void vmb_end(void);
 extern void vmb_connect(device_info *vmb, char *host, int port);
@@ -100,6 +129,8 @@ extern void vmb_wait_for_event(device_info *vmb);
 extern void vmb_wait_for_event_timed(device_info *vmb, int ms);
 extern void vmb_cancel_wait_for_event(device_info *vmb);
 extern void vmb_wait_for_power(device_info *vmb);
+extern void vmb_acquire(device_info *vmb);
+extern void vmb_release(device_info *vmb);
 
 
 typedef struct {

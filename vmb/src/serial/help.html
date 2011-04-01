@@ -1,0 +1,109 @@
+<HTML>
+<BODY>
+<H1>Serial Device Specification</H1>
+
+<H2>Memory Layout</H2>
+<p>
+<table border=1>
+<tr><th>Byte<th>Mode<th>Name<th>Description
+<tr><td>00<td>R <td>XX<td> read error indicator: 0x80
+<tr><td>01-02<td>R <td>-  <td> zero
+<tr><td>03   <td>R <td>YY<td> read byte count
+<tr><td>04-06<td>R <td>-<td>  zero
+<tr><td>07   <td>R <td>ZZ<td> read byte
+<tr><td>08   <td>R <td>XX<td> write error indicator: 0x80
+<tr><td>09-0A<td>R <td>-  <td> zero
+<tr><td>0B   <td>R <td>YY<td> write byte count
+<tr><td>0C-0E<td>R <td>-<td>  zero
+<tr><td>0F   <td>RW<td>ZZ<td> write byte
+</table>
+
+<H2>Serial Operation</H2>
+The program will contact the motherboard at [host:]port
+and register itself with the given address and interrupt.
+Then, the program will create a pseudo tty and is ready to
+send and receive bytes from the virtual board
+connecting the send and receive channel to the pseudo tty.
+<p>
+The name of the created pseudo tty device is written to stderr.
+A testprogram <code>talk</code> is avaliable to read and write
+interactively to this pseudo tty by connecting stdin and stdout
+of talk with the pseudo tty.
+<p>
+<H3>Reading from the tty</H3>
+At offset 0, it will provide a read/write octabyte
+in the following format:
+<p>
+XX00 00YY 0000 00ZZ
+<p>
+The XX byte signals errors it will be 0x80 if an error occured
+and 0x00 otherwise.
+<p>
+The YY byte contains the number of characters read from 
+the tty since the last read operation.  This should be 0
+if no new character was received and 1 if one charcter was
+received. Any other value will indicate that characters were
+lost since the last read operation.
+<p>
+The ZZ byte contains the last character received. It is valid only
+if YY is not zero.
+<p>
+The complete ocatbyte will be reset to zero after a read operation to ZZ.
+<p>
+Reading a YY byte equal to zero means there is no ZZ byte avalable
+Reading a YY value that is zero, will generate an interrupt
+as soon as YY is becomming non zero, if interrupts are enabled.
+If the application does not read YY, there will be no interrupts.
+<p>
+<H3>Writing to the tty</H3>
+At offset 8, it will provide a read/write octabyte
+in the following format:
+<p>
+XX00 00YY 0000 00ZZ
+<p>
+The XX byte signals errors it will be 0x80 if an error occured
+and 0x00 otherwise.
+<p>
+The YY byte contains the number of characters that were written
+to this address since the last output. This should be 0
+if the address is ready to receive a character or 1 if the hardware
+is bussy with writing a byte. Any other value will indicate that characters were
+lost since the last write operation.
+<p>
+The ZZ byte contains the last character received. It is valid only
+if YY is not zero.
+<p>
+The complete ocatbyte will be reset to zero after a byte is output.
+<p>
+Reading a YY byte equal to zero means you can write one byte to ZZ to
+produce output. Reading a YY value that is not zero, will generate an
+interrupt as soon as YY is returning to zero, if interrupts are enabled.
+If the application does not read YY, there will be no interrupts.
+
+<H2>Serial Configuration</H2>
+The serial device has the following configurable parameters:
+<p>
+<table border=1>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> default <td> address where the resource is located </tr>
+<tr> <td>rinterrupt <td> default <td>read interrupt send by device  </tr>
+<tr> <td>winterrupt <td> default <td>write interrupt send by device  </tr>
+<tr> <td>rdisable <td> false <td> disable read interrupts </tr>
+<tr> <td>wdisable <td> false <td> disable write interrupts  </tr>
+<tr> <td> x        <td> 0<td>the x position of the window </tr>
+<tr> <td> y        <td> 0<td>the y position of the window </tr>
+<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose, sets debug mask to zero </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+These should be set in default.mmc
+Later versions of the timer device might specify a resolution, to change
+the units of ms, t, i, t0 and dt. Currently, only a millisecond timer is available.
+
+</BODY>
+</HTML>
