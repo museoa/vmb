@@ -192,7 +192,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.5 $ $Date: 2011-03-25 22:48:11 $";
+char version[]="$Revision: 1.6 $ $Date: 2011-04-12 18:46:13 $";
 
 char howto[] =
 "\n"
@@ -262,6 +262,8 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (to_tt) tt = TT;
     if (to_tt && tt==0)
     {  vmb_debug(VMB_DEBUG_INFO,"Writing zero to t");
+       dt = tt;
+       SETDT(dt);
        timer_stop();
        vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
     }
@@ -294,8 +296,12 @@ void timer_poweroff(void)
   { timer_stop();
     vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
   }
-  tt = 0; 
+  tt = ti = t0 = dt = 0;
   SETTT(tt);
+  SETTI(ti);
+  SETT0(t0);
+  SETDT(dt);
+  update_display();
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
@@ -309,6 +315,7 @@ void timer_poweron(void)
   SETTI(ti);
   SETT0(t0);
   SETDT(dt);
+  update_display();
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
@@ -325,6 +332,7 @@ void timer_reset(void)
   SETTI(ti);
   SETT0(t0);
   SETDT(dt);
+  update_display();
 }
 
 void timer_disconnected(void)

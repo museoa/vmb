@@ -135,8 +135,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	break;
   case WM_VMB_OTHER+1: /* Stop Timer */
-    KillTimer(hMainWnd,1);
-	SetWindowText(hTime,"0.000");
+    KillTimer(hMainWnd,1); 
+	update_display();
     return 0;
   case WM_VMB_OTHER+2: /* Start Timer */
 	SetTimer(hMainWnd,1,(UINT)lParam,NULL);
@@ -177,7 +177,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     hTimeFont = CreateFont(40,0,0,0,0,FALSE,FALSE,FALSE,ANSI_CHARSET,
                     OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FIXED_PITCH|FF_MODERN,"Arial");
     SendMessage(hTime, WM_SETFONT, (WPARAM)hTimeFont, 0); 
-    SetWindowText(hTime,"0.000");
+    dt=0; 
+	SetWindowText(hTime,"0.000");
     hblink = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BLINK), 
 				IMAGE_BITMAP, 32, 32, LR_CREATEDIBSECTION);
 
