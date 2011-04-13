@@ -35,7 +35,7 @@ extern HWND hMainWnd;
 #include "param.h"
 
 
-char version[]="$Revision: 1.11 $ $Date: 2011-04-13 02:04:59 $";
+char version[]="$Revision: 1.12 $ $Date: 2011-04-13 21:37:28 $";
 
 char howto[] =
 "\n"
@@ -182,7 +182,12 @@ void ram_put_payload(unsigned int offset,int size, unsigned char *payload){
     vmb_debugi(VMB_DEBUG_ERROR, "Inclomplete write to ram at offset %08X",offset);
 }
 
-
+void ram_poweron(void)
+{ ram_clean();
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
+#endif
+}
 
 void ram_poweroff(void)
 { ram_clean();
@@ -199,7 +204,7 @@ void ram_reset(void)
 
 void init_device(device_info *vmb)
 { ram_clean();
-  vmb->poweron=vmb_poweron;
+  vmb->poweron=ram_poweron;
   vmb->poweroff=ram_poweroff;
   vmb->disconnected=vmb_disconnected;
   vmb->reset=ram_reset;

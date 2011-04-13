@@ -37,5 +37,5 @@ file bios.rom
 
 #if ram
 size 3145728
-address 0x0000000100000000
+address 0x0001000000000000
 #endif

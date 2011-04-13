@@ -35,6 +35,8 @@ extern int chartoint(const unsigned char buffer[4]);
 /* macro versions */
 #define GET2(a)   ((unsigned int)(((a)[0]<<8)+(a)[1]))
 #define GET4(a)   ((unsigned int)(((a)[0]<<24)+((a)[1]<<16)+((a)[2]<<8)+(a)[3]))
+#define GET8(a)   ((uint64_t)((((uint64_t)GET4(a))<<32)+GET4(a+4)))
+
 #define SET2(a,x) ((a)[0]=((unsigned char)(((x)>>8)&0xFF)),(a)[1]=((unsigned char)((x)&0xFF)))
 #define SET4(a,x) ((a)[0]=((unsigned char)(((x)>>24)&0xFF)),(a)[1]=((unsigned char)(((x)>>16)&0xFF)), \
                    (a)[2]=((unsigned char)(((x)>>8)&0xFF)), (a)[3]=((unsigned char)((x)&0xFF)))
