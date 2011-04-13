@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winmem.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winpos.c"
 				>
 			</File>
@@ -208,6 +212,10 @@
 			</File>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\winmem.h"
 				>
 			</File>
 			<File

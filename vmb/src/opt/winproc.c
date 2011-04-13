@@ -1,9 +1,12 @@
 #include <windows.h>
+#include <htmlhelp.h> 
 #include <afxres.h>
 #include "vmb.h"
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
+#include "resource.h"
+
 
 
 HWND hpower;
@@ -81,6 +84,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		}
 		else {
 		  hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hWnd,DebugDialogProc);
+		  register_subwindow(hDebug);
 		  vmb_debug_on();
 		}
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
@@ -93,7 +97,9 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
 	  return 0; 
 	case ID_HELP:
-	  DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
+#if 0
+      HtmlHelp(hWnd,"help.html",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+#endif
 	  return 0; 
 	case ID_MINIMIZE:
 	  CloseWindow(hWnd);

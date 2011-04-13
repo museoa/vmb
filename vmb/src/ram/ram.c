@@ -25,15 +25,17 @@
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
+#include "winmem.h"
 extern HWND hMainWnd;
 #else
 #include <unistd.h>
 #endif
 #include "bus-arith.h"
 #include "vmb.h"
+#include "param.h"
 
 
-char version[]="$Revision: 1.10 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.11 $ $Date: 2011-04-13 02:04:59 $";
 
 char howto[] =
 "\n"
@@ -136,6 +138,7 @@ static int ram_write(unsigned int offset,int size,unsigned char *payload)
   n = ram_write_mid(i,offset,size,payload);
   if (n<size && i+1 < ROOTSIZE)
     n = n + ram_write_mid(i+1,0,size-n,payload+n);
+  mem_update(offset, size);
   return n;
 }
 
@@ -162,6 +165,7 @@ static void ram_clean(void)
         }
       root[i]=NULL;
     }
+   mem_update(0, vmb_size);
 }
 
 /* Interface to the virtual motherboard */
@@ -202,4 +206,5 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=ram_put_payload;
   vmb->get_payload=ram_get_payload;
+  mem_inspect=ram_read;
 }

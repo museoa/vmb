@@ -4,7 +4,7 @@
 #include "win32connect.h"
 #include "winopt.h"
 #include "error.h"
-
+#include "winmem.h"
 
 void win32_message(char *msg)
 {
@@ -12,6 +12,7 @@ void win32_message(char *msg)
 }
 
 HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
+
 
 #define MAX_MSG_BUFFER	0x10000
 #define MAX_MSG_FILL (MAX_MSG_BUFFER/2)
@@ -100,8 +101,8 @@ void win32_debug(char *msg)
 
 void show_tab(HWND hDlg,int t)
 { 
-#define TABs		2
-#define IDCs		10
+#define TABs		4
+#define IDCs		11
 	struct{int idc; int show;} showlist[TABs][IDCs] =
 { /* tab 0 */
   {{IDC_DEBUG,SW_SHOW},
@@ -113,7 +114,9 @@ void show_tab(HWND hDlg,int t)
    {IDC_HIDE_WARN,SW_HIDE},
    {IDC_HIDE_ERROR,SW_HIDE},
    {IDC_HIDE_FATAL,SW_HIDE},
-   {IDC_HIDE_ALL,SW_HIDE}},
+   {IDC_HIDE_ALL,SW_HIDE},
+   {IDD_MEMORY,SW_HIDE}
+  },
   /* tab 1 */
   {{IDC_DEBUG,SW_HIDE},
    {IDC_HIDE_PAYLOAD,SW_SHOW},
@@ -124,12 +127,43 @@ void show_tab(HWND hDlg,int t)
    {IDC_HIDE_WARN,SW_SHOW},
    {IDC_HIDE_ERROR,SW_SHOW},
    {IDC_HIDE_FATAL,SW_SHOW},
-   {IDC_HIDE_ALL,SW_SHOW}}
-	};
+   {IDC_HIDE_ALL,SW_SHOW},
+   {IDD_MEMORY,SW_HIDE}
+  },
+  /* tab 2 */
+  {{IDC_DEBUG,SW_HIDE},
+   {IDC_HIDE_PAYLOAD,SW_HIDE},
+   {IDC_HIDE_MSG,SW_HIDE},
+   {IDC_HIDE_INFO,SW_HIDE},
+   {IDC_HIDE_PROGRESS,SW_HIDE},
+   {IDC_HIDE_NOTIFY,SW_HIDE},
+   {IDC_HIDE_WARN,SW_HIDE},
+   {IDC_HIDE_ERROR,SW_HIDE},
+   {IDC_HIDE_FATAL,SW_HIDE},
+   {IDC_HIDE_ALL,SW_HIDE},
+   {IDD_MEMORY,SW_SHOW}
+  },
+  /* tab 3 */
+  {{IDC_DEBUG,SW_HIDE},
+   {IDC_HIDE_PAYLOAD,SW_HIDE},
+   {IDC_HIDE_MSG,SW_HIDE},
+   {IDC_HIDE_INFO,SW_HIDE},
+   {IDC_HIDE_PROGRESS,SW_HIDE},
+   {IDC_HIDE_NOTIFY,SW_HIDE},
+   {IDC_HIDE_WARN,SW_HIDE},
+   {IDC_HIDE_ERROR,SW_HIDE},
+   {IDC_HIDE_FATAL,SW_HIDE},
+   {IDC_HIDE_ALL,SW_HIDE},
+   {IDD_MEMORY,SW_HIDE}
+  }
+};
   int i;
   if (t>=TABs) return;
   for (i=0;i<IDCs;i++)
-	ShowWindow(GetDlgItem(hDlg,showlist[t][i].idc),showlist[t][i].show);
+	  if (showlist[t][i].idc==IDD_MEMORY)
+	  {  if (hMemory!=NULL)ShowWindow(hMemory,showlist[t][i].show); }
+	  else
+	    ShowWindow(GetDlgItem(hDlg,showlist[t][i].idc),showlist[t][i].show);
 }
 
 void show_filter(HWND hDlg)
@@ -145,11 +179,12 @@ void show_filter(HWND hDlg)
 		  ((vmb_debug_mask&0xFF)==0xFF?BST_CHECKED:BST_INDETERMINATE));
 }
 
+
 void resize_dialog(HWND hDlg,int w, int h)
 { MoveWindow(GetDlgItem(hDlg,IDC_TAB_DEBUG),5,5,w-10,h-10,TRUE); 
   MoveWindow(GetDlgItem(hDlg,IDC_DEBUG),10,30,w-20,h-40,TRUE); 
+  if (hMemory!=NULL) MoveWindow(hMemory,10,30,w-20,h-40,TRUE);
 }
-
 
 INT_PTR CALLBACK   
 DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -157,14 +192,27 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   switch ( message )
   { case WM_INITDIALOG :
   	InitializeCriticalSection (&msg_section);
+	if (mem_inspect!=NULL)
+	{  hMemory=CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hDlg,MemoryDialogProc);
+	   register_subwindow(hMemory);
+	}
+	else
+      hMemory=NULL;
 	{ TCITEM tie;
 	  RECT rect;
+	  int i=0;
       tie.mask = TCIF_TEXT;
       tie.iImage = -1;
  	  tie.pszText = "Debug";
-	  TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), 0, &tie);
+	  TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i++, &tie);
  	  tie.pszText = "Filter";
-	  TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), 1, &tie);
+	  TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i++, &tie);
+	  if (hMemory!=NULL)
+	  { tie.pszText = "Memory";
+	    TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i++, &tie);
+	  }
+ 	  tie.pszText = "Register";
+	  TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i++, &tie);
 
 	  TabCtrl_SetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG), 0);
       show_tab(hDlg, 0);
@@ -186,6 +234,8 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	}
     break;
    case WM_COMMAND: 
+     if (wparam==IDOK)
+		 return FALSE;
      if (HIWORD(wparam) == BN_CLICKED) 
      { int flag = 0;
 	   switch (LOWORD(wparam)) 
@@ -230,11 +280,17 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
     return TRUE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
-      { hDebug = NULL;
-	    EndDialog(hDlg, TRUE);
+      { if (hMemory!=NULL) 
+	    { unregister_subwindow(hMemory);
+		  DestroyWindow(hMemory);
+	    }
+	    hMemory = NULL;
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
 		vmb_debug_off();
 	    DeleteCriticalSection(&msg_section);
+		unregister_subwindow(hDebug);
+	    EndDialog(hDlg, TRUE);
+		hDebug = NULL;
         return TRUE;
       }
       break;
