@@ -276,7 +276,6 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           SendDlgItemMessage(hDlg,IDC_DEBUG,EM_SETSEL,n,n);
           SendDlgItemMessage(hDlg,IDC_DEBUG,EM_SCROLLCARET,0,0); 
 		}
-
     return TRUE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
