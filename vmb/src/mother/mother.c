@@ -34,6 +34,10 @@
 
 typedef int socklen_t;
 
+HWND hpower;
+
+#define WM_SOCKET (WM_USER+1)
+
 /* Windows needs a different main program (taken from win32main.c) */
 HINSTANCE hInst;
 HWND hMainWnd;
@@ -41,11 +45,6 @@ HBITMAP hBmp=NULL;
 HMENU hMenu;
 HBITMAP hon, hoff, hconnect;
 device_info vmb = {0};
-
-
-HWND hpower;
-
-#define WM_SOCKET (WM_USER+1)
 
 #else
 
@@ -67,7 +66,7 @@ HWND hpower;
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.31 $ $Date: 2011-03-25 22:48:11 $";
+char version[] = "$Revision: 1.32 $ $Date: 2011-04-15 01:17:33 $";
 
 char howto[] =
   "\n"
@@ -675,13 +674,13 @@ process_read_fdset ()
 }
 #endif
 #ifdef WIN32
+
+
 #define MAX_LOADSTRING 100
 /* Global Variables: */
-HINSTANCE hInst;
 TCHAR szClassName[MAX_LOADSTRING] = "VMB";
 TCHAR szTitle[MAX_LOADSTRING] = "mother";
-HBITMAP hBmp;
-HMENU hMenu;
+
 static int infoslot = -1;
 
 static void

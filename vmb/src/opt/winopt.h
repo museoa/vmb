@@ -48,3 +48,4 @@ extern void get_pos_key(int *Xpos, int *Ypos, char *name);
 
 extern void register_subwindow(HWND h);
 extern void unregister_subwindow(HWND h);
+extern BOOL do_subwindow_msg(MSG *msg);
