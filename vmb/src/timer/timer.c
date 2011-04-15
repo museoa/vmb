@@ -24,6 +24,7 @@
 #ifdef WIN32
 #include <windows.h>
 extern HWND hMainWnd;
+#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -187,12 +188,13 @@ void timer_signal()
   }
   else
     timer_start();
+  mem_update(0x00,0x20);
 }
 
 
 
 
-char version[]="$Revision: 1.6 $ $Date: 2011-04-12 18:46:13 $";
+char version[]="$Revision: 1.7 $ $Date: 2011-04-15 01:58:52 $";
 
 char howto[] =
 "\n"
@@ -231,7 +233,8 @@ unsigned char *timer_get_payload(unsigned int offset,int size)
    { int d = offset<0x10?0x10-offset:0;
      vmb_debugx(VMB_DEBUG_INFO,"extended information: %s",tmem+offset+d,size-d);
    }
-  return tmem+offset;
+   mem_update(0x00,0x10);
+   return tmem+offset;
 }
 
 
@@ -286,9 +289,19 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
         timer_start();
       }
     }
+	mem_update(0,0x20);
   }
 }
 
+static void clear_timer(void)
+{ tt = ti = t0 = dt = 0;
+  SETTT(tt);
+  SETTI(ti);
+  SETT0(t0);
+  SETDT(dt);
+  mem_update(0x10,0x20);
+  update_display();
+}
 void timer_poweroff(void)
 /* this function is called when the virtual power is turned off */
 { vmb_debug(VMB_DEBUG_PROGRESS,"Timer power off");
@@ -296,12 +309,7 @@ void timer_poweroff(void)
   { timer_stop();
     vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
   }
-  tt = ti = t0 = dt = 0;
-  SETTT(tt);
-  SETTI(ti);
-  SETT0(t0);
-  SETDT(dt);
-  update_display();
+  clear_timer();
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_OFF,0,0);
 #endif
@@ -310,12 +318,7 @@ void timer_poweroff(void)
 void timer_poweron(void)
 /* this function is called when the virtual power is turned off */
 { vmb_debug(VMB_DEBUG_PROGRESS,"Timer power on");
-  tt = ti = t0 = dt = 0;
-  SETTT(tt);
-  SETTI(ti);
-  SETT0(t0);
-  SETDT(dt);
-  update_display();
+  clear_timer();
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
@@ -327,12 +330,7 @@ void timer_reset(void)
   { timer_stop();
     vmb_debug(VMB_DEBUG_PROGRESS,"Timer stopped");
   }
-  tt = ti = t0 = dt = 0;
-  SETTT(tt);
-  SETTI(ti);
-  SETT0(t0);
-  SETDT(dt);
-  update_display();
+  clear_timer();
 }
 
 void timer_disconnected(void)
@@ -345,6 +343,14 @@ void timer_disconnected(void)
 #endif
 }
 
+
+static int timer_mem_read(unsigned int offset, int size, unsigned char *buf)
+{ if (offset+size>sizeof(tmem))
+    size=sizeof(tmem)-offset;
+  if (size<=0) return 0;
+  memmove(buf,tmem+offset,size);
+  return size;
+}
 
 void init_device(device_info *vmb)
 { vmb_debug(VMB_DEBUG_PROGRESS,"Timer initializing");
@@ -362,5 +368,6 @@ void init_device(device_info *vmb)
   vmb->terminate=timer_terminate;
   vmb->put_payload=timer_put_payload;
   vmb->get_payload=timer_get_payload;
+  mem_inspect=timer_mem_read;
 }
 
