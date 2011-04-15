@@ -224,12 +224,6 @@ int message_size(unsigned char msg[4])
 
 /* functions to connect, register, unregister, and disconnect */
 
-#ifdef WIN32
-static int connections=0;
-#endif
-
-
-
 int bus_connect(char *hostname,int port)
 { int i;
   int fd = 0;
@@ -242,24 +236,19 @@ int bus_connect(char *hostname,int port)
     hostname = localhost;
 
 #ifdef WIN32
-  if (connections==0)
   {	WSADATA wsadata;
 	if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
     {  vmb_error(__LINE__,"Unable to initialize Winsock dll");
 	   return INVALID_SOCKET;
 	}
   }
-  connections++;
 #endif
   fd = (int)socket( PF_INET, SOCK_STREAM, 0);
   vmb_debug(VMB_DEBUG_PROGRESS,"Creating socket");
   if (!valid_socket(fd))
   {
 #ifdef WIN32
-	  connections--;
-	  if (connections==0) 
-		  WSACleanup();
-
+	  WSACleanup();
 #endif
 	  vmb_error(__LINE__,"Unable to create a socket");    
 	  return INVALID_SOCKET;
@@ -283,9 +272,7 @@ int bus_connect(char *hostname,int port)
     if (hp==NULL)
     { server_ip = 0;
 #ifdef WIN32
-	  connections--;
-	  if (connections==0) 
-		  WSACleanup();
+	  WSACleanup();
 #endif
 	  vmb_error(__LINE__,"Unable to get host by name");    
       return INVALID_SOCKET;
@@ -310,11 +297,9 @@ int bus_connect(char *hostname,int port)
       if (i < 0 )
 	  {	error = WSAGetLastError();
 	    vmb_error(error,"Unable to connect to socket");    
-	  connections--;
-	  if (connections==0) 
-		  WSACleanup();
-          return INVALID_SOCKET;
-          }
+		WSACleanup();
+        return INVALID_SOCKET;
+      }
 	}
 #else
           return INVALID_SOCKET;
@@ -329,8 +314,6 @@ int bus_connect(char *hostname,int port)
 	if (i!=1)
     {
 #ifdef WIN32
-	  connections--;
-	  if (connections==0) 
 		  WSACleanup();
 #endif
 	  vmb_error(__LINE__,"Unable to get a writeable socket");    
@@ -411,12 +394,10 @@ int bus_disconnect(int socket)
 #ifdef WIN32
     if (valid_socket(socket))
 	{ int error;
+	  shutdown(socket,SD_BOTH);
 	  error = closesocket(socket);
 	  if (error==0)
-		{ connections--;
-	      if (connections==0) 
-			  WSACleanup();
-		}
+	    WSACleanup();
 	}
 #else
     if (valid_socket(socket))

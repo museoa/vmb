@@ -6,23 +6,27 @@ host localhost
 
 
 #if mother
-debug
+#debug
+#verbose
 exec .\rom.exe
 exec .\ram.exe
 exec .\winvram.exe
-exec .\mmix.exe -i -O minesweeper.mmo 
+exec .\timer.exe
+exec .\mmix.exe minesweeper.mmo 
+# start mmix in debugging mode
+#exec .\mmix.exe -i -O minesweeper.mmo 
 #endif
 
 #if rom
 address 0x0000000000000000
 file bios.img
-#minimized
+minimized
 #endif
 
 #if ram
 size 3145728
 address 0x0000000100000000
-#minimized
+minimized
 #endif
 
 #if keyboard
@@ -30,9 +34,10 @@ address 0x0001000000000000
 interrupt 17
 #endif
 
-#if screen
-address 0x0001000000000008
-interrupt 18
+#if timer
+address 0x0001000000000060
+interrupt 21
+minimized
 #endif
 
 #if winvram

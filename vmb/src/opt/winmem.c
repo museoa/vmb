@@ -87,6 +87,8 @@ static int adjust_mem_display(void)
   }
   if (mem_size>old_size)
   { mem_buf=realloc(mem_buf,mem_size);
+    if (mem_buf==NULL)
+		vmb_fatal_error(__LINE__,"Out of memory");
     old_size=mem_size;
   }
   mem_inspect(mem_first,mem_size,mem_buf);
@@ -186,7 +188,10 @@ static unsigned int old_size=0, old_first=0;
 
 void update_old_mem(void)
 { if (old_size<mem_size)
-     old_mem = realloc(old_mem,mem_size);
+  { old_mem = realloc(old_mem,mem_size);
+    if (old_mem==NULL)
+		vmb_fatal_error(__LINE__,"Out of memory");
+  }
    /* newly displayed memory contente is cold, (copy from mem_buf)
       only previously displayed content that has changed is hot */
    if (old_first<mem_first)
@@ -221,10 +226,13 @@ void update_old_mem(void)
 
 static void refresh_old_mem(void)
 { if (old_size<mem_size)
-     old_mem = realloc(old_mem,mem_size);
-   memmove(old_mem,mem_buf,mem_size);
-   old_first=mem_first;
-   old_size=mem_size;
+  { old_mem = realloc(old_mem,mem_size);
+    if (old_mem==NULL)
+		vmb_fatal_error(__LINE__,"Out of memory");
+  }
+  memmove(old_mem,mem_buf,mem_size);
+  old_first=mem_first;
+  old_size=mem_size;
 }
 
 static int different(int offset, int size)

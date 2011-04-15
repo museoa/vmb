@@ -3,12 +3,14 @@
 #include <commctrl.h>
 #include <afxres.h>
 #include <math.h>
+#include "message.h"
 #include "vmb.h"
 #include "bus-arith.h"
 #include "resource.h"
 #include "param.h"
 #include "option.h"
 #include "winopt.h"
+#include "winmem.h"
 
 /*
  *     The Screen Stuff
@@ -20,14 +22,24 @@ static HDC hCanvas = NULL;
 static CRITICAL_SECTION   bitmap_section;
 
 unsigned char *screen_get_payload(unsigned int offset,int size)
-{ static unsigned char payload[258*8];
+{ static unsigned char payload[MAXPAYLOAD];
   int i = 0;
   EnterCriticalSection (&bitmap_section);
+  if ((offset&0x3)!=0)
+  { int x, y;
+    COLORREF c;
+    y = (offset/4) / framewidth;
+	x = (offset/4) % framewidth;
+	c = GetPixel(hCanvas,x,y);
+    if ((offset&0x3)<2) payload[i++]= GetRValue(c);
+    if ((offset&0x3)<3) payload[i++]= GetGValue(c);
+    if ((offset&0x3)<4) payload[i++]= GetBValue(c);
+  }
   while (size >= 4)
   { int x, y;
     COLORREF c;
-    y = offset / framewidth;
-	x = offset % framewidth;
+    y = (offset/4) / framewidth;
+	x = (offset/4) % framewidth;
 	c = GetPixel(hCanvas,x,y);
     payload[i++]= 0;
     payload[i++]= GetRValue(c);
@@ -39,8 +51,8 @@ unsigned char *screen_get_payload(unsigned int offset,int size)
   if (size > 0)
   { int x, y;
     COLORREF c;
-    y = offset / framewidth;
-	x = offset % framewidth;
+    y = (offset/4) / framewidth;
+	x = (offset/4) % framewidth;
 	c = GetPixel(hCanvas,x,y);
     payload[i++]= 0;
     if (size>1) payload[i++]= GetRValue(c);
@@ -108,8 +120,9 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
   rect.left=(int)(minx*zoom);
   rect.bottom=(int)((maxy+1)*zoom);
   rect.right=(int)((maxx+1)*zoom);
-  InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
+  InvalidateRect(hMainWnd,&rect,FALSE);
+  mem_update(offset,size);
 }
 
 void screen_poweron(void)
@@ -120,8 +133,9 @@ void screen_poweron(void)
   hbr = CreateSolidBrush(RGB(0,0,0));
   rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
   rc = FillRect(hCanvas,&rect,hbr);
-  InvalidateRect(hMainWnd,NULL,FALSE);
   LeaveCriticalSection (&bitmap_section);
+  InvalidateRect(hMainWnd,NULL,FALSE);
+  mem_update(0,vmb_size);
 }
 
 
@@ -133,8 +147,9 @@ void screen_poweroff(void)
   hbr = CreateSolidBrush(RGB(127,127,127));
   rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
   rc = FillRect(hCanvas,&rect,hbr);
-  InvalidateRect(hMainWnd,NULL,FALSE);
   LeaveCriticalSection (&bitmap_section);
+  InvalidateRect(hMainWnd,NULL,FALSE);
+  mem_update(0,vmb_size);
 }
 
 
@@ -148,8 +163,9 @@ void screen_disconnected(void)
     hbr = CreateSolidBrush(RGB(127,0,0));
     rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
     rc = FillRect(hCanvas,&rect,hbr);
-    InvalidateRect(hMainWnd,NULL,FALSE);
     LeaveCriticalSection (&bitmap_section);
+    InvalidateRect(hMainWnd,NULL,FALSE);
+	mem_update(0,vmb_size);
   }
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
@@ -177,7 +193,18 @@ void init_canvas(void)
 	init_gpu_canvas();
 }
 
-
+static int read_screen(unsigned int offset, int size, unsigned char *buf)
+{ unsigned char *p;
+  int i=0;
+  while (i<size)
+  { int s;
+    if (size-i<MAXPAYLOAD) s=size-i; else s=MAXPAYLOAD;
+    p=screen_get_payload(offset+i,s);
+    memmove(buf+i,p,s);
+	i=i+s;
+  }
+  return i;
+}
 void init_screen(device_info *vmb)
 {	init_canvas();
     vmb_size = frameheight*framewidth*4;
@@ -197,6 +224,7 @@ void init_screen(device_info *vmb)
 	  AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW,FALSE);
       SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
 	}
+	mem_inspect=read_screen;
 }
 
 /*
@@ -489,9 +517,8 @@ unsigned char *gpu_get_payload(unsigned int offset,int size)
 }
 
 void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ RECT rect;
-  int minx=0,miny=0,maxx=0,maxy=0;
-  rect.top=rect.left=rect.bottom=rect.right=0;
+{ int x,y,w,h;
+  y=x=w=h=0;
   memmove(gpu_mem+offset,payload, size);
   if (offset>3) return;
   if (GPU_COMMAND == GPU_NOP) return;
@@ -499,16 +526,16 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
   switch (GPU_COMMAND)
   { case GPU_WRITE_CHAR: 
 		if (GPU_COMMAND_AUX_LO == '\n')
-		{ int y;
+		{ int newline;
 		  SET_GPU_X(0);
-		  y = GPU_Y+gpu_text_height;
-		  if (y+gpu_text_height>height)
-		  { int d = y+gpu_text_height-height;
+		  newline = GPU_Y+gpu_text_height;
+		  if (newline+gpu_text_height>height)
+		  { int d = newline+gpu_text_height-height;
 		    BitBlt(hCanvas,0,0,width,height-d,hCanvas,0,d,SRCCOPY);
 		    BitBlt(hCanvas,0,height-d,width,d,hCanvas,0,height-d,SRCINVERT);
-			y = y-d;
-			rect.left=width;
-			rect.bottom=height;
+			newline = newline-d;
+			w=width;
+			h=height;
 		  }
 		  SET_GPU_Y(y);
 		}
@@ -517,25 +544,27 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		}
 		else
 		{ SetTextAlign(hCanvas,TA_TOP|TA_LEFT);
-		  rect.top = GPU_Y;
-		  rect.bottom = GPU_Y+gpu_text_height;
-		  rect.left = GPU_X;
-		  rect.right = GPU_X+gpu_char_width;
+		  y = GPU_Y;
+		  h = gpu_text_height;
+		  x = GPU_X;
+		  w = gpu_char_width;
 		  SetTextColor(hCanvas,RGB(GPU_R_TEXT,GPU_G_TEXT,GPU_B_TEXT));
 		  SetBkColor(hCanvas,RGB(GPU_R_TEXT_BK,GPU_G_TEXT_BK,GPU_B_TEXT_BK));
 		  ExtTextOut(hCanvas,GPU_X,GPU_Y,0,NULL,&(GPU_COMMAND_AUX_LO),1,NULL);
-		  SET_GPU_X(rect.right);
+		  SET_GPU_X(x+w);
 		}
         break;
 	case GPU_RECTANGLE:
 	    { HBRUSH hold, hnew;
 		  hnew = CreateSolidBrush(RGB(GPU_R_FILL,GPU_G_FILL,GPU_B_FILL)); 
 		  hold = SelectObject(hCanvas, hnew);
-		  PatBlt(hCanvas, GPU_X,GPU_Y, GPU_X_2-GPU_X, GPU_Y_2-GPU_Y ,PATCOPY);  
-		  rect.top = GPU_Y;
-		  rect.bottom = GPU_Y_2;
-		  rect.left = GPU_X;
-		  rect.right = GPU_X_2;
+		  x=GPU_X;
+		  y=GPU_Y;
+		  w=GPU_X_2-GPU_X;
+		  h=GPU_Y_2-GPU_Y;
+		  if (w<0) { x=x+w; w=-w; }
+		  if (h<0) { y=y+h; h=-h; }
+		  PatBlt(hCanvas, x,y, w, h ,PATCOPY);  
 		  SelectObject(hCanvas, hold);
 		  DeleteObject(hnew);
 		}
@@ -546,10 +575,12 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		  hold = SelectObject(hCanvas, hnew);
    		  MoveToEx(hCanvas,GPU_X,GPU_Y,NULL);
 		  LineTo(hCanvas,GPU_X_2,GPU_Y_2);
-		  rect.top = GPU_Y;
-		  rect.bottom = GPU_Y_2;
-		  rect.left = GPU_X;
-		  rect.right = GPU_X_2;
+		  x=GPU_X;
+		  y=GPU_Y;
+		  w=GPU_X_2-GPU_X;
+		  h=GPU_Y_2-GPU_Y;
+		  if (w<0) { x=x+w; w=-w; }
+		  if (h<0) { y=y+h; h=-h; }
 		  SelectObject(hCanvas, hold);
 		  DeleteObject(hnew);
 		  SET_GPU_X(GPU_X_2);
@@ -558,26 +589,30 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		break;
 	case GPU_BLT:
 		BitBlt(hCanvas,GPU_X,GPU_Y,GPU_W,GPU_H,hCanvas,GPU_X_2,GPU_Y_2,GPU_COMMAND_AUX);
-		rect.top = GPU_Y;
-		rect.bottom = GPU_Y+GPU_H;
-		rect.left = GPU_X;
-		rect.right = GPU_X+GPU_W;
+		y = GPU_Y;
+		h = GPU_H;
+		x = GPU_X;
+		w = GPU_W;
 		break;
 	case GPU_BLT_IN:
-	    PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
 		LeaveCriticalSection (&bitmap_section);
+		PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
 		return;
 	case GPU_BLT_OUT:
-	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
 		LeaveCriticalSection (&bitmap_section);
+	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
         return;
   }
-  rect.top=(int)(rect.top*zoom);
-  rect.left=(int)(rect.left*zoom);
-  rect.bottom=(int)((rect.bottom+1)*zoom);
-  rect.right=(int)((rect.right+1)*zoom);
-  InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
+  { RECT rect;
+    rect.top=(int)(y*zoom);
+    rect.left=(int)(x*zoom);
+    rect.bottom=(int)((y+h+1)*zoom);
+    rect.right=(int)((x+w+1)*zoom);
+    InvalidateRect(hMainWnd,&rect,FALSE);
+  }
+  if (w>0 && h>0)
+    mem_update((y*framewidth+x)*4,(h*framewidth+w)*4);
 }
 
 
@@ -787,6 +822,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  rect.left = (int)(x*zoom);
 		  rect.right = (int)((x+w)*zoom);  
           InvalidateRect(hMainWnd,&rect,FALSE);
+		  if (w>0 && h>0)
+            mem_update((y*framewidth+x)*4,(h*framewidth+w)*4);
 		  return 0;
 		}
 	case WM_VMB_OTHER+1: /* called for GPU_BLT_OUT */
@@ -1050,10 +1087,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
-	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
+	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg) &&
+		  !do_subwindow_msg(&msg) 
+		  ) 
 	  { TranslateMessage(&msg);
 	    DispatchMessage(&msg);
 	  }
+
 	disconnect_all();
 	vmb_end();
 	return (int)msg.wParam;
