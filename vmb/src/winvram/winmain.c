@@ -261,6 +261,7 @@ static unsigned char mouse_mem[2*8];
 
 void mouse_poweron(void)
 { memset(mouse_mem,0,sizeof(mouse_mem));
+  mem_update(1,0,0x10);
 }
 
 unsigned char *mouse_get_payload(unsigned int offset,int size)
@@ -304,7 +305,7 @@ void mouse_set_position(WPARAM wParam, LPARAM lParam, int event)
 		vmb_raise_interrupt(&vmb_mouse, interrupt);
 		vmb_debugi(VMB_DEBUG_PROGRESS,"Mouse Event %X",event);
 	}
-
+  mem_update(1,0,0x10);
 }
 
 static int read_mouse(unsigned int offset, int size, unsigned char *buf)
@@ -345,6 +346,30 @@ void init_mouse(void)
 extern uint64_t vmb_gpu_address;
 static device_info vmb_gpu = {0};
 extern int gpu_interrupt;
+#define GPU_REGS 19
+static struct register_def gpu_regs[GPU_REGS+1] = {
+	/* name, nr,offset,size, chunk,format */
+	{"Command",         0,0x00,1,byte_chunk,unsigned_format},
+	{"Aux Command",     1,0x01,3,byte_chunk,hex_format},
+    {"Secondary X",     2,0x04,2,wyde_chunk,unsigned_format},
+    {"Secondary Y",     3,0x06,2,wyde_chunk,unsigned_format},
+    {"Width",           4,0x08,2,wyde_chunk,unsigned_format},
+    {"Height",          5,0x0a,2,wyde_chunk,unsigned_format},
+    {"X",               6,0x0c,2,wyde_chunk,unsigned_format},
+    {"Y",               7,0x0e,2,wyde_chunk,unsigned_format},
+    {"BLT Adress",      8,0x10,8,octa_chunk,hex_format},
+    {"Text Background", 9,0x18,4,tetra_chunk,hex_format},
+    {"Text Foreground",10,0x1c,4,tetra_chunk,hex_format},
+    {"Fill Color",     11,0x20,4,tetra_chunk,hex_format},
+    {"Line Color",     12,0x24,4,tetra_chunk,hex_format},
+    {"Text Width",     13,0x28,2,wyde_chunk,unsigned_format},
+    {"Text Height",    14,0x2c,2,wyde_chunk,unsigned_format},
+    {"Frame Width",    15,0x30,2,wyde_chunk,unsigned_format},
+    {"Frame Height",   16,0x32,2,wyde_chunk,unsigned_format},
+    {"Screen Width",   17,0x34,2,wyde_chunk,unsigned_format},
+    {"Screen Height",  18,0x36,2,wyde_chunk,unsigned_format},
+	{0}};
+
 /*
 GPU Commands and memmory layout
 1 Layout
@@ -476,6 +501,13 @@ windows BitBlt Function. the following values are defined:
 #define GPU_MEM_SIZE (7*8)
 static unsigned char gpu_mem[GPU_MEM_SIZE];
 
+static int read_gpu(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>GPU_MEM_SIZE) return 0;
+  if (offset+size>GPU_MEM_SIZE) size =GPU_MEM_SIZE-offset;
+  memmove(buf,gpu_mem+offset,size);
+  return size;
+}
+
 #define GPU_COMMAND		(gpu_mem[0])
 #define GPU_NOP			0x00
 #define GPU_WRITE_CHAR		0x01
@@ -540,6 +572,13 @@ void init_gpu_memory(void)
   SET_FRAME_H(frameheight);
   SET_SCREEN_W(width);	
   SET_SCREEN_H(height);
+  inspector[2].name = "GPU";
+  inspector[2].get_mem=read_gpu;
+  inspector[2].size=GPU_MEM_SIZE;
+  inspector[2].address=0;
+  inspector[2].num_regs= GPU_REGS;
+  inspector[2].regs =gpu_regs;
+  mem_update(2,0,GPU_MEM_SIZE);
 }
 void gpu_poweron(void)
 { init_gpu_memory();
@@ -552,6 +591,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 { int x,y,w,h;
   y=x=w=h=0;
   memmove(gpu_mem+offset,payload, size);
+  mem_update(2,offset,size);
   if (offset>3) return;
   if (GPU_COMMAND == GPU_NOP) return;
   EnterCriticalSection (&bitmap_section);
