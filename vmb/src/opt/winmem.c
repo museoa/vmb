@@ -11,61 +11,65 @@
 
 
 HWND hMemory=NULL; 
+int insp=-1;
 static uint64_t goto_addr=0x0;
 static unsigned int mem_first=0, mem_size=0;
 static unsigned char *mem_buf=NULL;
-static unsigned int mem_range;
-int (*mem_inspect)(unsigned int offset, int size, unsigned char *buf) = NULL;
+static unsigned int page_range, line_range;
+
+enum mem_fmt mem_format = hex_format;
+char *format_names[]={"Hex","Dec","-Dec","Ascii","Float","Double"};
+
+enum chunk_fmt mem_chunk = byte_chunk;
+static char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 
 /* scrolbar management */
 static unsigned int sb_base=0;
-static int sb_cur = 0, sb_rng=100;
 
 static void sb_range(void)
-/* determine and set range as virtual number of lines */
-{ SCROLLINFO si;
-  if (mem_range*10<vmb_size)
-    sb_rng = mem_range*10;
-  else if (mem_range<vmb_size)
-    sb_rng = vmb_size;
+/* determine and set scrollbar range as virtual number of lines */
+{ int sb_cur = 0, sb_rng=100;
+  SCROLLINFO si;
+  /* determine range */
+  if (page_range*10<inspector[insp].size)
+    sb_rng = page_range*10/line_range;
+  else if (page_range<inspector[insp].size)
+    sb_rng = (inspector[insp].size+line_range-1)/line_range;
   else
-    sb_rng = mem_range;
-		  
-
-  if (mem_first<sb_base || mem_first>=(sb_base+sb_rng))
-  { /* move base to goto addr*/
-    sb_base = (unsigned int)(goto_addr-vmb_address);
+    sb_rng = page_range/line_range;
+  /* determine address of first line */
+  if (mem_first<sb_base || mem_first>=(sb_base+sb_rng*line_range))
+  { /* first try to fix it by moving to goto addr*/
+    sb_base = (unsigned int)(goto_addr-inspector[insp].address);
+	/* mem_first must be within scrollbar range so adjust base */
     if (mem_first<sb_base) 
       sb_base = mem_first;
-	else if (mem_first>sb_base+sb_rng)
-	  sb_base =mem_first-sb_rng;
+	else if (mem_first>sb_base+sb_rng*line_range)
+	  sb_base =mem_first-sb_rng*line_range;
   }
-  sb_cur= mem_first-sb_base;
+  sb_cur= (mem_first-sb_base)/line_range;
 
   si.cbSize=sizeof(si);
   si.fMask=SIF_PAGE|SIF_POS|SIF_RANGE;
   si.nMin=0;
   si.nMax=sb_rng;
-  si.nPage=mem_range;
+  si.nPage=(page_range+line_range-1)/line_range;
   si.nPos=sb_cur;
   SetScrollInfo(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
 }
 
-
-
-static int adjust_goto_address(void)
-/* 0 if no update needed, else return 1 */
-{ int ret=0;
-  if (goto_addr<vmb_address)
-  { goto_addr=vmb_address;
-    ret = 1;
-  }
-  else if (goto_addr>=vmb_address+vmb_size)
-  { goto_addr=vmb_address+(vmb_size-1);
-    ret=1;
-  }
-  return ret;
+void adjust_goto_addr(void)
+{ if (goto_addr<inspector[insp].address)
+    { goto_addr=inspector[insp].address;
+    }
+    else if (goto_addr>=inspector[insp].address+inspector[insp].size)
+    { goto_addr=inspector[insp].address+(inspector[insp].size-1);
+    }
+    uint64tohex(goto_addr,tmp_option);
+    SetDlgItemText(hMemory,IDC_GOTO,tmp_option);
 }
+
+
 
 static RECT mem_rect;
 static BOOL layout_change=TRUE;
@@ -80,9 +84,13 @@ static int adjust_mem_display(void)
 /* 0 if no update needed, else return 1 */
 { int ret=0;
   static unsigned int old_size=0;
-  mem_size = mem_range;
-  if (mem_first+mem_size>vmb_size)
-  { mem_size= vmb_size-mem_first;
+  mem_size = page_range;
+  if (mem_first>inspector[insp].size)
+  { mem_first=inspector[insp].size-page_range;
+    ret=1;
+  }
+  if (mem_first+mem_size>inspector[insp].size)
+  { mem_size= inspector[insp].size-mem_first;
     ret=1;
   }
   if (mem_size>old_size)
@@ -91,20 +99,13 @@ static int adjust_mem_display(void)
 		vmb_fatal_error(__LINE__,"Out of memory");
     old_size=mem_size;
   }
-  mem_inspect(mem_first,mem_size,mem_buf);
+  if (insp>=0) inspector[insp].get_mem(mem_first,mem_size,mem_buf);
   sb_range();
   refresh_display();
   return ret;
 }
 
 
-
-
-enum {hex_format=0, unsigned_format=1, signed_format=2, ascii_format=3, float_format=4, double_format=5,last_format=5 } mem_format = hex_format;
-char *format_names[]={"Hex","Dec","-Dec","Ascii","Float","Double"};
-
-enum {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, last_chunk=3 } mem_chunk = byte_chunk;
-static char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 
 static int mem_lines, mem_cols;
 static int mem_width=0, mem_height=0;
@@ -127,7 +128,7 @@ static void get_font_metrics(HWND hWnd)
 }
 
 static int chunk_size=1;
-static int lines, columns, column_width, column_digits, line_range;
+static int lines, columns, column_width, column_digits;
 
 
 
@@ -173,11 +174,26 @@ static void resize_memory_dialog(void)
       column_digits=column_width/digit_width;
   }
   line_range = columns*chunk_size;
-  mem_range= lines*line_range;
+  page_range= lines*line_range;
   layout_change=TRUE;
   adjust_mem_display();
 }
 
+
+void adjust_memory_tab(void)
+/* 0 if no update needed, else return 1 */
+{ int ret=0;
+  if (inspector[insp].num_regs==0)
+  { adjust_goto_addr();
+	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_SHOW);
+	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_SHOW);
+  }
+  else
+  { ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_HIDE);
+  	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_HIDE);
+  }
+  resize_memory_dialog();
+}
 
 /* Color management */
 
@@ -244,10 +260,10 @@ static int different(int offset, int size)
 }
 
 
-static void chunk_to_str(char *str, unsigned char *buf)
+static void chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, int chunk_size)
 { int j;
   int w=column_digits;
-  switch (mem_format)
+  switch (fmt)
   { default:
     case hex_format:
       for (j=0;j<chunk_size;j++)
@@ -285,26 +301,78 @@ static void chunk_to_str(char *str, unsigned char *buf)
 	  memset(str,'*',column_digits);
 }
 
-void display_memory(HDC hdc)
-{  uint64_t addr=vmb_address+mem_first;
-   int i,k;
-   char str[22]; /* big enough for the largest 8Byte integer */
-   RECT r;
+void display_register_names(HDC hdc)
+{ int i, nr;
+  SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
+  SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
+  nr = inspector[insp].num_regs;
+  if (nr>lines) nr=lines;
+  SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
+  for (i=0;i<nr;i++)
+  { char *str=inspector[insp].regs[i].name;
+    TextOut(hdc,address_width,top_width+i*line_height,str,(int)strlen(str));
+  }
+}
 
-   SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
-   SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
-   for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
-   { uint64tohex(addr+i*line_range,str);
-	 str[18]=':';
-	 TextOut(hdc,0,top_width+i*line_height,str,19);
-   }
-  update_old_mem();
+void display_registers(HDC hdc)
+{ 
+  int i,k, nr;
+  char str[22]; /* big enough for the largest 8Byte integer */
+  RECT rect;
+  nr = inspector[insp].num_regs;
+  if (nr>lines) nr=lines;
+  for (i=0;i<nr;i++)
+   { int y, chunk_size, x;
+     struct register_def *r;
+	 r = &inspector[insp].regs[i];
+     y=top_width+i*line_height;
+	 chunk_size=1<<r->chunk;
+	 x = address_width+separator_width;
+	 for (k=0;k<columns && k*chunk_size < r->size;k++)
+	 { int l;
+	   chunk_to_str(str, mem_buf+r->offset+k*chunk_size, r->format,chunk_size);
+       l = (int)strlen(str);
+       if (different(r->offset+k*chunk_size,chunk_size))
+	     SetBkColor(hdc,HOT);
+	   else
+	     SetBkColor(hdc,COLD);
+	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
+	   rect.top=y;
+       rect.left=x;
+       rect.right=x+l*digit_width;
+       rect.bottom=y+line_height-separator_height;
+       ExtTextOut(hdc,x+column_width-separator_width,y,
+		   ETO_OPAQUE,&rect,str,l,NULL);
+	   x=x+l*digit_width+separator_width;
+	 }
+   } 
+}
+void display_address(HDC hdc)
+{ int i; 
+  uint64_t addr=inspector[insp].address+mem_first;
+  char str[22]; /* big enough for the largest 8Byte integer */
+  
+  SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
+  SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
+  for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
+  { uint64tohex(addr+i*line_range,str);
+    str[18]=':';
+	TextOut(hdc,0,top_width+i*line_height,str,19);
+  }
+}
+
+void display_memory(HDC hdc)
+{ 
+  int i,k;
+  char str[22]; /* big enough for the largest 8Byte integer */
+  RECT r;
+
   for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
    { int y;
      y=top_width+i*line_height;
 	 for (k=0;k<columns && (unsigned int)((i*columns+k)*chunk_size)< mem_size;k++)
 	 { int x;
-       chunk_to_str(str, mem_buf+(i*columns+k)*chunk_size);
+       chunk_to_str(str, mem_buf+(i*columns+k)*chunk_size, mem_format,chunk_size);
        if (different((i*columns+k)*chunk_size,chunk_size))
 	     SetBkColor(hdc,HOT);
 	   else
@@ -323,31 +391,40 @@ void display_memory(HDC hdc)
 }
 
 
+void display_data(HDC hdc)
+{ if (inspector[insp].num_regs>0)
+  { display_register_names(hdc);
+    update_old_mem();
+    display_registers(hdc);
+  }
+  else
+  { display_address(hdc);
+    update_old_mem();
+    display_memory(hdc);
+  }
+}
+
 
 INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { switch ( message )
   { case WM_INITDIALOG :
-      adjust_goto_address();
-      uint64tohex(goto_addr,tmp_option);
-      SetDlgItemText(hDlg,IDC_GOTO,tmp_option);
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[mem_format]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[mem_chunk]);
 	  SetFocus(GetDlgItem(hDlg,IDOK));
 	  get_font_metrics(hDlg);
+	  		adjust_memory_tab();
+
       /*SendMessage(hDlg,DM_SETDEFID,(WPARAM)IDOK,0); */
-	  return FALSE;	
+	  return FALSE;
 	case WM_COMMAND: 
 	  if (wparam ==IDOK)
 	  {  /* User has hit the ENTER key.*/
 		 if (GetFocus()==GetDlgItem(hDlg,IDC_GOTO))
         { GetDlgItemText(hDlg,IDC_GOTO,tmp_option,MAXTMPOPTION);
     	  goto_addr = strtouint64(tmp_option);
-		  if (adjust_goto_address())
-		  { uint64tohex(goto_addr,tmp_option);
-            SetDlgItemText(hDlg,IDC_GOTO,tmp_option);
-		  }
-		  mem_first = (unsigned int)(goto_addr-vmb_address);
+		  adjust_goto_addr();
+		  mem_first = (unsigned int)(goto_addr-inspector[insp].address);
 		  adjust_mem_display();
 		 }
 	  }
@@ -387,31 +464,31 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			mem_first=0;
 		  break;
         case SB_LINEDOWN: 
-	      if (mem_first+mem_size+line_range<vmb_size)
+	      if (mem_first+mem_size+line_range<inspector[insp].size)
 	        mem_first =mem_first+line_range;
 		  else
-			mem_first=vmb_size-mem_range;
+			mem_first=inspector[insp].size-page_range;
 		  break;
 		case SB_PAGEUP:
-	      if (mem_first > (unsigned int)mem_range)
-	        mem_first =mem_first-mem_range;
+	      if (mem_first > (unsigned int)page_range)
+	        mem_first =mem_first-page_range;
 		  else
 			mem_first=0;
 		  break;
         case SB_PAGEDOWN: 
-	      if (mem_first+mem_size+mem_range<vmb_size)
-	        mem_first =mem_first+mem_range;
+	      if (mem_first+mem_size+page_range<inspector[insp].size)
+	        mem_first =mem_first+page_range;
 		  else
-			mem_first=vmb_size-mem_range;
+			mem_first=inspector[insp].size-page_range;
 		  break;
 		case SB_TOP:
 			mem_first=0;
 		  break;
         case SB_BOTTOM: 
-			mem_first=vmb_size-mem_range;
+			mem_first=inspector[insp].size-page_range;
 		  break;
 		case SB_THUMBTRACK: /* HIWORD(wparam) is 0 to sb_range */
-		     mem_first=sb_base+(HIWORD(wparam)/line_range)*line_range;
+		     mem_first=sb_base+HIWORD(wparam)*line_range;
           break;
 		default:
 		case SB_ENDSCROLL:
@@ -425,7 +502,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	case WM_PAINT:
     { PAINTSTRUCT ps;
 	  HDC hdc = BeginPaint (hDlg, &ps);
-      display_memory(hdc);
+      display_data(hdc);
       EndPaint (hDlg, &ps);
 	  return TRUE;
     }    
@@ -440,9 +517,10 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 
-void mem_update(unsigned int offset, int size)
+void mem_update(int i, unsigned int offset, int size)
 { if (hMemory==NULL) return;
-  adjust_goto_address();
+  if (i!=insp) return;
+  if (inspector[insp].num_regs==0) adjust_goto_addr();
   if (offset>=mem_first+mem_size || offset+size<=mem_first) 
     return;
   else
@@ -450,7 +528,7 @@ void mem_update(unsigned int offset, int size)
     refresh_old_mem();
     if (offset<mem_first) from=mem_first; else from=offset;
 	if (offset+size<mem_first+mem_size) to = offset+size; else to = mem_first+mem_size;
-	mem_inspect(from, to-from, mem_buf+(from-mem_first));
+	if (insp>=0) inspector[insp].get_mem(from, to-from, mem_buf+(from-mem_first));
 	refresh_display();
   }
 }

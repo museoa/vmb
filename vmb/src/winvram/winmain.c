@@ -12,6 +12,8 @@
 #include "winopt.h"
 #include "winmem.h"
 
+
+
 /*
  *     The Screen Stuff
  *
@@ -122,7 +124,7 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
   rect.right=(int)((maxx+1)*zoom);
   LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,&rect,FALSE);
-  mem_update(offset,size);
+  mem_update(0,offset,size);
 }
 
 void screen_poweron(void)
@@ -135,7 +137,7 @@ void screen_poweron(void)
   rc = FillRect(hCanvas,&rect,hbr);
   LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,NULL,FALSE);
-  mem_update(0,vmb_size);
+  mem_update(0,0,vmb_size);
 }
 
 
@@ -149,7 +151,7 @@ void screen_poweroff(void)
   rc = FillRect(hCanvas,&rect,hbr);
   LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,NULL,FALSE);
-  mem_update(0,vmb_size);
+  mem_update(0,0,vmb_size);
 }
 
 
@@ -165,7 +167,7 @@ void screen_disconnected(void)
     rc = FillRect(hCanvas,&rect,hbr);
     LeaveCriticalSection (&bitmap_section);
     InvalidateRect(hMainWnd,NULL,FALSE);
-	mem_update(0,vmb_size);
+	mem_update(0,0,vmb_size);
   }
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
@@ -176,6 +178,8 @@ void screen_reset(void)
 }
 
 static void init_gpu_canvas(void);
+
+
 
 void init_canvas(void)
 {	HDC hdc; 
@@ -205,6 +209,9 @@ static int read_screen(unsigned int offset, int size, unsigned char *buf)
   }
   return i;
 }
+
+struct inspector_def inspector[4] = {0};
+
 void init_screen(device_info *vmb)
 {	init_canvas();
     vmb_size = frameheight*framewidth*4;
@@ -224,8 +231,12 @@ void init_screen(device_info *vmb)
 	  AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW,FALSE);
       SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
 	}
-	mem_inspect=read_screen;
+	inspector[0].name="Video RAM";
+	inspector[0].get_mem=read_screen;
+	inspector[0].size=vmb_size;
+	inspector[0].address=vmb_address;
 }
+
 
 /*
  *     The Mouse Stuff
@@ -284,7 +295,7 @@ void mouse_set_position(WPARAM wParam, LPARAM lParam, int event)
 		 */
 		mouse_mem[3] = event;	
 		/* next we keep a copy of the position that is not changed
-		   by sucsequent mouse moves 
+		   by subsequent mouse moves 
 		*/
 		mouse_mem[4] = mouse_mem[12];
 		mouse_mem[5] = mouse_mem[13];
@@ -296,6 +307,21 @@ void mouse_set_position(WPARAM wParam, LPARAM lParam, int event)
 
 }
 
+static int read_mouse(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>0x10) return 0;
+  if (offset+size>0x10) size =0x10-offset;
+  memmove(buf,mouse_mem+offset,size);
+  return size;
+}
+
+struct register_def mouse_regs[] = {
+	{"Buttons",0,0,2,wyde_chunk,hex_format},
+	{"Events",1,2,2,wyde_chunk,hex_format},
+    {"X",2,4,2,wyde_chunk,unsigned_format},
+    {"Y",3,6,2,wyde_chunk,unsigned_format},
+    {"Current X",4,0xC,2,wyde_chunk,unsigned_format},
+    {"Current Y",5,0xE,2,wyde_chunk,unsigned_format},
+	{0}};
 
 void init_mouse(void)
 {	vmb_mouse.id = 1;
@@ -303,6 +329,12 @@ void init_mouse(void)
 	vmb_mouse.poweron = mouse_poweron;
 	vmb_mouse.reset = mouse_poweron;
 	vmb_mouse.terminate = NULL;
+	inspector[1].name = "Mouse";
+	inspector[1].get_mem=read_mouse;
+	inspector[1].size=0x10;
+	inspector[1].address=0;
+	inspector[1].num_regs= 6;
+	inspector[1].regs =mouse_regs;
 }
 
 
@@ -612,7 +644,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
     InvalidateRect(hMainWnd,&rect,FALSE);
   }
   if (w>0 && h>0)
-    mem_update((y*framewidth+x)*4,(h*framewidth+w)*4);
+    mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
 }
 
 
@@ -649,6 +681,8 @@ void init_gpu(void)
 	vmb_gpu.reset= gpu_poweron;
 	vmb_gpu.terminate = NULL;
 }
+
+
 
 /*
  *     The Common Stuff
@@ -823,7 +857,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  rect.right = (int)((x+w)*zoom);  
           InvalidateRect(hMainWnd,&rect,FALSE);
 		  if (w>0 && h>0)
-            mem_update((y*framewidth+x)*4,(h*framewidth+w)*4);
+            mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
 		  return 0;
 		}
 	case WM_VMB_OTHER+1: /* called for GPU_BLT_OUT */

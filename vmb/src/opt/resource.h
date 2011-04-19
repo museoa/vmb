@@ -9,7 +9,8 @@
 #define AFX_IDC_LISTBOX                 100
 #define IDB_BITMAP                      101
 #define AFX_IDC_CHANGE                  101
-#define IDD_MEMORY                      101
+#define IDD_FILTER                      101
+#define IDD_MEMORY                      102
 #define AFX_IDC_BROWSER                 102
 #define IDR_MENU                        104
 #define IDR_ACCELERATOR                 106
@@ -21,6 +22,7 @@
 #define IDD_CONNECT                     122
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
+#define IDD_FILTER2                     124
 #define AFX_IDC_PRINT_DOCNAME           201
 #define AFX_IDC_PRINT_PRINTERNAME       202
 #define AFX_IDC_PRINT_PORTNAME          203
@@ -53,6 +55,7 @@
 #define IDC_HEX                         1019
 #define IDC_DECIMAL                     1020
 #define IDC_FORMAT                      1022
+#define IDC_GOTO_PROMPT                 1023
 #define IDC_CHUNK                       1024
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
@@ -529,7 +532,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
