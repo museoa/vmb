@@ -179,12 +179,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  if (pushbutton && pushstate)
 	  { hBmp=hOff;
 	    pushstate = 0;
+	    vmb_debug(VMB_DEBUG_PROGRESS,"Button UP");
 	    if (enable_interrupts&2)
     	  vmb_raise_interrupt(&vmb, upinterrupt);
 	  }
 	  else
 	  { hBmp=hOn;
 	    pushstate = 1;
+	    vmb_debug(VMB_DEBUG_PROGRESS,"Button DOWN");
 	    if (enable_interrupts&1)
     	  vmb_raise_interrupt(&vmb, interrupt);
 	  }
@@ -203,9 +205,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  if (pushbutton) return 0;
 	  hBmp=hOff;
 	  pushstate = 0;
+  	  vmb_debug(VMB_DEBUG_PROGRESS,"Button UP");
 	  InvalidateRect(hWnd,NULL,FALSE);
 	  if (enable_interrupts&2)
-    	vmb_raise_interrupt(&vmb, upinterrupt);
+	    vmb_raise_interrupt(&vmb, upinterrupt);
 	  return 0;
   }
   }

@@ -29,6 +29,7 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
+#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -48,7 +49,7 @@ unsigned char led;
 int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 
-char version[]="$Revision: 1.6 $ $Date: 2011-03-25 22:48:11 $";
+char version[]="$Revision: 1.7 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "\n"
@@ -71,11 +72,13 @@ void led_put_payload(unsigned int offset,int size, unsigned char *payload)
 { led = payload[0];
   vmb_debugi(VMB_DEBUG_INFO, "LED SET: %2X",led);
   update_display();
+  mem_update(0,0,1);
 }
 
 void led_poweroff(void)
 { led=0;
   update_display();
+  mem_update(0,0,1);
   vmb_debug(VMB_DEBUG_INFO, "POWER OFF");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_OFF,0,0);
@@ -85,6 +88,7 @@ void led_poweroff(void)
 void led_poweron(void)
 { led=0;
   update_display();
+  mem_update(0,0,1);
   vmb_debug(VMB_DEBUG_INFO, "POWER ON");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
@@ -93,12 +97,24 @@ void led_poweron(void)
 
 void led_reset(void)
 { led=0;
+  mem_update(0,0,1);
   update_display();
   vmb_debug(VMB_DEBUG_INFO, "RESET");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_RESET,0,0);
 #endif
 }
+
+static int led_read(unsigned int offset,int size,unsigned char *buf)
+{ *buf=led;
+  return 1;
+}
+
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Mem",1,led_read,0,0,NULL},
+	{0}
+};
 
 
 
@@ -115,5 +131,6 @@ void init_device(device_info *vmb)
    vmb->terminate=vmb_terminate;
    vmb->get_payload=led_get_payload;
    vmb->put_payload=led_put_payload;
-
+   inspector[0].address=vmb_address;
+   mem_update(0,0,1);
 }

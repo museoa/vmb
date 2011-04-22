@@ -26,7 +26,7 @@ static char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 /* scrolbar management */
 static unsigned int sb_base=0; /* offset at base of scrollbar */
 static int sb_cur = 0; /* line corresponding to start of page */
-static int sb_rng =100; /* number of lines covered by scrollbar */
+static int sb_rng = 8; /* number of lines covered by scrollbar */
 static int lines; /* lines per page */
 static unsigned int mem_base=0, mem_size=0; /* page currently displayed */
 /* for register displays sb_base is always zero */
@@ -58,7 +58,7 @@ static void sb_range(void)
     else if (page_range<inspector[insp].size)
       sb_rng = (inspector[insp].size+line_range-1)/line_range-1;
     else
-      sb_rng = page_range/line_range;
+      sb_rng = (page_range+line_range-1)/line_range-1;
     /* determine address of first line */
 	if (sb_cur<0)
 	{ if (sb_base > -sb_cur*line_range)
@@ -74,12 +74,16 @@ static void sb_range(void)
 	{ int d = sb_cur-sb_rng+(lines-1);
 	  if (sb_base+d*line_range + sb_rng*line_range<inspector[insp].size)
 	    sb_base = sb_base + d*line_range;
-	  else
+	  else if (inspector[insp].size> sb_rng*line_range)
 		sb_base=inspector[insp].size- sb_rng*line_range;
+	  else
+	    sb_base=0;
 	  sb_cur=sb_rng-(lines-1);
 	}
     mem_base=sb_base+sb_cur*line_range;
 	mem_size = page_range;
+	if (mem_size > inspector[insp].size -mem_base)
+	  mem_size = inspector[insp].size -mem_base;
   }
 
   si.cbSize=sizeof(si);
@@ -158,7 +162,7 @@ static int adjust_mem_display(void)
 		vmb_fatal_error(__LINE__,"Out of memory");
     old_size=mem_size;
   }
-  if (insp>=0) inspector[insp].get_mem(mem_base,mem_size,mem_buf);
+  if (inspector[insp].get_mem) inspector[insp].get_mem(mem_base,mem_size,mem_buf);
   refresh_display();
   return ret;
 }
@@ -326,7 +330,7 @@ static int different(int offset, int size)
 }
 
 
-static void chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, int chunk_size, int column_digits)
+static int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, int chunk_size, int column_digits)
 { int j;
   int w=column_digits;
   switch (fmt)
@@ -337,6 +341,7 @@ static void chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, int ch
 	  break;
     case ascii_format:
 	  memmove(str,buf,chunk_size);
+	  str[chunk_size]=0;
 	  break;
 	case unsigned_format:
       switch (chunk_size)
@@ -364,7 +369,12 @@ static void chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, int ch
 	  break;
   }
   if (w>column_digits)
-	  memset(str,'*',column_digits);
+  {	memset(str,'*',column_digits);
+    str[column_digits]=0;
+  }
+  else
+    str[w]=0;
+  return w;
 }
 
 
@@ -380,19 +390,19 @@ void display_registers(HDC hdc)
      struct register_def *r;
 	 r = &inspector[insp].regs[sb_cur+i];
      y=top_width+i*line_height;
-
+     x=address_width*3/4;
      SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
      SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
      SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	 rect.top=y;
      rect.left=0;
-     rect.right=address_width;
+     rect.right=x;
      rect.bottom=y+line_height-separator_height;
-     ExtTextOut(hdc,address_width,y,
+     ExtTextOut(hdc,x,y,
 		   ETO_OPAQUE,&rect,r->name,(int)strlen(r->name),NULL);
 
 	 chunk_size=1<<r->chunk;
-	 x = address_width+separator_width;
+	 x = x+separator_width;
 	 for (k=0;k*chunk_size < r->size;k++)
 	 { int l = chunk_len(r->format,r->chunk);
 	   chunk_to_str(str, mem_buf+r->offset+k*chunk_size-mem_base, r->format,chunk_size,l);
@@ -434,13 +444,20 @@ void display_memory(HDC hdc)
   for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
    { int y;
      y=top_width+i*line_height;
-	 for (k=0;k<columns && (unsigned int)((i*columns+k)*chunk_size)< mem_size;k++)
-	 { int x;
-       chunk_to_str(str, mem_buf+(i*columns+k)*chunk_size, mem_format,chunk_size, column_digits);
-       if (different((i*columns+k)*chunk_size,chunk_size))
-	     SetBkColor(hdc,HOT);
+	 for (k=0;k<columns;k++)
+	 { int x,l;
+	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= mem_size)
+	   { l=chunk_to_str(str, mem_buf+(i*columns+k)*chunk_size, mem_format,chunk_size, column_digits);
+         if (different((i*columns+k)*chunk_size,chunk_size))
+	       SetBkColor(hdc,HOT);
+	     else
+	       SetBkColor(hdc,COLD);
+	   }
 	   else
-	     SetBkColor(hdc,COLD);
+	   { str[0]=0;
+	     l=0;
+         SetBkColor(hdc,COLD);
+	   }
 	   x = address_width+separator_width+k*column_width;
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   r.top=y;
@@ -449,7 +466,7 @@ void display_memory(HDC hdc)
        r.bottom=y+line_height-separator_height;
 
        ExtTextOut(hdc,x+column_width-separator_width,y,
-		   ETO_OPAQUE,&r,str,column_digits,NULL);
+		   ETO_OPAQUE,&r,str,l,NULL);
 	 }
    } 
 }
@@ -552,7 +569,7 @@ void mem_update(int i, unsigned int offset, int size)
     refresh_old_mem();
     if (offset<mem_base) from=mem_base; else from=offset;
 	if (offset+size<mem_base+mem_size) to = offset+size; else to = mem_base+mem_size;
-	if (insp>=0) inspector[insp].get_mem(from, to-from, mem_buf+(from-mem_base));
+	if (inspector[insp].get_mem) inspector[insp].get_mem(from, to-from, mem_buf+(from-mem_base));
 	refresh_display();
   }
 }

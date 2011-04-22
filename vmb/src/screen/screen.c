@@ -26,6 +26,7 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
+#include "winmem.h"
 extern HWND hMainWnd;
 #else
 #include <unistd.h>
@@ -40,7 +41,7 @@ static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.9 $ $Date: 2011-03-25 22:48:11 $";
+char version[]="$Revision: 1.10 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -108,12 +109,33 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (data[COUNT]<0xFF) data[COUNT]++;
     else data[ERROR]=0x80;
     data[DATA] = payload[7-offset];
+    mem_update(0,0,8);
     vmb_debugi(VMB_DEBUG_INFO, "(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
     vmb_raise_interrupt(&vmb,interrupt);
+    mem_update(0,0,8);
 }
 
+struct register_def screen_regs[] = {
+	/* name no offset size chunk format */
+	{"Error" ,0,ERROR,1,byte_chunk,hex_format},
+	{"Count" ,1,COUNT,1,byte_chunk,unsigned_format},
+    {"Char"  ,2,DATA,1,byte_chunk,ascii_format},
+    {"Char"  ,3,DATA,1,byte_chunk,hex_format},
+	{0}};
+
+int screen_reg_read(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>8) return 0;
+  if (offset+size>8) size =8-offset;
+  memmove(buf,data+offset,size);
+  return size;
+}
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Registers",5*8,screen_reg_read,0,4,screen_regs},
+	{0}
+};
 
 
 void init_device(device_info *vmb)
@@ -131,8 +153,7 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=screen_put_payload;
   vmb->get_payload=screen_get_payload;
-
-
+  inspector[0].address=vmb_address;
 }
 #ifdef WIN32
 #else

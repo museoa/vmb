@@ -53,6 +53,7 @@ void vmb_raise_interrupt(device_info *vmb, unsigned char i)
 {  if ( i >= 64)
     return;
    send_msg(vmb->fd, TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
+   vmb_debugi(VMB_DEBUG_INFO,"Raising interrupt %d",i);
 }
 
 

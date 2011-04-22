@@ -29,6 +29,7 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
+#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -42,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.11 $ $Date: 2011-02-24 13:58:17 $";
+char version[]="$Revision: 1.12 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "\n"
@@ -120,11 +121,13 @@ unsigned char *flash_get_payload(unsigned int offset,int size)
 void flash_put_payload(unsigned int offset,int size, unsigned char *payload)
 {    memmove(flash+offset,payload,size);
      image_changed = 1;
+	 mem_update(0,offset,size);
 }
 
 
 void flash_poweron(void)
 { open_file();
+  mem_update(0,0,vmb_size);
   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
   #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
@@ -161,6 +164,20 @@ void flash_disconnected(void)
 #endif
 }
 
+static int flash_read(unsigned int offset,int size,unsigned char *buf)
+{ if (offset>vmb_size) return 0;
+  if (offset+size>vmb_size) size =vmb_size-offset;
+  memmove(buf,flash+offset,size);
+  return size;
+}
+
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Memory",0,flash_read,0,0,NULL},
+	{0}
+};
+
+
 void init_device(device_info *vmb)
 { open_file();
   vmb->poweron=flash_poweron;
@@ -170,6 +187,9 @@ void init_device(device_info *vmb)
   vmb->terminate=flash_terminate;
   vmb->put_payload=flash_put_payload;
   vmb->get_payload=flash_get_payload;
+  inspector[0].address=vmb_address;
+  inspector[0].size=vmb_size;
+  mem_update(0,0,vmb_size);
 }
 
 

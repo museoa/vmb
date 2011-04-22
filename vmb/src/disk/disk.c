@@ -16,6 +16,7 @@
 #include "resource.h"
 extern HWND hMainWnd;
 extern HBITMAP hbussy;
+#include "winmem.h"
 #else
 #include <pthread.h>
 #include <unistd.h>
@@ -26,9 +27,10 @@ extern HBITMAP hbussy;
 #include "param.h"
 #include "disk.h"
 
+
 extern device_info vmb;
 
-char version[]="$Revision: 1.19 $ $Date: 2011-03-25 22:48:11 $";
+char version[]="$Revision: 1.20 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -78,6 +80,16 @@ char howto[] =
 "sectors on the disk.\n"
 "\n";
 
+struct register_def disk_regs[] = {
+	/* name no offset size chunk format */
+	{"Control" ,0,0x00,8,byte_chunk,hex_format},
+	{"Count"   ,1,0x08,8,tetra_chunk,unsigned_format},
+    {"Sector"  ,2,0x10,8,tetra_chunk,unsigned_format},
+    {"DMA"     ,3,0x18,8,octa_chunk,hex_format},
+    {"Capacity",4,0x20,8,tetra_chunk,unsigned_format},
+	{0}};
+
+
 
 /* Data and auxiliar Functions */
 static FILE *diskImage;
@@ -88,7 +100,15 @@ static int diskSct;
 static int diskDma_hi;
 static int diskDma_lo;
 static int diskCap;
-static unsigned char mem[8*5] = {0};
+#define DISK_MEM (8*5)
+static unsigned char mem[DISK_MEM] = {0};
+
+int disk_reg_read(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>DISK_MEM) return 0;
+  if (offset+size>DISK_MEM) size =DISK_MEM-offset;
+  memmove(buf,mem+offset,size);
+  return size;
+}
 
 
 /* protecting the variable diskCtrl, to syncronize
@@ -140,6 +160,8 @@ void set_diskCtrl(int value)
 #endif
   if (start)
     vmb_debug(VMB_DEBUG_INFO, "Action triggered");
+  inttochar(diskCtrl,mem+DISK_CTRL+4);
+  mem_update(0,0,8);
 }
 
 
@@ -262,6 +284,7 @@ static void register_to_mem(void)
    inttochar(diskDma_hi,mem+DISK_DMA);
    inttochar(diskDma_lo,mem+DISK_DMA+4);
    inttochar(diskCap,mem+DISK_CAP+4);
+   mem_update(0,0,DISK_MEM);
 }
 
 static void mem_to_register(int offset, int size)
@@ -293,6 +316,7 @@ static void diskReset(void)
   diskDma_lo = 0;
   diskDma_hi = 0;
   set_diskCtrl(0);
+  register_to_mem();
 }
 
 static void diskInit(void) {
@@ -316,6 +340,8 @@ static void diskInit(void) {
       start_disk_server();
     }
   }
+  register_to_mem();
+  mem_update(0,4*8,8); /* just Disk Capacity */
 }
 
 
@@ -401,6 +427,7 @@ static void diskRead(void)
       inc_DiskDma(SECTOR_SIZE);
       diskCnt--;
       diskSct++;
+	  register_to_mem();
     }
   }       
   diskDone();
@@ -430,6 +457,7 @@ static void diskWrite(void)
       inc_DiskDma(SECTOR_SIZE);
       diskCnt--;
       diskSct++;
+	  register_to_mem();
     }
   }
   diskDone();
@@ -455,6 +483,7 @@ void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
    }
    register_to_mem();
    memmove(mem+offset,payload,size);
+   mem_update(0,0,DISK_MEM);
    mem_to_register(offset,size);
 }
 
@@ -497,6 +526,12 @@ void disk_terminate(void)
 #endif
 }
 
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Registers",5*8,disk_reg_read,0,5,disk_regs},
+	{0}
+};
+
 void init_device(device_info *vmb)
 {	vmb_size = 8*5;
 #ifdef WIN32	
@@ -512,6 +547,7 @@ void init_device(device_info *vmb)
   vmb->terminate=disk_terminate;
   vmb->put_payload=disk_put_payload;
   vmb->get_payload=disk_get_payload;
+  inspector[0].address=vmb_address;
 }
 
 #ifndef WIN32

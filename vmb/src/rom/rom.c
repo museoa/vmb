@@ -29,6 +29,7 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
+#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -43,7 +44,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.9 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.10 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "\n"
@@ -163,6 +164,9 @@ void open_file(void)
         if (rc == 0) vmb_fatal_error(__LINE__,"Empty file");
     }
     fclose(f);
+   inspector[0].address=vmb_address;
+   inspector[0].size=vmb_size;
+   mem_update(0,0,vmb_size);
 }
 
 
@@ -178,22 +182,37 @@ unsigned char *rom_get_payload(unsigned int offset,int size)
 
 void rom_poweron(void)
 {  open_file();
+   mem_update(0,0,vmb_size);
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }
 
 
+static int rom_read(unsigned int offset,int size,unsigned char *buf)
+{ if (offset>vmb_size) return 0;
+  if (offset+size>vmb_size) size =vmb_size-offset;
+  memmove(buf,rom+offset,size);
+  return size;
+}
+
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Memory",0,rom_read,0,0,NULL},
+	{0}
+};
+
+
 void init_device(device_info *vmb)
 {  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
    vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
-   open_file();
-   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
-   close(0);
    vmb->poweron=rom_poweron;
    vmb->poweroff=vmb_poweroff;
    vmb->disconnected=vmb_disconnected;
    vmb->reset=open_file;
    vmb->terminate=vmb_terminate;
    vmb->get_payload=rom_get_payload;
+   open_file();
+   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
+   close(0);
 }

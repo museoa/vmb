@@ -138,7 +138,6 @@ return FALSE;
 }
 	
 
-
 INT_PTR CALLBACK   
 DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { static int minw, minh;
@@ -149,6 +148,8 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	register_subwindow(hMemory);
 	hFilter=CreateDialog(hInst,MAKEINTRESOURCE(IDD_FILTER),hDlg,FilterProc);
     register_subwindow(hFilter);
+	hDebug=hDlg;
+	register_subwindow(hDebug);
 	{ TCITEM tie;
 	  RECT rect;
 	  int i=0;
@@ -163,6 +164,7 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i+2, &tie);
 		i++;
 	  }
+
 	  TabCtrl_SetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG), 0);
 	  ShowWindow(GetDlgItem(hDlg,IDC_DEBUG),SW_SHOW);
 	  GetWindowRect(hDlg,&rect);

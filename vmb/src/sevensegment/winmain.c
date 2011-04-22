@@ -5,6 +5,7 @@
 #include "bus-arith.h"
 #include "resource.h"
 #include "winopt.h"
+#include "winmem.h"
 #include "param.h"
 #include "option.h"
 
@@ -281,23 +282,27 @@ unsigned char *seg_get_payload(unsigned int offset,int size)
 
 void seg_put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(segmentbits+offset,payload,size);
+  mem_update(0,offset,size);
   update_bits();
 }
 
 void seg_poweron(void)
 { memset(segmentbits,0xFF,8);
+  mem_update(0,0,8);
   update_bits();
 }
 
 
 void seg_poweroff(void)
 { memset(segmentbits,0x80,8);
+  mem_update(0,0,8);
   update_bits();
 }
 
 void seg_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { memset(segmentbits,0x02,8);
+  mem_update(0,0,8);
   update_bits();
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
@@ -305,8 +310,23 @@ void seg_disconnected(void)
 
 void seg_reset(void)
 { memset(segmentbits,0xFF,8);
+  mem_update(0,0,8);
+  inspector[0].address=vmb_address;
   update_bits();
 }
+static int seven_read(unsigned int offset,int size,unsigned char *buf)
+{ if (offset>vmb_size) return 0;
+  if (offset+size>vmb_size) size =vmb_size-offset;
+  memmove(buf,segmentbits+offset,size);
+  return size;
+}
+
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Memory",8,seven_read,0,0,NULL},
+	{0}
+};
+
 
 void init_device(device_info *vmb)
 { 
@@ -319,4 +339,6 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=seg_put_payload;
   vmb->get_payload=seg_get_payload;
+  inspector[0].address=vmb_address;
+  mem_update(0,0,vmb_size);
 }

@@ -28,6 +28,7 @@
 #pragma warning(disable : 4996)
 #include "resource.h"
 #include "winopt.h"
+#include "winmem.h"
 extern HBITMAP hBmpActive, hBmpInactive;
 #else
 #include <unistd.h>
@@ -42,7 +43,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.16 $ $Date: 2011-03-25 22:48:11 $";
+char version[]="$Revision: 1.17 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "\n"
@@ -91,16 +92,15 @@ unsigned char *kb_get_payload(unsigned int offset,int size)
     static unsigned char payload[8];
     
     memmove(payload,data,8);
-    // memset(data,0,8);
-    
-    if(offset +size>=8) 
-	{ 	  memset(data,0,8);    /* reset to zero */
+    if(offset+size>=8) 
+	{ memset(data,0,8);    /* reset to zero */
       if (input_buffer_first<input_buffer_last)
 	  { data[DATA] = input_buffer[input_buffer_first++];
         data[COUNT] = 1;
         vmb_raise_interrupt(&vmb,interrupt);
         vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");  
 	  }
+	  mem_update(0,0,8);
 	}
     return payload+offset;
 }
@@ -133,6 +133,7 @@ void process_input_file(char *filename)
   data[DATA] = input_buffer[input_buffer_first++];
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
+  mem_update(0,0,8);
   vmb_raise_interrupt(&vmb,interrupt);
   vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
 }
@@ -149,8 +150,9 @@ void process_input(unsigned char c)
   { data[DATA] = c;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
+	mem_update(0,0,8);
     vmb_raise_interrupt(&vmb,interrupt);
-    vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
+    vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
   }
   else
   { vmb_debug(VMB_DEBUG_NOTIFY, "No power, character ignored");
@@ -190,6 +192,44 @@ static void prepare_input(void)
 }
 #endif
 
+struct register_def kbd_regs[] = {
+	/* name no offset size chunk format */
+	{"Error" ,0,ERROR,1,byte_chunk,hex_format},
+	{"Count" ,1,COUNT,1,byte_chunk,unsigned_format},
+    {"Char"  ,2,DATA,1,byte_chunk,ascii_format},
+    {"Char"  ,3,DATA,1,byte_chunk,hex_format},
+	{0}};
+
+int kbd_reg_read(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>8) return 0;
+  if (offset+size>8) size =8-offset;
+  memmove(buf,data+offset,size);
+  return size;
+}
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Registers",5*8,kbd_reg_read,0,4,kbd_regs},
+	{0}
+};
+
+void kbd_poweron(void)
+/* this function is called when the virtual power is turned on */
+{ /* do nothing */
+	memset(data,0,8);
+	mem_update(0,0,8);
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_VMB_ON,0,0);
+#endif
+}
+void kbd_reset(void)
+/* this function is called when the virtual power is turned on */
+{ /* do nothing */
+	memset(data,0,8);
+	mem_update(0,0,8);
+#ifdef WIN32
+   PostMessage(hMainWnd,WM_VMB_RESET,0,0);
+#endif
+}
 void init_device(device_info *vmb)
 { vmb_size = 8;
 #ifdef WIN32
@@ -200,12 +240,15 @@ void init_device(device_info *vmb)
 #else
    prepare_input();
 #endif
-  vmb->poweron=vmb_poweron;
+  vmb->poweron=kbd_poweron;
   vmb->poweroff=vmb_poweroff;
+  vmb->reset=kbd_reset;
   vmb->disconnected=vmb_disconnected;
   vmb->terminate=kb_terminate;
   vmb->get_payload=kb_get_payload;
+  inspector[0].address=vmb_address;
 }
+
 
 
 #ifdef WIN32

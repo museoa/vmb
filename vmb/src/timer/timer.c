@@ -82,6 +82,24 @@ tmem[1F]
 
 see help.html
 */
+#define TIMER_REGS	14
+struct register_def timer_regs[TIMER_REGS+1] = {
+	/* name no offset size chunk format */
+	{"Year"             ,0,0x00,1,wyde_chunk,unsigned_format},
+	{"Month"            ,1,0x02,1,byte_chunk,unsigned_format},
+    {"Day"              ,2,0x03,1,byte_chunk,unsigned_format},
+    {"Day per Year"     ,3,0x04,2,wyde_chunk,unsigned_format},
+    {"DST"              ,4,0x06,1,byte_chunk,unsigned_format},
+    {"Weekday"          ,5,0x07,1,byte_chunk,unsigned_format},
+    {"Hour"             ,6,0x09,1,byte_chunk,unsigned_format},
+    {"Minute"           ,7,0x0A,1,byte_chunk,unsigned_format},
+    {"Second"           ,8,0x0B,1,byte_chunk,unsigned_format},
+    {"Milliseconds"     ,9,0x0C,4,tetra_chunk,unsigned_format},
+    {"t"                ,10,0x10,4,tetra_chunk,unsigned_format},
+    {"ti"               ,11,0x14,4,tetra_chunk,unsigned_format},
+    {"t0"               ,12,0x18,4,tetra_chunk,unsigned_format},
+    {"dt"               ,13,0x1C,4,tetra_chunk,unsigned_format},
+	{0}};
 
 unsigned int tt=0, ti=0, t0=0, dt=0; /* copies of tmem fields */
 
@@ -188,13 +206,13 @@ void timer_signal()
   }
   else
     timer_start();
-  mem_update(0x00,0x20);
+  mem_update(0,0x00,TIMER_MEM);
 }
 
 
 
 
-char version[]="$Revision: 1.7 $ $Date: 2011-04-15 01:58:52 $";
+char version[]="$Revision: 1.8 $ $Date: 2011-04-22 00:52:36 $";
 
 char howto[] =
 "\n"
@@ -233,7 +251,7 @@ unsigned char *timer_get_payload(unsigned int offset,int size)
    { int d = offset<0x10?0x10-offset:0;
      vmb_debugx(VMB_DEBUG_INFO,"extended information: %s",tmem+offset+d,size-d);
    }
-   mem_update(0x00,0x10);
+   mem_update(0,0x00,0x10);
    return tmem+offset;
 }
 
@@ -289,7 +307,7 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
         timer_start();
       }
     }
-	mem_update(0,0x20);
+	mem_update(0,0,TIMER_MEM);
   }
 }
 
@@ -299,7 +317,7 @@ static void clear_timer(void)
   SETTI(ti);
   SETT0(t0);
   SETDT(dt);
-  mem_update(0x10,0x20);
+  mem_update(0,0x10,TIMER_MEM);
   update_display();
 }
 void timer_poweroff(void)
@@ -352,6 +370,14 @@ static int timer_mem_read(unsigned int offset, int size, unsigned char *buf)
   return size;
 }
 
+
+struct inspector_def inspector[3] = {
+    /* name size get_mem address num_regs regs */
+	{"Memory",TIMER_MEM,timer_mem_read,0,0,NULL},
+	{"Registers",TIMER_MEM,timer_mem_read,0,TIMER_REGS,timer_regs},
+	{0}
+};
+
 void init_device(device_info *vmb)
 { vmb_debug(VMB_DEBUG_PROGRESS,"Timer initializing");
   tt = ti = t0 = dt = 0;
@@ -368,6 +394,6 @@ void init_device(device_info *vmb)
   vmb->terminate=timer_terminate;
   vmb->put_payload=timer_put_payload;
   vmb->get_payload=timer_get_payload;
-  mem_inspect=timer_mem_read;
+  inspector[0].address=vmb_address;
 }
 
