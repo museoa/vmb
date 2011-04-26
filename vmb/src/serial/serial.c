@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.1 $ $Date: 2011-04-01 22:58:43 $";
+char version[]="$Revision: 1.2 $ $Date: 2011-04-26 19:55:40 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -73,7 +73,7 @@ char howto[] =
 "\r\n"
 "The complete ocatbyte will be reset to zero after a byte is output.\r\n"
 "\r\n"
-"Reading a YY byte equal to zero means you can write one byte to ZZ to\r\n"
+ "Reading a YY byte equal to zero means you can write one byte to ZZ to\r\n"
 "produce output. Reading a YY value that is not zero, will generate an\r\n"
 "interrupt as soon as YY is returning to zero, if interrupts are enabled.\r\n"
 "If the application does not read YY, there will be no interrupts.\r\n"
@@ -84,6 +84,7 @@ char howto[] =
 extern HWND hMainWnd;
 #else
 #define _XOPEN_SOURCE 600
+#define _BSD_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -91,6 +92,10 @@ extern HWND hMainWnd;
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/select.h>
+#include <sys/ioctl.h>
+#include <ctype.h>
+#include <errno.h>
 #endif
 
 #include "vmb.h"
@@ -295,13 +300,33 @@ static void *read_thread(void *dummy)
 { do 
   { int size;
     unsigned char buf[BUF_MAX];
+  start:
     size = read(ttyfd,buf,BUF_MAX);
     if (size==0) 
       { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input Reading from TTY");
         return 0;
       }
     else if (size<0)
-      { vmb_debug(VMB_DEBUG_ERROR,"Error Reading from TTY");
+      {
+#if 0
+        if (errno==EIO)
+	  { int i, flags;
+            static int old_flags=-1;
+            i=ioctl(ttyfd,TIOCMGET,&flags);
+	    if (i!=0)
+	    { vmb_debugi(VMB_DEBUG_ERROR,"Reading Modem Lines returned %d", i);
+              vmb_debugi(VMB_DEBUG_ERROR,"Error %d Reading Modem Lines", errno);
+	    }
+            if (flags!=old_flags)
+	      { vmb_debugi(VMB_DEBUG_ERROR,"Modem Lines from TTY %X", flags);
+                old_flags=flags;
+	      }
+            usleep(10000);
+            goto start;
+	  }
+	else
+#endif
+        vmb_debugi(VMB_DEBUG_ERROR,"Error %d Reading from TTY", errno);
         return 0;
       }
     else
@@ -318,6 +343,10 @@ static void *read_thread(void *dummy)
                 vmb_debug(VMB_DEBUG_PROGRESS,"Read Interrupt sent");
 	      }
 	    put(&inbuf,buf[i]);
+            if (isprint(buf[i]))
+              vmb_debugi(VMB_DEBUG_INFO,"Reading %c from TTY", buf[i]);
+	    else
+              vmb_debugi(VMB_DEBUG_INFO,"Reading %02X from TTY", buf[i]);
 	  }
       }
   } while(1);
@@ -381,8 +410,8 @@ void serial_put_payload(unsigned int offset,int size, unsigned char *payload)
 	{ WXX=0;
 	  put(&outbuf,WZZ);
           WYY=0;
-          WZZ=0;
           vmb_debugi(VMB_DEBUG_PROGRESS,"writing charcter 0x%02X",WZZ);
+          WZZ=0;
 	}
     }
 }
@@ -442,6 +471,7 @@ int create_pseudo_tty(void)
 {
   int fd;
 
+#if 1
   fd = posix_openpt(O_RDWR /* | O_NOCTTY */ );
   if (fd == -1)
     vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal.\n");
@@ -457,14 +487,41 @@ int create_pseudo_tty(void)
   if (slave_tty_path==NULL)
     vmb_debug(VMB_DEBUG_ERROR,"unable to get Name of slave tty device.\n");
 
-  /* to remove echos we do this 
+ 
+#else
+  fd = open("/dev/ptypf", O_RDWR);
+  if (fd == -1)
+    vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal /dev/ptypf \n");
+  slave_tty_path =  "/dev/ttypf";
+#endif
+
+ /* to remove echos we do this 
      input with echo keeps the thing alive
      input with cat file > /dev/pts/4 produces an end of file
      seems ok !
   */
-
   { struct termios tios;
-    
+#if 0   
+#define BAUDRATE B38400
+ 
+        memset(&tios,0, sizeof(tios));
+        tios.c_cflag = BAUDRATE | CRTSCTS | CS8 | CREAD;
+        tios.c_iflag = IGNPAR;
+        tios.c_oflag = 0;
+        
+        /* set input mode (non-canonical, no echo,...) */
+        tios.c_lflag = 0;
+         
+        tios.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+        tios.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+        
+        tcflush(fd, TCIFLUSH);
+        tcsetattr(fd,TCSANOW,&tios);
+
+        /* allow the process to receive SIGIO */
+        fcntl(fd, F_SETOWN, getpid());
+
+#else
     tcgetattr(fd,&tios);
     /* make it a raw tty (like cfmakeraw(&tios) ) */
     tios.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
@@ -476,6 +533,8 @@ int create_pseudo_tty(void)
     tios.c_cc[VMIN]=1;
     tios.c_cc[VTIME]=0;
     tcsetattr(fd,TCSANOW,&tios);
+#endif
+
   }
   return fd;
 }
@@ -501,10 +560,24 @@ void init_device(device_info *vmb)
   vmb->get_payload=serial_get_payload;
 }
 
+static
+void sighndl(int signo)
+{
+        /* signal(signo, sighndl); */
+	fprintf(stderr, "Got signal %d\n", signo);
+	fflush(stderr);
+        exit(1);
+}
 
 
 int main(int argc, char *argv[])
 {
+  signal(SIGINT,sighndl);
+  signal(SIGTERM,sighndl);
+  /* signal(SIGKILL,sighndl); a bit dangerous */
+  signal(SIGHUP, sighndl);
+  signal(SIGIO, sighndl);
+
   param_init(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0;
   vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
@@ -516,14 +589,34 @@ int main(int argc, char *argv[])
   vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
-
+  
   init_threads();
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
                0, 0, vmb_program_name);
-
+#if 0
+  while (vmb.connected)
+  { fd_set except_set;
+    int ready;
+    FD_ZERO(&except_set);
+    FD_SET((unsigned)ttyfd, &except_set);
+    ready = select (ttyfd+1, NULL, NULL, &except_set, NULL);
+    if (ready<0)
+      perror("select()");
+    else if (FD_ISSET(ttyfd,&except_set))
+    { int arg;
+      vmb_debug(VMB_DEBUG_PROGRESS,"Exception on TTY\n");
+      if(ioctl(ttyfd, TIOCMGET, &arg) < 0)
+            perror("TIOCMGET ioctl failed");
+      else
+      {  vmb_debugi(VMB_DEBUG_PROGRESS,"ioctl %08X\n",arg);
+      }
+    }
+  }
+#else
   vmb_wait_for_disconnect(&vmb);
+#endif
   pthread_kill(read_thr,SIGTERM);
   pthread_kill(write_thr,SIGTERM);
   vmb_debug(VMB_DEBUG_PROGRESS, "Serial exit.");
