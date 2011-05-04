@@ -1,9 +1,11 @@
 
+BIN=/opt/mmix/bin
+CC=$(BIN)/mmix-gcc
+AR=$(BIN)/mmix-ar
+RANLIB = $(BIN)/mmix-ranlib
+
 CFLAGS= -ggdb -Wall -melf -mabi=mmixware -mno-base-addresses -O1
-CC= mmix-gcc
-AR = mmix-ar
 ARFLAGS = cru
-RANLIB = mmix-ranlib
 
 
 OBJECTS = FAT32_Cache.o FAT32_Access.o  FAT32_FileLib.o \

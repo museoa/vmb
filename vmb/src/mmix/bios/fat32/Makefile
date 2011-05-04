@@ -1,6 +1,6 @@
 # making the rom bios program cross-compiling on the host with target = mmix
 
-BIN=/usr/local/bin
+BIN=/opt/mmix/bin
 MAS=$(BIN)/mmix-as
 MLD=$(BIN)/mmix-ld
 MCC=$(BIN)/mmix-gcc
