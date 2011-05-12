@@ -2,24 +2,24 @@
  *
  * \file        FAT32_Definitions.h
  * \author      Rob Riglar <rob@robriglar.com>
- * \author      Bjoern Rennhak <bjoern@rennhak.de>
- * \version     $Id: FAT32_Definitions.h,v 1.2 2009-09-07 11:43:30 ruckert Exp $
+ * \version     $Id: FAT32_Definitions.h,v 1.3 2011-05-12 00:15:33 ruckert Exp $
  * \brief       FAT32 Library, Definitions
  * \details     {
  * }
  * \note        {
  *                Copyright (c) 2004-2007, Rob Riglar <rob@robriglar.com>, FAT32 File IO Library
- *                Copyright (c) 2007-2008, Bjoern Rennhak, Virtual Motherboard project.
  *                All rights reserved, see COPYRIGHT file for more details.
  * }
  *
  */
 
 
-#include "../define.h"
+
 
 #ifndef __FAT32_DEFINITIONS_H__
 #define __FAT32_DEFINITIONS_H__
+
+#include "../define.h"
 
 ///! FAT32 Offsets
 ///! Name -> Offset

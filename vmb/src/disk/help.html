@@ -1,0 +1,94 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Disk Device Specification</title>
+	</head>
+
+	<BODY>
+		<H1>Disk Device Specification</H1>
+		<h2><img src="disk.gif" alt="" width="314" height="114" border="0"></h2>
+		<h2>Memory Layout</h2>
+		<table border=1>
+			<tr>
+				<th>Byte
+				<th>Mode
+				<th>Name
+				<th>Description
+
+			<tr>
+				<td>00-07
+				<td>RW
+				<td>Control
+				<td>Controll register, write to initiate disk operations, read for status information
+			<tr>
+				<td>08-15
+				<td>RW
+				<td>Count
+				<td>number of disk sectors to be transferred in the next command.
+			<tr>
+				<td>16-23
+				<td>RW
+				<td>Sector
+				<td>sector number of the first sector to be transferred in the next command
+			<tr>
+				<td>24-31
+				<td>RW
+				<td>DMA
+				<td>address of the first byte of physical memory where the next transfer takes place, must be octabyte-aligned.
+			<tr>
+				<td>32-39
+				<td>R
+				<td>Capacity
+				<td>Total number of sectors of the disk 
+		</table>
+		<H2>Operation</H2>
+		The program will contact the motherboard at [host:]port and register itself with the given address and interrupt.
+		<p>The disk simulates a disk controller and the disk proper by using a file of an appropriate size and organization on the host system.  The file is read into memory and reread after a RESET or a Power ON. It is considered as a disk immage, that is organizes as a sequence of 512 byte blocks. Disk images can be modified by mounting them as <a href="http://en.wikipedia.org/wiki/Loop_device">loopback filesystems</a> under Unix with the mount command, or by using the <a href="http://www.ltr-data.se/opencode.html/#ImDisk">ImDisk</a> Tool under windows.</p>
+		<p>The disk understands two commands: </p>
+		<ul>
+			<li>read a block of data from the disk or 
+			<li>write a block of data to the disk. 
+		</ul>
+		<p>The amount of data transferred is specified as an integral number of sectors. The sector size is fixed at 512 bytes. The number of sectors to read or write is given to the controller in the <strong>count</strong> register. The position of the starting sector on the disk is given to the controller in the <strong>sector</strong> register. The disk sectors are numbered starting at 0 through (and including) the <strong>capacity</strong> of the disk minus one. The number of sectors on the disk can be read by software from the <strong>capacity</strong> register.</p>
+		<p>The memory address from where a block of data is read in a write operation or to where a block of data is written in a read operation is determined by the contents of the <strong>DMA</strong> register. It holds the physical address of the first byte to be transferred. This address must be aligned to an octabyte boundary.</p>
+		<p>The 5 low order bits of the Control register are used to control the disk and get current status information from it.  These bits are from low order to high order: </p>
+		<ul>
+			<li>0x01 - STRT is write-only. As soon as a 1 is written to this bit, the next command is carried out. 
+			<li>0x02 - IEN is read-write and enables or disables interrupts from the disk.
+			<li>0x04 - WRT is read-write and must be set to 0 to read from the disk, or set to 1 to write to the disk. 
+			<li>0x08 - ERR is set by the hardware if any error prevented the successful completion of the last command. Both BUSY and ERR are read-only.
+			<li>0x10 - BUSY is set by the hardware during command execution. When the command is completed (or cannot be completed due to an error), BUSY is reset. This condition also raises the disk interrupt if it is enabled.
+		</ul>
+		<h2>Configuration</h2>
+		The Keyboard has the following configurable parameters:
+		<table>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> default <td> address where the resource is located </tr>
+			<tr>
+				<td>interrupt</td>
+				<td>not set</td>
+				<td>interrupt sent when character is ready</td>
+			</tr>
+			<tr>
+				<td>file</td>
+				<td>not set</td>
+				<td>Name of the file containing the disk image</td>
+			</tr>
+			<tr> <td> x        <td> 0<td>the x position of the window </tr>
+			<tr> <td> y        <td> 0<td>the y position of the window </tr>
+			<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+			<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose, sets debug mask to zero </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+		<p>
+These can be set in default.mmc
+
+</p>
+	</BODY>
+</HTML>

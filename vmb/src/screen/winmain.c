@@ -9,7 +9,11 @@
 #include "option.h"
 
 HWND hwndEdit;
-static int fontwidth=8;
+#define FONT_SMALL 11
+#define FONT_MEDIUM 14
+#define FONT_LARGE 18
+
+static int fontheight=FONT_MEDIUM;
 static HFONT hfont=0;
 static HFONT hCustomfont=0;
 static CHOOSEFONT cf;
@@ -49,11 +53,13 @@ void setfont(void)
 { 
   if (hfont!=0) 
 	  DeleteObject(hfont);
-  lf.lfHeight=0;
-  lf.lfWidth=fontwidth;
-  lf.lfOutPrecision=OUT_OUTLINE_PRECIS;
+  lf.lfHeight=-fontheight /* small */;
+  lf.lfWidth=0;
+  lf.lfOutPrecision=OUT_DEFAULT_PRECIS; /*OUT_STROKE_PRECIS*/
+  lf.lfClipPrecision=CLIP_DEFAULT_PRECIS; /*CLIP_STROKE_PRECIS*/
+  lf.lfQuality=PROOF_QUALITY; /* ANTIALIASED_QUALITY DRAFT_QUALITY*/;
   lf.lfCharSet = ANSI_CHARSET;
-  lf.lfWeight = FW_BOLD;
+  lf.lfWeight = FW_NORMAL;
   lf.lfPitchAndFamily=FF_MODERN|FIXED_PITCH;
   strncpy(lf.lfFaceName,"Courier New",32);
   hfont = CreateFontIndirect(&lf);  
@@ -71,9 +77,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
 	  if (hCustomfont!=0)
 		  CheckDlgButton(hDlg,IDC_CUSTOM_FONT,BST_CHECKED);
-	  else if (fontwidth <= 5 )
+	  else if (fontheight <= FONT_SMALL )
 		  CheckDlgButton(hDlg,IDC_SMALL_FONT,BST_CHECKED);
-	  else if (fontwidth >= 10)
+	  else if (fontheight >= FONT_LARGE)
 		  CheckDlgButton(hDlg,IDC_LARGE_FONT,BST_CHECKED);
 	  else
 		  CheckDlgButton(hDlg,IDC_MEDIUM_FONT,BST_CHECKED);
@@ -91,9 +97,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
 		if (IsDlgButtonChecked(hDlg,IDC_CUSTOM_FONT))
 			choosefont();
-		else if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontwidth=5,setfont();
-		else if (IsDlgButtonChecked(hDlg,IDC_MEDIUM_FONT)) fontwidth=8,setfont();
-		else fontwidth=10,setfont();
+		else if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontheight=FONT_SMALL,setfont();
+		else if (IsDlgButtonChecked(hDlg,IDC_MEDIUM_FONT)) fontheight=FONT_MEDIUM,setfont();
+		else fontheight=FONT_LARGE,setfont();
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);

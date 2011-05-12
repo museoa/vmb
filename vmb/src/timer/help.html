@@ -1,10 +1,16 @@
 <HTML>
-<BODY>
-<H1>New Timer Device Specification</H1>
 
-<H2><B><B>Memory Layout</B></B></H2>
-<p>
-<table border=1>
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Timer Device Specification</title>
+	</head>
+
+	<BODY>
+<H1>Timer Device Specification</H1>
+
+<H2><img src="timer.gif" alt="" width="298" height="71" border="0"></H2>
+		<h2><B><B>Memory Layout</B></B></h2>
+		<table border=1>
 <tr><th>Byte<th>Mode<th>Name<th>Description
 <tr><td>00-01<td>R <td>y<td> current year
 <tr><td>02<td>R <td>m<td> current month (0 = January, 1 = February, ... , 11 = December)
@@ -22,8 +28,7 @@
 <tr><td>18-1B<td>RW<td>t0<td> t0: base time for next interrupt in milliseconds
 <tr><td>1C-1F<td>RW<td>dt<td> dt: delta time for next  interrupt in milliseconds
 </table>
-
-<H2>Current Time and Date</H2>
+		<H2>Current Time and Date</H2>
 The values y, m, d, dst, yd, wd, h, m, s, ms specify the current time
 and date as given by the host operating system. The value of ms will grow larger than the number of milliseconds of a single day, if the system runs over midnight. 
 It will wrap around eventually after approximately 50 days.
