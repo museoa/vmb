@@ -1,0 +1,97 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Motherboard Specification</title>
+	</head>
+
+	<BODY>
+<H1>Motherboard Specification</H1>
+		<h1><img src="mother.gif" alt="" width="305" height="102" border="0"></h1>
+		<h2>Operation</h2>
+		The motherboard provides 256 slots, each of which can be used to connect a VMB device to the motherboard. The motherboard implements the Virtual Bus Specification and forwards messages (see <a href="../messages.html">Message Specification</a>) between the devices connected.
+		<p>Once started, the motherboard reads the file default.mmc. From this file it will get the port number where the motherboard opens a server socket. Through this socket it will accept connections from the devices and establishes point-to-point TCP/IP connections with the devices. The devices are expected to send a registrations message as the first message.</p>
+		<h2>Unix</h2>
+		The implementation under UNIX is a command line application. It accepts the following commands:
+		<table border="1" cellspacing="2" cellpadding="0">
+			<tr>
+				<td>help </td>
+				<td>display this help message</td>
+			</tr>
+			<tr>
+				<td>debug</td>
+				<td>switch on debugging output</td>
+			</tr>
+			<tr>
+				<td>nodebug</td>
+				<td>switch off debugging output</td>
+			</tr>
+			<tr>
+				<td>verbose</td>
+				<td>increase verbosity (more output)</td>
+			</tr>
+			<tr>
+				<td>quiet</td>
+				<td>decrease verbosity (less output)</td>
+			</tr>
+			<tr>
+				<td>on</td>
+				<td>send all slots the power on message</td>
+			</tr>
+			<tr>
+				<td>off</td>
+				<td>send all slots the power off message</td>
+			</tr>
+			<tr>
+				<td>reset</td>
+				<td>send all slots the reset message</td>
+			</tr>
+			<tr>
+				<td>terminate</td>
+				<td>send all slots the terminate message</td>
+			</tr>
+			<tr>
+				<td>info</td>
+				<td>display information about the slots in use</td>
+			</tr>
+			<tr>
+				<td>close n</td>
+				<td>close slot number n</td>
+			</tr>
+			<tr>
+				<td>signal n</td>
+				<td>send signal n to the devices</td>
+			</tr>
+			<tr>
+				<td> slot n</td>
+				<td>display details about slot n</td>
+			</tr>
+			<tr>
+				<td>quit</td>
+				<td>terminte all slots and the motherboard</td>
+			</tr>
+		</table>
+		<h2>Win32</h2>
+		<p>The windows application has a GUI. The Power On, Power Off functionality is provided by a powert button. The reset Functionality is provided by a Reset button. All the other functions can be accessed through the context menu (open with a click on the right mouse button).</p>
+		<h2>Motherboard Configuration</h2>The motherboard has the following configurable parameters:<table>
+			<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+			<tr> <td> x        <td> 0<td>the x position of the window </tr>
+			<tr> <td> y        <td> 0<td>the y position of the window </tr>
+			<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+			<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose, sets debug mask to zero </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+			<tr>
+				<td>on </td>
+				<td>false</td>
+				<td>turn Power on after start up.</td>
+			</tr>
+		</table>
+		
+These can be set in default.mmc
+
+</BODY>
+</HTML>

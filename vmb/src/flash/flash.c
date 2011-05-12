@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.12 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.13 $ $Date: 2011-05-12 03:01:06 $";
 
 char howto[] =
 "\n"
@@ -56,7 +56,7 @@ char howto[] =
 
 static unsigned char *flash=NULL;
 
-#define PAGESIZE (1<<13) /*  8 kbyte */
+#define PAGESIZE (1<<10) /*  1 kbyte */
 
 static int image_changed = 0;
 

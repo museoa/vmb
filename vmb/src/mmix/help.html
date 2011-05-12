@@ -1,0 +1,64 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB MMIX CPU Specification</title>
+	</head>
+
+	<BODY>
+<H1> MMIX CPU Specification</H1>
+		<h1><img src="mmix.gif" alt="" width="179" height="158" border="0"></h1>
+		<p>The  MMIX CPU is 64 Bit RISC CPU defined and implemented by Donald E. Knuth. Your find an abundance of information online at Donald Knuths <a href="http://www-cs-faculty.stanford.edu/~uno/mmix.html">MMIX web site</a> or at the <a href="http://mmix.cs.hm.edu">MMIX Repository</a>.</p>
+		<h2>VMB MMIX</h2>
+		The vmb implementation is generated using a change file from the original MMIX sources especially mmix-sim.w - by Donald E. Knuth. There are a few things, however that are different:
+		<h3>Address Space, Address Translation, and Cache</h3>
+		The original mmix simulator simulates only user adresses and no negative adresses. To implement operating systems, the implementation was extended to match the specification. Now any 64 bit value is a valid virtual address. It is translated, using page tables according to the MMIX specification into physical addresses, that are then send to the virtual bus. To make execution mor efficient, the new implementation of the MMIX has an instruction and a data cache, but currently no secondary cache. Instructions that deal with the caches, address translation have been implemented according to specification.
+		<h3>Booting</h3>
+		After Power On or Reset, the CPU sets all registers to zero ( except rN) and starts executing instructions at address 0x8000 0000 0000 0000.
+		<h3>Asynchronous Interrupts</h3>
+		<p>Interrupts comming from the virtual bus are reflected in rQ and cause dynamic Traps as specified.</p>
+		<h3>Command Line Parameters</h3>
+		The VMB mmix has the following additional Command line parameters:
+		<table border="1" cellspacing="2" cellpadding="0">
+			<tr>
+				<td>-B [host:]port</td>
+				<td>connect to the virtual motherboard  using the given host (optional) and port</td>
+			</tr>
+			<tr>
+				<td>-O</td>
+				<td> enable tracing inside the operating system (disabled by default)</td>
+			</tr>
+			<tr>
+				<td>-o</td>
+				<td>disable trace inside the operating system</td>
+			</tr>
+		</table>
+		<p>The original mmix requires an mmo file on the command line. This parameter is now optional, since the code might be in ROM. If present, the given mmo file is loaded into RAM (over the virtual bus).</p>
+		<h3>Changes to individual Instructions</h3>
+		TRAP&nbsp;
+		<table border="1" cellspacing="2" cellpadding="0">
+			<tr>
+				<td nowrap>TRAP</td>
+				<td>Implemented according to specification. The old shortcuts to implement basic IO haven been removed. </td>
+			</tr>
+			<tr>
+				<td nowrap>LDVTS</td>
+				<td>Implementation </td>
+			</tr>
+			<tr>
+				<td nowrap>SYNC 4</td>
+				<td>Power Save, Instruction sleeps for 0.75 seconds unless an interrupt occurs earlier.</td>
+			</tr>
+			<tr>
+				<td nowrap>SWYM XYZ</td>
+				<td>if $X,YZ is non zero, this instruction behaves like a software breakpoint, if $X points to a string the starts with &quot;DEBUG &quot;, the string is displayed.</td>
+			</tr>
+		</table>
+		<h3>Miscellaneaous</h3>
+		<p>Currently profiling and display of source lines is not supported. While profiling might come back again, the display of  source lines is considered no longer necessary. If debugging on the source level is desired, you should use gdb (see next section).</p>
+		<p></p>
+		<h2>GNU MMIX</h2>
+		To be written
+		<h2></h2>
+	</BODY>
+</HTML>
