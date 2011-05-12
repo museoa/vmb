@@ -1,9 +1,9 @@
 
-SUBDIRS  = src doc
-     
+SUBDIRS  = src doc util
+
 
 .PHONY: $(SUBDIRS) clean install
-     
+
 $(SUBDIRS):
 	$(MAKE) -C $@
 
@@ -15,20 +15,25 @@ install:
 	  $(MAKE) -C $$dir install; \
 	done
 
-www: htdocs
-	rsync -aivzC htdocs/ ruckert,vmb@web.sourceforge.net:htdocs/
+
+
+www:
+	rm -f htdocs/*~
+	rsync -aivz --exclude CVS --exclude .cvsignore htdocs/ ruckert,vmb@web.sourceforge.net:htdocs/
 
 
 helpfiles := $(wildcard src/*/help.html)
 helpdirs := $(patsubst src/%/help.html,%,$(helpfiles))
 
-htdocs:
-	for f in $(helpdirs); do \
-	  echo copying src/$$f/help.html to htdocs/"$$f"_help.html; \
-	  cp src/$$f/help.html htdocs/"$$f"_help.html ; \
+wwwdoc: util $(helpfiles)
+	for dir in $(helpdirs); do \
+	  cp src/$$dir/help.html htdocs/"$$dir"_help.html ; \
+	  for file in `util/imglist src/$$dir/ < src/$$dir/help.html`; do\
+	    cp $$file htdocs;  \
+	  done; \
 	done
 
-     
+
 clean:
 	rm -f *.o *~ 
 	for dir in $(SUBDIRS); do \
@@ -46,4 +51,3 @@ TAGS:
 .PHONY : www
 .PHONY : ssh
 .PHONY : clean
-.PHONY : htdocs
