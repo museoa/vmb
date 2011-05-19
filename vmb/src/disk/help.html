@@ -16,31 +16,60 @@
 				<th>Name
 				<th>Description
 
+			
 			<tr>
-				<td>00-07
-				<td>RW
-				<td>Control
-				<td>Controll register, write to initiate disk operations, read for status information
+				<td>00-03</td>
+				<td>R</td>
+				<td>Status</td>
+				<td>Status register, is negativ if an error occured,  0 if idle, 1 if bussy.</td>
+			</tr>
 			<tr>
-				<td>08-15
-				<td>RW
+				<td>04-07<td>RW<td>Control
+				<td>Controll register, write to initiate disk operations
+			<tr>
+				<td>08-0F</td>
+				<td>R</td>
+				<td>Capacity</td>
+				<td>Total number of sectors of the disk</td>
+			</tr>
+			<tr>
+				<td>10-17</td>
+				<td>RW</td>
+				<td>Sector</td>
+				<td>sector number of the first sector to be transferred in the next command</td>
+			</tr>
+			<tr>
+				<td>18-1F<td>RW
 				<td>Count
 				<td>number of disk sectors to be transferred in the next command.
+			
 			<tr>
-				<td>16-23
-				<td>RW
-				<td>Sector
-				<td>sector number of the first sector to be transferred in the next command
+				<td>20-27<td>RW
+				<td>DMA0.address<td>physical address of first  buffer where the next transfer takes place
 			<tr>
-				<td>24-31
-				<td>RW
-				<td>DMA
-				<td>address of the first byte of physical memory where the next transfer takes place, must be octabyte-aligned.
+				<td>28-2F</td>
+				<td>RW</td>
+				<td>DMA0.size</td>
+				<td>size of first buffer where the next transfer takes place</td>
+			</tr>
 			<tr>
-				<td>32-39
-				<td>R
-				<td>Capacity
-				<td>Total number of sectors of the disk 
+				<td>...</td>
+				<td>RW</td>
+				<td>DMA1-14</td>
+				<td> more DMA address and size registers</td>
+			</tr>
+			<tr>
+				<td>110-117</td>
+				<td>RW</td>
+				<td>DMAf.address</td>
+				<td>physical address of 16th and last buffer where the next transfer takes place</td>
+			</tr>
+			<tr>
+				<td>118-11F</td>
+				<td>RW</td>
+				<td>DMAf.size</td>
+				<td>size of 16th and last buffer where the next transfer takes place</td>
+			</tr>
 		</table>
 		<H2>Operation</H2>
 		The program will contact the motherboard at [host:]port and register itself with the given address and interrupt.
@@ -50,17 +79,21 @@
 			<li>read a block of data from the disk or 
 			<li>write a block of data to the disk. 
 		</ul>
-		<p>The amount of data transferred is specified as an integral number of sectors. The sector size is fixed at 512 bytes. The number of sectors to read or write is given to the controller in the <strong>count</strong> register. The position of the starting sector on the disk is given to the controller in the <strong>sector</strong> register. The disk sectors are numbered starting at 0 through (and including) the <strong>capacity</strong> of the disk minus one. The number of sectors on the disk can be read by software from the <strong>capacity</strong> register.</p>
-		<p>The memory address from where a block of data is read in a write operation or to where a block of data is written in a read operation is determined by the contents of the <strong>DMA</strong> register. It holds the physical address of the first byte to be transferred. This address must be aligned to an octabyte boundary.</p>
-		<p>The 5 low order bits of the Control register are used to control the disk and get current status information from it.  These bits are from low order to high order: </p>
+		<p>The amount of data transferred is specified as an integral number of sectors. The size of a sector size is fixed at 512 bytes. The number of sectors to read or write is given to the controller in the <strong>count</strong> register. The position of the starting sector on the disk is given to the controller in the <strong>sector</strong> register. The disk sectors are numbered starting at 0 through (and including) the <strong>capacity</strong> of the disk minus one. The number of sectors on the disk can be read by software from the <strong>capacity</strong> register.</p>
+		<p>The memory buffers from where data is read in a write operation or to where data is written in a read operation is determined by the contents of the 16 <strong>DMA</strong> register. Each DMA register consists of an <strong>address</strong> and a <strong>size</strong> register. It holds the physical address of the buffer and its size. Several buffers can be used in a scatter or gather IO operation. This means that the IO operations view the content of the 16 DMA buffers as one consecutive data area, as if the buffers would have been concatenated. For example a write operation with gather its data first from buffer number one then from buffer number two, and so forth until the number of sectors requested are written or the buffers are all written. A read operation will scatter the sectors read from disk by filling the first buffer and then the second, until all disk sectors are written to memory or the bufferes are all filled.</p>
+		<p>The 3 low order bits of the <strong>control</strong> register are used to control the disk. These bits are from low order to high order:</p>
 		<ul>
-			<li>0x01 - STRT is write-only. As soon as a 1 is written to this bit, the next command is carried out. 
-			<li>0x02 - IEN is read-write and enables or disables interrupts from the disk.
-			<li>0x04 - WRT is read-write and must be set to 0 to read from the disk, or set to 1 to write to the disk. 
-			<li>0x08 - ERR is set by the hardware if any error prevented the successful completion of the last command. Both BUSY and ERR are read-only.
-			<li>0x10 - BUSY is set by the hardware during command execution. When the command is completed (or cannot be completed due to an error), BUSY is reset. This condition also raises the disk interrupt if it is enabled.
+			<li>0x01 - GO  As soon as a 1 is written to this bit, the next command is carried out.<li>0x02 - IEN Enables (1) or disables (0) interrupts from the disk.
+			<li>0x04 - WRT  Must be set to 1 to write to the disk, or set to 0 to read from the disk.
 		</ul>
+		<p>The <strong>status</strong> register is read only. Only two bit are significant, the first and the last. </p>
+		<ul>
+			<li>The sign bit is set if any error prevented the successful completion of the last command. It makes the value in this register negative.
+			<li>0x01 BUSSY  the lest significant bit is set by the hardware during command execution. When the command is completed (or cannot be completed due to an error), BUSSY is reset to zero. Comand completion also raises the disk interrupt if it is enabled. 
+		</ul>
+		<p>Tesing the status register, there are three typical values: negative means error, 1 meand bussy, 0 means idle.</p>
 		<h2>Configuration</h2>
+		
 		The Keyboard has the following configurable parameters:
 		<table>
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>

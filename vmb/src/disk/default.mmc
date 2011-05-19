@@ -1,23 +1,21 @@
-# default.mmc configuration file for the example
-
+# default.mmc configuration file for the MMIXonMMIX example
 
 port 9002
 host localhost
 
-
 #if mother
-debug
-exec ./rom
-exec ./ram
-exec xterm -e ./disk
-exec xterm -geometry 40x10 -fn 7x13 -e ./keyboard
-exec xterm -geometry 40x10 -fn 7x13 -e ./screen
-exec xterm -e ./mmix -i -O -B9002 hello.mmo 
+exec rom
+exec ram
+exec disk 
+exec keyboard
+exec screen
+#exec mmix -i -O mmix.mmo -i hello.mmo
+exec gmmix -i -O
+#exec mmix-gdb --args mmix-src\mmix.elf -i hello.mmo
+#exec mmix-insight --args mmix-src\mmix.elf -i hello.mmo
 #endif
 
-
 #if keyboard
-#debug
 address 0x1000000000000
 interrupt 17
 #endif
@@ -29,7 +27,8 @@ interrupt 18
 
 #if rom
 address 0x0000000000000000
-file /home/ruckert/vmb/src/mmix/bios/fat32/bios.img
+#file bios.img
+file bios-src\bios.img
 #endif
 
 #if ram
@@ -38,7 +37,6 @@ address 0x0000000100000000
 #endif
 
 #if disk
-debug
 address 0x3000000000000
 interrupt 19
 file disk.bin

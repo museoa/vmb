@@ -25,12 +25,11 @@ extern HBITMAP hbussy;
 #include "error.h"
 #include "bus-arith.h"
 #include "param.h"
-#include "disk.h"
 
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.20 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.21 $ $Date: 2011-05-19 01:01:59 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -48,60 +47,136 @@ char howto[] =
 "\n"
 "The memory address from where a block of data is read in a write operation\n"
 "or to where a block of data is written in a read operation is determined\n"
-"by the contents of the DMA register. It holds the physical address of the\n"
-"first byte to be transferred. This address must be aligned to an octabyte\n"
-"boundary.\n"
+"by the contents of the 16 DMA registers supporting scatter-gather IO.\n"
+"Each DMA register consists of an address and a size register.\n"
+"A read operation will scatter the data stream from the Count sectors requested\n"
+"over the memory. It will put DMA0.size bytes at DMA0.address, then continue\n"
+"with DMA1.size bytes at DMA1.address, and so on, until either all bytes read from\n"
+"the disk are in memmory or the last DMA buffer is filled\n"
+"A write operation will gather data from the buffers specified by the DMA\n"
+"registers, concatenating it and write it to the specified disk sectors.\n"
 "\n"
-"a) Control register: 5 bits of this register are used to control the disk\n"
-"and get current status information from it. \n"
-"These bits are from low order to high order:\n"
-"STRT is write-only. As soon as a 1 is written to this bit,\n"
-"    the next command is carried out. \n"
-"IEN is read-write and enables or disables interrupts from the disk.\n"
-"WRT is read-write and must be set to 0 to read from the disk,\n"
-"    or set to 1 to write to the disk.\n"
-"ERR is set by the hardware if any error prevented the successful\n"
-"    completion of the last command. Both BUSY and ERR are read-only.\n"
-"BUSY is set by the hardware during command execution. When\n"
+"a) Status register (4 byte, read only): 2 bits of this register are used to\n"
+"get current status information from it. \n"
+"These bits are:\n"
+"ERROR (the high order bit) set by the hardware if any error prevented the successful\n"
+"    completion of the last command.\n"
+"BUSY (the low order bit) is set by the hardware during command execution. When\n"
 "    the command is completed (or cannot be completed due to an error), BUSY\n"
 "    is reset. This condition also raises the disk interrupt if it is enabled.\n"
+"The bits are chosen to make testing the Status register simple.\n"
+"Negative values indicate errors, zero indicates idle, one indicates bussy\n"
 "\n"
-"b) Count register: this register holds the number of disk\n"
-"sectors to be transferred in the next command.\n"
+"b) Control register (4 byte): 3 bits of this register are used to control the disk\n"
+"These bits are from low order to high order:\n"
+"START: As soon as a 1 is written to this bit,\n"
+"    the next command is carried out. \n"
+"IENABLE: enables (1) or disables (0) interrupts from the disk.\n"
+"WRITE: is  set to 1 to write to the disk,\n"
+"       or set to 0 to read from the disk.\n"
 "\n"
-"c) Sector register: this register holds the disk sector\n"
+"c) Capacity register: this read-only register holds the total number of\n"
+"sectors on the disk.\n"
+"\n"
+"d) Sector register (8 byte): this register holds the disk sector\n"
 "number of the first sector to be transferred in the next command.\n"
 "\n"
-"d) DMA register: this register holds the address of the first\n"
-"byte of physical memory where the next transfer takes place. This address\n"
-"must be octabyte-aligned.\n"
+"e) Count register (8 byte): this register holds the number of disk\n"
+"sectors to be transferred in the next command.\n"
 "\n"
-"e) Capacity register: this read-only register holds the total number of\n"
-"sectors on the disk.\n"
+"f) 16 DMA registers (16*2*8 byte): these register holds the addresses and sizes\n"
+"of buffers in physical memory where the next transfer takes place.\n"
 "\n";
 
 struct register_def disk_regs[] = {
 	/* name no offset size chunk format */
-	{"Control" ,0,0x00,8,byte_chunk,hex_format},
-	{"Count"   ,1,0x08,8,tetra_chunk,unsigned_format},
-    {"Sector"  ,2,0x10,8,tetra_chunk,unsigned_format},
-    {"DMA"     ,3,0x18,8,octa_chunk,hex_format},
-    {"Capacity",4,0x20,8,tetra_chunk,unsigned_format},
+	{"Status"   , 0,0x00,4,tetra_chunk,hex_format},
+	{"Control"  , 1,0x04,4,tetra_chunk,hex_format},
+    {"Capacity" , 2,0x08,8,octa_chunk,unsigned_format},
+    {"Sector"   , 3,0x10,8,octa_chunk,unsigned_format},
+	{"Count"    , 4,0x18,8,octa_chunk,unsigned_format},
+    {"DMA0 Addr", 5,0x20,8,octa_chunk,hex_format},
+    {"DMA0 Size", 6,0x28,8,octa_chunk,unsigned_format},
+    {"DMA1 Addr", 7,0x30,8,octa_chunk,hex_format},
+    {"DMA1 Size", 8,0x38,8,octa_chunk,unsigned_format},
+    {"DMA2 Addr", 9,0x40,8,octa_chunk,hex_format},
+    {"DMA2 Size",10,0x48,8,octa_chunk,unsigned_format},
+    {"DMA3 Addr",11,0x50,8,octa_chunk,hex_format},
+    {"DMA3 Size",12,0x58,8,octa_chunk,unsigned_format},
+    {"DMA4 Addr",13,0x60,8,octa_chunk,hex_format},
+    {"DMA4 Size",14,0x68,8,octa_chunk,unsigned_format},
+    {"DMA5 Addr",15,0x70,8,octa_chunk,hex_format},
+    {"DMA5 Size",16,0x78,8,octa_chunk,unsigned_format},
+    {"DMA6 Addr",17,0x80,8,octa_chunk,hex_format},
+    {"DMA6 Size",18,0x88,8,octa_chunk,unsigned_format},
+    {"DMA7 Addr",19,0x90,8,octa_chunk,hex_format},
+    {"DMA7 Size",20,0x98,8,octa_chunk,unsigned_format},
+    {"DMA8 Addr",21,0xa0,8,octa_chunk,hex_format},
+    {"DMA8 Size",22,0xa8,8,octa_chunk,unsigned_format},
+    {"DMA9 Addr",23,0xb0,8,octa_chunk,hex_format},
+    {"DMA9 Size",24,0xb8,8,octa_chunk,unsigned_format},
+    {"DMAa Addr",25,0xc0,8,octa_chunk,hex_format},
+    {"DMAa Size",26,0xc8,8,octa_chunk,unsigned_format},
+    {"DMAb Addr",27,0xd0,8,octa_chunk,hex_format},
+    {"DMAb Size",28,0xd8,8,octa_chunk,unsigned_format},
+    {"DMAc Addr",29,0xe0,8,octa_chunk,hex_format},
+    {"DMAc Size",30,0xe8,8,octa_chunk,unsigned_format},
+    {"DMAd Addr",31,0xf0,8,octa_chunk,hex_format},
+    {"DMAd Size",32,0xf8,8,octa_chunk,unsigned_format},
+    {"DMAe Addr",33,0x100,8,octa_chunk,hex_format},
+    {"DMAe Size",34,0x108,8,octa_chunk,unsigned_format},
+    {"DMAf Addr",35,0x110,8,octa_chunk,hex_format},
+    {"DMAf Size",36,0x118,8,octa_chunk,unsigned_format},
 	{0}};
 
+#define NUM_REGS 36
+#define DISK_MEM 0x120
+static unsigned char mem[DISK_MEM] = {0};
 
+#define SECTOR_SIZE	512	/* sector size in bytes */
+
+#define DISK_STAT	     GET4(mem)       /* status register */
+#define DISK_CTRL_OFFSET 0x04			
+#define DISK_CTRL	     GET4(mem+0x04)	    /* control register */
+#define DISK_CAP_OFFSET  0x08
+#define DISK_CAP	     GET8(mem+0x08)	/* disk capacity register */
+#define DISK_SCT	     GET8(mem+0x10)	/* disk sector register */
+#define DISK_CNT	     GET8(mem+0x18)	/* sector count register */
+#define DISK_DMA_OFFSET  0x20
+#define DISK_DMA_ADDR(i) GET8(mem+0x20+i*0x10)	/* DMA address register */
+#define DISK_DMA_SIZE(i) GET8(mem+0x28+i*0x10)	/* DMA size register */
+
+#define SET_DISK_STAT(x)	   SET4(mem,x)       /* status register */
+#define SET_DISK_CTRL(x)	   SET4(mem+4,x)	    /* control register */
+#define SET_DISK_CAP(x)	       SET8(mem+0x08,x)	/* disk capacity register */
+#define SET_DISK_SCT(x)	       SET8(mem+0x10,x)	/* disk sector register */
+#define SET_DISK_CNT(x)	       SET8(mem+0x18,x)	/* sector count register */
+#define SET_DISK_DMA_ADDR(i,x) SET8(mem+0x20+i*0x10,x)	/* DMA address register */
+#define SET_DISK_DMA_SIZE(i,x) SET8(mem+0x28+i*0x10,x)	/* DMA size register */
+
+/* command Bits */
+#define DISK_GO  	0x01	/* a 1 written here starts the disk command */
+#define DISK_IEN	0x02	/* enable disk interrupt */
+#define DISK_WRT	0x04	/* command type: 0 = read, 1 = write */
+/* Status Bits */
+#define DISK_ERR	0x80000000	/* 0 = ok, 1 = error; valid when BUSY = 0 */
+#define DISK_BUSY	0x00000001	/* 1 = disk is working on a command */
 
 /* Data and auxiliar Functions */
 static FILE *diskImage;
 
-static int diskCtrl;
-static int diskCnt;
-static int diskSct;
-static int diskDma_hi;
-static int diskDma_lo;
-static int diskCap;
-#define DISK_MEM (8*5)
-static unsigned char mem[DISK_MEM] = {0};
+/* Copies of mem values */
+static unsigned int diskStatus;
+static unsigned int diskCtrl;
+static UINT64 diskCap;
+static UINT64 diskSct;
+static UINT64 diskCnt;
+static struct {
+	UINT64 address;
+	UINT64 size;
+	}	diskDma[16];
+
+
 
 int disk_reg_read(unsigned int offset, int size, unsigned char *buf)
 { if (offset>DISK_MEM) return 0;
@@ -127,7 +202,7 @@ static void clean_up_action_mutex(void *_dummy)
 }
 #endif
 
-void set_diskCtrl(int value)
+void set_diskCtrl(unsigned int value)
 { int start;
   vmb_debugi(VMB_DEBUG_INFO, "Setting diskCtrl 0x%X",value);
   start = 0;
@@ -142,7 +217,7 @@ void set_diskCtrl(int value)
   }
 #endif
   diskCtrl = value;
-  if (diskCtrl & DISK_STRT) {
+  if (diskCtrl & DISK_GO) {
      start = 1;
   }
 #ifdef WIN32
@@ -160,8 +235,8 @@ void set_diskCtrl(int value)
 #endif
   if (start)
     vmb_debug(VMB_DEBUG_INFO, "Action triggered");
-  inttochar(diskCtrl,mem+DISK_CTRL+4);
-  mem_update(0,0,8);
+  SET_DISK_CTRL(diskCtrl);
+  mem_update(0,DISK_CTRL_OFFSET,4);
 }
 
 
@@ -181,7 +256,7 @@ void wait_for_action(void)
   pthread_cleanup_push(clean_up_action_mutex,NULL);
 #endif
   /* in the meantime the action might have happend */
-  while (!(diskCtrl & DISK_STRT) &&
+  while (!(diskCtrl & DISK_GO) &&
            !disk_server_shutdown)
 #ifdef WIN32
      WaitForSingleObject(haction,INFINITE);
@@ -209,9 +284,9 @@ static void *disk_server(void *_dummy)
    while (disk_server_running)
    { wait_for_action();
      if (disk_server_shutdown) break;
-     if (diskCtrl & DISK_STRT) 
+     if (diskCtrl & DISK_GO) 
      {
-      set_diskCtrl(diskCtrl & ~DISK_STRT);
+      set_diskCtrl(diskCtrl & ~DISK_GO);
       if (diskCtrl & DISK_WRT)
            diskWrite();
        else
@@ -219,7 +294,7 @@ static void *disk_server(void *_dummy)
      }
    }
   disk_server_shutdown=0;
-  disk_server_running = 0;
+  disk_server_running=0;
   return 0;
 }
 
@@ -277,46 +352,49 @@ void stop_disk_server(void)
 /* Utilities to manage the virtual registers */
 
 static void register_to_mem(void)
-{  memset(mem,0,sizeof(mem));
-   inttochar(diskCtrl,mem+DISK_CTRL+4);
-   inttochar(diskCnt,mem+DISK_CNT+4);
-   inttochar(diskSct,mem+DISK_SCT+4);
-   inttochar(diskDma_hi,mem+DISK_DMA);
-   inttochar(diskDma_lo,mem+DISK_DMA+4);
-   inttochar(diskCap,mem+DISK_CAP+4);
+{  int i;
+   SET_DISK_STAT(diskStatus);   
+   SET_DISK_CTRL(diskCtrl);  	    
+   SET_DISK_CAP(diskCap);	  
+   SET_DISK_SCT(diskSct);	    
+   SET_DISK_CNT(diskCnt);
+   for (i=0; i<16;i++)
+   { SET_DISK_DMA_ADDR(i,diskDma[i].address);
+     SET_DISK_DMA_SIZE(i,diskDma[i].size);
+   }
    mem_update(0,0,DISK_MEM);
 }
 
 static void mem_to_register(int offset, int size)
-{  if (offset < DISK_CTRL+8 && offset+size > DISK_CTRL)
-     set_diskCtrl(chartoint(mem+DISK_CTRL+4));
-   diskCnt  = chartoint(mem+DISK_CNT+4);
-   diskSct  = chartoint(mem+DISK_SCT+4);
-   diskDma_hi =  chartoint(mem+DISK_DMA);
-   diskDma_lo =  chartoint(mem+DISK_DMA+4);
-/* its read only: diskCap  = chartoint(mem+DISK_CAP+4); */
+{  int i;
+   diskCnt  = DISK_CNT;
+   diskSct  = DISK_SCT;
+   for (i=0;i<16 && i*0x10+DISK_DMA_OFFSET<offset+size;i++)
+   { diskDma[i].address=DISK_DMA_ADDR(i);
+     diskDma[i].size=DISK_DMA_SIZE(i);
+   }
+   if (offset < DISK_CTRL_OFFSET+4 && offset+size > DISK_CTRL_OFFSET)
+     set_diskCtrl(DISK_CTRL);
+   /* read only: diskCap and diskStatus */
 }
 
-void inc_DiskDma(int i)
-{ unsigned int tmp;
- tmp = (unsigned int) diskDma_lo +i;
- if (tmp < (unsigned int)diskDma_lo)
-   diskDma_hi++;
- diskDma_lo = tmp;
-}
 
 
 /* Operating the Disk */
 
 
 static void diskReset(void)
-{ vmb_debug(VMB_DEBUG_INFO, "Disk is Reset");
+{ int i;
+  vmb_debug(VMB_DEBUG_INFO, "Disk is Reset");
   diskCnt = 0;
   diskSct = 0;
-  diskDma_lo = 0;
-  diskDma_hi = 0;
+  diskStatus = 0;
+  for (i=0;i<16;i++) 
+  { diskDma[i].address = 0;
+    diskDma[i].size = 0;
+  }
   set_diskCtrl(0);
-  register_to_mem();
+  memset(mem,0,sizeof(mem));
 }
 
 static void diskInit(void) {
@@ -336,12 +414,11 @@ static void diskInit(void) {
       numBytes = ftell(diskImage);
       fseek(diskImage, 0, SEEK_SET);
       diskCap = numBytes / SECTOR_SIZE;
-      vmb_debugi(VMB_DEBUG_INFO, "Disk of size %ld sectors installed.", diskCap);
+      vmb_debugi(VMB_DEBUG_INFO, "Disk of size %ld sectors installed.", (int)diskCap);
       start_disk_server();
     }
   }
   register_to_mem();
-  mem_update(0,4*8,8); /* just Disk Capacity */
 }
 
 
@@ -355,28 +432,33 @@ static void diskExit(void) {
   diskImage = NULL;
   diskCap = 0;
   diskReset();
+  register_to_mem();
   stop_disk_server();
 }
 
 static void diskBussy(void)
-{ if ( diskCtrl & DISK_BUSY)
+{ if ( diskStatus & DISK_BUSY)
      return;
 #ifdef WIN32
   SendMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
 #endif
   vmb_debug(VMB_DEBUG_INFO, "Disk is Bussy");
-  set_diskCtrl((diskCtrl | DISK_BUSY) & ~DISK_ERR);
+  diskStatus = (diskStatus| DISK_BUSY) & ~DISK_ERR;
+  SET_DISK_STAT(diskStatus);
+  mem_update(0,0,4);
 }
 
 
 static void diskDone(void)
-{ if ( !(diskCtrl & DISK_BUSY))
+{ if ( !(diskStatus & DISK_BUSY))
      return;
 #ifdef WIN32
   SendMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
   vmb_debug(VMB_DEBUG_INFO, "Disk is Idle");
-  set_diskCtrl(diskCtrl & ~DISK_BUSY);
+  diskStatus=(diskStatus & ~DISK_BUSY);
+  SET_DISK_STAT(diskStatus);
+  mem_update(0,0,4);
   if (diskCtrl & DISK_IEN) {
     vmb_raise_interrupt(&vmb,interrupt);
     vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
@@ -384,51 +466,73 @@ static void diskDone(void)
 }
 
 static int diskPosition(void)
-{ vmb_debugi(VMB_DEBUG_PROGRESS, "Positioning to sector %d",diskSct);
+{ vmb_debugi(VMB_DEBUG_PROGRESS, "Positioning to sector %d",(int)diskSct);
 
   if (diskCap > 0 &&
       diskCnt > 0 &&
       diskSct >= 0 &&
       diskSct < diskCap &&
       diskSct + diskCnt <= diskCap &&
-      (fseek(diskImage, diskSct * SECTOR_SIZE, SEEK_SET) == 0))
+      (fseek(diskImage, (int)diskSct * SECTOR_SIZE, SEEK_SET) == 0))
     { vmb_debug(VMB_DEBUG_INFO, "Positioned");
       return 1;
     }
   else
     {
       vmb_error(__LINE__,"cannot position to sector in disk image");
-      set_diskCtrl(diskCtrl | DISK_ERR);
+      diskStatus = diskStatus | DISK_ERR;
+	  SET_DISK_STAT(diskStatus);
+      mem_update(0,0,4);
       return 0;
     }
 }
-
 
 static unsigned char sector_buffer[SECTOR_SIZE];
 data_address da ={sector_buffer,0,0,0,SECTOR_SIZE,STATUS_INVALID};
 
 static void diskRead(void) 
-{ 
-  /* disk --> memory */
+{  /* disk --> memory */
   diskBussy();
   if (diskPosition())
-  { while(diskCnt>0) {
-      if (fread(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
-          vmb_error(__LINE__,"cannot read from disk");
-           set_diskCtrl(diskCtrl | DISK_ERR);
-          break;
-      }
-      da.address_lo = diskDma_lo;
-      da.address_hi = diskDma_hi;
-      da.status = STATUS_VALID;
-      da.size = SECTOR_SIZE;
-      vmb_store(&vmb,&da);
-      vmb_debugi(VMB_DEBUG_PROGRESS, "Read sector %d",diskSct);
-      inc_DiskDma(SECTOR_SIZE);
-      diskCnt--;
-      diskSct++;
-	  register_to_mem();
-    }
+  { int i;
+    UINT64 total=diskCnt*SECTOR_SIZE;
+    for (i=0; total>0; i++)
+	{ UINT64 size = diskDma[i].size;
+	  UINT64 address = diskDma[i].address;
+	  while(size>0) 
+	  { int part;
+	    if (size>SECTOR_SIZE)
+			part = SECTOR_SIZE;
+		else
+			part = (int)size;
+		if (part>total)
+		  size=part=(int)total;
+        if (fread(sector_buffer, 1, part, diskImage) != part)  
+	    { vmb_error(__LINE__,"cannot read from disk");
+		  diskStatus=diskStatus| DISK_ERR;
+		  diskDone();
+          return;
+        }
+	    vmb_debugi(VMB_DEBUG_PROGRESS, "Read sector %d",(int)diskSct);
+        da.address_lo = LOTETRA(address);
+        da.address_hi = HITETRA(address);
+        da.status = STATUS_VALID;
+        da.size = part;
+        vmb_store(&vmb,&da);
+	    address = address+part;
+	    size = size-part;
+        total=total-part;
+	    { int d =(int)(diskCnt*SECTOR_SIZE-total)/SECTOR_SIZE;
+	      if (d>0)
+		  { diskCnt=diskCnt-d;
+            diskSct=diskSct+d;
+	        SET_DISK_CNT(diskCnt);
+	        SET_DISK_SCT(diskSct);
+	        mem_update(0,0x10,0x10);
+		  }
+	    }
+	  }
+	}
   }       
   diskDone();
 }
@@ -437,29 +541,53 @@ static void diskWrite(void)
 { /* memory --> disk */
   diskBussy();
   if (diskPosition())
-  { while(diskCnt>0) {
-      da.address_lo = diskDma_lo;
-      da.address_hi = diskDma_hi;
-      da.status = STATUS_INVALID;
-      vmb_load(&vmb,&da);
-      vmb_wait_for_valid(&vmb,&da);
-      if (da.status!=STATUS_VALID) {
+  { int i;
+    UINT64 total=diskCnt*SECTOR_SIZE;
+    for (i=0; total>0; i++)
+	{ UINT64 size = diskDma[i].size;
+	  UINT64 address = diskDma[i].address;
+	  while(size>0) 
+	  { int part;
+	    if (size>SECTOR_SIZE)
+			part = SECTOR_SIZE;
+		else
+			part = (int)size;
+		if (part>total)
+		  size=part=(int)total;
+		da.address_lo = LOTETRA(address);
+        da.address_hi = HITETRA(address);
+        da.status = STATUS_VALID;
+        da.size = part;
+        vmb_load(&vmb,&da);
+        vmb_wait_for_valid(&vmb,&da);
+        if (da.status!=STATUS_VALID) {
           vmb_error(__LINE__,"cannot read memory");
-          set_diskCtrl(diskCtrl | DISK_ERR);
-          break;
-      }
-      if (fwrite(sector_buffer, SECTOR_SIZE, 1, diskImage) != 1)  {
+		  diskStatus=diskStatus| DISK_ERR;
+		  diskDone();
+          return;
+        }
+        if (fwrite(sector_buffer, 1, part, diskImage) != part)  {
           vmb_error(__LINE__,"cannot write to disk");
-          set_diskCtrl(diskCtrl | DISK_ERR);
-          break;
-      }
-      vmb_debugi(VMB_DEBUG_PROGRESS, "Wrote sector %d",diskSct);
-      inc_DiskDma(SECTOR_SIZE);
-      diskCnt--;
-      diskSct++;
-	  register_to_mem();
-    }
-  }
+		  diskStatus=diskStatus| DISK_ERR;
+		  diskDone();
+          return;
+        }
+        vmb_debugi(VMB_DEBUG_PROGRESS, "Wrote sector %d",(int)diskSct);
+	    address = address+part;
+	    size = size-part;
+        total=total-part;
+	    { int d = (int)(diskCnt*SECTOR_SIZE-total)/SECTOR_SIZE;
+	      if (d>0)
+		  { diskCnt=diskCnt-d;
+            diskSct=diskSct+d;
+	        SET_DISK_CNT(diskCnt);
+	        SET_DISK_SCT(diskSct);
+	        mem_update(0,0x10,0x10);
+		  }
+	    }
+	  }
+	}
+  }       
   diskDone();
 }
 
@@ -477,14 +605,14 @@ unsigned char *disk_get_payload(unsigned int offset, int size)
 void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
      /* write an octabyte  (one of the five registers)*/
 {  
-   if ( diskCtrl &DISK_BUSY)
+   if ( diskStatus & DISK_BUSY)
    {  vmb_debug(VMB_DEBUG_NOTIFY, "Write ignored, disk bussy");
       return; /* no writing while we are bussy */
    }
    register_to_mem();
    memmove(mem+offset,payload,size);
-   mem_update(0,0,DISK_MEM);
    mem_to_register(offset,size);
+   mem_update(0,offset,size);
 }
 
 
@@ -528,12 +656,12 @@ void disk_terminate(void)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",5*8,disk_reg_read,0,5,disk_regs},
+	{"Registers",DISK_MEM,disk_reg_read,0,NUM_REGS,disk_regs},
 	{0}
 };
 
 void init_device(device_info *vmb)
-{	vmb_size = 8*5;
+{	vmb_size = DISK_MEM;
 #ifdef WIN32	
     haction =CreateEvent(NULL,FALSE,FALSE,NULL);
     InitializeCriticalSection (&action_section);

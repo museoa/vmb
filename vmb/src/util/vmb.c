@@ -737,6 +737,7 @@ void vmb_init_data_address(data_address *da, int size)
 }
 
 void vmb_store(device_info *vmb, data_address *da)
+/* writing 1, 2, 4, or a multiple of 8 (up to 256*8) byte */
 { unsigned char id;
   unsigned char address[8];
   unsigned char size;
@@ -761,6 +762,7 @@ void vmb_store(device_info *vmb, data_address *da)
 }
 
 void vmb_load(device_info *vmb, data_address *da)
+/* reading 1, 2, 4, or a multiple of 8 (up to 256*8) byte */
 { unsigned char id;
   unsigned char address[8];
   unsigned char size;

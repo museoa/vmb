@@ -588,12 +588,13 @@ unsigned char *gpu_get_payload(unsigned int offset,int size)
 }
 
 void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ int x,y,w,h;
-  y=x=w=h=0;
+{ int x,y,w,h,dw,dh;
+  y=x=w=h=dw=dh=0;
   memmove(gpu_mem+offset,payload, size);
-  mem_update(2,offset,size);
-  if (offset>3) return;
-  if (GPU_COMMAND == GPU_NOP) return;
+  if (offset>0 || GPU_COMMAND == GPU_NOP) 
+  {	mem_update(2,offset,size);
+	return;
+  }
   EnterCriticalSection (&bitmap_section);
   switch (GPU_COMMAND)
   { case GPU_WRITE_CHAR: 
@@ -625,6 +626,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		  ExtTextOut(hCanvas,GPU_X,GPU_Y,0,NULL,&(GPU_COMMAND_AUX_LO),1,NULL);
 		  SET_GPU_X(x+w);
 		}
+	    if (size<0x10) size=0x10;
         break;
 	case GPU_RECTANGLE:
 	    { HBRUSH hold, hnew;
@@ -642,21 +644,30 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		}
 		break;
 	case GPU_LINE:
-	    { HPEN hold, hnew;
-		  hnew = CreatePen(PS_SOLID, GPU_COMMAND_AUX, RGB(GPU_R_LINE,GPU_G_LINE,GPU_B_LINE)); 
+	    { int lwidth;
+		  HPEN hold, hnew;
+		  if (GPU_COMMAND_AUX==0) lwidth=1;
+		  else lwidth=GPU_COMMAND_AUX;
+		  hnew = CreatePen(PS_SOLID, lwidth, RGB(GPU_R_LINE,GPU_G_LINE,GPU_B_LINE)); 
 		  hold = SelectObject(hCanvas, hnew);
    		  MoveToEx(hCanvas,GPU_X,GPU_Y,NULL);
 		  LineTo(hCanvas,GPU_X_2,GPU_Y_2);
+  		  SelectObject(hCanvas, hold);
+		  DeleteObject(hnew);
 		  x=GPU_X;
 		  y=GPU_Y;
 		  w=GPU_X_2-GPU_X;
 		  h=GPU_Y_2-GPU_Y;
 		  if (w<0) { x=x+w; w=-w; }
 		  if (h<0) { y=y+h; h=-h; }
-		  SelectObject(hCanvas, hold);
-		  DeleteObject(hnew);
+		  lwidth=(lwidth+1)/2;
+		  x = x-lwidth;
+		  y = y-lwidth;
+		  w= w+2*lwidth;
+		  h= h+2*lwidth;
 		  SET_GPU_X(GPU_X_2);
 		  SET_GPU_Y(GPU_Y_2);
+		  if (size<0x10) size=0x10;
 		}
 		break;
 	case GPU_BLT:
@@ -669,13 +680,19 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 	case GPU_BLT_IN:
 		LeaveCriticalSection (&bitmap_section);
 		PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
+		mem_update(2,offset,size);
 		return;
 	case GPU_BLT_OUT:
 		LeaveCriticalSection (&bitmap_section);
 	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
+		mem_update(2,offset,size);
         return;
   }
   LeaveCriticalSection (&bitmap_section);
+  if (x<0) x=0;
+  if (y<0) y=0;
+  if (w>framewidth) w=framewidth;
+  if (h>frameheight) h=frameheight;
   { RECT rect;
     rect.top=(int)(y*zoom);
     rect.left=(int)(x*zoom);
@@ -685,6 +702,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
   }
   if (w>0 && h>0)
     mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
+  mem_update(2,offset,size);
 }
 
 
