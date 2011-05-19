@@ -69,17 +69,10 @@ typedef long long CORE_ADDR;
 /* Functions from remote-utils.c */
 
 extern int gdb_init(int port);
-
 extern int putpkt (char *buf);
 extern int getpkt (char *buf);
-extern int remote_server (int port);
-extern int remote_open (void);
 extern int dual_wait(int s1, int s2);
 extern void single_wait(int s);
-extern int remote_interrupt(int s);
-extern void remote_close (void);
-
-extern void wsa_init(void);
 
 extern char *get_free_buffer(void);
 extern void put_free_buffer(char *buffer);

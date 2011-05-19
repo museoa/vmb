@@ -55,12 +55,12 @@
 #include "mmix-internals.h"
 #include "gdb.h"
 
-static int connect_to_gdb (int port);
-
 /* we need only two buffers because we deal only with two threads
-   and one thread will need at most one buffer.
+   and one thread will need at most one buffer. but three is just as fine.
 */
-
+static char bufferA[PBUFSIZ];
+static char bufferB[PBUFSIZ];
+static char bufferC[PBUFSIZ];
 static queue free_buffers;
 static queue cmd_buffers;
 
@@ -70,6 +70,148 @@ void put_free_buffer(char *buffer)
 { enqueue(&free_buffers,buffer);}
 char *get_gdb_command(void)
 { return dequeue(&cmd_buffers);}
+
+#if !defined(SOCKET)
+#define SOCKET int
+#endif
+
+#if !defined(INVALID_SOCKET)
+#define INVALID_SOCKET  (~0)
+#endif
+
+#define valid_socket(socket)  ((socket) != INVALID_SOCKET)
+
+static SOCKET remote_fd=INVALID_SOCKET;
+static SOCKET server_fd=INVALID_SOCKET;
+
+static void
+remote_close (void)
+{
+  if (valid_socket(remote_fd))
+#ifdef WIN32
+    closesocket(remote_fd);
+#else
+    close(remote_fd);
+#endif 
+    remote_fd = INVALID_SOCKET;
+}
+
+
+#ifdef WIN32
+static DWORD dwReadThreadId;
+static HANDLE hReadThread;
+#else
+static int read_tid;
+static pthread_t read_thr;
+#endif
+
+
+static int init_server(int port);
+
+
+#ifdef WIN32	
+static void wsa_close(void)
+{ WSACleanup();
+}
+
+static void wsa_init(void)
+{
+  static int wsa_ready=0;
+  WSADATA wsadata;
+  if (wsa_ready) return;
+  if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
+    perror("Unable to initialize Winsock dll");
+  wsa_ready = 1;
+  atexit(wsa_close);
+}
+#endif
+
+
+static struct sockaddr_in sockaddr;
+
+static void close_server(void)
+{
+#ifdef WIN32
+    closesocket(server_fd);
+    server_fd = INVALID_SOCKET;
+#else
+    close(server_fd);
+    server_fd=INVALID_SOCKET;	
+#endif
+}
+
+static int init_server(int port)
+{
+#ifdef WIN32
+  int tmp;
+  wsa_init();
+#else
+  socklen_t tmp;
+#endif
+
+  server_fd = (SOCKET)socket (PF_INET, SOCK_STREAM, 0);
+  if (server_fd < 0)
+  {  perror ("Can't open socket");
+     return 0;
+  }
+
+      /* Allow rapid reuse of this port. */
+  tmp = 1;
+  setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &tmp,
+		  sizeof (tmp));
+
+  sockaddr.sin_family = PF_INET;
+  sockaddr.sin_port = htons ((unsigned short)port);
+  sockaddr.sin_addr.s_addr = INADDR_ANY;
+  if (bind (server_fd, (struct sockaddr *) &sockaddr, sizeof (sockaddr))
+	|| listen (server_fd, 1))
+  { perror ("Can't bind address\n");
+    server_fd=INVALID_SOCKET;
+    return 0;
+  }
+  atexit(close_server);
+#ifndef WIN32
+  /* If we don't do this, then gdbserver simply exits when the remote side dies. */
+  signal (SIGPIPE, SIG_IGN);	
+#endif
+  return 1;
+}
+
+
+/* Open a connection to a remote debugger.
+   NAME is the filename used for communication.  */
+
+static int remote_open (void)
+{
+ 
+#ifdef WIN32
+  int tmp;
+#else
+  socklen_t tmp;
+#endif
+  fprintf(stderr,"Connecting to gdb ...");
+  tmp = sizeof (sockaddr);
+  remote_fd = (int)accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
+  if (!valid_socket(remote_fd))
+  {  perror ("Accept failed");
+     return 0;
+  }
+  else
+  { 
+    /* Tell TCP not to delay small packets.  This greatly speeds up
+       interactive response. */
+    tmp = 1;
+    setsockopt (remote_fd, IPPROTO_TCP, TCP_NODELAY,
+	       (char *) &tmp, sizeof (tmp));
+
+        /* Convert IP address to string. 
+    fprintf (stderr, "Remote debugging from host %s\n", 
+    inet_ntoa (sockaddr.sin_addr));
+	*/
+    fprintf(stderr,"Connected\n");
+  }
+  return 1;
+}
 
 
 #ifdef WIN32
@@ -85,9 +227,11 @@ static void *gdb_read_loop(void *_dummy)
       remote_close();
       return 0;
     }
+    if (!valid_socket(remote_fd) && ! remote_open())
+      return 0;
     if (getpkt(read_buffer)<=0)
     { remote_close();
-      return 0;
+      continue;
     }
     if (!async_gdb_command(read_buffer))
     { 
@@ -102,28 +246,20 @@ static void *gdb_read_loop(void *_dummy)
   return 0;
 }
 
-#ifdef WIN32
-static DWORD dwReadThreadId;
-static HANDLE hReadThread;
-#else
-static int read_tid;
-static pthread_t read_thr;
-#endif
 
-
-static char bufferA[PBUFSIZ];
-static char bufferB[PBUFSIZ];
 
 int gdb_init(int port)
      /* initialize the connection to gdb,
         return 1 on success, 0 on failure
      */
-{ if (!connect_to_gdb(port)) return 0;
-  /* start the read loop */
- init_queue(&free_buffers);
+{ init_queue(&free_buffers);
  init_queue(&cmd_buffers);
  enqueue(&free_buffers,bufferA);
  enqueue(&free_buffers,bufferB);
+ enqueue(&free_buffers,bufferC);
+ init_server(port);
+
+  /* start the read loop */
 #ifdef WIN32
   { DWORD dwReadThreadId;
      hReadThread = CreateThread( 
@@ -147,118 +283,6 @@ int gdb_init(int port)
 
 
 
-
-#ifdef WIN32	
-static void wsa_close(void)
-{ WSACleanup();
-}
-
-void wsa_init(void)
-{
-  static int wsa_ready=0;
-  WSADATA wsadata;
-  if (wsa_ready) return;
-  if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
-    perror("Unable to initialize Winsock dll");
-  wsa_ready = 1;
-  atexit(wsa_close);
-}
-#endif
-
-#if !defined(SOCKET)
-#define SOCKET int
-#endif
-
-#if !defined(INVALID_SOCKET)
-#define INVALID_SOCKET  (~0)
-#endif
-
-#define valid_socket(socket)  ((socket) != INVALID_SOCKET)
-
-SOCKET remote_fd=INVALID_SOCKET;
-SOCKET server_fd=INVALID_SOCKET;
-int gdb_connected = 0;
-static struct sockaddr_in sockaddr;
-
-/* Open a connection to a remote debugger.
-   NAME is the filename used for communication.  */
-
-int connect_to_gdb (int port)
-{
- 
-#ifdef WIN32
-  int tmp;
-  wsa_init();
-#else
-  socklen_t tmp;
-#endif
-
-  server_fd = (SOCKET)socket (PF_INET, SOCK_STREAM, 0);
-  if (server_fd < 0)
-  {  perror ("Can't open socket");
-     return 0;
-  }
-
-      /* Allow rapid reuse of this port. */
-  tmp = 1;
-  setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &tmp,
-		  sizeof (tmp));
-
-  sockaddr.sin_family = PF_INET;
-  sockaddr.sin_port = htons ((unsigned short)port);
-  sockaddr.sin_addr.s_addr = INADDR_ANY;
-  fprintf(stderr,"Connecting to gdb ...");
-  if (bind (server_fd, (struct sockaddr *) &sockaddr, sizeof (sockaddr))
-	|| listen (server_fd, 1))
-  { perror ("Can't bind address\n");
-    server_fd=INVALID_SOCKET;
-    return 0;
-  }
-  tmp = sizeof (sockaddr);
-  remote_fd = (int)accept (server_fd, (struct sockaddr *) &sockaddr, &tmp);
-  if (remote_fd < 0 )
-  {  perror ("Accept failed");
-     return 0;
-  }
-  else
-  { 
-#ifdef WIN32
-    closesocket(server_fd);
-    server_fd = INVALID_SOCKET;
-#else
-    close(server_fd);
-    server_fd=INVALID_SOCKET;	
-    signal (SIGPIPE, SIG_IGN);	/* If we don't do this, then gdbserver simply
-					   exits when the remote side dies.  */
-#endif
-    /* Tell TCP not to delay small packets.  This greatly speeds up
-       interactive response. */
-    tmp = 1;
-    setsockopt (remote_fd, IPPROTO_TCP, TCP_NODELAY,
-	       (char *) &tmp, sizeof (tmp));
-
-        /* Convert IP address to string. 
-    fprintf (stderr, "Remote debugging from host %s\n", 
-    inet_ntoa (sockaddr.sin_addr));
-	*/
-    fprintf(stderr,"Connected\n");
-    gdb_connected = 1;
-  }
-  return 1;
-}
-
-void
-remote_close (void)
-{
-  if (valid_socket(remote_fd))
-#ifdef WIN32
-    closesocket(remote_fd);
-#else
-    close(remote_fd);
-#endif 
-    remote_fd = INVALID_SOCKET;
-    gdb_connected = 0;
-}
 
 /* flush output to gdb */
 static char writebuf[BUFSIZ];
