@@ -594,7 +594,8 @@ int store_data(int size,octa data, octa address)
 /* store an octa from data into the given virtual address 
    raise an interrupt and return 0 if there is a problem
 */
-{ if (address.h==last_d_addr.h &&
+{
+  if (address.h==last_d_addr.h &&
       (address.l&0xFFFFE000)==last_d_addr.l)
       address.h=last_d_trans.h,
       address.l=last_d_trans.l|(address.l&0x1FFF);
@@ -618,8 +619,18 @@ int store_data(int size,octa data, octa address)
     else if (p==0) 
     { g[rQ].l |= PA_BIT;
       new_Q.l |= PA_BIT;
-      g[rF]=address; 
-      return 0;
+      g[rF]=address;
+      if (g[rC].l&WRITE_BIT) 
+      { int s,i;
+        octa base, offset;
+        PTE e;
+        s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
+        unpack_address(&address, s, &i, &base, &offset);  /* compute offset */
+        unpack_pte(&e,&g[rC],s); /* compute base */
+        address = oplus(e.base,offset);
+      }
+      else
+        return 0;
     }
     else if (!(p&WRITE_BIT)) 
     { g[rQ].h |= PW_BIT;

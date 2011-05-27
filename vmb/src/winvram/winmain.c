@@ -10,7 +10,7 @@
 #include "param.h"
 #include "option.h"
 #include "winopt.h"
-#include "winmem.h"
+#include "inspect.h"
 
 
 

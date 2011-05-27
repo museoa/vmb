@@ -29,7 +29,6 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
-#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -40,10 +39,10 @@ extern HWND hMainWnd;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#include "inspect.h"
 
 
-
-char version[]="$Revision: 1.13 $ $Date: 2011-05-12 03:01:06 $";
+char version[]="$Revision: 1.14 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "\n"

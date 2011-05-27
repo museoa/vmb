@@ -42,6 +42,7 @@ extern uint64_t vmb_address;
 #define LO32(vmb_address) ((unsigned int)((vmb_address)&0xFFFFFFFF))
 extern unsigned int vmb_size;
 extern int interrupt;
+extern int disable_interrupt;
 extern char *filename;
 
 #define MAX_EXEC 256

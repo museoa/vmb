@@ -43,23 +43,22 @@
 extern device_info vmb;
 int gdbport = 2331;
 
-static int answer_expected = 1;
+
 static int break_level = 0;
 int async_gdb_command(char *gdb_command)
 /* somme commands are handled by the read loop
    independent of the simulator. In this case this functions
    takes necessary actions and returns true, else it returns false.
 */  
-{ if (*gdb_command == 3 ) /* break */
+{ if (*gdb_command == BREAK ) /* break */
   { breakpoint = true;
-    break_level++;
-    vmb_cancel_wait_for_event(&vmb);
-    if (break_level>1)
-      vmb_cancel_all_loads();
-    answer_expected=1;
-#ifdef DEBUG
+    gdb_signal = TARGET_SIGNAL_INT;
     fprintf(stderr, "Async Break Level %d received\n",break_level);
-#endif
+    break_level++;
+    if (break_level>1)
+      vmb_cancel_wait_for_event(&vmb);
+    if (break_level>2)
+      vmb_cancel_all_loads();
     return 1;
   }
  return 0;
@@ -134,38 +133,30 @@ static void ERROR_msg(char *buffer, unsigned char n)
 
 int gdb_signal =  TARGET_SIGNAL_TRAP;
 
-#define rBB 7
 
-static void exit_msg(char *buffer)
-{ buffer[0]='W';
-  buffer[1]= tohex((g[rBB].l>>4)&0x0F);
-  buffer[2]= tohex(g[rBB].l&0x0F);
+
+static void EXIT_msg(char *buffer)
+{ unsigned char n;
+  buffer[0]='W';
+  n = g[BB_REGNUM].l & 0xFF;
+  chartohex(&n,buffer+1,1);
   buffer[3]=0;  
 }
 
-void gdb_exit(char *buffer)
-{ if (buffer==NULL) buffer=get_free_buffer();
-  if (buffer==NULL) 
-  { perror("Unable to get free gdb buffer");
-    return;
-  }
-  exit_msg(buffer);
-  putpkt (buffer);
-}
 
-static void termination_msg(char *buffer)
+static void TERM_msg(char *buffer)
 { char *p;
   unsigned char n;
-  unsigned char sig;
-  if (gdb_signal>=0)
-    sig=gdb_signal; 
-  else 
-    { exit_msg(buffer);
-      return;
-    }
+
+  if (gdb_signal<0)
+  { EXIT_msg(buffer);
+    return;
+  }
   buffer[0]='T'; /* terminated */
-  chartohex(&sig,buffer+1,1);
-  p=buffer+3;
+  n=gdb_signal;
+  p=buffer+1; 
+  chartohex(&n,p,1);
+  p=p+2;
   n =  PC_REGNUM;
   chartohex(&n,p,1);
   p[2]=':';
@@ -400,11 +391,12 @@ extern octa incr(octa x, int d);
 extern int lring_mask;
 
 static int ocmp(octa x, octa y)
-{ octa d;
-  d = ominus(x,y);
-  if (d.h&0x80000000) return -1;
-  else if (d.h == 0 && d.l == 0) return 0;
-  else return 1;
+{
+  if (x.h<y.h) return -1;
+  if (x.h>y.h) return 1;
+  if (x.l<y.l) return -1;
+  if (x.l>y.l) return 1;
+  return 0;
 }
 /* auxiliar function to read and write memory */
 
@@ -600,45 +592,41 @@ static void setBreakPoint(char *buffer)
 
 octa save_rQ, save_newrQ;
 
-int handle_gdb_commands(void)
+void handle_gdb_command(char *buffer)
 /* the command is in the buffer,
    the command is handled and the answer is supplied 
    to gdb. If the simulator should continue,
    the function exits.
 */    
-{ char * buffer = NULL;
-  while (1)
-  { buffer = get_gdb_command();
-    switch(buffer[0]) {
-    case '+':
+{ switch(buffer[0]) {
+    /* cases which involve running the simulator, which will
+       then deliver the answer */
+     case 'C':  /* continue with signal, addr  (signal, addr ignored)*/
+     case 'c':  /* continue with the simulator addr ignored */
        put_free_buffer(buffer);
-#ifdef DEBUG
-       fprintf(stderr, "Ignoring + command\n");
-#endif
-       continue;
-    case '-':
+       signal_continue(1);
+       return;
+     case 's':  /* continue single step*/
+       breakpoint = true;
+       gdb_signal = TARGET_SIGNAL_TRAP;
        put_free_buffer(buffer);
-#ifdef DEBUG
-       fprintf(stderr, "Ignoring - command\n");
-#endif
-       continue;
-     case 'B':
+       signal_continue(1);
+       return;
+     case 'k': /* kill simulator */
+       breakpoint = true;
+       gdb_signal = TARGET_SIGNAL_KILL;
+       OK_msg(buffer);
+       signal_continue(0);
+       break;
+     case '?':
+       TERM_msg(buffer);
+       break;
+    case 'B':
 	/* Baddr,mode -- set breakpoint (deprecated)
  	   Set (mode is S) or clear (mode is C) a breakpoint at addr.
 	*/
+       NOT_SUPPORTED_msg(buffer);
        break;
-     case 'C':
-	  /* continue with signal, addr  (signal, addr ignored)*/
-     case 'c':
-          /* continue with the simulator addr ignored */
-       put_free_buffer(buffer);
-       answer_expected = 1;
-       return 1;
-     case 's':
-       breakpoint = true;
-       put_free_buffer(buffer);
-       answer_expected = 1;
-       return 1;
      case 'g':
        getRegisters(buffer);
        break;
@@ -650,14 +638,6 @@ int handle_gdb_commands(void)
        break;
      case 'M':
        writeMemory(buffer);
-       break;
-     case 'k':
-       breakpoint = true;
-       put_free_buffer(buffer);
-       answer_expected = 1;
-       return 0;
-     case '?':
-         termination_msg(buffer);
        break;
 #if 1
        /* disabling p and P command will force gdb to use the more efficient 
@@ -701,9 +681,6 @@ int handle_gdb_commands(void)
        general_query(buffer);
        break;
      case 'X':
-       write_binary_memory(buffer);
-       OK_msg(buffer);
-       break;
 	/*
 	  Xaddr,length:XX\x{2026} -- write mem (binary)
 
@@ -720,6 +697,9 @@ int handle_gdb_commands(void)
 
 	  for an error
 	*/
+       write_binary_memory(buffer);
+       OK_msg(buffer);
+       break;
      case 'z':
        removeBreakPoint(buffer);
        break;
@@ -727,31 +707,28 @@ int handle_gdb_commands(void)
        setBreakPoint(buffer);
        break;
      default:
-       buffer[0]=0;
+       NOT_SUPPORTED_msg(buffer);
        break;
    }
-   putpkt (buffer);
-   put_free_buffer(buffer);
- }
- return 1;
+   put_cmd_buffer(buffer);
 }
 
 
-int interact_with_gdb(int signal)
-  /* this function should be called when the simulator stops */
+int interact_with_gdb(void)
+/* this function should be called when the simulator stops 
+   returns 1 if the simulaton continues 
+   return 0 if the simulation stops
+*/
 { int r;
+  char *buffer;
   break_level=0;
-  if (answer_expected)
-  { char buffer[PBUFSIZ];
-    gdb_signal = signal;
-    termination_msg(buffer);
-    putpkt (buffer);
-    answer_expected = 0;
-  }
+  buffer = get_free_buffer();
+  TERM_msg(buffer);
+  put_cmd_buffer(buffer);
   save_rQ = g[rQ];   /* debuger actions by default do not change rQ */
   save_newrQ = new_Q;
   write_to_text = 0;
-  r = handle_gdb_commands();
+  r = wait_for_continue();
   g[rQ] = save_rQ;
   new_Q = save_newrQ;
   if (write_to_text) {

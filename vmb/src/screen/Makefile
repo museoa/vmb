@@ -10,6 +10,7 @@ all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
+	$(MAKE) -C  $(OPTDIR)
 
 
 $(PROG): $(PROG).c  utilities

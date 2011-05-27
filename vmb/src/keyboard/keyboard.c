@@ -28,7 +28,6 @@
 #pragma warning(disable : 4996)
 #include "resource.h"
 #include "winopt.h"
-#include "winmem.h"
 extern HBITMAP hBmpActive, hBmpInactive;
 #else
 #include <unistd.h>
@@ -39,11 +38,12 @@ extern HBITMAP hBmpActive, hBmpInactive;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#include "inspect.h"
 
 void display_char(char c);
 
 
-char version[]="$Revision: 1.17 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.18 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "\n"

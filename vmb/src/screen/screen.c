@@ -26,7 +26,6 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
-#include "winmem.h"
 extern HWND hMainWnd;
 #else
 #include <unistd.h>
@@ -36,12 +35,13 @@ extern HWND hMainWnd;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#include "inspect.h"
 
 static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.10 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.11 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -113,7 +113,8 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
     vmb_debugi(VMB_DEBUG_INFO, "(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
-    vmb_raise_interrupt(&vmb,interrupt);
+    if (! disable_interrupt)
+      vmb_raise_interrupt(&vmb,interrupt);
     mem_update(0,0,8);
 }
 

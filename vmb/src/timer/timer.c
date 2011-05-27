@@ -24,7 +24,6 @@
 #ifdef WIN32
 #include <windows.h>
 extern HWND hMainWnd;
-#include "winmem.h"
 #else
 #include <unistd.h>
 #endif
@@ -33,6 +32,7 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "param.h"
 #include "option.h"
+#include "inspect.h"
 #include "timer.h"
 
 /* contains operating system independent timer code */
@@ -212,7 +212,7 @@ void timer_signal()
 
 
 
-char version[]="$Revision: 1.8 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.9 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "\n"

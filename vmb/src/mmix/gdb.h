@@ -50,7 +50,7 @@
 /* the framepointer is in $254 and the memory stackpointer is in $rO */
 #define FP_REGNUM 34  
 #define SP_REGNUM 10   
-
+#define BB_REGNUM 7
 
 /* This should be a 64 bit integer type */
 
@@ -70,14 +70,15 @@ typedef long long CORE_ADDR;
 
 extern int gdb_init(int port);
 extern int putpkt (char *buf);
-extern int getpkt (char *buf);
-extern int dual_wait(int s1, int s2);
-extern void single_wait(int s);
+extern int getack(void);
 
 extern char *get_free_buffer(void);
 extern void put_free_buffer(char *buffer);
 extern char *get_gdb_command(void);
+extern void put_cmd_buffer(char *buffer);
 
+extern int wait_for_continue(void);
+extern void signal_continue(int r);
 /* from mmix-sim.c */
 
 extern bool breakpoint;
@@ -88,9 +89,17 @@ extern int gdbport; /* port for the remot gdb to connect, with default */
 extern int mmgetchars(unsigned char *buf, int size, octa addr, int stop);
 
 /* from gdb.c */
-
-extern int async_gdb_command(char *buffer);
-extern int interact_with_gdb(int signal);
-extern int handle_gdb_commands(void);
+/* called from the simulator */
+extern int interact_with_gdb(void);
+/* called from remote utils */
+extern void handle_gdb_command(char *buffer);
+extern int async_gdb_command(char *gdb_command);
+/* extensions to the GDB remote Commands for special cases */
+#define STOPED    'T'
+#define BAD       '!'
+#define ACK       '+'
+#define REJECT    '-'  
+#define BREAK     ((char)3) 
+#define IS_ASYNC(cmd) ((cmd)[0]==BREAK)
 
 #endif

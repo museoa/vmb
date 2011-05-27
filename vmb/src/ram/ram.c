@@ -25,7 +25,6 @@
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
-#include "winmem.h"
 extern HWND hMainWnd;
 #else
 #include <unistd.h>
@@ -33,9 +32,9 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "vmb.h"
 #include "param.h"
+#include "inspect.h"
 
-
-char version[]="$Revision: 1.13 $ $Date: 2011-04-22 00:52:36 $";
+char version[]="$Revision: 1.14 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "\n"

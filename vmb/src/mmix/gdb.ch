@@ -308,7 +308,7 @@ aux.h=0x60000000;
 break_inst: breakpoint=tracing=true;
 @y
 break_inst: breakpoint=tracing=true;
-  gdb_signal=TARGET_SIGNAL_TRAP;
+  gdb_signal=TARGET_SIGNAL_ILL;
 @z
 
 @x
@@ -334,7 +334,7 @@ break_inst: breakpoint=tracing=true;
   { breakpoint=true; 
 @y
   { breakpoint=true; 
-    gdb_signal=TARGET_SIGNAL_KILL;
+    gdb_signal=TARGET_SIGNAL_PWR;
 @z
 
 @x
@@ -345,9 +345,9 @@ break_inst: breakpoint=tracing=true;
 @z
 
 @x
-  @<Load object file@>;
-  @<Load the command line arguments@>;
+  init_mmix_bus(bushost,busport,"MMIX CPU");
 @y
+  init_mmix_bus(bushost,busport,"MMIX CPU");
   if (interacting && gdb_init(gdbport)) 
   { breakpoint = true;
     gdb_signal=TARGET_SIGNAL_TRAP;
@@ -356,9 +356,31 @@ break_inst: breakpoint=tracing=true;
 
 
 @x
+  vmb_raise_reset(&vmb);
+  @<Load object file@>;
+  @<Load the command line arguments@>;
+  g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
+  vmb.reset_flag = 0;
+@y
+@z
+
+@x
+    if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
+@y
+    if (interrupt && !breakpoint) 
+    { breakpoint=interacting=true;
+      interrupt=false;
+      gdb_signal=TARGET_SIGNAL_INT;
+    }
+@z
+
+@x
         @<Interact with the user@>;
 @y
-            if (!interact_with_gdb(gdb_signal)) goto end_simulation;
+            if (interact_with_gdb()==0)
+            { interacting=false;
+              goto end_simulation;
+            }
 @z
 
 @x
@@ -385,6 +407,13 @@ break_inst: breakpoint=tracing=true;
       gdb_signal=TARGET_SIGNAL_TRAP;
       stepping=false;
     }
+@z
+
+@x
+  end_simulation:  
+@y
+  end_simulation:
+  if (interacting) { gdb_signal=-1; interact_with_gdb(); }
 @z
 
 @x

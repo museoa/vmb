@@ -33,6 +33,8 @@
 
 #define INVALID_LBA 0xFFFFFFFF
 
+char somebuf[100] = {0};
+
 void FAT32_InitCache(FAT32_Cache *c)
 { c->lba =  INVALID_LBA;
   c->dirty = false;

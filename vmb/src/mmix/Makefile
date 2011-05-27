@@ -19,7 +19,10 @@ INCDIRS = -I$(UTILDIR)
 LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
-all: mmix gmmix mmixal mmoboot mmotype
+all: .depend mmix gmmix mmixal mmoboot mmotype
+
+.depend:
+	gcc -MM *.c > .depend
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
@@ -131,3 +134,6 @@ mmixal: mmix-arith.o mmixal.c
 
 TAGS:
 	etags *.c *.h ../util/*.c ../util/*.h
+
+
+include .depend

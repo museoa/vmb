@@ -39,6 +39,7 @@ option_spec options[] = {
 {"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x8000000000000000", {&vmb_address}},
 {"size of address range in octas",      's', "size",    "size in octas", int_arg, "1", {&vmb_size}},
 {"interrupt send by device",            'i', "interrupt", "interrupt number", int_arg, "8", {&interrupt}},
+{"to disable interrupts",               'Q', "disableinterrupt",   "false",       on_arg, NULL, {&disable_interrupt}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
 {"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},

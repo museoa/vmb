@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "buffers.h"
 
+
 void init_queue(queue *q)
 { int i;
   for (i=0;i<QUEUESIZE;i++)
@@ -38,9 +39,6 @@ void init_queue(queue *q)
   pthread_cond_init(&(q->buffer_cond),NULL);
 #endif
 }
-
-
-
 
 #ifdef WIN32
   #define LOCK   EnterCriticalSection (&(q->buffer_section))

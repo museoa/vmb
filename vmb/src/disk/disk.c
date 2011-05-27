@@ -16,7 +16,6 @@
 #include "resource.h"
 extern HWND hMainWnd;
 extern HBITMAP hbussy;
-#include "winmem.h"
 #else
 #include <pthread.h>
 #include <unistd.h>
@@ -25,11 +24,11 @@ extern HBITMAP hbussy;
 #include "error.h"
 #include "bus-arith.h"
 #include "param.h"
-
+#include "inspect.h"
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.21 $ $Date: 2011-05-19 01:01:59 $";
+char version[]="$Revision: 1.22 $ $Date: 2011-05-27 00:06:07 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -168,12 +167,12 @@ static FILE *diskImage;
 /* Copies of mem values */
 static unsigned int diskStatus;
 static unsigned int diskCtrl;
-static UINT64 diskCap;
-static UINT64 diskSct;
-static UINT64 diskCnt;
+static uint64_t diskCap;
+static uint64_t diskSct;
+static uint64_t diskCnt;
 static struct {
-	UINT64 address;
-	UINT64 size;
+	uint64_t address;
+	uint64_t size;
 	}	diskDma[16];
 
 
@@ -495,10 +494,10 @@ static void diskRead(void)
   diskBussy();
   if (diskPosition())
   { int i;
-    UINT64 total=diskCnt*SECTOR_SIZE;
+    uint64_t total=diskCnt*SECTOR_SIZE;
     for (i=0; total>0; i++)
-	{ UINT64 size = diskDma[i].size;
-	  UINT64 address = diskDma[i].address;
+	{ uint64_t size = diskDma[i].size;
+	  uint64_t address = diskDma[i].address;
 	  while(size>0) 
 	  { int part;
 	    if (size>SECTOR_SIZE)
@@ -542,10 +541,10 @@ static void diskWrite(void)
   diskBussy();
   if (diskPosition())
   { int i;
-    UINT64 total=diskCnt*SECTOR_SIZE;
+    uint64_t total=diskCnt*SECTOR_SIZE;
     for (i=0; total>0; i++)
-	{ UINT64 size = diskDma[i].size;
-	  UINT64 address = diskDma[i].address;
+	{ uint64_t size = diskDma[i].size;
+	  uint64_t address = diskDma[i].address;
 	  while(size>0) 
 	  { int part;
 	    if (size>SECTOR_SIZE)

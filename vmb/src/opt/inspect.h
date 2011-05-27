@@ -1,18 +1,21 @@
 #include "option.h"
 
+#ifdef WIN32
 extern HWND hMemory; 
 
 extern INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
-/* store a function pointer here to get a memory inspector 
-   the inspector should copy the required number of byte into buf
-   and return the number of byte copied.
-*/
-
+extern void adjust_memory_tab(void);
 /* call this function to tell the memory inspector that an update is due */
 extern void mem_update(int inspector, unsigned int offset, int size);
-extern void adjust_memory_tab(void);
+
+#else
+/* make it a no-op */
+#define mem_update(inspector, offset, size)
+
+#endif
+
 
 
 enum mem_fmt {hex_format=0, unsigned_format=1, signed_format=2, ascii_format=3, float_format=4, double_format=5,last_format=5 };

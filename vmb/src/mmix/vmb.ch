@@ -1,3 +1,4 @@
+
 @x
 Simulation applies only to user programs, not to an operating system kernel.
 Thus, all addresses must be nonnegative; ``privileged'' commands such as
@@ -15,9 +16,35 @@ $\rm rV=\Hex{369c200400000000}$.
 No trap interrupts are implemented, except for a few special cases of \.{TRAP}
 that provide rudimentary input-output.
 @^interrupts@>
-
-\bull
 @y
+@z
+
+@x
+All instructions take a fixed amount of time, given by the rough estimates
+stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
+\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
+$\mu$ and~$\upsilon$, ``mems'' and ``oops.'' The clock register~rC increases by
+@^mems@>
+@^oops@>
+$2^{32}$ for each~$\mu$ and 1~for each~$\upsilon$. But the interval
+counter~rI decreases by~1 for each instruction, and the usage
+counter~rU increases by~1 for each instruction.
+@^rC@>
+@^rI@>
+@^rU@>
+
+@y
+All instructions take a fixed amount of time, given by the rough estimates
+stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
+\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
+$\mu$ and~$\upsilon$, ``mems'' and ``oops.'' 
+@^mems@>
+@^oops@>
+The interval
+counter~rI decreases by~1 for each instruction, and the usage
+counter~rU increases by~1 for each instruction.
+@^rI@>
+@^rU@>
 @z
 
 @x
@@ -621,6 +648,11 @@ bool profile_started; /* have we printed at least one frequency count? */
   print_freqs(mem_root);
 }
 @y
+@ In partial preparation for the day when source files are in
+Unicode, we define a type \&{Char} for the source characters.
+
+@<Type...@>=
+typedef unsigned char Char; /* bytes that will become wydes some day */
 @z
 
 
@@ -669,6 +701,7 @@ bool interacting; /* are we in interactive mode? */
 static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
+static tetra mems, oops; /* counting  $\mu$ and  $\upsilon$ */
 static char localhost[]="localhost";
 static int busport=9002; /* on which port to connect to the bus */
 static char *bushost=localhost; /* on which host to connect to the bus */
@@ -867,6 +900,13 @@ void stack_load()
    goto protection_violation;
    inst_ptr=z;
 @z
+
+@x
+ else bad_guesses++, g[rC].l+=2; /* penalty is $2\upsilon$ for bad guess */
+@y
+ else bad_guesses++, oops+=2; /* penalty is $2\upsilon$ for bad guess */
+@z
+
 
 @x
 case LDB: case LDBI: case LDBU: case LDBUI:@/
@@ -1074,7 +1114,7 @@ case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
-    if (xx<=9) goto illegal_inst; /* can't change rC, rN */
+    if (xx==9) goto illegal_inst; /* can't change rN */
     if (xx<=18 && !(loc.h&sign_bit)) goto privileged_inst;
     if (xx==rA) @<Get ready to update rA@>@;
     else if (xx==rL) @<Set $L=z=\min(z,L)$@>@;
@@ -1802,6 +1842,14 @@ else
 @z
 
 @x
+  g[rC].h+=info[op].mems; /* clock goes up by $2^{32}$ for each $\mu$ */
+  g[rC]=incr(g[rC],info[op].oops); /* clock goes up by 1 for each $\upsilon$ */
+@y
+  mems+=info[op].mems; /* mems goes up by 1 for each $\mu$ */
+  oops+=info[op].oops; /* oops goes up by 1 for each $\upsilon$ */
+@z
+
+@x
 @<Trace...@>=
 if (tracing) {
   if (showing_source && cur_line) show_line();
@@ -1852,6 +1900,13 @@ char switchable_string[300] ={0}; /* holds |rhs|; position 0 is ignored */
  /* |switchable_string| must be able to hold any debug message */
 @z
 
+@x
+  g[rC].h,g[rC].h==1? "": "s",@|
+  g[rC].l,g[rC].l==1? "": "s",@|
+@y
+  mems,mems==1? "": "s",@|
+  oops,oops==1? "": "s",@|
+@z
 
 @x
 int main(argc,argv)
@@ -1916,12 +1971,13 @@ boot:
      if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  vmb_raise_reset(&vmb);
 
+  vmb_raise_reset(&vmb);
   @<Load object file@>;
   @<Load the command line arguments@>;
   g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
   vmb.reset_flag = 0;
+
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else {

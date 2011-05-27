@@ -51,9 +51,9 @@ static int write_socket(int socket, unsigned char *msg, int size)
   { int i;
     i = send(socket, &msg[snd], size-snd,0);
     if (i<0) /* error */
-    {   int e;
+    {   
 #ifdef WIN32 
-		e = WSAGetLastError();
+		int e = WSAGetLastError();
 		if (e == WSAEWOULDBLOCK)
 		{  /* if the socket was used in nonblocking mode (motherboadr) 
 		      it might return 0 */

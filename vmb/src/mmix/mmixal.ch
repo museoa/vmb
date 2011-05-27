@@ -1,4 +1,21 @@
 @x
+The switchable type name \&{Char} provides at least a first step
+towards a brighter future with Unicode.
+
+@<Type...@>=
+typedef unsigned char Char; /* bytes that will become wydes some day */
+@y
+The switchable type name \&{Char} provides at least a first step
+towards a brighter future with Unicode.
+
+@<Type...@>=
+typedef char Char; /* bytes that will become wydes some day */
+@z
+
+
+
+
+@x
   mmo_loc();
 @y
   mmo_loc();

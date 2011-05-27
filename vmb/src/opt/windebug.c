@@ -4,7 +4,7 @@
 #include "win32connect.h"
 #include "winopt.h"
 #include "error.h"
-#include "winmem.h"
+#include "inspect.h"
 
 void win32_message(char *msg)
 {

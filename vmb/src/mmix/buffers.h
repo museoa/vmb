@@ -30,7 +30,7 @@
 
 /* QUEUESIZE is the size of the queue plus 1 to allow for one empty place.
    it helps distinguishing between a full and an empty circular buffer */
-#define QUEUESIZE 3
+#define QUEUESIZE 5
 
 
 typedef struct queue {

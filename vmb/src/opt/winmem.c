@@ -7,7 +7,7 @@
 #include "param.h"
 #include "error.h"
 #include "bus-arith.h"
-#include "winmem.h"
+#include "inspect.h"
 
 
 HWND hMemory=NULL; 

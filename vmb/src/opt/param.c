@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <sys/types.h>
+#include <ctype.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -48,6 +49,7 @@ char *host=NULL;
 char *filename=NULL;
 int port = 9002;
 int interrupt = 16;
+int disable_interrupt = 0;
 int xpos=0, ypos=0; /* Window position */
 int minimized = 0;  /* start the window minimized */
 
@@ -100,16 +102,27 @@ void usage(char *message)
 
 static int mk_argv(char *argv[MAXARG],char *command)
 { int argc;  
-  char *str;
+
+  if (command==NULL||*command==0)
+  { argv[0]=NULL;
+    return 1;
+  }
   for (argc=0;argc<MAXARG;argc++)
-  { argv[argc]=command;
-    if (command==NULL) return 1;
-    str=strchr(command,' ');
-    if (str==NULL)
-      command = NULL;
-    else
-    { str[0]=0;
-      command = str+1;
+  { 
+    while (isspace(*command)) command++;
+
+    if (*command==0)
+    { argv[argc]=NULL;
+        return 1;
+    }
+
+    argv[argc]=command;
+
+    while (!isspace(*command) && *command!=0) command++;
+
+    if (*command!=0)
+    { *command=0;
+      command++;
     }
   }
   vmb_error(__LINE__,"Too many arguments in command");
@@ -127,23 +140,23 @@ void do_commands(void)
         if (!mk_argv(argv,commands[i]))
           continue;
 #ifdef WIN32
-		Sleep(50); /* start processes in order given */
-		{ intptr_t p;
-		  p = spawnvp(_P_NOWAIT,argv[0],argv);
-		  if (p<0)
-		  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
-		  }
-		}
+	Sleep(50); /* so delay 50 ms start processes in order given */
+	{ intptr_t p;
+	  p = spawnvp(_P_NOWAIT,argv[0],argv);
+	  if (p<0)
+	  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
+	  }
+	}
 #else
-		sleep is missing here !
+	usleep(50000); /* so delay 50 ms start processes in order given */
         { pid_t p;
           p = fork();
           if (p<0) vmb_error(__LINE__,"Unable to create new process");
           else if (p==0) /* child */
-		  { execvp(argv[0],argv);
-	        vmb_error2(__LINE__,"Unable to execute command",argv[0]);
-		  }
-		}
+	  { execvp(argv[0],argv);
+            vmb_error2(__LINE__,"Unable to execute command",argv[0]);
+	  }
+	}
 #endif
 	}
     else
