@@ -17,7 +17,7 @@ install:
 
 
 
-www:
+www: wwwdoc
 	rm -f htdocs/*~
 	rsync -aivz --exclude CVS --exclude .cvsignore htdocs/ ruckert,vmb@web.sourceforge.net:htdocs/
 
