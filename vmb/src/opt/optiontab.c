@@ -42,7 +42,7 @@ option_spec options[] = {
 {"to disable interrupts",               'Q', "disableinterrupt",   "false",       on_arg, NULL, {&disable_interrupt}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
 {"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
-{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };

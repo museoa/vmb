@@ -81,7 +81,7 @@ extern void parse_commandline(int argc, char **argv);
 extern void parse_commandstr(char *p);
 /* like parse_commandline takes all the information from one string */
 
-extern int parse_configfile(char *filename, char *condition);
+extern int do_option_configfile(char *filename);
 /* same for a configuration file (options only) 
    the file with the given filename is opened and read.
    empty/blank lines are ignored
@@ -91,7 +91,9 @@ extern int parse_configfile(char *filename, char *condition);
    as long options. the semantics of a keyword line is the same as giving
    that same option on the command line with the rest of the line as argument.
    reading of configuration files can be recursive.
-   parse_configfile can be used as a handler to handle config-file options
+   the special string #FILE# is repaced by the configuration file
+   the special string #PATH# is replaced by the path to the configuration file.
+   do_option_configfile can be used as a handler to handle config-file options
    (see below).
 */
 extern int write_configfile(char *filename);

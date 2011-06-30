@@ -30,15 +30,23 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <ctype.h>
 #include <string.h>
+
+#ifdef WIN32
+#include <direct.h>
+#pragma warning(disable : 4996)
+#define DIRCHAR ('\\')
+#define DIRSTR  ("\\")
+#else
+#include <unistd.h>
+#define DIRCHAR ('/')
+#define DIRSTR  ("/")
+#endif
+
 #include "option.h"
 #include "error.h"
 
-#ifdef WIN32
-#pragma warning(disable : 4996)
-#endif
 
  
 /* a string to store teporarily an option */
@@ -46,7 +54,9 @@
 char tmp_option[MAXTMPOPTION]= {0};
 char *programpath = NULL;
 char *defined=NULL;
-static char * configfile=NULL;
+static char * configFILE=NULL;
+static char * configPATH=NULL;
+static int cflen=0, cplen=0;
 
 void set_option(char **option, char *str)
 /* deallocate *option if necessary, allocate if necesarry, and fill with the the given string */
@@ -161,7 +171,6 @@ static double strtodouble(char *arg)
 
 static void store_strarg(char **to, char *arg)
 {  int n;  
-   int cflen=0;
    char *p;
    if (arg==NULL)
      return;
@@ -173,9 +182,15 @@ static void store_strarg(char **to, char *arg)
    n=0; p=arg;
    while(*p!=0)
    { if (strncmp(p,"#FILE#",6)==0)
-     { if (configfile!=NULL)  
-       { cflen=strlen(configfile);
-          n = n + cflen;
+     { if (configFILE!=NULL)  
+       {  n = n + cflen;
+          p=  p + 6;
+       }
+       else return; /* ignore option */
+     }
+     else if (strncmp(p,"#PATH#",6)==0)
+     { if (configPATH!=NULL)  
+       {  n = n + cplen;
           p=  p + 6;
        }
        else return; /* ignore option */
@@ -196,22 +211,33 @@ static void store_strarg(char **to, char *arg)
         n=0;
         while(arg[n]!=0)
         { if (strncmp(arg+n,"#FILE#",6)==0)
-          { if (configfile!=NULL)  
-	      { strncpy(p,configfile,cflen);
-                n = n+6;
+          { if (configFILE!=NULL)  
+	        {   strncpy(p,configFILE,cflen);
+		        n = n+6;
                 p = p+cflen;
-	      }
+	        }
             else 
-	    { free(p); *to=NULL;
-              return; /* ignore option */
-	    }
+	        { free(p); *to=NULL;
+                return; /* ignore option */
+	        }
+          }
+		  else if (strncmp(arg+n,"#PATH#",6)==0)
+          { if (configPATH!=NULL)  
+	        {   strncpy(p,configPATH,cplen);
+		        n = n+6;
+                p = p+cplen;
+	        }
+            else 
+	        { free(p); *to=NULL;
+                return; /* ignore option */
+	        }
           }
           else
-	  { *p=arg[n]; 
-	    p=p+1;
+	      { *p=arg[n]; 
+	        p=p+1;
             n=n+1;
-	  }
-	}
+	      }
+	    }
         *p=0;
       }
    }
@@ -386,6 +412,9 @@ void option_defaults(void)
   }
 }
 
+
+
+
 #define MAXLINE 4*1024
 
 int write_configfile(char *filename)
@@ -447,12 +476,75 @@ int write_configfile(char *filename)
   return 1;
 }
 
+#define PATH_MAX 1024
+static void set_PATH_FILE(char *filename)
+/* extract configPATH and configFILE from filename, 
+   get the current working directory, if there is no path
+ */
+{ int i,n;
+  char *path;
+  char *file;
+  path = malloc(strlen(filename)+1);
+  if (path==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return;
+  }
+  strcpy(path,filename);
+  i = 0;
+  n = 0;
+  while (filename[i]!=0)
+  { if (filename[i] == DIRCHAR) 
+      n = i+1;
+    i++;
+  }
+  if (n>0)
+  { path[n]=0;
+	file = malloc(strlen(filename)+1);
+    if (file==NULL) 
+    { vmb_fatal_error(__LINE__,"Out of memory");
+      return;
+    }
+    strcpy(file,filename);
+  }
+  else
+  { free(path);
+    path = _getcwd(NULL,0);
+	path = realloc(path,strlen(path)+2);
+	if (path==NULL) 
+    { vmb_fatal_error(__LINE__,"Out of memory");
+      return;
+    }
+	strcat(path,DIRSTR);
+	file = malloc(strlen(path)+strlen(filename)+1);
+    if (file==NULL) 
+    { vmb_fatal_error(__LINE__,"Out of memory");
+      return;
+    }
+    strcpy(file,path);
+	strcat(file,filename);
+  }
+  configFILE = file;
+  cflen=(int)strlen(configFILE);
+  configPATH = path;
+  cflen=(int)strlen(configPATH);
+}
+
+static void unset_PATH_FILE(void)
+{ if (configFILE!=NULL) free(configFILE);
+  configFILE=NULL;
+  cflen=0;
+  if (configPATH!=NULL) free(configPATH);
+  configPATH=NULL;
+  cplen=0;
+}
+
 int parse_configfile(char *filename, char *condition)
 /* return 1 if the file exists and could be opened
    return 0 if the file does not exist or could not be opened.
+   substitute the defined variable for the condition if NULL
 */
 { FILE *in;
-  static char line[MAXLINE];
+  char *line;
   char *cmd, *arg, *p;    
   int conditional=0;
   int i;
@@ -465,7 +557,14 @@ int parse_configfile(char *filename, char *condition)
   in=fopen(filename,"r");
   if (in==NULL)
 	return 0;
-  configfile = filename;
+  if (condition==NULL && defined!=NULL) condition=defined;
+  set_PATH_FILE(filename);
+  line = malloc(MAXLINE);
+  if (line==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return 0;
+  }
+
   while(!feof(in))
   {  fgets(line,MAXLINE,in);
      if(feof(in)) break;
@@ -542,10 +641,15 @@ int parse_configfile(char *filename, char *condition)
      
      do_option_long(cmd,arg);
   }
-  configfile=NULL;
+  unset_PATH_FILE();
   fclose(in);
+  free(line);
   vmb_debug(VMB_DEBUG_INFO, "done configfile");
   return 1;
+}
+
+int do_option_configfile(char *filename)
+{ return parse_configfile(filename,NULL);
 }
 
 static 
@@ -628,23 +732,20 @@ static int do_define(char *arg)
  return 1;
 }
 
-#define PATH_MAX 1024
 
 static void do_configfile(char *condition)
-{   char filename[PATH_MAX];
-
-    getcwd(filename,PATH_MAX-12);
-    strcat(filename,"/default.mmc");
-
-    if (parse_configfile(filename,condition)) /* local configfile */
+{  char *filename;
+    if (parse_configfile("default.mmc",condition)) /* local configfile */
       return;
-    if (strlen(programpath)>PATH_MAX-12)
-    { vmb_fatal_error(__LINE__,"Programpath too long");
+	filename = malloc(strlen(programpath)+strlen("default.mmc")+1);
+    if (filename==NULL)
+    { vmb_fatal_error(__LINE__,"Out of Memory");
       return;
     }
     strcpy(filename,programpath);
     strcat(filename,"default.mmc");
     parse_configfile(filename,condition); /* global configfile last */
+	free(filename);
 }
 
 void parse_commandstr(char *p)
