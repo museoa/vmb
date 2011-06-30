@@ -30,10 +30,12 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <string.h>
 #include "option.h"
 #include "error.h"
+
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
@@ -44,6 +46,7 @@
 char tmp_option[MAXTMPOPTION]= {0};
 char *programpath = NULL;
 char *defined=NULL;
+static char * configfile=NULL;
 
 void set_option(char **option, char *str)
 /* deallocate *option if necessary, allocate if necesarry, and fill with the the given string */
@@ -155,31 +158,77 @@ static double strtodouble(char *arg)
   return r;
 }
 
+
+static void store_strarg(char **to, char *arg)
+{  int n;  
+   int cflen=0;
+   char *p;
+   if (arg==NULL)
+     return;
+   if (*to!=NULL)
+   { free(*to);
+     *to = NULL;
+   }
+   while (isspace(*arg)) arg++;
+   n=0; p=arg;
+   while(*p!=0)
+   { if (strncmp(p,"#FILE#",6)==0)
+     { if (configfile!=NULL)  
+       { cflen=strlen(configfile);
+          n = n + cflen;
+          p=  p + 6;
+       }
+       else return; /* ignore option */
+     }
+     else
+     {  n= n+1;
+        p= p+1;
+     }
+   }
+   while (n>0 && isspace(arg[n-1]))
+   { n--; arg[n]=0;}
+   if (n>0)
+   { p =  malloc(n+1);
+     if (p==NULL)
+        vmb_error(__LINE__,"Out of memory"); 
+     else
+     { *to=p;
+        n=0;
+        while(arg[n]!=0)
+        { if (strncmp(arg+n,"#FILE#",6)==0)
+          { if (configfile!=NULL)  
+	      { strncpy(p,configfile,cflen);
+                n = n+6;
+                p = p+cflen;
+	      }
+            else 
+	    { free(p); *to=NULL;
+              return; /* ignore option */
+	    }
+          }
+          else
+	  { *p=arg[n]; 
+	    p=p+1;
+            n=n+1;
+	  }
+	}
+        *p=0;
+      }
+   }
+}
+
+
 static 
 int do_option(option_spec *p, char *arg)
-{ unsigned int n;
+{ 
   vmb_debug(VMB_DEBUG_INFO, "processing option:");
   vmb_debug(VMB_DEBUG_INFO, p->longopt);
   switch (p->kind)
   { case str_arg: 
-      if (*(p->handler.str)!=NULL)
-        free(*(p->handler.str));
       if (arg==NULL)
-	  { vmb_error2(__LINE__,"Argument expected",p->description);
-	    return 1;
-	  }
-	  n = (int)strlen(arg);
-	  while (n>0 && isspace(arg[n-1]))
-	  { n--; arg[n]=0;}
-	  if (n>0)
-      { *(p->handler.str) =  malloc(n+1);
-	    if (*(p->handler.str)==NULL)
-			vmb_error(__LINE__,"Out of memory"); 
-		else
-	        strcpy(*(p->handler.str), arg);
-	  }
-	  else
-		*(p->handler.str) = NULL;
+        vmb_error2(__LINE__,"Argument expected",p->description);
+      else
+        store_strarg(p->handler.str,arg);
       return 1;
   case int_arg:
 	  if (arg==NULL)
@@ -245,7 +294,14 @@ int do_option(option_spec *p, char *arg)
       return 0;
     case fun_arg:
       vmb_debug(VMB_DEBUG_INFO, "calling handler");
-      return (p->handler.f)(arg);
+      { char *str=NULL;
+        int r;
+        store_strarg(&str,arg);
+        r = (p->handler.f)(str);
+        free(str);
+        str=NULL;
+        return r;
+      }
     default:
       /* ignore unknown options */
       return 0;
@@ -256,7 +312,6 @@ static
 int  do_option_long(char *cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
-   static char msg[100];
    vmb_debugs(VMB_DEBUG_INFO, "searching for option: %s",cmd);
    i=0;
    while (1)
@@ -393,6 +448,9 @@ int write_configfile(char *filename)
 }
 
 int parse_configfile(char *filename, char *condition)
+/* return 1 if the file exists and could be opened
+   return 0 if the file does not exist or could not be opened.
+*/
 { FILE *in;
   static char line[MAXLINE];
   char *cmd, *arg, *p;    
@@ -407,6 +465,7 @@ int parse_configfile(char *filename, char *condition)
   in=fopen(filename,"r");
   if (in==NULL)
 	return 0;
+  configfile = filename;
   while(!feof(in))
   {  fgets(line,MAXLINE,in);
      if(feof(in)) break;
@@ -483,6 +542,7 @@ int parse_configfile(char *filename, char *condition)
      
      do_option_long(cmd,arg);
   }
+  configfile=NULL;
   fclose(in);
   vmb_debug(VMB_DEBUG_INFO, "done configfile");
   return 1;
@@ -568,20 +628,23 @@ static int do_define(char *arg)
  return 1;
 }
 
+#define PATH_MAX 1024
+
 static void do_configfile(char *condition)
-{   char *configfile;
-    int n;
-    n = (int)strlen(programpath);
-    configfile = malloc(n  + 11 + 1); /* arg + default.mmc  + '0'*/
-    if (configfile==NULL) 
-    { vmb_fatal_error(__LINE__,"Out of memory");
+{   char filename[PATH_MAX];
+
+    getcwd(filename,PATH_MAX-12);
+    strcat(filename,"/default.mmc");
+
+    if (parse_configfile(filename,condition)) /* local configfile */
+      return;
+    if (strlen(programpath)>PATH_MAX-12)
+    { vmb_fatal_error(__LINE__,"Programpath too long");
       return;
     }
-    strcpy(configfile,programpath);
-    strcat(configfile,"default.mmc");
-    parse_configfile(configfile,condition); /* global configfile first */
-    parse_configfile("default.mmc",condition); /* next local configfile */
-    free(configfile);
+    strcpy(filename,programpath);
+    strcat(filename,"default.mmc");
+    parse_configfile(filename,condition); /* global configfile last */
 }
 
 void parse_commandstr(char *p)
@@ -591,7 +654,8 @@ void parse_commandstr(char *p)
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
   arguments++;
-  do_configfile(defined);
+  if (strstr(p,"-c")==NULL && strstr(p,"--config")==NULL)
+    do_configfile(defined); /* else use configfile provided */
   while(*p != 0)
   {  while(isspace((int)(p[0]))) p++; /* skip spaces */
      if (p[0] == 0) /* done? */

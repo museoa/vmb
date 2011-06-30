@@ -130,11 +130,13 @@ void load_cached_instruction(tetra *instruction, octa address)
   *instruction = vmb_cache_read_int(&vmb,&vmb_i_cache, address.h, address.l);
 }
 
+#include <stdio.h>
+
 void store_cached_data(int size, octa data, octa address)
 { unsigned char *d;
   address.l=address.l&~(size-1);  /* round down to next alignment */
   d = vmb_cache_write(&vmb,&vmb_d_cache, address.h, address.l);
-  if (size == 8)
+ if (size == 8)
   { inttochar(data.h,d);
     inttochar(data.l,d+4);
   }
@@ -143,6 +145,15 @@ void store_cached_data(int size, octa data, octa address)
     inttochar(data.l,tmp);
     memcpy(d,tmp+(4-size),size);
   }
+#if 1
+ { unsigned char search[8]={0x01,0x73,0x01,0x68,0x01,0x2d,0x01,0x33};
+  // check for special store 
+   if (strncmp(d+size-8,search,8)==0)
+     { fprintf(stderr,"loc: %08x %08x, addr: %08x %08x, size: %d\n", loc.h, loc.l,address.h, address.l, size);
+	 g[rQ].l|=B_BIT;
+  }
+  }
+#endif
 }
 
 extern octa incr(octa y,int delta);

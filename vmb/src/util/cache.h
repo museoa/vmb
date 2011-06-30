@@ -27,8 +27,8 @@
 /* Change the following values to configure the cache */
 
 #define LINEBITS  8      /* the n low-order bits to index the content of a cache line */
-#define CACHEBITS 13     /* the bits used to index the cache (including linebits,*/
-			 /* ignoring the 64-CACHEBITS high-order bits, must be <= 32.*/
+#define CACHEBITS 16     /* the bits used to index the cache (including linebits,*/
+			 /* ignoring the (64-CACHEBITS) high-order bits. Must be <= 32.*/
 #define WAYS      4      /* a k way cache, k ist the number of lines per set */
 
 

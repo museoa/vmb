@@ -52,6 +52,11 @@ extern int store_data(int size,octa data, octa address);
    raise an interrupt if there is a problem
 */
 
+extern int store_data_uncached(int size,octa data, octa address);
+/* store an octa into data to the given virtual address 
+   raise an interrupt if there is a problem
+*/
+
 /* functions for the virtual translation cache */
 extern void clear_all_data_vtc(void);
 extern void clear_all_instruction_vtc(void);

@@ -257,27 +257,12 @@ aux.h=0x60000000;
 @z
 
 @x
-@ @<Fetch the next instruction@>=
-{ unsigned char b;
-  loc=inst_ptr;
-  @<Check for security violation@>
-  load_instruction(&inst,loc);
-  b = get_break(loc);
-  if (b&exec_bit) breakpoint=true;
-  tracing=breakpoint||(b&trace_bit);
-  inst_ptr=incr(inst_ptr,4);
-  if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
-  goto protection_violation;
-}
+  { unsigned char b;
+    b = get_break(loc);
+    if (b&exec_bit) breakpoint=true;
+    tracing=breakpoint||(b&trace_bit);
+  }
 @y
-@ @<Fetch the next instruction@>=
-{ loc=inst_ptr;
-  @<Check for security violation@>
-  load_instruction(&inst,loc);
-  inst_ptr=incr(inst_ptr,4);
-  if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
-  goto protection_violation;
-}
 @z
 
 
@@ -759,13 +744,11 @@ octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));
 for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
-  if (!store_data(8,aux,x))
-     panic("Unable to store command line to RAM");
+  store_data(8,aux,x);
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
 x.l=0;
-if (!store_data(8,aux,x))
-     panic("Unable to store command line to RAM");
+store_data(8,aux,x);
 @y
 @z

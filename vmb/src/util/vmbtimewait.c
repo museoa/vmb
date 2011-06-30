@@ -8,19 +8,20 @@
   extern void clean_up_event_mutex(void *vmb);
 
 #endif
-
+#include <stdio.h>
 #include "vmb.h"
 #include "error.h"
 
-void vmb_wait_for_event_timed(device_info *vmb, int ms)
+int vmb_wait_for_event_timed(device_info *vmb, int ms)
 /* waits for a  power off, reset, disconnect, or an interrupt
    or until the Time in ms expires.
+   returns waiting time left
 */
-{ 
+{ int d;
 #ifndef WIN32
   int w = 0;
 #define WAIT_TIMEOUT ETIMEDOUT
-  struct timespec ts;
+  struct timespec ts, goal_ts, end_ts;
   clock_gettime(CLOCK_REALTIME, &ts);
   ts.tv_sec += ms/1000;
   ts.tv_nsec += (ms%1000)*1000000;
@@ -28,6 +29,7 @@ void vmb_wait_for_event_timed(device_info *vmb, int ms)
   {  ts.tv_sec += 1;
      ts.tv_nsec -= 1000000000;
   }
+  goal_ts=ts;
   { int rc = pthread_mutex_lock(&vmb->event_mutex);
     if (rc) 
     { vmb_error(__LINE__,"Locking event mutex failed");
@@ -49,9 +51,20 @@ void vmb_wait_for_event_timed(device_info *vmb, int ms)
          )
 #ifdef WIN32
      w = WaitForSingleObject(vmb->hevent,ms);
+  vmb->cancel_wait_for_event=0;
+  /* return value not implemented for win32 */
 #else
      w = pthread_cond_timedwait(&vmb->event_cond,&vmb->event_mutex, &ts);
   pthread_cleanup_pop(1);
-#endif
+  clock_gettime(CLOCK_REALTIME, &end_ts);
+  d = 1000*(goal_ts.tv_sec-end_ts.tv_sec)
+    + (goal_ts.tv_nsec-end_ts.tv_nsec)/1000000;
+  if (d<0) d = 0;
+  else if (d>ms) d = ms;
   vmb->cancel_wait_for_event=0;
+#if 1
+  fprintf(stderr,"Timeout %d ms remaining %d ms\n", ms, d);
+#endif
+  return d;
+#endif
 }

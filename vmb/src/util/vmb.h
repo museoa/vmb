@@ -126,7 +126,7 @@ extern int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *l
 extern void vmb_raise_interrupt(device_info *vmb, unsigned char interrupt);
 extern void vmb_raise_reset(device_info *vmb);
 extern void vmb_wait_for_event(device_info *vmb);
-extern void vmb_wait_for_event_timed(device_info *vmb, int ms);
+extern int vmb_wait_for_event_timed(device_info *vmb, int ms);
 extern void vmb_cancel_wait_for_event(device_info *vmb);
 extern void vmb_wait_for_power(device_info *vmb);
 extern void vmb_acquire(device_info *vmb);

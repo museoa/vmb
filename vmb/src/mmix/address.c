@@ -181,35 +181,39 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
                    base.l = base.l+0x2000;
                    ptp = base;
 	           base.l = base.l+8*a[4];
-                   load_uncached_data(8,&base,base,0);
+                   load_cached_data(8,&base,base,0);
+                   if (base.h==0 && base.l==0) return 0;
                    if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
 		     goto pagetable_error;
                    base.l = base.l & (~0x1FFF);
                    base.h = base.h & 0x7FFFFFFF;
 		 }
 	         base.l = base.l+8*a[3];
-                 load_uncached_data(8,&base,base,0);
+                 load_cached_data(8,&base,base,0);
+                 if (base.h==0 && base.l==0) return 0;
                  if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
 		   goto pagetable_error;
                  base.l = base.l & (~0x1FFF);
                  base.h = base.h & 0x7FFFFFFF;
 	     }
              base.l = base.l+8*a[2];
-             load_uncached_data(8,&base,base,0);
+             load_cached_data(8,&base,base,0);
+             if (base.h==0 && base.l==0) return 0;
              if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
 	       goto pagetable_error;
              base.l = base.l & (~0x1FFF);
              base.h = base.h & 0x7FFFFFFF;
 	 }
          base.l = base.l+8*a[1];
-         load_uncached_data(8,&base,base,0);
+         load_cached_data(8,&base,base,0);
+         if (base.h==0 && base.l==0) return 0;
          if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
            goto pagetable_error;
          base.l = base.l & (~0x1FFF);
          base.h = base.h & 0x7FFFFFFF;
      }
    base.l = base.l+8*a[0];
-   load_uncached_data(8,&pte,base,0);
+   load_cached_data(8,&pte,base,0);
    if (pte.h==0 && pte.l==0)
      return 0;
    unpack_pte(&e,&pte,s);
@@ -296,7 +300,7 @@ int TC_translate(TC *tc, int s, int i, int n, octa *base)
 
 
 
-#if 0
+#if 1
 
 octa update_vtc(octa key)
 /* implements the LDVTS instruction according to mmix-doc */
@@ -463,7 +467,8 @@ static int translate_address(octa *address, TC *tc)
   s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
   unpack_address(address, s, &i, &base, &offset);
   p= TC_translate(tc, s, i, n, &base);
-  *address = oplus(base,offset);
+  if (!(p&PAGE_TABLE_ERROR) && p!=0)
+     *address = oplus(base,offset);
   return p;
 }
 
@@ -504,13 +509,7 @@ int load_instruction(tetra *instruction, octa address)
       new_Q.l |= PT_BIT;
       g[rF]=address; 
       return 0;
-    } else if (p==0)
-    { *instruction = 0;
-      g[rQ].l |=  PA_BIT;
-      new_Q.l |=  PA_BIT;
-      g[rF]=address; 
-      return 0;
-    }
+    } 
     else if (!(p&EXEC_BIT)) 
     { *instruction = 0;
       g[rQ].h |=  PX_BIT;
@@ -563,14 +562,7 @@ int load_data(int size, octa *data, octa address,int signextension)
       g[rF]=address; 
       return 0;
     }
-    else if (p==0) 
-    { data->h=data->l = 0;
-      g[rQ].l |= PA_BIT;
-      new_Q.l |= PA_BIT;
-      g[rF]=address; 
-      return 0;
-    }
-    else if (!(p&READ_BIT)) 
+   else if (!(p&READ_BIT)) 
     { data->h=data->l = 0;
       g[rQ].h |= PR_BIT;
       new_Q.h |= PR_BIT;
@@ -616,21 +608,95 @@ int store_data(int size,octa data, octa address)
       g[rF]=address; 
       return 0;
     }
-    else if (p==0) 
-    { g[rQ].l |= PA_BIT;
-      new_Q.l |= PA_BIT;
-      g[rF]=address;
-      if (g[rC].l&WRITE_BIT) 
-      { int s,i;
-        octa base, offset;
-        PTE e;
-        s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
-        unpack_address(&address, s, &i, &base, &offset);  /* compute offset */
-        unpack_pte(&e,&g[rC],s); /* compute base */
-        address = oplus(e.base,offset);
-      }
-      else
-        return 0;
+    else if (!(p&WRITE_BIT)) 
+    { g[rQ].h |= PW_BIT;
+      new_Q.h |= PW_BIT;
+      g[rF]=address; 
+      return 0;
+    }
+    last_d_addr.h = last.h;
+    last_d_addr.l = last.l&0xFFFFE000;
+    last_d_trans.h=address.h;
+    last_d_trans.l=address.l&0xFFFFE000;
+  }
+ if (address.h & 0xFFFF0000)
+    store_uncached_data(size,data,address);
+  else
+     store_cached_data(size,data,address);
+  return 1;
+}
+
+
+int load_data_uncached(int size, octa *data, octa address,int signextension)
+/* size may be 1, 2, 4 or 8 
+   load a byte, wyde, tetra, or octa into data from the given virtual address 
+   raise an interrupt if there is a problem
+*/
+
+{ if (address.h==last_d_addr.h &&
+      (address.l&0xFFFFE000)==last_d_addr.l)
+      address.h=last_d_trans.h,
+      address.l=last_d_trans.l|(address.l&0x1FFF);
+  else if (address.h&0x80000000)
+    /* negative addresses are maped to physical adresses by suppressing the sign bit */
+  {  last_d_addr.h = address.h;
+     last_d_addr.l = address.l&0xFFFFE000;
+     address.h= address.h&0x7FFFFFFF;
+     last_d_trans.h = address.h;
+     last_d_trans.l = address.l&0xFFFFE000;
+  }
+  else 
+  { octa last= address;
+    int p = translate_address(&address, &data_tc);
+    if (p&PAGE_TABLE_ERROR)
+    { data->h=data->l = 0;
+      g[rQ].l |= PT_BIT;
+      new_Q.l |= PT_BIT; 
+      g[rF]=address; 
+      return 0;
+    }
+   else if (!(p&READ_BIT)) 
+    { data->h=data->l = 0;
+      g[rQ].h |= PR_BIT;
+      new_Q.h |= PR_BIT;
+      g[rF]=address; 
+      return 0;
+    }
+    last_d_addr.h = last.h;
+    last_d_addr.l = last.l&0xFFFFE000;
+    last_d_trans.h=address.h;
+    last_d_trans.l=address.l&0xFFFFE000;
+  }
+  load_uncached_data(size,data,address,signextension);
+  return 1;
+}
+
+
+int store_data_uncached(int size,octa data, octa address)
+/* store an octa from data into the given virtual address 
+   raise an interrupt and return 0 if there is a problem
+*/
+{
+  if (address.h==last_d_addr.h &&
+      (address.l&0xFFFFE000)==last_d_addr.l)
+      address.h=last_d_trans.h,
+      address.l=last_d_trans.l|(address.l&0x1FFF);
+  else if (address.h&0x80000000)
+    /* negative addresses are maped to physical adresses by suppressing the sign bit */
+  {  last_d_addr.h = address.h;
+     last_d_addr.l = address.l&0xFFFFE000;
+     address.h= address.h&0x7FFFFFFF;
+     last_d_trans.h = address.h;
+     last_d_trans.l = address.l&0xFFFFE000;
+  }
+  else
+  { octa last= address;
+    int p = translate_address(&address, &data_tc);
+    if (p&PAGE_TABLE_ERROR)
+    { g[rQ].l |= PT_BIT;
+      new_Q.l |= PT_BIT; 
+      g[rF]=address; 
+      return 0;
     }
     else if (!(p&WRITE_BIT)) 
     { g[rQ].h |= PW_BIT;
@@ -643,10 +709,7 @@ int store_data(int size,octa data, octa address)
     last_d_trans.h=address.h;
     last_d_trans.l=address.l&0xFFFFE000;
   }
-  if (address.h & 0xFFFF0000)
-    store_uncached_data(size,data,address);
-  else
-     store_cached_data(size,data,address);
+  store_uncached_data(size,data,address);
   return 1;
 }
 

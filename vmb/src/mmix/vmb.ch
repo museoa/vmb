@@ -730,16 +730,23 @@ register mem_tetra *ll; /* current place in the simulated memory */
 }
 @y
 @ @<Fetch the next instruction@>=
-{ unsigned char b;
-  loc=inst_ptr;
+{ loc=inst_ptr;
   @<Check for security violation@>
-  load_instruction(&inst,loc);
-  b = get_break(loc);
-  if (b&exec_bit) breakpoint=true;
-  tracing=breakpoint||(b&trace_bit);
+  if(!load_instruction(&inst,loc)) 
+  {  inst=SWYM;
+     x.h=sign_bit, x.l=SWYM<<24;
+     y = loc;
+     z = zero_octa;
+     goto inst_page_fault;
+  }
+  { unsigned char b;
+    b = get_break(loc);
+    if (b&exec_bit) breakpoint=true;
+    tracing=breakpoint||(b&trace_bit);
+  }
   inst_ptr=incr(inst_ptr,4);
   if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
-  goto protection_violation;
+    goto protection_violation;
 }
 @z
 
@@ -792,6 +799,7 @@ lring_mask=lring_size-1;
 if (lring_size&lring_mask)
   panic("The number of local registers must be a power of 2");
 @.The number of local...@>
+if (l!=NULL) free(l);
 l=(octa*)calloc(lring_size,sizeof(octa));
 if (!l) panic("No room for the local registers");
 @.No room...@>
@@ -801,7 +809,7 @@ clear_all_data_vtc();
 clear_all_instruction_vtc();
 clear_all_data_cache();
 clear_all_instruction_cache();
-g[rK].h=g[rK].l=0;
+memset(g,0,sizeof(g));
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
 g[rN].l=ABSTIME; /* see comment and warning above */
 g[rT].h=0x80000000;g[rT].l=0x00000000;
@@ -812,7 +820,11 @@ g[rV].l=0x00002000;
 cur_round=ROUND_NEAR;
 @z
 
-
+@x
+  if (((S-O-L)&lring_mask)==0) stack_store();
+@y
+  if (((S-O-L)&lring_mask)==0) stack_store(l[S&lring_mask]);
+@z
 @x
 @d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) breakpoint=tracing=true
 
@@ -859,16 +871,38 @@ void stack_load()
 @d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true
 
 @<Sub...@>=
-void stack_store @,@,@[ARGS((void))@];@+@t}\6{@>
-void stack_store()
-{
-  register int k=S&lring_mask;
-  store_data(8,l[k],g[rS]);
+void stack_store @,@,@[ARGS((octa))@];@+@t}\6{@>
+void stack_store(x)
+  octa x;
+{ unsigned int pw_bit, new_pw_bit;
+  pw_bit=g[rQ].h&PW_BIT;
+  new_pw_bit=new_Q.h&PW_BIT;
+  if(!store_data(8,x,g[rS]))
+  {   /* set CP_BIT */
+      g[rQ].l |= CP_BIT;
+      new_Q.l |= CP_BIT;
+      if (g[rC].l&0x02)  /* Write bit */
+      {  int s;
+         octa address, base, offset,mask;
+         mask.h=mask.l=0xFFFFFFFF;
+         g[rQ].h &=~PW_BIT;  /* restore PW_BIT */
+         new_Q.h &=~PW_BIT;
+         g[rQ].h |= pw_bit;
+         new_Q.h |= new_pw_bit;
+         s    = (g[rV].h>>8)&0xFF;  /* extract the page size from rV */
+         mask = shift_left(mask,s);
+         offset.h = g[rS].h&~mask.h,offset.l = g[rS].l&~mask.l;
+         mask.h &= 0x0000FFFF;     /* reduce mask to 48 bits */
+         base.h = g[rC].h&mask.h,base.l = g[rC].l&mask.l;
+         address.h=base.h|offset.h,address.l=base.l|offset.l;
+         store_data(8,x,address);
+      }
+  }
   test_store_bkpt(g[rS]);
   if (stack_tracing) {
     tracing=true;
-    printf("             M8[#%08x%08x]=l[%d]=#%08x%08x, rS+=8\n",
-              g[rS].h,g[rS].l,k,l[k].h,l[k].l);
+    printf("             M8[#%08x%08x]=#%08x%08x, rS+=8\n",
+              g[rS].h,g[rS].l,x.h,x.l);
   }
   g[rS]=incr(g[rS],8),  S++;
 }
@@ -961,9 +995,12 @@ case LDHT: case LDHTI:
  goto check_ld;
 case LDO: case LDOI: 
 case LDOU: case LDOUI: 
-case LDUNC: case LDUNCI:
  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(8,&x,w,0)) goto page_fault;
+ goto check_ld;
+case LDUNC: case LDUNCI:
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
+ if (!load_data_uncached(8,&x,w,0)) goto page_fault;
  goto check_ld;
 case LDSF: case LDSFI: 
  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
@@ -975,6 +1012,9 @@ check_ld:
 page_fault:
  if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
  { x.h=0, x.l=inst;
+   y = w;
+   z = zero_octa;
+inst_page_fault:
    @<Initiate a trap interrupt@>
    inst_ptr=y=g[rTT];
  }
@@ -1038,9 +1078,14 @@ case STHT: case STHTI:
   goto fin_st;
 case STCO: case STCOI: b.h=0; b.l=xx;
 case STO: case STOI: case STOU: case STOUI: 
-case STUNC: case STUNCI:
  j = 8;
  goto fin_st;
+case STUNC: case STUNCI:
+ j = 8;
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
+ if (!store_data_uncached(j,b,w)) goto page_fault;
+ test_store_bkpt(w);
+ break;
 @z
 
 @x
@@ -1132,6 +1177,10 @@ case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
 @x
 case PUSHGO: case PUSHGOI: inst_ptr=w;@+goto push;
 case PUSHJ: case PUSHJB: inst_ptr=z;
+push:@+if (xx>=G) {
+   xx=L++;
+   if (((S-O-L)&lring_mask)==0) stack_store();
+ }
 @y
 case PUSHGO: case PUSHGOI: 
 if ((w.h&sign_bit) && !(loc.h&sign_bit))
@@ -1141,6 +1190,10 @@ case PUSHJ: case PUSHJB:
 if ((z.h&sign_bit) && !(loc.h&sign_bit))
 goto protection_violation;  
 inst_ptr=z;
+push:@+if (xx>=G) {
+   xx=L++;
+   if (((S-O-L)&lring_mask)==0) stack_store(l[S&lring_mask]);
+ }
 @z
 
 @x
@@ -1158,11 +1211,18 @@ inst_ptr=z;
 @x
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
  l[(O+L)&lring_mask].l=L++;
+ if (((S-O-L)&lring_mask)==0) stack_store();
 @y
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
  l[(O+L)&lring_mask].l=L, L++;
+ if (((S-O-L)&lring_mask)==0) stack_store(l[S&lring_mask]);
 @z
 
+@x
+ while (g[rO].l!=g[rS].l) stack_store();
+@y
+ while (g[rO].l!=g[rS].l) stack_store(l[S&lring_mask]);
+@z
 
 @x
 @<Store |g[k]| in the register stack...@>=
@@ -1174,14 +1234,17 @@ ll->tet=x.h;@+test_store_bkpt(ll);
 if (stack_tracing) {
   tracing=true;
   if (cur_line) show_line();
+  if (k>=32) printf("             M8[#%08x%08x]=g[%d]=#%08x%08x, rS+=8\n",
+            g[rS].h,g[rS].l,k,x.h,x.l);
+  else printf("             M8[#%08x%08x]=%s=#%08x%08x, rS+=8\n",
+            g[rS].h,g[rS].l,k==rZ+1? "(rG,rA)": special_name[k],x.h,x.l);
+}
+S++, g[rS]=incr(g[rS],8);
 @y
 @<Store |g[k]| in the register stack...@>=
 if (k==rZ+1) x.h=G<<24, x.l=g[rA].l;
 else x=g[k];
-if (!store_data(8,x,g[rS])) goto page_fault;
-test_store_bkpt(g[rS]);
-if (stack_tracing) {
-  tracing=true;
+stack_store(x);
 @z
 
 @x
@@ -1206,12 +1269,12 @@ if (stack_tracing) {
 g[rS]=incr(g[rS],-8);
 test_load_bkpt(g[rS]);
 if (k==rZ+1) 
-{ if (!load_data(8,&a,g[rS],0)) goto page_fault;
+{ if (!load_data(8,&a,g[rS],0)) { w=g[rS]; goto page_fault; }
   x.l=G=g[rG].l=a.h>>24;
   a.l=g[rA].l=a.l&0x3ffff;
 }
 else
- if (!load_data(8,&(g[k]),g[rS],0)) goto page_fault;
+ if (!load_data(8,&(g[k]),g[rS],0))  { w=g[rS]; goto page_fault; }
 if (stack_tracing) {
   tracing=true;
   if (k>=32) printf("             rS-=8, g[%d]=M8[#%08x%08x]=#%08x%08x\n",
@@ -1281,7 +1344,26 @@ case JMP: case JMPB:
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
 /* should give a privileged instruction interrupt in case zz  >3 */
  else if (zz==4) /* power save mode */
-     vmb_wait_for_event_timed(&vmb,750);
+ {  const unsigned int cycle_speed = 1000000; /* cycles per ms */
+    const unsigned int max_wait = 100;
+    int d, ms;
+    if (g[rI].h==0 && g[rI].l>max_wait*cycle_speed) /* large rI values */
+      ms = max_wait;
+    else
+      ms = g[rI].l/cycle_speed;
+    if (ms>0)
+    {  fprintf(stderr, "Power Save in  rI = %08x %08x\n",g[rI].h, g[rI].l);
+       d = vmb_wait_for_event_timed(&vmb,ms);
+       g[rI]=incr(g[rI],-(ms-d)*cycle_speed);
+       fprintf(stderr, "Power Save out  rI = %08x %08x\n",g[rI].h, g[rI].l);
+     }
+     else if (g[rI].l>1000)
+        g[rI].l = g[rI].l-1000;
+     else if (g[rI].l>100)
+        g[rI].l = g[rI].l-100;
+     else if (g[rI].l>10)
+        g[rI].l = g[rI].l-10;
+ }
  else if (zz==5) /* empty write buffer */
    write_all_data_cache();
  else if (zz==6) /* clear VAT cache */
@@ -1658,6 +1740,9 @@ if (!resuming)
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
     x.h=sign_bit, x.l=inst;
+    if (tracing)
+      printf("Dynamic TRAP: rQ=%08x%08x rK=%08x%08x\n",
+            g[rQ].h, g[rQ].l, g[rK].h, g[rK].l);
     @<Initiate a trap interrupt@>
     inst_ptr=y=g[rTT];
   }
@@ -1694,7 +1779,7 @@ leading to an immediate interrupt.
 
 
 @ Here are the bit codes that affect traps. The first eight
-cases apply to the upper half of~rQ.
+cases apply to the upper half of~rQ the next eight to the lower half.
 
 @d P_BIT (1<<0) /* instruction in privileged location */
 @d S_BIT (1<<1) /* security violation */
@@ -1704,6 +1789,15 @@ cases apply to the upper half of~rQ.
 @d PX_BIT (1<<5) /* permission lacking to execute from page */
 @d PW_BIT (1<<6) /* permission lacking to write on page */
 @d PR_BIT (1<<7) /* permission lacking to read from page */
+
+@d PF_BIT (1<<0) /* power fail */
+@d MP_BIT (1<<1) /* memory parity error */
+@d NM_BIT (1<<2) /* non existent memory */
+@d YY_BIT (1<<3) /* unassigned */
+@d RE_BIT (1<<4) /* rebooting */
+@d CP_BIT (1<<5) /* page fault */
+@d PT_BIT (1<<6) /* page table error */
+@d IN_BIT (1<<7) /* interval counter rI reaches zero */
 
 @ We need this:
     
@@ -1848,6 +1942,13 @@ else
   mems+=info[op].mems; /* mems goes up by 1 for each $\mu$ */
   oops+=info[op].oops; /* oops goes up by 1 for each $\upsilon$ */
 @z
+
+@x
+  if (g[rI].l==0 && g[rI].h==0) tracing=breakpoint=true;
+@y
+  if (g[rI].l==0 && g[rI].h==0) g[rQ].l |= IN_BIT, new_Q.l |= IN_BIT; /* set the i bit */
+@z
+
 
 @x
 @<Trace...@>=
@@ -2271,14 +2372,12 @@ x.l=0;@+ll=mem_find(x);@+ll->tet=loc.h, (ll+1)->tet=loc.l;
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));
 for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
-  if (!store_data(8,aux,x))
-     panic("Unable to store command line to RAM");
+  store_data(8,aux,x);
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
 x.l=0;
-if (!store_data(8,aux,x))
-     panic("Unable to store command line to RAM");
+store_data(8,aux,x);
 @z
 
 @x

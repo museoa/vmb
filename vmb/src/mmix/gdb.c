@@ -619,6 +619,7 @@ void handle_gdb_command(char *buffer)
        signal_continue(0);
        break;
      case '?':
+     case BREAK:  /* if things get messed up, I get a BREAK instead of a command */
        TERM_msg(buffer);
        break;
     case 'B':

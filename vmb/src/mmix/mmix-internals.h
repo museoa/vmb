@@ -74,13 +74,13 @@ extern octa oplus(octa x, octa y);
 
 /* The next eight cases apply to the lower half of~rQ. (machine bits) 
 */
-#define RE_BIT (1<<0) /* rebooting */
+#define PF_BIT (1<<0) /* power fail */
 #define MP_BIT (1<<1) /* memory parity error */
 #define NM_BIT (1<<2) /* non existent memory */
-#define PF_BIT (1<<3) /* power fail */
-#define PT_BIT (1<<4) /* page table error */
-#define PA_BIT (1<<5) /* page fault */
-#define YY_BIT (1<<6) /* unassigned */
-#define  I_BIT (1<<7) /* interval counter rI reaches zero */
+#define YY_BIT (1<<3) /* unassigned */
+#define RE_BIT (1<<4) /* rebooting */
+#define CP_BIT (1<<5) /* continuation page used */
+#define PT_BIT (1<<6) /* page table error */
+#define IN_BIT (1<<7) /* interval counter rI reaches zero */
 
 #endif

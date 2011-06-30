@@ -141,7 +141,7 @@ int fromhex(char c)
 }
 
 char tohex(int i)
-{ static char digits[]="0123456789ABCDEF";
+{ static char digits[]="0123456789abcdef";
   if (0<=i && i<=15) return digits[i];
   else return ' ';
 }

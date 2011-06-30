@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.22 $ $Date: 2011-05-27 00:06:07 $";
+char version[]="$Revision: 1.23 $ $Date: 2011-06-30 00:10:46 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -512,7 +512,8 @@ static void diskRead(void)
 		  diskDone();
           return;
         }
-	    vmb_debugi(VMB_DEBUG_PROGRESS, "Read sector %d",(int)diskSct);
+	vmb_debugi(VMB_DEBUG_PROGRESS, "Read sector %d",(int)diskSct);
+	vmb_debugi(VMB_DEBUG_PROGRESS, "       size %d",(int)part);
         da.address_lo = LOTETRA(address);
         da.address_hi = HITETRA(address);
         da.status = STATUS_VALID;
