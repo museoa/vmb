@@ -32,7 +32,7 @@ wwwdoc: util $(helpfiles)
 	    cp $$file htdocs;  \
 	  done; \
 	done
-
+	cp src/VMBLogo/vmb128.jpg src/VMBLogo/vmb200.jpg src/VMBLogo/vmb64.gif htdocs
 
 clean:
 	rm -f *.o *~ 
