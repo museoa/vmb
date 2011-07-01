@@ -8,13 +8,31 @@
 #include "param.h"
 #include "option.h"
 
-HBITMAP hOn, hOff;
+HBITMAP hOn, hOff, hOnTemplate, hOffTemplate;
+HDC hCanvas = NULL;
+int height,width;
 int color;
 int upinterrupt;
 int pushbutton;
 int pushstate;
 int enable_interrupts;
+char *label=NULL;
 
+#define fontheight 14
+
+void select_font(char *label)
+{
+  HFONT hfont;
+  LOGFONT lgpu_font={0};
+  lgpu_font.lfHeight=fontheight;
+  lgpu_font.lfWidth=0;
+  lgpu_font.lfCharSet = ANSI_CHARSET;
+  lgpu_font.lfQuality= ANTIALIASED_QUALITY;
+  strcpy(lgpu_font.lfFaceName,"Arial");
+  lgpu_font.lfPitchAndFamily=FF_MODERN;
+  hfont = CreateFontIndirectA(&lgpu_font);  
+  SelectObject(hCanvas,hfont);
+}
 
 unsigned char blend_color(int c, int w)
 {  int n;
@@ -26,32 +44,52 @@ unsigned char blend_color(int c, int w)
 }
 
 
-void color_bitmap(HBITMAP hBmp, int color )
-{ BITMAP bm32;
+void color_bitmap(HBITMAP hBmp, HBITMAP hTemplate, int color, char *label)
+{ BITMAP bm,bmT;
+  HBITMAP hold;
   int i,n;
   unsigned char r, g, b;
-  LONG *p;
+  LONG *p, *q;
+  RECT rect;
+  HBRUSH hbr;
+
   r = (color>>16)&0xFF;
   g = (color>>8)&0xFF;;
   b =  color&0xFF;;
 
-  GetObject(hBmp, sizeof(bm32), &bm32);
-  if (bm32.bmBitsPixel!=32)
-    return;
-  while (bm32.bmWidthBytes % 4)
-	bm32.bmWidthBytes++;
-  n = bm32.bmHeight*bm32.bmWidth;
-  p = (LONG *)bm32.bmBits;
+  hold=SelectObject(hCanvas, hBmp); 
+  hbr = CreateSolidBrush(RGB(r,g,b));
+  rect.top=0, rect.left=0, rect.bottom=height+1, rect.right=width+1;
+  FillRect(hCanvas,&rect,hbr);
+  if (label!=NULL && label[0]!=0)
+  { SetTextColor(hCanvas,RGB(0,0,0));
+    SetBkColor(hCanvas,RGB(r,g,b));
+	SetTextAlign(hCanvas,TA_CENTER|TA_BOTTOM);
+	ExtTextOut(hCanvas,width/2,(height+fontheight)/2,ETO_CLIPPED|ETO_OPAQUE,&rect,
+		label,(UINT)strlen(label),NULL);
+  }
+
+  GetObject(hBmp, sizeof(bm), &bm);
+  GetObject(hTemplate, sizeof(bmT), &bmT);
+  n = bm.bmHeight*bm.bmWidth;
+  p = (LONG *)bmT.bmBits;
+  q = (LONG *)bm.bmBits;
   for(i=0;i<n;i++)
   { int nr,ng,nb;
-    nr = blend_color(r,(*p>>16)&0xFF);
-    ng = blend_color(g,(*p>>8)&0xFF);
-    nb = blend_color(b,(*p)&0xFF);
-	*p = (nr<<16)|(ng<<8)|nb;
+    nr = blend_color((*q>>16)&0xFF,(*p>>16)&0xFF);
+    ng = blend_color((*q>>8)&0xFF,(*p>>8)&0xFF);
+    nb = blend_color((*q)&0xFF,(*p)&0xFF);
+	*q = (nr<<16)|(ng<<8)|nb;
 	p++;
+	q++;
   }
+  SelectObject(hCanvas, hold); 
 }
 
+void color_bitmaps(int color, char *label)
+{ color_bitmap(hOn,hOnTemplate,color,label);
+  color_bitmap(hOff,hOffTemplate,color,label);
+}
 
 INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -83,14 +121,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		new_color =GetDlgItemInt(hDlg,IDC_COLOR,NULL,FALSE);
 		if (new_color!=color)
 		{ color=new_color;
-		  DeleteObject(hOff);
-		  hOff = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPOFF), 
-		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
- 		  DeleteObject(hOn);
-          hOn = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPON), 
-		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-		  color_bitmap(hOn,color);
-	      color_bitmap(hOff,color);
+	      color_bitmaps(color,label);
 		  if (pushstate) hBmp=hOn; else hBmp=hOff;
 		  InvalidateRect(hMainWnd,NULL,FALSE);	
 		}
@@ -156,12 +187,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
   case WM_CREATE: 
 	hpower = NULL;
-	hOff = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPOFF), 
+	hOffTemplate = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPOFF), 
 		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-	hOn = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPON), 
+	hOnTemplate = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPON), 
 		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
 
-	
+	{ HDC hdc; 
+	  BITMAP bm;
+	  GetObject(hOnTemplate, sizeof(bm), &bm);
+	  width=bm.bmWidth;
+	  height=bm.bmHeight;
+	  if (bm.bmBitsPixel!=32)
+        vmb_fatal_error(__LINE__, "Requires 32 bit Button Bitmap");
+	  hdc = GetDC(hWnd);
+	  hCanvas = CreateCompatibleDC(hdc);	 
+	  hOn = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPON), 
+		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+      hOff = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAPOFF), 
+		                            IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+	  select_font(label);
+	}
     return 0;
  
   case WM_NCLBUTTONDOWN:
@@ -218,12 +263,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void init_device(device_info *vmb)
 { BITMAP bm;
-  hBmp = hOff;
   pushstate = 0;
-  color_bitmap(hOn,color);
-  color_bitmap(hOff,color);
+  color_bitmaps(color,label);
+  hBmp = hOff;
   GetObject(hBmp, sizeof(bm), &bm);
-  SetWindowPos(hMainWnd,HWND_TOP,0,0,bm.bmWidth, bm.bmHeight,
+  SetWindowPos(hMainWnd,HWND_TOP,0,0,width,height,
 		  SWP_NOMOVE|SWP_NOOWNERZORDER|SWP_SHOWWINDOW);
   vmb->poweron=vmb_poweron;
   vmb->poweroff=vmb_poweroff;

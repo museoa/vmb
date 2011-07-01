@@ -229,8 +229,48 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\mmix-arith.w"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-arith.w mmix-arith.c"
+					Outputs="mmix-arith.c"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\mmix-sim.w"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+					AdditionalDependencies="vmb.ch"
+					Outputs="mmix-vmb.c"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
 			RelativePath=".\vmb.ch"
 			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+					AdditionalDependencies="mmix-sim.w"
+					Outputs="mmix-sim.c"
+				/>
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

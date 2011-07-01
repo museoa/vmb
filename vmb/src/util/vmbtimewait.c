@@ -39,6 +39,14 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
   pthread_cleanup_push(clean_up_event_mutex,vmb);
 #else
   DWORD w = 0;
+  SYSTEMTIME now;
+  FILETIME fnow;
+  ULARGE_INTEGER goal_ul, end_ul;
+  GetLocalTime(&now);
+  SystemTimeToFileTime(&now, &fnow);  /* in 100 nano s */
+  goal_ul.HighPart = fnow.dwHighDateTime;
+  goal_ul.LowPart = fnow.dwLowDateTime;
+  goal_ul.QuadPart += ms*(ULONGLONG)100000000;
 #endif
   /* in the meantime the event might have happend */
   while (vmb->power &&
@@ -51,14 +59,20 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
          )
 #ifdef WIN32
      w = WaitForSingleObject(vmb->hevent,ms);
-  vmb->cancel_wait_for_event=0;
-  /* return value not implemented for win32 */
+
+  GetLocalTime(&now);
+  SystemTimeToFileTime(&now, &fnow);  /* in 100 nano s */
+  end_ul.HighPart = fnow.dwHighDateTime;
+  end_ul.LowPart = fnow.dwLowDateTime;
+  d = (int)((goal_ul.QuadPart -end_ul.QuadPart)/(ULONGLONG)100000000);
 #else
      w = pthread_cond_timedwait(&vmb->event_cond,&vmb->event_mutex, &ts);
+
   pthread_cleanup_pop(1);
   clock_gettime(CLOCK_REALTIME, &end_ts);
   d = 1000*(goal_ts.tv_sec-end_ts.tv_sec)
     + (goal_ts.tv_nsec-end_ts.tv_nsec)/1000000;
+#endif
   if (d<0) d = 0;
   else if (d>ms) d = ms;
   vmb->cancel_wait_for_event=0;
@@ -66,5 +80,4 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
   fprintf(stderr,"Timeout %d ms remaining %d ms\n", ms, d);
 #endif
   return d;
-#endif
 }

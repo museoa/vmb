@@ -29,6 +29,7 @@ extern int color;
 extern int upinterrupt;
 extern int pushbutton;
 extern int enable_interrupts;
+extern char *label;
 
 
 option_spec options[] = {
@@ -47,9 +48,10 @@ option_spec options[] = {
 {"interrupt send on button up",         'u', "upinterrupt", "interrupt number", int_arg, "8", {&upinterrupt}},
 {"enable interrupts (0=none, 1=down, 2=up, 3= both) default=1",'E',"enable", "enable interrupts", int_arg,"1",{&enable_interrupts}},
 {"pushbutton",                          'P', "pushbutton", "pushbutton flag",on_arg, NULL, {&pushbutton}},
-{"color",                               'c', "color", "RGB color value", int_arg, "255", {&color}},
+{"color",                               'C', "color", "RGB color value", int_arg, "255", {&color}},
+{"label",                               'l', "label",    "button label",     str_arg, NULL, {&label}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
-{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };

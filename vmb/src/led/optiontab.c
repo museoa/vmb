@@ -49,7 +49,7 @@ option_spec options[] = {
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
-{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };

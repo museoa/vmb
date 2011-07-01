@@ -146,12 +146,13 @@ static void wsa_init(void)
 
 
 static struct sockaddr_in sockaddr;
-
+#ifndef WIN32
 void catchpipe(int n)
 {  signal(SIGPIPE,catchpipe); /* now |catchint| will catch the next interrupt */
    fprintf(stderr,"Got SIGPIPE");
    remote_close();
 } 
+#endif
 
 static int server_open(int port)
 {
@@ -409,13 +410,17 @@ int putack(char c)
 /* WIN32 and posix threads*/
 #ifdef WIN32
 typedef LPVOID thread_data;
-typedef DWORD WINAPI thread_return;
+typedef DWORD thread_return;
+#define THREAD_FUNCTION(name, data) DWORD WINAPI name(LPVOID data)
+typedef THREAD_FUNCTION(thread_function_ptr, dummy);
 #else
 typedef void *thread_data;
 typedef void *thread_return;
+#define THREAD_FUNCTION(name, data) thread_return name(thread_data data)
+typedef THREAD_FUNCTION(thread_function_ptr, dummy);
 #endif
 
-static void start_thread(thread_return (*f)(thread_data dummy), thread_data d)
+static void start_thread(thread_function_ptr f, thread_data d)
 #ifdef WIN32
 { DWORD dwThreadId;
   HANDLE hThread;
@@ -449,7 +454,7 @@ static void start_thread(thread_return (*f)(thread_data dummy), thread_data d)
 
 
 
-static thread_return gdb_read_loop(thread_data dummy)
+static THREAD_FUNCTION(gdb_read_loop, dummy)
 { char *read_buffer;
   int port = (int)dummy;
 #ifdef DEBUG
@@ -484,7 +489,7 @@ start_read:
 }
 
 
-static thread_return gdb_loop(thread_data dummy)
+static THREAD_FUNCTION(gdb_loop, dummy)
 { char *cmd;
 #ifdef DEBUG
   fprintf(stderr, "Starting gdb loop\n");

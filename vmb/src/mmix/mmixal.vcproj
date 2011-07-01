@@ -195,6 +195,34 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\mmix-arith.w"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle "
+					CommandLine="ctangle mmix-arith.w mmix-arith.c"
+					Outputs="mmix-arith.c"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\mmixal.w"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmixal.w mmixal.c"
+					Outputs="mmixal.c"
+				/>
+			</FileConfiguration>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

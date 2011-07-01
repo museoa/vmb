@@ -51,7 +51,7 @@ option_spec options[] = {
 {"the font width",                      's', "fontwidth",    "font width",int_arg, "10", {&fontwidth}},
 {"the font height",                     't', "fontheight",    "font height",int_arg, "20", {&fontheight}},
 {"the zoom factor",                      'z', "zoom",    "zoom factor",double_arg, "1", {&zoom}},
-{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };

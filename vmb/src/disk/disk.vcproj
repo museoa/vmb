@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="disk"
-	ProjectGUID="{C12BCD03-F88D-4468-B4A0-1FF0E4818221}"
+	ProjectGUID="{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}"
 	RootNamespace="disk"
 	Keyword="Win32Proj"
 	>

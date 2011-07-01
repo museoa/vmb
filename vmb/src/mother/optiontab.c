@@ -40,7 +40,7 @@ option_spec options[] = {
 {"start with power on",   'o', "on",    "initial power on", on_arg, NULL, {&vmb_power_flag}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
-{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };
