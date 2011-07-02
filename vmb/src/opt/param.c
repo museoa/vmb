@@ -176,7 +176,8 @@ void param_init(void)
 #else
 void param_init(int argc, char *argv[])
 #endif
-{ option_defaults();
+{ 
+// option_defaults();
 #ifdef WIN32
   parse_commandstr(GetCommandLine());
 #else

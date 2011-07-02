@@ -247,8 +247,8 @@ static void store_strarg(char **to, char *arg)
 static 
 int do_option(option_spec *p, char *arg)
 { 
-  vmb_debug(VMB_DEBUG_INFO, "processing option:");
-  vmb_debug(VMB_DEBUG_INFO, p->longopt);
+  if (arg!=NULL)
+	  vmb_debugs(VMB_DEBUG_INFO, "argument: %s", arg);
   switch (p->kind)
   { case str_arg: 
       if (arg==NULL)
@@ -705,6 +705,7 @@ static void do_program(char * arg)
   }
   strncpy(programpath,arg,n);
   programpath[n]=0;
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program path: %s", programpath);
   i = (int)strlen(arg+n) + 1;
   vmb_program_name = malloc(i); /* name + '0' */
   if (vmb_program_name==NULL) 
@@ -712,16 +713,19 @@ static void do_program(char * arg)
     return;
   }
   strcpy(vmb_program_name,arg+n);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program name: %s", vmb_program_name);
   defined = malloc(i); /* name + '0' */
   if (defined==NULL) 
   { vmb_fatal_error(__LINE__,"Out of memory");
     return;
   }
   strcpy(defined,vmb_program_name);
+  { char *p=defined; while (*p) { *p=tolower(*p); p++; }}
 #ifdef WIN32
   if (strncmp(defined+i-5,".exe",4)== 0 || strncmp(defined+i-5,".EXE",4)== 0 )
 	  defined[i-5]=0;
 #endif 
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
 }
 
 static int do_define(char *arg)
@@ -729,6 +733,8 @@ static int do_define(char *arg)
  if (arg==NULL || arg[0]=='-')
     return 0;
  set_option(&defined,arg);
+ { char *p=defined; while (*p) { *p=tolower(*p); p++; }}
+ vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
  return 1;
 }
 

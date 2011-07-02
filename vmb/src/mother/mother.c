@@ -66,7 +66,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.32 $ $Date: 2011-04-15 01:17:33 $";
+char version[] = "$Revision: 1.33 $ $Date: 2011-07-02 01:14:12 $";
 
 char howto[] =
   "\n"
@@ -991,6 +991,11 @@ WinMain (HINSTANCE hInstance,
   if (!InitInstance (hInstance))
     return FALSE;
 
+vmb_debug_flag=1;
+if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
+vmb_debug_mask=0xFFC0;
+vmb_debug(VMB_DEBUG_PROGRESS,"Start early debugging");
+
   hAccelTable =
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
 
@@ -999,8 +1004,8 @@ WinMain (HINSTANCE hInstance,
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();
-  if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
-  if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
+//  if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
+//  if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
   if (vmb_verbose_flag) vmb_debug_mask=0; 
   CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
