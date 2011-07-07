@@ -195,6 +195,16 @@
 			RelativePath=".\mmoboot.w"
 			>
 			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmoboot.w mmoboot.c"
+					Outputs="mmoboot.c"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Release|Win32"
 				>
 				<Tool

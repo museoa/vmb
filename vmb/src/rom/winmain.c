@@ -68,11 +68,6 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 
-  switch (message) 
-  {  
-  default:
     return (OptWndProc(hWnd, message, wParam, lParam));
-  }
- return (DefWindowProc(hWnd, message, wParam, lParam));
 }
 

@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.11 $ $Date: 2011-05-27 00:06:07 $";
+char version[]="$Revision: 1.12 $ $Date: 2011-07-07 00:27:45 $";
 
 char howto[] =
 "\n"
@@ -139,10 +139,15 @@ void open_file(void)
     struct stat fs;
     
     f = NULL;
-    
-    if (filename==NULL || strcmp(filename,"") == 0 || (f = fopen(filename, "rb")) == NULL)
-        vmb_fatal_error(__LINE__,"No filename or file");
-        
+
+    if (filename==NULL || strcmp(filename,"") == 0)
+        vmb_fatal_error(__LINE__,"No filename for image file given");
+
+	vmb_debugs(VMB_DEBUG_PROGRESS, "Open image file: %s",filename);
+
+    if ((f = fopen(filename, "rb")) == NULL)
+        vmb_fatal_error(__LINE__,"Unable to open image file");
+
     c = strrchr(filename,'.');
     if(strcmp(c,".umps") == 0)
     {

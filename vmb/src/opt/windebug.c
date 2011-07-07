@@ -210,7 +210,6 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    unregister_subwindow(hMemory);
 		DestroyWindow(hMemory);
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
-		vmb_debug_off();
 	    DeleteCriticalSection(&msg_section);
 		unregister_subwindow(hDebug);
 	    EndDialog(hDlg, TRUE);
@@ -229,4 +228,18 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		return 0;
   }
   return FALSE;
+}
+
+void win32_error_init(int on)
+{ if (on)
+  { if (hDebug==NULL)
+      hDebug=CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
+	SetWindowText(hDebug,defined);
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_CHECKED);
+  }
+  else
+  { if (hDebug!=NULL)
+      SendMessage(hDebug,WM_SYSCOMMAND,SC_CLOSE,0);
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
+  }
 }

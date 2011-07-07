@@ -19,7 +19,7 @@ WizardImageStretch=no
 WizardSmallImageFile="C:\home\vmb\src\win32bin\ssetup.bmp"
 
 [Tasks]
-Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
+;Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
 
 [Files]
 Source: "C:\home\vmb\src\win32bin\Release\mother.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -28,29 +28,28 @@ Source: "C:\home\vmb\src\win32bin\Release\disk.exe"; DestDir: "{app}"; Flags: ig
 Source: "C:\home\vmb\src\win32bin\Release\flash.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\keyboard.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\led.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\gmmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\ram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\rom.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\screen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
-
+  Source: "C:\home\vmb\src\win32bin\vmb.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\default.vmb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "C:\home\vmb\src\win32bin\license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\copying.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\readme.vmb"; DestDir: "{app}"; Flags: ignoreversion; Tasks: readmeapp;
-Source: "C:\home\vmb\src\win32bin\readme.img"; DestDir: "{app}"; Flags: ignoreversion; Tasks: readmeapp;
+Source: "C:\home\vmb\src\win32bin\readme.vmb"; DestDir: "{app}"; Flags: ignoreversion;
+Source: "C:\home\vmb\src\win32bin\readme.img"; DestDir: "{app}"; Flags: ignoreversion;
 
-[Icons]
-Name: "{group}\vmb hardware"; Filename: "{app}\mother.exe"
 
 [Run]
-Filename: "{app}\mother.exe"; Parameters: "-c readme.vmb"; Description: "Launch the virtual motherboard"; Tasks: readmeapp; Flags: nowait postinstall skipifsilent
+Filename: "{app}\mother.exe"; Parameters: "-c readme.vmb"; Description: "Launch VMB Readme"; Flags: nowait postinstall skipifsilent
 
 [Registry]
 Root: HKCR; Subkey: ".vmb"; ValueType: string; ValueName: ""; ValueData: "vmb_auto_file"; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "vmb_auto_file"; ValueType: string; ValueName: ""; ValueData: "vmb Configuration"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "vmb_auto_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\MOTHER.EXE,0"
+Root: HKCR; Subkey: "vmb_auto_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\vmb.ico,0"
 Root: HKCR; Subkey: "vmb_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MOTHER.EXE"" -c ""%1"""

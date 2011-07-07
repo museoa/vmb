@@ -11,6 +11,7 @@ extern device_info vmb;
 
 extern void win32_message(char *msg);
 extern void win32_debug(char *msg);
+extern void win32_error_init(int i);
 extern HWND hDebug;
 extern void init_device(device_info *vmb);
 extern INT_PTR CALLBACK   
@@ -42,7 +43,9 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
-                     
+extern INT_PTR CALLBACK    
+ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+                    
 extern void set_pos_key(HWND hWnd,char *name);
 extern void get_pos_key(int *Xpos, int *Ypos, char *name);
 

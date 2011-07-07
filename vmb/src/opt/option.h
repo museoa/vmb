@@ -80,7 +80,8 @@ extern void parse_commandline(int argc, char **argv);
 */
 extern void parse_commandstr(char *p);
 /* like parse_commandline takes all the information from one string */
-
+extern int do_option_debug(char *dummy);
+/* switch debugging on immediately */
 extern int do_option_configfile(char *filename);
 /* same for a configuration file (options only) 
    the file with the given filename is opened and read.

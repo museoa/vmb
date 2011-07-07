@@ -29,6 +29,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <commctrl.h>
+#include <process.h>
 #include "resource.h"
 #include "winopt.h"
 
@@ -66,11 +67,11 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.33 $ $Date: 2011-07-02 01:14:12 $";
+char version[] = "$Revision: 1.34 $ $Date: 2011-07-07 00:27:45 $";
 
 char howto[] =
   "\n"
-  "The program first reads the configuration file, \"default.mmc\".\n"
+  "The program first reads the configuration file, \"default.vmb\".\n"
   "Then, the program waits for other simulated hardware modules\n"
   "to connect. It recieves and redirects messages\n"
   "from and to these modules.\n"
@@ -423,6 +424,14 @@ reset_all (void)
   vmb_debug (0, "All slots reset");
 }
 
+static void
+reset_all_except (int x)
+{ int i;
+  for (i = 0; i < max_slot; i++)
+    if (i!=x && valid_socket (slot[i].fd))
+      reset (i);
+  vmb_debugi (0, "All slots except %d reset", x);
+}
 
 static void
 interpret_message (int source_slot)
@@ -446,7 +455,7 @@ interpret_message (int source_slot)
       interrupt_all (mslot);
       break;
     case (ID_RESET):
-      reset_all();
+      reset_all_except(source_slot);
       break;
     case (ID_POWERON):
       power_all(1);
@@ -673,6 +682,101 @@ process_read_fdset ()
   }
 }
 #endif
+
+#define MAX_EXEC 256
+#define MAXARG 256
+
+static char *commands[MAX_EXEC]={0};
+
+
+void store_command(char *command)
+{ int i;
+  vmb_debugs(VMB_DEBUG_PROGRESS, "storing command %s",command);
+  for (i=0; i<MAX_EXEC ;i++)
+    if (commands[i]!=NULL)
+    {  if (strcmp(commands[i],command)==0) 
+         return;
+       else
+         continue;
+    }
+    else
+      { set_option(&commands[i],command);
+        return;
+      }
+  vmb_error(__LINE__,"Too many commands");
+}
+
+
+static int mk_argv(char *argv[MAXARG],char *command)
+{ int argc;  
+
+  if (command==NULL||*command==0)
+  { argv[0]=NULL;
+    return 1;
+  }
+  for (argc=0;argc<MAXARG;argc++)
+  { 
+    while (isspace(*command)) command++;
+
+    if (*command==0)
+    { argv[argc]=NULL;
+        return 1;
+    }
+
+    argv[argc]=command;
+
+    while (!isspace(*command) && *command!=0) command++;
+
+    if (*command!=0)
+    { *command=0;
+      command++;
+    }
+  }
+  vmb_error(__LINE__,"Too many arguments in command");
+  return 0;
+}
+
+
+void do_commands(void)
+{ int i;
+  for (i=0; i<MAX_EXEC ;i++)
+    if (commands[i]!=NULL)
+      { 
+        char *argv[MAXARG] = {0};
+        vmb_debugs(VMB_DEBUG_PROGRESS, "executing command %s",commands[i]);
+        if (!mk_argv(argv,commands[i]))
+          continue;
+#ifdef WIN32
+	Sleep(50); /* so delay 50 ms start processes in order given */
+	{ 
+#define MAXPROG 512
+static char prog[MAXPROG];
+      char *FilePart;
+	  if (SearchPath(NULL,argv[0],".exe",MAXPROG,prog,&FilePart)<=0 ||
+			spawnvp(_P_NOWAIT,prog,argv)<0)
+	  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
+	  }
+	}
+#else
+	usleep(50000); /* so delay 50 ms start processes in order given */
+        { pid_t p;
+          p = fork();
+          if (p<0) vmb_error(__LINE__,"Unable to create new process");
+          else if (p==0) /* child */
+	  { execvp(argv[0],argv);
+            vmb_error2(__LINE__,"Unable to execute command",argv[0]);
+	  }
+	}
+#endif
+	}
+    else
+      return;
+}
+
+
+
+
+
 #ifdef WIN32
 
 
@@ -968,6 +1072,7 @@ WinMain (HINSTANCE hInstance,
   
   vmb_message_hook = win32_message;
   vmb_debug_hook = win32_debug;
+  vmb_error_init_hook = win32_error_init;
 
   LoadString (hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   LoadString (hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
@@ -991,11 +1096,6 @@ WinMain (HINSTANCE hInstance,
   if (!InitInstance (hInstance))
     return FALSE;
 
-vmb_debug_flag=1;
-if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
-vmb_debug_mask=0xFFC0;
-vmb_debug(VMB_DEBUG_PROGRESS,"Start early debugging");
-
   hAccelTable =
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
 
@@ -1004,11 +1104,6 @@ vmb_debug(VMB_DEBUG_PROGRESS,"Start early debugging");
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();
-//  if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
-//  if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
-  if (vmb_verbose_flag) vmb_debug_mask=0; 
-  CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
-  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
   create_server ();
   do_commands ();
   if (vmb_power_flag) power_all(1);

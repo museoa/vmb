@@ -41,6 +41,7 @@ BEGIN
         BEGIN
             MENUITEM "&About",                      ID_HELP_ABOUT
             MENUITEM "&Help",                       ID_HELP
+            MENUITEM "&Configuration",              ID_HELP_CONFIGURATION
         END
         MENUITEM "Minimize",                    ID_MINIMIZE
     END

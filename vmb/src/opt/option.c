@@ -172,6 +172,7 @@ static double strtodouble(char *arg)
 static void store_strarg(char **to, char *arg)
 {  int n;  
    char *p;
+   int strip_quote;
    if (arg==NULL)
      return;
    if (*to!=NULL)
@@ -179,6 +180,12 @@ static void store_strarg(char **to, char *arg)
      *to = NULL;
    }
    while (isspace(*arg)) arg++;
+   if (*arg=='"')
+   { arg++; 
+     strip_quote=1;
+   }
+   else
+     strip_quote=0;	  
    n=0; p=arg;
    while(*p!=0)
    { if (strncmp(p,"#FILE#",6)==0)
@@ -200,8 +207,6 @@ static void store_strarg(char **to, char *arg)
         p= p+1;
      }
    }
-   while (n>0 && isspace(arg[n-1]))
-   { n--; arg[n]=0;}
    if (n>0)
    { p =  malloc(n+1);
      if (p==NULL)
@@ -238,6 +243,13 @@ static void store_strarg(char **to, char *arg)
             n=n+1;
 	      }
 	    }
+		while (p>*to && isspace(*(p-1))) p=p-1;
+		if (strip_quote)
+		{ if (*(p-1)=='"')
+		    p=p-1;
+		  else
+			vmb_debug(VMB_DEBUG_NOTIFY,"Closing \" expected in argument");
+		}
         *p=0;
       }
    }
@@ -497,8 +509,14 @@ static void set_PATH_FILE(char *filename)
       n = i+1;
     i++;
   }
-  if (n>0)
-  { path[n]=0;
+  path[n]=0;
+  /* check if path is absolute */
+#ifdef WIN32
+  if (path[0]=='\\' || (isalpha(path[0])&&path[1]==':'&&path[2]=='\\'))
+#else
+  if (path[0]=='/')
+#endif
+  {
 	file = malloc(strlen(filename)+1);
     if (file==NULL) 
     { vmb_fatal_error(__LINE__,"Out of memory");
@@ -507,14 +525,18 @@ static void set_PATH_FILE(char *filename)
     strcpy(file,filename);
   }
   else
-  { free(path);
-    path = _getcwd(NULL,0);
-	path = realloc(path,strlen(path)+2);
-	if (path==NULL) 
+  { char *cwd;
+    cwd = _getcwd(NULL,0);
+	cwd = realloc(cwd,strlen(cwd)+1+strlen(path)+1);
+	if (cwd==NULL) 
     { vmb_fatal_error(__LINE__,"Out of memory");
       return;
     }
-	strcat(path,DIRSTR);
+	strcat(cwd,DIRSTR);
+	strcat(cwd,path);
+	free(path);
+	path=cwd;
+	filename = filename+n;
 	file = malloc(strlen(path)+strlen(filename)+1);
     if (file==NULL) 
     { vmb_fatal_error(__LINE__,"Out of memory");
@@ -526,7 +548,7 @@ static void set_PATH_FILE(char *filename)
   configFILE = file;
   cflen=(int)strlen(configFILE);
   configPATH = path;
-  cflen=(int)strlen(configPATH);
+  cplen=(int)strlen(configPATH);
 }
 
 static void unset_PATH_FILE(void)
@@ -652,6 +674,11 @@ int do_option_configfile(char *filename)
 { return parse_configfile(filename,NULL);
 }
 
+int do_option_debug(char *dummy)
+{ vmb_debug_on();
+  return 0;
+}
+
 static 
 char *parse_argument(char **str)
 /* makes *str point past the argument and returns the argument */
@@ -741,15 +768,15 @@ static int do_define(char *arg)
 
 static void do_configfile(char *condition)
 {  char *filename;
-    if (parse_configfile("default.mmc",condition)) /* local configfile */
+    if (parse_configfile("default.vmb",condition)) /* local configfile */
       return;
-	filename = malloc(strlen(programpath)+strlen("default.mmc")+1);
+	filename = malloc(strlen(programpath)+strlen("default.vmb")+1);
     if (filename==NULL)
     { vmb_fatal_error(__LINE__,"Out of Memory");
       return;
     }
     strcpy(filename,programpath);
-    strcat(filename,"default.mmc");
+    strcat(filename,"default.vmb");
     parse_configfile(filename,condition); /* global configfile last */
 	free(filename);
 }

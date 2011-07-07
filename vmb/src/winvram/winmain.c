@@ -1155,6 +1155,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MSG msg;
     vmb_message_hook = win32_message;
 	vmb_debug_hook = win32_debug;
+	vmb_error_init_hook = win32_error_init;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
@@ -1172,9 +1173,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	vmb_begin();
 	connect_all();
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
-	if (vmb_debug_flag) vmb_debug_on(); else vmb_debug_off();
-	if (vmb_debug_flag) hDebug= CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),hMainWnd,DebugDialogProc);
-	if (vmb_verbose_flag) vmb_debug_mask=0;
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 

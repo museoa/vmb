@@ -28,28 +28,29 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 
 IDR_MENU MENUEX 
 BEGIN
-    POPUP "All",                            65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&Exit",                       ID_EXIT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Connect...",                 ID_CONNECT,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Settings...",                ID_SETTINGS,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Debug",                      ID_DEBUG,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Verbose",                    ID_VERBOSE,MFT_STRING,MFS_ENABLED
-        POPUP "&Help",                          65535,MFT_STRING,MFS_ENABLED
+    POPUP "All",                            
         BEGIN
-            MENUITEM "&About",                      ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Help",                       ID_HELP,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Exit",                       ID_EXIT
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Connect...",                 ID_CONNECT
+        MENUITEM "&Settings...",                ID_SETTINGS
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Debug",                      ID_DEBUG
+        MENUITEM "&Verbose",                    ID_VERBOSE
+        POPUP "&Help",                          
+        BEGIN
+            MENUITEM "&About",                      ID_HELP_ABOUT
+            MENUITEM "&Help",                       ID_HELP
+            MENUITEM "&Configuration",              ID_HELP_CONFIGURATION
         END
-        MENUITEM "&Minimize",                   ID_MINIMIZE,MFT_STRING,MFS_ENABLED
-        POPUP "&Zoom",                          65535,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Minimize",                   ID_MINIMIZE
+        POPUP "&Zoom",                          
         BEGIN
-            MENUITEM "&50%",                        ID_ZOOM_50,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-            MENUITEM "&100%",                       ID_ZOOM_100,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-            MENUITEM "&200%",                       ID_ZOOM_200,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-            MENUITEM "&400%",                       ID_ZOOM_400,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-            MENUITEM "&800%",                       ID_ZOOM_800,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
+            MENUITEM "&50%",                        ID_ZOOM_50
+            MENUITEM "&100%",                       ID_ZOOM_100
+            MENUITEM "&200%",                       ID_ZOOM_200
+            MENUITEM "&400%",                       ID_ZOOM_400
+            MENUITEM "&800%",                       ID_ZOOM_800
         END
     END
 END

@@ -49,6 +49,7 @@
 #define ID_SETTINGS                     40015
 #define ID_INFO                         40015
 #define ID_MINIMIZE                     40016
+#define ID_HELP_CONFIGURATION           40017
 
 // Next default values for new objects
 // 

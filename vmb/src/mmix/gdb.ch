@@ -5,6 +5,7 @@
 #include "gdb.h"
 @z
 
+
 @x
 @* Loading an object file. To get the user's program into memory,
 we read in an \MMIX\ object, using modifications of the routines
@@ -341,11 +342,9 @@ break_inst: breakpoint=tracing=true;
 
 
 @x
-  vmb_raise_reset(&vmb);
   @<Load object file@>;
   @<Load the command line arguments@>;
   g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
-  vmb.reset_flag = 0;
 @y
 @z
 
@@ -748,7 +747,9 @@ for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
-x.l=0;
-store_data(8,aux,x);
+if (argc>0) 
+{ x.l=0;
+  store_data(8,aux,x);
+}
 @y
 @z

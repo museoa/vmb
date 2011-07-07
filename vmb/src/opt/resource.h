@@ -22,7 +22,7 @@
 #define IDD_CONNECT                     122
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-#define IDD_FILTER2                     124
+#define IDD_CONFIGURATION               125
 #define AFX_IDC_PRINT_DOCNAME           201
 #define AFX_IDC_PRINT_PRINTERNAME       202
 #define AFX_IDC_PRINT_PORTNAME          203
@@ -57,6 +57,7 @@
 #define IDC_FORMAT                      1022
 #define IDC_GOTO_PROMPT                 1023
 #define IDC_CHUNK                       1024
+#define IDC_CONFIGURATION		     1025
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -141,6 +142,7 @@
 #define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
+#define ID_HELP_CONFIGURATION		    40017
 #define AFX_IDS_APP_TITLE               0xE000
 #define AFX_IDS_IDLEMESSAGE             0xE001
 #define AFX_IDS_HELPMODEMESSAGE         0xE002

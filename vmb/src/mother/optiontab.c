@@ -26,6 +26,7 @@
 #include "vmb.h"
 
 int vmb_power_flag = 0;
+extern void store_command(char *command);
 
 option_spec options[] = {
 /* description short long kind default handler */
@@ -34,7 +35,7 @@ option_spec options[] = {
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
-{"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
+{"to generate debug output",            'd', "debug",   "debugflag",     fun_arg, NULL, {&do_option_debug}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"start with power on",   'o', "on",    "initial power on", on_arg, NULL, {&vmb_power_flag}},

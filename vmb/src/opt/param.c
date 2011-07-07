@@ -29,8 +29,8 @@
 
 #ifdef WIN32
 #include <windows.h>
-#include <process.h>
 #pragma warning(disable : 4996)
+#include "winopt.h"
 #else
 #include <unistd.h>
 #include <stdint.h>
@@ -56,25 +56,7 @@ int minimized = 0;  /* start the window minimized */
 
 uint64_t vmb_address;
 unsigned int vmb_size;
-char *commands[MAX_EXEC]={0};
-#define MAXARG 256
 
-void store_command(char *command)
-{ int i;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "storing command %s",command);
-  for (i=0; i<MAX_EXEC ;i++)
-    if (commands[i]!=NULL)
-    {  if (strcmp(commands[i],command)==0) 
-         return;
-       else
-         continue;
-    }
-    else
-      { set_option(&commands[i],command);
-        return;
-      }
-  vmb_error(__LINE__,"Too many commands");
-}
 
 
 
@@ -100,71 +82,6 @@ void usage(char *message)
 }
 
 
-static int mk_argv(char *argv[MAXARG],char *command)
-{ int argc;  
-
-  if (command==NULL||*command==0)
-  { argv[0]=NULL;
-    return 1;
-  }
-  for (argc=0;argc<MAXARG;argc++)
-  { 
-    while (isspace(*command)) command++;
-
-    if (*command==0)
-    { argv[argc]=NULL;
-        return 1;
-    }
-
-    argv[argc]=command;
-
-    while (!isspace(*command) && *command!=0) command++;
-
-    if (*command!=0)
-    { *command=0;
-      command++;
-    }
-  }
-  vmb_error(__LINE__,"Too many arguments in command");
-  return 0;
-}
-
-
-void do_commands(void)
-{ int i;
-  for (i=0; i<MAX_EXEC ;i++)
-    if (commands[i]!=NULL)
-      { 
-        char *argv[MAXARG] = {0};
-        vmb_debugs(VMB_DEBUG_PROGRESS, "executing command %s",commands[i]);
-        if (!mk_argv(argv,commands[i]))
-          continue;
-#ifdef WIN32
-	Sleep(50); /* so delay 50 ms start processes in order given */
-	{ intptr_t p;
-	  p = spawnvp(_P_NOWAIT,argv[0],argv);
-	  if (p<0)
-	  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
-	  }
-	}
-#else
-	usleep(50000); /* so delay 50 ms start processes in order given */
-        { pid_t p;
-          p = fork();
-          if (p<0) vmb_error(__LINE__,"Unable to create new process");
-          else if (p==0) /* child */
-	  { execvp(argv[0],argv);
-            vmb_error2(__LINE__,"Unable to execute command",argv[0]);
-	  }
-	}
-#endif
-	}
-    else
-      return;
-}
-
-
-
 void do_argument(int pos, char * arg)
 { 
   vmb_debug(VMB_DEBUG_ERROR, "too many arguments"); 
@@ -180,7 +97,10 @@ void param_init(int argc, char *argv[])
 // option_defaults();
 #ifdef WIN32
   parse_commandstr(GetCommandLine());
+  if (vmb_verbose_flag) vmb_debug_mask=0; 
+  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 #else
   parse_commandline(argc, argv);
+  if (vmb_verbose_flag) vmb_debug_mask=0; 
 #endif
 }

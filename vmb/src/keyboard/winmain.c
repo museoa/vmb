@@ -48,18 +48,17 @@ extern void process_input_file(char *filename);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
-  {  
-  case WM_SETFOCUS:
-    vmb_debug(VMB_DEBUG_PROGRESS, "got focus");
-	hBmp = hBmpActive;
-    RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
-    break;
-  case WM_KILLFOCUS:
-    vmb_debug(VMB_DEBUG_PROGRESS, "lost focus");
-	hBmp = hBmpInactive;
-	RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
-	break;
-  case WM_DROPFILES:
+  {    case WM_SETFOCUS:
+      vmb_debug(VMB_DEBUG_PROGRESS, "got focus");
+	  hBmp = hBmpActive;
+      RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
+      break;
+    case WM_KILLFOCUS:
+      vmb_debug(VMB_DEBUG_PROGRESS, "lost focus");
+	  hBmp = hBmpInactive;
+	  RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
+	  break;
+    case WM_DROPFILES:
 	  { HDROP hDrop;
 	    char filename[500];
 	    hDrop = (HDROP)wParam;
@@ -68,17 +67,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DragFinish(hDrop);
 	  }
 	  return 0;
-  case WM_VMB_ON: /* Power On */
-    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
-	DragAcceptFiles(hWnd,TRUE);
-	return 0;
-  case WM_VMB_OFF: /* Power Off */
-    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
-	DragAcceptFiles(hWnd,FALSE);
-	return 0;
- case WM_CHAR:
-    process_input((unsigned char) wParam); 
-    return 0;
+    case WM_VMB_ON: /* Power On */
+	  DragAcceptFiles(hWnd,TRUE);
+	  /* fall through to reset */
+	case WM_VMB_RESET:
+	  if (filename!=NULL)
+	    process_input_file(filename);
+      break;
+   return 0;
+    case WM_VMB_OFF: /* Power Off */
+	  DragAcceptFiles(hWnd,FALSE);
+	  break;
+   case WM_CHAR:
+      process_input((unsigned char) wParam); 
+      return 0;
   }
- return (OptWndProc(hWnd, message, wParam, lParam));
+  return (OptWndProc(hWnd, message, wParam, lParam));
 }

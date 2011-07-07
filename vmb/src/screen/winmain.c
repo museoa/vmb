@@ -13,7 +13,7 @@ HWND hwndEdit;
 #define FONT_MEDIUM 14
 #define FONT_LARGE 18
 
-static int fontheight=FONT_MEDIUM;
+int fontheight=FONT_MEDIUM;
 static HFONT hfont=0;
 static HFONT hCustomfont=0;
 static CHOOSEFONT cf;
@@ -130,6 +130,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
  case WM_VMB_OTHER+2: /* Got character to display */
 	 { char str[4];
+	   static int crlf=0; /* got cr output crlf */
        LRESULT n;
 	   char c = (char)wParam;
        n = SendMessage(hwndEdit,EM_GETLINECOUNT,0,0);
@@ -142,11 +143,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
        {
 #define hexdigit(d) ((d)<10?(d)+'0':(d)-10+'A')
 	    str[0]=hexdigit((c>>4)&0xF); str[1]=hexdigit(c&0xF); str[2]=' '; str[3]=0; 
+	   }
+	   else if (c=='\r')
+       { crlf=1; str[0]='\r'; str[1]='\n'; str[2]=0; } 
+       else if (crlf && c=='\n')
+       { crlf=0; 
+         str[0]=0;
 	   } 
        else if (c=='\n')
-       { str[0]='\r'; str[1]='\n'; str[2]=0; } 
+       { str[0]='\r'; str[1]='\n'; str[2]=0; crlf=0; } 
+       else if (c=='\b')/* backspace */
+       { n = SendMessage(hwndEdit, WM_GETTEXTLENGTH,0,0);
+	     if (n>0)
+		 { SendMessage(hwndEdit, EM_SETSEL,n-1,n);
+           SendMessage(hwndEdit, EM_REPLACESEL, 0,(LPARAM)""); 
+           SendMessage(hwndEdit, EM_SCROLLCARET, 0, 0); 
+		 }
+         crlf=0; 
+		 return 0;
+	   } 
        else
-       { str[0]=c; str[1]=0; }
+       { str[0]=c; str[1]=0; crlf=0; 
+	   }
        n = SendMessage(hwndEdit, WM_GETTEXTLENGTH,0,0);
        SendMessage(hwndEdit, EM_SETSEL,n,n);
        SendMessage(hwndEdit, EM_REPLACESEL, 0,(LPARAM)str); 

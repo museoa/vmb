@@ -27,10 +27,6 @@ loop		LDOU	c,IO,keyboard		%keyboard status/data
 		BZ	tmp,slowdown	%no character available	
 		AND	tmp+1,c,#FF
 		PUSHJ	tmp,output
-		XOR	tmp,c,#0D	%carriage return
-		BNZ	tmp,loop		
-		SET	tmp+1,#0A		%line feed
-		PUSHJ	tmp,output
 		JMP	loop
 		
 wait		SYNC	4

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="gmmix"
+	Name="gmmixcpu"
 	ProjectGUID="{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
 	RootNamespace="gmmix"
 	Keyword="Win32Proj"
@@ -202,8 +202,58 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gdb.ch"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tie"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						AdditionalDependencies="vmb.ch; mmix-sim.w"
+						Outputs="vmb-gdb.ch"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tie"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						AdditionalDependencies="vmb.ch; mmix-sim.w"
+						Outputs="vmb-gdb.ch"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\mmix-arith.c"
 				>
+			</File>
+			<File
+				RelativePath=".\mmix-arith.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tangle"
+						CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tangle"
+						CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mmix-bus.c"
@@ -214,8 +264,49 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmix-sim.w"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tangle mmix-sim with vmb and gdb"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
+						AdditionalDependencies="vmb.ch gdb.ch"
+						Outputs="mmix-gdb.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\remote-utils.c"
 				>
+			</File>
+			<File
+				RelativePath=".\vmb.ch"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tie"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						AdditionalDependencies="gdb.ch; mmix-sim.w"
+						Outputs="vmb-gdb.ch"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Tie"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						AdditionalDependencies="gdb.ch; mmix-sim.w"
+						Outputs="vmb-gdb.ch"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -258,79 +349,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\gdb.ch"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tie vmb and gdb"
-					CommandLine="ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
-					AdditionalDependencies="mmix-sim.w vmb.ch"
-					Outputs="vmb-gdb.ch"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\mmix-arith.w"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="ctangle mmix-arith.w mmix-arith.c"
-					Outputs="mmix-arith.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\mmix-sim.w"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle mmix-sim with vmb and gdb"
-					CommandLine="ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
-					AdditionalDependencies="vmb-gdb.ch"
-					Outputs="mmix-gdb.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\vmb-gdb.ch"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle mmix-sim with vmb and gdb"
-					CommandLine="ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
-					AdditionalDependencies="mmix-sim.w"
-					Outputs="mmix-gdb.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\vmb.ch"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tie vmb and gdb"
-					CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
-					AdditionalDependencies="mmix-sim.w gdb.ch"
-					Outputs="vmb-gdb.ch"
-				/>
-			</FileConfiguration>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

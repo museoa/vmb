@@ -23,13 +23,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#if defined(WIN32)
-#define _WIN32_WINNT 0x0500 
+
+#ifdef WIN32
 #pragma warning(disable : 4996)
-#include <windows.h>
-#include <wincon.h>
-#include <fcntl.h>
-#include <io.h>
 #endif
 
 #include "string.h"
@@ -39,21 +35,25 @@
 
 unsigned int vmb_debug_flag = 0;
 unsigned int vmb_verbose_flag = 0;
+unsigned int vmb_debug_mask = VMB_DEBUG_DEFAULT;
 
-int vmb_debug_mask = VMB_DEBUG_DEFAULT;
 char *vmb_program_name = "Unknown";
 void (*vmb_message_hook)(char *msg) = NULL;
 void (*vmb_debug_hook)(char *msg) = NULL;
+void (*vmb_error_init_hook)(int i) =NULL;
 
 
 void vmb_debug_on(void)
 {  vmb_debug_flag = 1;
+   if (vmb_error_init_hook != NULL)
+     vmb_error_init_hook(vmb_debug_flag);
 }
 
 void vmb_debug_off(void)
 {  vmb_debug_flag = 0;
+   if (vmb_error_init_hook != NULL)
+     vmb_error_init_hook(vmb_debug_flag);
 }
-
 
 
 void vmb_message(char *message)

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="vmbmmix"
+	Name="mmixcpu"
 	ProjectGUID="{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
 	RootNamespace="mmix"
 	Keyword="Win32Proj"
@@ -232,12 +232,22 @@
 			RelativePath=".\mmix-arith.w"
 			>
 			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-arith mmix-arith.c"
+					Outputs="mmix-arith.c"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Release|Win32"
 				>
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmix-arith.w mmix-arith.c"
+					CommandLine="ctangle mmix-arith mmix-arith.c"
 					Outputs="mmix-arith.c"
 				/>
 			</FileConfiguration>
@@ -245,6 +255,17 @@
 		<File
 			RelativePath=".\mmix-sim.w"
 			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+					AdditionalDependencies="vmb.ch"
+					Outputs="mmix-vmb.c"
+				/>
+			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
 				>
@@ -261,6 +282,17 @@
 			RelativePath=".\vmb.ch"
 			>
 			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+					AdditionalDependencies="mmix-sim.w"
+					Outputs="mmix-vmb.c"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Release|Win32"
 				>
 				<Tool
@@ -268,7 +300,7 @@
 					Description="Tangle"
 					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
 					AdditionalDependencies="mmix-sim.w"
-					Outputs="mmix-sim.c"
+					Outputs="mmix-vmb.c"
 				/>
 			</FileConfiguration>
 		</File>

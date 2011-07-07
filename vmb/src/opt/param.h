@@ -45,9 +45,6 @@ extern int interrupt;
 extern int disable_interrupt;
 extern char *filename;
 
-#define MAX_EXEC 256
-extern char *commands[MAX_EXEC];
-extern void do_commands(void);
 
 #ifdef WIN32
 extern void param_init(void);

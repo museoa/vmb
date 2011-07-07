@@ -27,6 +27,7 @@
 #include <windows.h>
 #include "resource.h"
 extern HWND hMainWnd;
+extern void setfont(void);
 #else
 #include <unistd.h>
 #endif
@@ -41,7 +42,7 @@ static void display_char(char c);
 extern device_info vmb;
 
 
-char version[]="$Revision: 1.11 $ $Date: 2011-05-27 00:06:07 $";
+char version[]="$Revision: 1.12 $ $Date: 2011-07-07 00:27:45 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -146,6 +147,8 @@ void init_device(device_info *vmb)
   vmb_size = 8;
 #ifndef WIN32
    setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */
+#else
+   setfont();
 #endif
   vmb->poweron=vmb_poweron;
   vmb->poweroff=vmb_poweroff;

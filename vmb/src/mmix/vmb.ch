@@ -1347,15 +1347,13 @@ case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
  {  const unsigned int cycle_speed = 1000000; /* cycles per ms */
     const unsigned int max_wait = 100;
     int d, ms;
-    if (g[rI].h==0 && g[rI].l>max_wait*cycle_speed) /* large rI values */
+    if (g[rI].h!=0 || g[rI].l>max_wait*cycle_speed) /* large rI values */
       ms = max_wait;
     else
       ms = g[rI].l/cycle_speed;
     if (ms>0)
-    {  fprintf(stderr, "Power Save in  rI = %08x %08x\n",g[rI].h, g[rI].l);
-       d = vmb_wait_for_event_timed(&vmb,ms);
+    {  d = vmb_wait_for_event_timed(&vmb,ms);
        g[rI]=incr(g[rI],-(ms-d)*cycle_speed);
-       fprintf(stderr, "Power Save out  rI = %08x %08x\n",g[rI].h, g[rI].l);
      }
      else if (g[rI].l>1000)
         g[rI].l = g[rI].l-1000;
@@ -2059,13 +2057,15 @@ int main(argc,argv)
  
   boot_cur_arg = cur_arg;
   boot_argc = argc;
+  if (vmb.power)  
+    vmb_raise_reset(&vmb);
+
 boot:
+
   argc = boot_argc;
   cur_arg = boot_cur_arg;
-
   @<Initialize everything@>;
   
- 
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
@@ -2073,11 +2073,9 @@ boot:
   }
   fprintf(stderr,"ON\n");
 
-  vmb_raise_reset(&vmb);
   @<Load object file@>;
   @<Load the command line arguments@>;
   g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
-  vmb.reset_flag = 0;
 
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
@@ -2094,7 +2092,8 @@ boot:
     while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break) 
        interacting=true, interact_after_break=false;
-    if (!vmb.power) goto boot;
+    if (!vmb.power)
+      goto boot;
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(true);
@@ -2376,8 +2375,10 @@ for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
   mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
   x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
 }
-x.l=0;
-store_data(8,aux,x);
+if (argc>0) 
+{ x.l=0;
+  store_data(8,aux,x);
+}
 @z
 
 @x

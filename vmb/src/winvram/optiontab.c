@@ -34,7 +34,7 @@ option_spec options[] = {
 /* description short long kind default handler */
 {"the host where the bus is located",   'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
-{"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
+{"to generate debug output",            'd', "debug",   "debugflag",     fun_arg, NULL, {&do_option_debug}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},

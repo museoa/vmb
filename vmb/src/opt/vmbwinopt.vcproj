@@ -173,6 +173,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winconfig.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winconnect.c"
 				>
 			</File>

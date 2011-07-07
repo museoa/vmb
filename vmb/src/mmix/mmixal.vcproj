@@ -199,12 +199,22 @@
 			RelativePath=".\mmix-arith.w"
 			>
 			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmix-arith mmix-arith.c"
+					Outputs="mmix-arith.c"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Release|Win32"
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					Description="Tangle "
-					CommandLine="ctangle mmix-arith.w mmix-arith.c"
+					Description="Tangle"
+					CommandLine="ctangle mmix-arith mmix-arith.c"
 					Outputs="mmix-arith.c"
 				/>
 			</FileConfiguration>
@@ -212,6 +222,16 @@
 		<File
 			RelativePath=".\mmixal.w"
 			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					Description="Tangle"
+					CommandLine="ctangle mmixal.w mmixal.c"
+					Outputs="mmixal.c"
+				/>
+			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
 				>

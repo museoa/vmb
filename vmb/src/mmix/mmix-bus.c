@@ -145,7 +145,7 @@ void store_cached_data(int size, octa data, octa address)
     inttochar(data.l,tmp);
     memcpy(d,tmp+(4-size),size);
   }
-#if 1
+#if 0
  { unsigned char search[8]={0x01,0x73,0x01,0x68,0x01,0x2d,0x01,0x33};
   // check for special store 
    if (strncmp(d+size-8,search,8)==0)

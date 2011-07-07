@@ -32,7 +32,7 @@ option_spec options[] = {
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
-{"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
+{"to generate debug output",            'd', "debug",   "debugflag",     fun_arg, NULL, {&do_option_debug}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
@@ -41,7 +41,6 @@ option_spec options[] = {
 {"interrupt send by device",            'i', "interrupt", "interrupt number", int_arg, "8", {&interrupt}},
 {"to disable interrupts",               'Q', "disableinterrupt",   "false",       on_arg, NULL, {&disable_interrupt}},
 {"filename for input file",             'f', "file",    "file name",     str_arg, NULL, {&filename}},
-{"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}

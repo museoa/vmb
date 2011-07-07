@@ -46,7 +46,7 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
   SystemTimeToFileTime(&now, &fnow);  /* in 100 nano s */
   goal_ul.HighPart = fnow.dwHighDateTime;
   goal_ul.LowPart = fnow.dwLowDateTime;
-  goal_ul.QuadPart += ms*(ULONGLONG)100000000;
+  goal_ul.QuadPart += ms*(ULONGLONG)10000;
 #endif
   /* in the meantime the event might have happend */
   while (vmb->power &&
@@ -64,7 +64,7 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
   SystemTimeToFileTime(&now, &fnow);  /* in 100 nano s */
   end_ul.HighPart = fnow.dwHighDateTime;
   end_ul.LowPart = fnow.dwLowDateTime;
-  d = (int)((goal_ul.QuadPart -end_ul.QuadPart)/(ULONGLONG)100000000);
+  d = (int)((goal_ul.QuadPart -end_ul.QuadPart)/(ULONGLONG)10000);
 #else
      w = pthread_cond_timedwait(&vmb->event_cond,&vmb->event_mutex, &ts);
 
@@ -76,7 +76,7 @@ int vmb_wait_for_event_timed(device_info *vmb, int ms)
   if (d<0) d = 0;
   else if (d>ms) d = ms;
   vmb->cancel_wait_for_event=0;
-#if 1
+#if 0
   fprintf(stderr,"Timeout %d ms remaining %d ms\n", ms, d);
 #endif
   return d;

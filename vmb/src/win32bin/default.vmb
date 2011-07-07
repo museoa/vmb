@@ -8,10 +8,10 @@ verbose
 
 #if mother
 on
-exec rom -c #FILE#
-exec keyboard -c #FILE#
-exec screen.exe -c #FILE#
-exec mmix.exe 
+#exec rom -c #FILE#
+#exec keyboard -c #FILE#
+#exec screen -c #FILE#
+#exec mmixcpu 
 #endif
 
 # here we list all the standard devices 

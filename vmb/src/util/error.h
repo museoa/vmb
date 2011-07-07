@@ -40,7 +40,7 @@ extern unsigned int vmb_verbose_flag;
 /* to be used as if (vmb_debugging(VMB_DEBUG_INFO)) ... */
 #define VMB_DEBUGGING(level) ((vmb_debug_flag)&&((level&~vmb_debug_mask)!=0)) 
 
-extern int vmb_debug_mask; 
+extern unsigned int vmb_debug_mask; 
 
 extern void vmb_message(char *msg);
 extern void vmb_error(int line, char *msg);
@@ -59,6 +59,7 @@ extern void vmb_debugm(int level, unsigned char mtype,unsigned char msize,
 
 extern void (*vmb_message_hook)(char *msg);
 extern void (*vmb_debug_hook)(char *msg);
+extern void (*vmb_error_init_hook)(int i);
 
 
 /* two functions to switch on and off debugging */
