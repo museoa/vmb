@@ -644,7 +644,7 @@ int parse_configfile(char *filename, char *condition)
      /* command found */
      cmd = p; 
      /* convert command to lowercase */
-     while(isalpha((int)(*p)))
+     while(isalnum((int)(*p)))
      { *p = tolower(*p);
        p++;
      }
@@ -805,7 +805,7 @@ void parse_commandstr(char *p)
          else  /* long command found */
          { cmd = p; 
            /* convert command to lowercase */
-           while(isalpha((int)(*p)))
+           while(isalnum((int)(*p)))
            { *p = tolower(*p);
              p++;
            }

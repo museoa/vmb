@@ -26,6 +26,7 @@
 #include "vmb.h"
 
 extern int colors[];
+extern char *pictures[];
 extern int nleds;
 extern char *label;
 extern int vertical;
@@ -45,6 +46,14 @@ option_spec options[] = {
 {"the color of led 2",                   '2',"color2",  "RGB value",     int_arg, "0xFF0000", {&colors[2]}},
 {"the color of led 1",                   '1',"color1",  "RGB value",     int_arg, "0x00FF00", {&colors[1]}},
 {"the color of led 0",                    '0',"color0",  "RGB value",     int_arg, "0x0000FF", {&colors[0]}},
+{"the picture of led 7",                   0,"picture7",  "BMP  file",     str_arg, NULL, {&pictures[7]}},
+{"the picture of led 6",                   0,"picture6",  "BMP  file",     str_arg, NULL, {&pictures[6]}},
+{"the picture of led 5",                   0,"picture5",  "BMP  file",     str_arg, NULL, {&pictures[5]}},
+{"the picture of led 4",                   0,"picture4",  "BMP  file",     str_arg, NULL, {&pictures[4]}},
+{"the picture of led 3",                   0,"picture3",  "BMP  file",     str_arg, NULL, {&pictures[3]}},
+{"the picture of led 2",                   0,"picture2",  "BMP  file",     str_arg, NULL, {&pictures[2]}},
+{"the picture of led 1",                   0,"picture1",  "BMP  file",     str_arg, NULL, {&pictures[1]}},
+{"the picture of led 0",                   0,"picture0",  "BMP  file",     str_arg, NULL, {&pictures[0]}},
 {"the number of leds to display",        'n',"leds",    "int value",     int_arg, "8", {&nleds}},
 {"label",                               'l', "label",    "led label",     str_arg, NULL, {&label}},
 {"display the LEDs in a vertical column",'v', "vertical", "vertical flag",    on_arg, NULL, {&vertical}},

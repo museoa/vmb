@@ -187,7 +187,7 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			insp=i-2;
 			adjust_memory_tab();
 		}
-		else insp=-1;
+		else insp=0;
       }
 	}
     break;

@@ -17,6 +17,7 @@ extern int vertical;
 extern unsigned char led;
 extern int nleds; /* number of leds to display */
 extern int colors[];
+extern char *pictures[];
 
 HBITMAP ledOnB, ledOffB, ledOnW, ledOffW, ledDisconnected;
 int ledwidth, ledheight;
@@ -25,12 +26,27 @@ int hcolors[8] = {IDC_COLOR0, IDC_COLOR1, IDC_COLOR2, IDC_COLOR3,
 HBITMAP hOn[8] = {0};
 HBITMAP hOff[8] = {0};
 
+HBITMAP hpictures[8]={0};
 
-unsigned char blend_color(unsigned char c, unsigned char b, unsigned char w)
-{ 
-   c = (unsigned char)(c *(w/255.0));
-   if (b > c) c=b;
-   return c;
+static void init_metrics(void)
+{ BITMAP bm;
+  TEXTMETRIC tm;
+  HDC hdc = CreateCompatibleDC(NULL);
+  HGDIOBJ oldf, hf = GetStockObject(DEFAULT_GUI_FONT);
+  oldf= SelectObject(hdc,hf);
+  GetTextMetrics(hdc ,&tm);
+  SelectObject(hdc,oldf);
+  fontheight = tm.tmHeight;
+  GetObject(ledOnB,sizeof(bm),&bm);
+  ledwidth=bm.bmWidth;
+  ledheight=bm.bmHeight;
+}
+
+unsigned char blend_color(unsigned char c, unsigned char b, unsigned char w, unsigned char p)
+{  int n;
+   n = (int)(b + (c *(w/255.0)*(p/255.0)));
+   if (n > 255) return 255;
+   else return (unsigned char)n;
 }
 
 #define bmRGB(r,g,b) ((b)|((g)<<8)|((r)<<16))
@@ -38,43 +54,70 @@ unsigned char blend_color(unsigned char c, unsigned char b, unsigned char w)
 #define bmG(c) ((unsigned char)(((c)>>8)&0xFF))
 #define bmR(c) ((unsigned char)(((c)>>16)&0xFF))
 
+void load_pictures(void)
+{ int i;
+  for (i=0;i<8;i++)
+    if (pictures[i]==NULL || pictures[0]==0)
+        hpictures[i] =0;
+    else
+	{  hpictures[i]=LoadImage(NULL,pictures[i],IMAGE_BITMAP,32,32,LR_LOADFROMFILE|LR_CREATEDIBSECTION
+); 
+       if (hpictures[i]==0)
+		   vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to load picture %s",pictures[i]);
+    }
+}
 
-void set_color(BITMAP bm32, BITMAP bm32B, BITMAP bm32W, int color)
+static void set_color(BITMAP *bm32, BITMAP *bm32B, BITMAP *bm32W, int color, BITMAP *bm32P)
 { int i,n;
   unsigned char r, g, b;
-  LONG *p, *pB, *pW;
+  LONG *p, *pB, *pW, *pP, pPL;
   r = GetRValue(color);
   g = GetGValue(color);
   b = GetBValue(color);
 
-  n = bm32.bmHeight*bm32.bmWidth;
-  p = (LONG *)bm32.bmBits;
-  pB = (LONG *)bm32B.bmBits;
-  pW = (LONG *)bm32W.bmBits;
+  n = bm32->bmHeight*bm32->bmWidth;
+  p = (LONG *)bm32->bmBits;
+  pB = (LONG *)bm32B->bmBits;
+  pW = (LONG *)bm32W->bmBits;
+  if (bm32P==NULL)
+  { pPL = 0xFFFFFFFF;
+    pP = NULL;
+  }
+  else
+  { pP = (LONG *)bm32P->bmBits;
+  }
   for(i=0;i<n;i++)
   { int nr,ng,nb;
-    nr = blend_color(r,bmR(*pB),bmR(*pW));
-    ng = blend_color(g,bmG(*pB),bmG(*pW));
-    nb = blend_color(b,bmB(*pB),bmB(*pW));
+	if (pP!=NULL) pPL=*pP;
+    nr = blend_color(r,bmR(*pB),bmR(*pW),bmR(pPL));
+    ng = blend_color(g,bmG(*pB),bmG(*pW),bmG(pPL));
+    nb = blend_color(b,bmB(*pB),bmB(*pW),bmB(pPL));
 	*p = bmRGB(nr,ng,nb);
-	p++; pB++; pW++;
+	p++; pB++; pW++; 
+	if (pP!=NULL) pP++; 
   }
 }
 
-void color_led(int i, int color)
-{ BITMAP bm, bmB, bmW;
+static void color_led(int i, int color)
+{ BITMAP bm, bmB, bmW, bmP, *bmPP;
+  if (hpictures[i]==NULL)
+    bmPP=NULL;
+  else
+  { GetObject(hpictures[i],sizeof(bmP),&bmP);
+    bmPP=&bmP;
+  }
   GetObject(hOn[i], sizeof(bm), &bm);
   GetObject(ledOnB, sizeof(bmB), &bmB);
   GetObject(ledOnW, sizeof(bmW), &bmW);
-  set_color(bm,bmB,bmW,color);
+  set_color(&bm,&bmB,&bmW,color,bmPP);
   GetObject(hOff[i], sizeof(bm), &bm);
   GetObject(ledOffB, sizeof(bmB), &bmB);
   GetObject(ledOffW, sizeof(bmW), &bmW);
-  set_color(bm,bmB,bmW,color);
+  set_color(&bm,&bmB,&bmW,color,bmPP);
   colors[i]=color;
 }
 
-void init_colors(void)
+static void init_colors(void)
 { int i;
   for (i=0;i<8;i++)
   { 
@@ -351,21 +394,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (nleds>8) nleds=8;
     get_pos_key(&xpos,&ypos,defined);
     init_device(&vmb);
-    init_colors();
-	{ BITMAP bm;
-	  TEXTMETRIC tm;
-	  HDC hdc = CreateCompatibleDC(NULL);
-	  HGDIOBJ oldf, hf = GetStockObject(DEFAULT_GUI_FONT);
-      oldf= SelectObject(hdc,hf);
-	  GetTextMetrics(hdc ,&tm);
-      SelectObject(hdc,oldf);
-      DeleteDC(hdc);
-	  fontheight = tm.tmHeight;
-      GetObject(ledOnB,sizeof(bm),&bm);
-	  ledwidth=bm.bmWidth;
-	  ledheight=bm.bmHeight;
-	  
-	}
+	load_pictures();
+	init_colors();
+	init_metrics();
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	resize_window();
 	if (minimized)CloseWindow(hMainWnd); 

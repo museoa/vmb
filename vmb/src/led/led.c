@@ -50,8 +50,9 @@ unsigned char led;
 #endif
 int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
+char *pictures[8] = {0};
 
-char version[]="$Revision: 1.9 $ $Date: 2011-07-07 21:07:28 $";
+char version[]="$Revision: 1.10 $ $Date: 2011-07-07 23:44:35 $";
 
 char howto[] =
 "\n"
