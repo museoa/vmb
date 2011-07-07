@@ -42,6 +42,8 @@ extern HWND hMainWnd;
 #include "inspect.h"
 
 int nleds=8;
+char *label=NULL;
+int vertical=0;
 unsigned char led;
 #ifndef RGB
 #define RGB(r,g,b) ((r)|((g)<<8)|((b)<<16))
@@ -49,7 +51,7 @@ unsigned char led;
 int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 
-char version[]="$Revision: 1.8 $ $Date: 2011-05-27 00:06:07 $";
+char version[]="$Revision: 1.9 $ $Date: 2011-07-07 21:07:28 $";
 
 char howto[] =
 "\n"

@@ -34,6 +34,9 @@
 #define IDC_COLOR0                      1024
 #define IDC_CBUTTON0                    1025
 #define IDC_SPINLEDS                    1027
+#define IDC_VERTICAL                    1028
+#define IDC_EDIT1                       1029
+#define IDC_LABEL                       1029
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -44,14 +47,13 @@
 #define ID_MINIMIZE                     40016
 #define ID_HELP_CONFIGURATION           40017
 
-
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40019
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1030
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

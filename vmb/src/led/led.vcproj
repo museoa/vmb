@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="led"
-	ProjectGUID="{3A0CE6CE-2E84-48CD-BF94-F03E97DDA7BF}"
+	ProjectGUID="{5517BA05-32AF-42D6-A69B-26BA7F0F4090}"
 	RootNamespace="led"
 	Keyword="Win32Proj"
 	>

@@ -10,7 +10,10 @@
 #include "option.h"
 
 
-
+extern char *label;
+static int labelheight=0;
+static int fontheight=0;
+extern int vertical;
 extern unsigned char led;
 extern int nleds; /* number of leds to display */
 extern int colors[];
@@ -103,9 +106,11 @@ void choose_color(HWND hDlg, int i)
 
 extern HBITMAP hOn[], hOff[];
 
-void paint_leds(HDC dest, HDC src, unsigned char led)
+void paint_leds(HDC dest, unsigned char led)
 { int i;
-for (i=nleds-1;i>=0;i--) {
+  HDC src = CreateCompatibleDC(NULL);
+  HBITMAP h = (HBITMAP)SelectObject(src, hOn[0]);
+  for (i=nleds-1;i>=0;i--) {
 	if (!vmb.connected)
       SelectObject(src, ledOffW);
 	else if (!vmb.power)
@@ -114,14 +119,57 @@ for (i=nleds-1;i>=0;i--) {
       SelectObject(src, hOn[i]);
     else
       SelectObject(src, hOff[i]);
-	BitBlt(dest, (nleds-1-i)*ledwidth, 0, ledwidth, ledheight, src, 0, 0, SRCCOPY);
+	if (vertical)
+	  BitBlt(dest, 
+	         0,(nleds-1-i)*ledheight, 
+		     ledwidth, ledheight, src, 0, 0, SRCCOPY);
+	else
+	  BitBlt(dest, 
+	         (nleds-1-i)*ledwidth, 0, 
+		     ledwidth, ledheight, src, 0, 0, SRCCOPY);
   } 
+  SelectObject(src, h);
+  DeleteDC(src);
+}
+
+void paint_label(HDC dest, char *label)
+{ if (label==NULL || label[0]==0)
+    return;
+  else
+  {	int w,h;
+    RECT rect;
+	HGDIOBJ oldf, hf = GetStockObject(DEFAULT_GUI_FONT);
+    oldf= SelectObject(dest,hf);
+    SetTextColor(dest,RGB(0xff,0xff,0xff));
+    SetBkColor(dest,RGB(0,0,0));
+	SetTextAlign(dest,TA_CENTER|TA_TOP);
+    if (vertical) w=ledwidth,h=ledheight*nleds;
+	else          w=ledwidth*nleds,h=ledheight;
+	rect.left=0;
+	rect.right=w;
+	rect.top=h;
+	rect.bottom=h+labelheight;
+	ExtTextOut(dest,w/2,h,
+		       ETO_CLIPPED|ETO_OPAQUE,&rect,
+		       label,(UINT)strlen(label),NULL);
+	SelectObject(dest,oldf);
+  }
 }
 
 void update_display(void)
 {  InvalidateRect(hMainWnd,NULL,FALSE); 
 }
 
+static void resize_window(void)
+{ if (label==NULL || label[0]==0) labelheight=0;
+  else labelheight=fontheight;
+  if (vertical)
+    SetWindowPos(hMainWnd,HWND_TOP,0,0,ledwidth,ledheight*nleds+labelheight,
+	SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
+  else
+    SetWindowPos(hMainWnd,HWND_TOP,0,0,ledwidth*nleds,ledheight+labelheight,
+	SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
+}
 
 INT_PTR CALLBACK  
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -140,6 +188,9 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR6),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[6]);
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR7),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[7]);
 	  SetDlgItemInt(hDlg,IDC_NLEDS,nleds,FALSE);
+	  SetDlgItemText(hDlg,IDC_LABEL,label?label:"");
+	  SendMessage(GetDlgItem(hDlg,IDC_VERTICAL),BM_SETCHECK,
+		  vertical?BST_CHECKED:BST_UNCHECKED,0);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -154,8 +205,11 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    nleds = GetDlgItemInt(hDlg,IDC_NLEDS,NULL,FALSE);
 	    if (nleds>8) nleds=8;
 	    if (nleds<1) nleds=1;
-		SetWindowPos(hMainWnd,HWND_TOP,0,0,ledwidth*nleds,ledheight,
-			SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
+        vertical = (BST_CHECKED == SendMessage(GetDlgItem(hDlg,IDC_VERTICAL),
+			                        BM_GETCHECK,0,0));
+        GetDlgItemText(hDlg,IDC_LABEL,tmp_option,MAXTMPOPTION);
+		set_option(&label,tmp_option);
+		resize_window();
       }	  
 	  if (HIWORD(wparam) == STN_CLICKED)
 	  { if (LOWORD(wparam)== IDC_CBUTTON0) choose_color(hDlg, 0);
@@ -200,11 +254,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_PAINT:
     { PAINTSTRUCT ps;
       HDC hdc = BeginPaint (hWnd, &ps);
-      HDC memdc = CreateCompatibleDC(NULL);
-      HBITMAP h = (HBITMAP)SelectObject(memdc, hOn[0]);
-      paint_leds(hdc,memdc,led);
-      SelectObject(memdc, h);
-	  DeleteDC(memdc);
+      paint_leds(hdc,led);
+	  paint_label(hdc,label);
       EndPaint (hWnd, &ps);
     }
     return 0;
@@ -302,24 +353,21 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     init_device(&vmb);
     init_colors();
 	{ BITMAP bm;
+	  TEXTMETRIC tm;
+	  HDC hdc = CreateCompatibleDC(NULL);
+	  HGDIOBJ oldf, hf = GetStockObject(DEFAULT_GUI_FONT);
+      oldf= SelectObject(hdc,hf);
+	  GetTextMetrics(hdc ,&tm);
+      SelectObject(hdc,oldf);
+      DeleteDC(hdc);
+	  fontheight = tm.tmHeight;
       GetObject(ledOnB,sizeof(bm),&bm);
 	  ledwidth=bm.bmWidth;
 	  ledheight=bm.bmHeight;
-	  SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,ledwidth*nleds,ledheight,SWP_NOZORDER|SWP_SHOWWINDOW);
-#if 0
-	  HRGN hrg;
-	  int i;
-
-	  hrg = CreateEllipticRgn(0,0,ledwidth+1,ledheight+1);
-      for(i=1;i<nleds;i++)
-	  { HRGN rg;
-	    rg = CreateEllipticRgn(ledwidth*i,0,ledwidth*(i+1)+1,ledheight+1);
-	    CombineRgn(hrg, hrg, rg, RGN_OR);
-	    DeleteObject(rg);
-	  }	
-	  SetWindowRgn(hMainWnd, hrg, TRUE);
-#endif
+	  
 	}
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	resize_window();
 	if (minimized)CloseWindow(hMainWnd); 
 	UpdateWindow(hMainWnd);
 	vmb_begin();

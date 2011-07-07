@@ -27,6 +27,8 @@
 
 extern int colors[];
 extern int nleds;
+extern char *label;
+extern int vertical;
 
 option_spec options[] = {
 /* description short long kind default handler */
@@ -44,8 +46,10 @@ option_spec options[] = {
 {"the color of led 1",                   '1',"color1",  "RGB value",     int_arg, "0x00FF00", {&colors[1]}},
 {"the color of led 0",                    '0',"color0",  "RGB value",     int_arg, "0x0000FF", {&colors[0]}},
 {"the number of leds to display",        'n',"leds",    "int value",     int_arg, "8", {&nleds}},
-{"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
-{"to generate debug output",            'd', "debug",   "debugflag",     fun_arg, NULL, {&do_option_debug}},
+{"label",                               'l', "label",    "led label",     str_arg, NULL, {&label}},
+{"display the LEDs in a vertical column",'v', "vertical", "vertical flag",    on_arg, NULL, {&vertical}},
+{"start with a minimized window",        'm', "minimized","minimized flag",    on_arg, NULL, {&minimized}},
+{"to generate debug output",            'd', "debug",   "debug flag",     fun_arg, NULL, {&do_option_debug}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
