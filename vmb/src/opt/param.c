@@ -35,11 +35,11 @@
 #include <unistd.h>
 #include <stdint.h>
 #endif
-
+#include "vmb.h"
 #include "param.h"
 #include "option.h"
 #include "bus-arith.h"
-#include "error.h"
+
 
 #ifdef WIN32
 char *programhelpfile = NULL;

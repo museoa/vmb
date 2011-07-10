@@ -1,9 +1,9 @@
 #include <windows.h>
 #include <commctrl.h>
+#include "vmb.h"
 #include "resource.h"
 #include "win32connect.h"
 #include "winopt.h"
-#include "error.h"
 #include "inspect.h"
 
 void win32_message(char *msg)

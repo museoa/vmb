@@ -35,7 +35,6 @@
 
 #ifdef WIN32
 #include <direct.h>
-#pragma warning(disable : 4996)
 #define DIRCHAR ('\\')
 #define DIRSTR  ("\\")
 #else
@@ -43,9 +42,9 @@
 #define DIRCHAR ('/')
 #define DIRSTR  ("/")
 #endif
-
+#include "vmb.h"
 #include "option.h"
-#include "error.h"
+
 
 
  
@@ -612,7 +611,7 @@ int parse_configfile(char *filename, char *condition)
      if (strncmp(p,"#if",3)==0 && isspace(p[3])) 
      { p=p+4;
        while(isspace((int)(p[0]))) p++;
-       if ((condition!=NULL && strncmp(p,condition,strlen(condition))==0))
+       if ((condition!=NULL && strcmp(p,condition)==0))
          conditional = 1;
        else
        { while (!feof(in))

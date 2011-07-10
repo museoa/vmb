@@ -58,7 +58,7 @@ device_info vmb = {0};
 #include "errno.h"
 
 #endif
-
+#include "vmb.h"
 #include "option.h"
 #include "param.h"
 #include "error.h"  
@@ -67,7 +67,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.34 $ $Date: 2011-07-07 00:27:45 $";
+char version[] = "$Revision: 1.35 $ $Date: 2011-07-10 02:35:17 $";
 
 char howto[] =
   "\n"
@@ -227,15 +227,15 @@ remove_slot (int slotnr)
 
 int
 write_to_slot (int i)
-{
+{ if ((mtype & TYPE_ROUTE) && (slot[i].answers_pending>0))
+    slot[i].answers_pending--;
   if (send_msg(slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,mpayload) <= 0)
-  { if (server_terminating) return 1;
-  vmb_error2 (__LINE__, "Unable to deliver message to:", (char *)slot[i].name);
+  { if (server_terminating) 
+      return 1; /* dont bother */
+    vmb_error2 (__LINE__, "Unable to deliver message to:", (char *)slot[i].name);
     remove_slot (i);
     return 1;
   }
-  if (mtype & TYPE_ROUTE)
-    slot[i].answers_pending--;
   vmb_debugs(VMB_DEBUG_PROGRESS,"Send to %s:", (char *)slot[i].name);
   vmb_debugm(VMB_DEBUG_MSG, mtype, msize, mslot, mid, maddress, mpayload);
   write_ops++;

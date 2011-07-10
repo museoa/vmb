@@ -42,6 +42,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
         ofn.lStructSize = sizeof(OPENFILENAME);
         ofn.hwndOwner = hMainWnd;
+		GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
         ofn.lpstrFile = tmp_option;
         ofn.nMaxFile = MAXTMPOPTION;
         ofn.lpstrFilter = "All\0*.*\0Image\0*.img\0";

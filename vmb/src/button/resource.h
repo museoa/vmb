@@ -26,6 +26,8 @@
 #define IDC_UPINTENABLE                 1010
 #define IDC_PUSHBUTTON                  1011
 #define IDC_COLOR                       1013
+#define IDC_COLOR2                      1014
+#define IDC_LABEL                       1014
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009

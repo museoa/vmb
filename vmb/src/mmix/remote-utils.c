@@ -49,8 +49,8 @@
 #endif
 #include <signal.h>
 #include <ctype.h>
+#include "vmb.h"
 #include "bus-arith.h" 
-#include "error.h"
 #include "buffers.h"
 #include "mmix-internals.h"
 #include "gdb.h"

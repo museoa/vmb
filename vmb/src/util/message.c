@@ -37,6 +37,7 @@
 #endif
 #include <fcntl.h>
 #include <errno.h>
+#include "vmb.h"
 #include "error.h"
 #include "message.h"
 #include "bus-arith.h"

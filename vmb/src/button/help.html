@@ -13,7 +13,9 @@
 		
 		The program will contact the motherboard at [host:]port and register itself. Ther is no address associated with a button, just an interrupts.
 		<p>In normal operation, when the button is pressed an interrupt is send to the motherboard. The button can be configured to send an interrupt also when the button is released.</p>
+		<p>The color of the button can beconfigured to be any 3 Byte RGB value (0xFF0000 is red, 0x00FF00 is green, and 0x0000FF is blue). Futher, a label can be specified to be placed on the button.</p>
 		<h2>Configuration</h2>
+		
 		The Keyboard has the following configurable parameters:
 		<table>
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
@@ -40,8 +42,13 @@
 			</tr>
 			<tr>
 				<td>color</td>
-				<td>0xFF</td>
+				<td>0x0000FF</td>
 				<td>RGB value of the button color</td>
+			</tr>
+			<tr>
+				<td>label</td>
+				<td>NULL</td>
+				<td>Label to be placed on the button.</td>
 			</tr>
 			<tr> <td> x        <td> 0<td>the x position of the window </tr>
 			<tr> <td> y        <td> 0<td>the y position of the window </tr>
@@ -53,9 +60,6 @@
 <tr> <td> config   <td> not set<td>filename for a configuration file</tr>
 <tr> <td> help     <td> false<td>to print information</tr>
 </table>
-		<p>
-These can be set in default.mmc
-
-</p>
+		<p>These can be set in default.vmb</p>
 	</BODY>
 </HTML>

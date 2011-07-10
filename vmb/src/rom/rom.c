@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.12 $ $Date: 2011-07-07 00:27:45 $";
+char version[]="$Revision: 1.13 $ $Date: 2011-07-10 02:35:17 $";
 
 char howto[] =
 "\n"
@@ -56,7 +56,7 @@ char howto[] =
 static unsigned char *rom=NULL;
 typedef unsigned long Word;
 
-#define PAGESIZE (1<<10) /* one kbyte */
+#define PAGESIZE (1<<13) /* eight kbyte */
 #define BIOSFILEID	0x0253504D
 #define WORDLEN 4
 
@@ -139,38 +139,46 @@ void open_file(void)
     struct stat fs;
     
     f = NULL;
+	vmb_size=0;
 
     if (filename==NULL || strcmp(filename,"") == 0)
-        vmb_fatal_error(__LINE__,"No filename for image file given");
-
-	vmb_debugs(VMB_DEBUG_PROGRESS, "Open image file: %s",filename);
-
-    if ((f = fopen(filename, "rb")) == NULL)
-        vmb_fatal_error(__LINE__,"Unable to open image file");
-
-    c = strrchr(filename,'.');
-    if(strcmp(c,".umps") == 0)
-    {
-        readUMPSFile(f);
-    }
-    else
-    { int rc;
+	 vmb_error(__LINE__,"No filename for image file given");
+	else
+	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
+      if ((f = fopen(filename, "rb")) == NULL)
+        vmb_error2(__LINE__,"Unable to open image file",filename);
+	  else
+	  { c = strrchr(filename,'.');
+		if(strcmp(c,".umps") == 0)
+		{
+			readUMPSFile(f);
+		}
+		else
+		{ int rc;
        
-        if (fstat(fileno(f),&fs)<0)
-            vmb_fatal_error(__LINE__,"Unable to get file size");
+			if (fstat(fileno(f),&fs)<0)
+				vmb_fatal_error(__LINE__,"Unable to get file size");
     
-        vmb_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /*round up to whole pages*/
-        if (rom!=NULL) free(rom);
-        rom = malloc(vmb_size);
-        if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
-        rc=(int)fread(rom,1,vmb_size,f);
-        if (rc < 0) vmb_fatal_error(__LINE__,"Unable to read file");
-        if (rc == 0) vmb_fatal_error(__LINE__,"Empty file");
-    }
-    fclose(f);
-   inspector[0].address=vmb_address;
-   inspector[0].size=vmb_size;
-   mem_update(0,0,vmb_size);
+			vmb_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /*round up to whole pages*/
+			if (rom!=NULL) free(rom);
+			rom = malloc(vmb_size);
+			if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
+			rc=(int)fread(rom,1,vmb_size,f);
+			if (rc < 0) vmb_fatal_error(__LINE__,"Unable to read file");
+			if (rc == 0) vmb_fatal_error(__LINE__,"Empty file");
+		}
+		fclose(f);
+	  }
+	}
+	if (vmb_size==0)
+	{ vmb_size = PAGESIZE;
+	  rom = malloc(vmb_size);
+      if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
+	}
+	inspector[0].address=vmb_address;
+	inspector[0].size=vmb_size;
+	mem_update(0,0,vmb_size);
+	vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 }
 
 

@@ -71,9 +71,10 @@ static void set_color(BITMAP *bm32, BITMAP *bm32B, BITMAP *bm32W, int color, BIT
 { int i,n;
   unsigned char r, g, b;
   LONG *p, *pB, *pW, *pP, pPL;
-  r = GetRValue(color);
-  g = GetGValue(color);
-  b = GetBValue(color);
+
+  r = (color>>16)&0xFF;
+  g = (color>>8)&0xFF;;
+  b =  color&0xFF;;
 
   n = bm32->bmHeight*bm32->bmWidth;
   p = (LONG *)bm32->bmBits;
@@ -137,12 +138,13 @@ void choose_color(HWND hDlg, int i)
         cc.lStructSize = sizeof(cc);
         cc.hwndOwner = hDlg;
         cc.lpCustColors = (LPDWORD) acrCustClr;
-		 cc.rgbResult = colors[i];
+		 cc.rgbResult = RGB(bmR(colors[i]),bmG(colors[i]),bmB(colors[i]));
         cc.Flags = CC_FULLOPEN | CC_RGBINIT;
         if (ChooseColor(&cc)==TRUE) {
-		    colors[i] = cc.rgbResult;
-			color_led(i,cc.rgbResult);
-	        SendMessage(GetDlgItem(hDlg,hcolors[i]),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[i]);
+		    colors[i] = bmRGB(GetRValue(cc.rgbResult),
+				GetGValue(cc.rgbResult),GetBValue(cc.rgbResult));
+			color_led(i,colors[i]);
+	        SendMessage(GetDlgItem(hDlg,hcolors[i]),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[i]);
 		}
 	  }
 
@@ -222,14 +224,14 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR0),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[0]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR1),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[1]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR2),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[2]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR3),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[3]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR4),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[4]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR5),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[5]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR6),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[6]);
-	  SendMessage(GetDlgItem(hDlg,IDC_COLOR7),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOff[7]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR0),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[0]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR1),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[1]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR2),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[2]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR3),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[3]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR4),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[4]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR5),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[5]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR6),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[6]);
+	  SendMessage(GetDlgItem(hDlg,IDC_COLOR7),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[7]);
 	  SetDlgItemInt(hDlg,IDC_NLEDS,nleds,FALSE);
 	  SetDlgItemText(hDlg,IDC_LABEL,label?label:"");
 	  SendMessage(GetDlgItem(hDlg,IDC_VERTICAL),BM_SETCHECK,

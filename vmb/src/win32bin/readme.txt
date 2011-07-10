@@ -16,4 +16,4 @@ Please report error messages or crashes or suggestions
 to ruckert@cs.hm.edu
 
 Have Fun!
-   Martin
+   Martin Ruckert

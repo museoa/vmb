@@ -30,16 +30,8 @@ extern int port;
 extern int xpos,ypos;
 extern int minimized;
 
-#ifdef WIN32
-#include <windows.h>
-typedef UINT64 uint64_t;
-#else
-#include <stdint.h>
-#endif
 
 extern uint64_t vmb_address;
-#define HI32(vmb_address) ((unsigned int)((vmb_address)>>32))
-#define LO32(vmb_address) ((unsigned int)((vmb_address)&0xFFFFFFFF))
 extern unsigned int vmb_size;
 extern int interrupt;
 extern int disable_interrupt;

@@ -52,6 +52,7 @@ extern void vmb_debug(int level, char *msg);
 extern void vmb_debugi(int level, char *msg,int i);
 extern void vmb_debugs(int level, char *msg, char *s);
 extern void vmb_debugx(int level, char *msg, unsigned char *s, int n); /* message with hex info */
+extern void vmb_debuga(int level, char *msg, uint64_t i);
 extern void vmb_debugm(int level, unsigned char mtype,unsigned char msize, 
                        unsigned char mslot,unsigned char mid,
 		       unsigned char maddress[8], unsigned char *mpayload);

@@ -7,37 +7,76 @@
 
 	<BODY>
 <H1>LED Device Specification</H1>
-		<h1><img src="led.gif" alt="" width="96" height="32" border="0"></h1>
-		
-
-The LED device offers just one byte of memory. Each bit of the byte corresponding to
-one of 8 LEDs: Led0 through Led7. Led0 corresponds to the least significant bit (0x01) and 
-Led7 corresponds to the most significant bit (0x80).
-<p>
-Seting a bit to 1 turns the led on, setting a bit to 0 turns the led off.
-<p>
-The number of leds displayed can be set to any value n between 1 and 8,
-showing them from left to right Led(n-1) to Led0.
-
-
-<H2>LED Configuration</H2>
-The LED has the following configurable parameters:
-<p>
-<table>
+		<h1><img src="led.gif" alt="" width="96" height="32" border="0"></h1>The LED device offers just one byte of memory. Each bit of the byte corresponding to one of 8 LEDs: LED7 through LED0. LED0 corresponds to the least significant bit (0x01) and LED7 corresponds to the most significant bit (0x80).<p>Seting a bit to 1 turns the LED on, setting a bit to 0 turns the LED off.
+		<p>The color of any LED can beconfigured to be any 3 Byte RGB value (0xFF0000 is red, 0x00FF00 is green, and 0x0000FF is blue). Further, for each LED a picture can be specified to customize the apperance. The picture must be a 32x32 pixel 32 bit color RGB bitmap file . It is used as an alpha channel: each color value of  each pixel in the LED is multiplied by the corresponding value of the picture bitmap.  The multiplication is scalled such that 255 is equivalent to the factor 1 and 0 to the factor 0. This has the effect that a black and white picture will mask the LED, keeping it black where the picture is black and showing the normal color where the picture is white. On the other extreme, when the LEDs color is set to &quot;white&quot;, the LED will display the given picture (with all its colors) when its on, and a much darker version of the colored picture, when it is off. Specifying no picture is equivalent to specifying an all white picture.</p>
+		<p> A label can be specified to be placed under the LED display and the LEDs can be displayed ieither n a horizontal row, as shown above, or in a vertical column. The number of LEDs displayed can be set to any value n between 1 and 8, showing from left to right LED(n-1) to LED0.</p>
+		<H2>LED Configuration</H2>
+		The LED has the following configurable parameters:<p>
+<table border="1">
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
 <tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
 <tr> <td>address   <td> default <td> address where the resource is located </tr>
 <tr> <td> x        <td> 0<td>the x position of the window </tr>
 <tr> <td> y        <td> 0<td>the y position of the window </tr>
-<tr> <td> color0   <td> 0x0000FF = RED <td>the color of Led0 </tr>
-<tr> <td> color1   <td> 0x00FF00 = GREEN <td>the color of Led1 </tr>
-<tr> <td> color2   <td> 0xFF0000 = BLUE <td>the color of Led2 </tr>
-<tr> <td> color3   <td> 0x00FFFF = YELLOW <td>the color of Led3 </tr>
-<tr> <td> color4   <td> 0xFF00FF = CYAN <td>the color of Led4 </tr>
-<tr> <td> color5   <td> 0xFFFF00 = MAGENTA <td>the color of Led5 </tr>
-<tr> <td> color6   <td> 0x8080FF = LIGHT RED <td>the color of Led6 </tr>
-<tr> <td> color7   <td> 0xFF8080 = LIGHT BLUE <td>the color of Led7 </tr>
-<tr> <td> leds     <td> 8 <td>the number of leds to display </tr>
+<tr> <td> color0   <td> 0x0000FF = RED <td>the color of LED0</tr>
+<tr> <td> color1   <td> 0x00FF00 = GREEN <td>the color of LED1</tr>
+<tr> <td> color2   <td> 0xFF0000 = BLUE <td>the color of LED2</tr>
+<tr> <td> color3   <td> 0x00FFFF = YELLOW <td>the color of LED3</tr>
+<tr> <td> color4   <td> 0xFF00FF = CYAN <td>the color of LED4</tr>
+<tr> <td> color5   <td> 0xFFFF00 = MAGENTA <td>the color of LED5</tr>
+<tr> <td> color6   <td> 0x8080FF = LIGHT RED <td>the color of LED6</tr>
+<tr> <td> color7   <td> 0xFF8080 = LIGHT BLUE <td>the color of LED7</tr>
+			<tr>
+				<td>picture0</td>
+				<td>none</td>
+				<td>the picture for LED 0</td>
+			</tr>
+			<tr>
+				<td>picture1</td>
+				<td>none</td>
+				<td>the picture for LED 1</td>
+			</tr>
+			<tr>
+				<td>picture2</td>
+				<td>none</td>
+				<td>the picture for LED 2</td>
+			</tr>
+			<tr>
+				<td>picture3</td>
+				<td>none</td>
+				<td>the picture for LED 3</td>
+			</tr>
+			<tr>
+				<td>picture4</td>
+				<td>none</td>
+				<td>the picture for LED 4</td>
+			</tr>
+			<tr>
+				<td>picture5</td>
+				<td>none</td>
+				<td>the picture for LED 5</td>
+			</tr>
+			<tr>
+				<td>picture6</td>
+				<td>none</td>
+				<td>the picture for LED 6</td>
+			</tr>
+			<tr>
+				<td>picture7</td>
+				<td>none</td>
+				<td>the picture for LED 7</td>
+			</tr>
+			<tr>
+				<td>vertical</td>
+				<td>false</td>
+				<td>display the LEDs as a vertical column</td>
+			</tr>
+			<tr>
+				<td>label</td>
+				<td>none</td>
+				<td>Label to display under the LEDs</td>
+			</tr>
+			<tr> <td>LEDs<td> 8 <td>the number of LEDs to display</tr>
 <tr> <td> minimized<td> false<td>start with a minimized window </tr>
 <tr> <td> debug    <td> false<td>to generate debug output </tr>
 <tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
@@ -45,8 +84,5 @@ The LED has the following configurable parameters:
 <tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
 <tr> <td> config   <td> not set<td>filename for a configuration file</tr>
 <tr> <td> help     <td> false<td>to print information</tr>
-</table>
-These can be set in default.mmc
-
-</BODY>
+</table>These can be set in default.vmb</BODY>
 </HTML>

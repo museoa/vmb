@@ -28,10 +28,12 @@
 #pragma warning(disable : 4996)
 #endif
 
-#include "string.h"
+#include <string.h>
+#include "vmb.h"
+#include "error.h"
 #include "bus-arith.h"
 #include "message.h"
-#include "error.h"
+
 
 unsigned int vmb_debug_flag = 0;
 unsigned int vmb_verbose_flag = 0;
@@ -107,6 +109,16 @@ void vmb_debugi(int level, char *msg, int i)
   if (!vmb_debug_flag) return;
   if ((level&~vmb_debug_mask)==0) return;
   sprintf(tmp,msg,i);
+  vmb_debug(level, tmp);
+}
+
+void vmb_debuga(int level, char *msg, uint64_t i)
+/* a function to call to display debug messages */
+{ 
+  static char tmp[1000];
+  if (!vmb_debug_flag) return;
+  if ((level&~vmb_debug_mask)==0) return;
+  sprintf(tmp,msg,HI32(i),LO32(i));
   vmb_debug(level, tmp);
 }
 

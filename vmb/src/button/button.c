@@ -43,6 +43,11 @@ unsigned char blend_color(int c, int w)
 	return n;
 }
 
+#define bmRGB(r,g,b) ((b)|((g)<<8)|((r)<<16))
+#define bmB(c) ((unsigned char)((c)&0xFF))
+#define bmG(c) ((unsigned char)(((c)>>8)&0xFF))
+#define bmR(c) ((unsigned char)(((c)>>16)&0xFF))
+
 
 void color_bitmap(HBITMAP hBmp, HBITMAP hTemplate, int color, char *label)
 { BITMAP bm,bmT;
@@ -62,7 +67,10 @@ void color_bitmap(HBITMAP hBmp, HBITMAP hTemplate, int color, char *label)
   rect.top=0, rect.left=0, rect.bottom=height+1, rect.right=width+1;
   FillRect(hCanvas,&rect,hbr);
   if (label!=NULL && label[0]!=0)
-  { SetTextColor(hCanvas,RGB(0,0,0));
+  { if (r+g+b> 3*0x100/2)
+       SetTextColor(hCanvas,RGB(0,0,0));
+    else
+       SetTextColor(hCanvas,RGB(0xFF,0xFF,0xFF));
     SetBkColor(hCanvas,RGB(r,g,b));
 	SetTextAlign(hCanvas,TA_CENTER|TA_BOTTOM);
 	ExtTextOut(hCanvas,width/2,(height+fontheight)/2,ETO_CLIPPED|ETO_OPAQUE,&rect,
@@ -76,10 +84,10 @@ void color_bitmap(HBITMAP hBmp, HBITMAP hTemplate, int color, char *label)
   q = (LONG *)bm.bmBits;
   for(i=0;i<n;i++)
   { int nr,ng,nb;
-    nr = blend_color((*q>>16)&0xFF,(*p>>16)&0xFF);
-    ng = blend_color((*q>>8)&0xFF,(*p>>8)&0xFF);
-    nb = blend_color((*q)&0xFF,(*p)&0xFF);
-	*q = (nr<<16)|(ng<<8)|nb;
+    nr = blend_color(bmR(*q),bmR(*p));
+    ng = blend_color(bmG(*q),bmG(*p));
+    nb = blend_color(bmB(*q),bmB(*p));
+	*q = bmRGB(nr,ng,nb);
 	p++;
 	q++;
   }
@@ -101,6 +109,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
 	  SetDlgItemInt(hDlg,IDC_UPINTERRUPT,upinterrupt,FALSE);
 	  SetDlgItemInt(hDlg,IDC_COLOR,color,FALSE);
+	  SetDlgItemText(hDlg,IDC_LABEL,label?label:"");
 	  CheckDlgButton(hDlg,IDC_INTENABLE,enable_interrupts&1?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_UPINTENABLE,enable_interrupts&2?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_PUSHBUTTON,pushbutton?BST_CHECKED:BST_UNCHECKED);
@@ -113,18 +122,17 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { int new_color;
-		GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
+      { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+		GetDlgItemText(hDlg,IDC_LABEL,tmp_option,MAXTMPOPTION);
+		set_option(&label,tmp_option);
 		interrupt =GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
 		upinterrupt =GetDlgItemInt(hDlg,IDC_UPINTERRUPT,NULL,FALSE);
-		new_color =GetDlgItemInt(hDlg,IDC_COLOR,NULL,FALSE);
-		if (new_color!=color)
-		{ color=new_color;
-	      color_bitmaps(color,label);
-		  if (pushstate) hBmp=hOn; else hBmp=hOff;
-		  InvalidateRect(hMainWnd,NULL,FALSE);	
-		}
+		color =GetDlgItemInt(hDlg,IDC_COLOR,NULL,FALSE);
+	    color_bitmaps(color,label);
+		if (pushstate) hBmp=hOn; else hBmp=hOff;
+		InvalidateRect(hMainWnd,NULL,FALSE);
+		pushbutton=IsDlgButtonChecked(hDlg,IDC_PUSHBUTTON)==BST_CHECKED;
 		if (IsDlgButtonChecked(hDlg,IDC_INTENABLE)==BST_CHECKED)
 			enable_interrupts|=1;
 		else
@@ -133,13 +141,10 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			enable_interrupts|=2;
 		else
 			enable_interrupts&=~2;
-		pushbutton=IsDlgButtonChecked(hDlg,IDC_PUSHBUTTON)==BST_CHECKED;
       }
 	  if (HIWORD(wparam) == STN_CLICKED && LOWORD(wparam)== IDC_COLORCHOOSE)
 	  { CHOOSECOLOR cc;                 // common dialog box structure 
         static COLORREF acrCustClr[16]; // array of custom colors 
-
-          
 	    // Initialize CHOOSECOLOR 
         ZeroMemory(&cc, sizeof(cc));
         cc.lStructSize = sizeof(cc);
@@ -147,15 +152,13 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         cc.lpCustColors = (LPDWORD) acrCustClr;
 		{int c;
 		 c = GetDlgItemInt(hDlg,IDC_COLOR,NULL,FALSE);
-		 cc.rgbResult = RGB((c>>16)&0xFF,(c>>8)&0xFF,c&0xFF);
+		 cc.rgbResult = RGB(bmR(c),bmG(c),bmB(c));
 		}
         cc.Flags = CC_FULLOPEN | CC_RGBINIT;
         if (ChooseColor(&cc)==TRUE) {
 			int c;
-			c = GetBValue(cc.rgbResult);
-			c |=GetGValue(cc.rgbResult)<<8;
-			c |=GetRValue(cc.rgbResult)<<16;
-		   SetDlgItemInt(hDlg,IDC_COLOR,c,FALSE);
+			c = bmRGB(GetRValue(cc.rgbResult),GetGValue(cc.rgbResult),GetBValue(cc.rgbResult));
+		    SetDlgItemInt(hDlg,IDC_COLOR,c,FALSE);
 		}
 	  }
     if (wparam == IDOK || wparam == IDCANCEL)

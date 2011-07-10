@@ -1,0 +1,162 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>Virtual Motherboard Homepage</title>
+	</head>
+
+	<BODY>
+<H1 align="left"><a title="Home" href="index.html" target="_top"><img src="vmb64.gif" alt="VMB Logo" height="64" width="64" border="0"></a></H1>
+		<h1 align="center">Configuration Files</h1>
+		<h2>Introduction</h2>
+		<p>Configuration files are used to keep all the parameters of an assembly of  VMB devices in one central place. If possible, all devices that connect to the motherboard should read one and the same configuration file when starting. As a further convenience, the motherboard can be configured - using this same configuration file - to start all the devices that belong to the assembly, binging up (and later down) a consistent set of devices.</p>
+		<h2>Parameters</h2>In a configuration file a parameter specification is given by a line that starts with the parameter name followed by one or more spaces (or tabs) and the value of the parameter. Parameter names are not case sensitive. Values are either numeric values, that can be given either as decimal or hexadecimal numbers (e.g. 0xFF), or strings. String values extend from the first non blank character to the last non blank character of the line. Sometimes it is necessary to enclose string parameters in double quotes (fo instance it it starts with a space).<p>As a rule, all paramters that can go in a configuration file can also be used as &quot;long&quot; options (prefixed with a minusminus) on the command line and vice versa. Most parameters, especially those that are used often, are also available as a short, single letter option (prefixed with a single minus). Short options are for use on the command line only (they dont work in configuration files). As an example, you can get a list of all parameters of a VMB device by starting it with the &quot;<kbd>-?</kbd>&quot; option (short)&nbsp;or the &quot;<kbd>--help</kbd>&quot; option (long). Of course, as with any option, you could use the long otion also in a configuration file - but obviously it makes more sense to use this option interactively.</p>
+		<p>Using the Windows version, you can also select &quot;Configuration&quot; from the &quot;Help&quot; menu to get a Text windows displaying all parameters and their current settings.</p>
+		<h2>Starting a Device</h2>
+		<p>When a device is started,  it does a quick check of its command line to find out if  contains a configuration file either in the form &quot;<kbd>-c</kbd><kbd> </kbd><kbd><i>filename&quot;</i></kbd> or &quot;<kbd>--config</kbd><kbd> <i>filename&quot;. </i></kbd>If either one is present, there is no further search for any other configuration file and the command line is used as described below. If the command line does not specify a configuration file, the current working directory is searched for a file named &quot;default.vmb&quot;. If such a file exists, it is read. So you can keep all the files belonging to an assembly of devices in one directory and place the default configuration in this file. If there is no such file in the current working directory, the directory where the devices executable is located will be searched for a &quot;default.vmb&quot; file. If found, this file will be processed if not, no configuration file is processed.</p>
+		<p>After processing a possible &quot;default.vmb&quot; configuration file, the device will process the command line. This way, parameters specified on the command line take precedence over parameters specified in the default file. The parameters on the command line are processed form left to right,. Later parameters can overwrite settings by earlier parameters. This rule holds also for a configuration file specified on the comand line. Its content will overwrite paramters earlier on the command line (or in the file) and can be overwritten themselves by parameters later on the command line.</p>
+		<p>Typically, only the motherboard is started - either in Unix style from the command line or by a doubleclick. Under Windows, the installation program mentioned below will set a file association betwen &quot;.vmb&quot; files and the motherboard. So doubleclicking a configuration file will start the motherboard with this configuration file as command line parameter. All the rest of the devices that form the desired assembly are then started by the motherboard as specified in the configuration file (using the &quot;exec&quot; option).</p>
+		<h2>Common Parameters</h2>
+		Most devices will need one of the following parameters:
+		<h3>General</h3>
+		<ul>
+			<li><strong>host <br>
+				</strong>value:<strong> </strong>hostname or IP&nbsp;address of the host where the bus is located <br>
+				short option: -h, long option: --host, default: localhost
+			
+			
+			<li><strong>port</strong> <br>
+				value: the port number where the bus is located<br>
+				short option: -p, long option: --port, default: 9002
+			
+			<li><strong>address<br>
+				</strong>value: the physical address where the resource is located<br>
+				short option: -a, long option: --address, default: 0x8000000000000000
+			
+			<li><strong>size</strong><br>
+				value: size of address range in byte<br>
+				short option: -s, long option: --size, default: 8
+			<li><strong>interrupt</strong><br>
+				value: interrupt send by device<br>
+				short option: -i, long option: --interrupt, default: 8
+			<li><strong>disableinterrupt</strong><br>
+				to disable interrupts by this device<br>
+				short option: -Q, long option: --disableinterrupt, default: false
+			</ul>
+		<h3>User Interface</h3>
+		<ul>
+			<li><strong>x</strong><br>
+				value: the x position of the window <br>
+				short option: -x, long option: --x , default: 0
+			<li><strong>y</strong><br>
+				value: the y position of the window<br>
+				short option: -y, long option: --y, default: 0
+			<li><strong>minimized</strong><br>
+					start with a minimized window<br>
+				short option: -m, long option: --minimized, default:&nbsp;false
+			
+		</ul>
+		<h3>
+				Debugging
+				</h3>
+		<ul>
+			<li><strong>debug</strong><br>
+				 to switch on generation of debug output<br>
+				short option: -d, long option:  --debug, default:&nbsp;false 
+			
+				
+			<li><strong>verbose</strong><br>
+				
+				to make debugging verbose; same as debugmask 0 (see below)<br>
+				short option: -v, long option: --verbose, default: false
+			<li><strong>debugmask</strong><br>
+				value: the debug mask<br>
+				Each bit set in the debug mask switches off certain categories of debug messages. As a rule, low bits correspond to more important messages. The bits are: 
+				<ul>
+					<li>0x01 Fatal Errors
+					<li>0x02 Errors
+					<li>0x04 Warnings
+					<li>0x08 Notification (unusual events that normaly do not occur)<br>
+					<li>0x10 Progress (usual events the normaly occur and trace the working of a device)
+					<li>0x20 Info (more detailed reports on the workings of a device)
+					<li>0x40 Message (trace the exchange of messages over the bus)
+					<li>0x80 Payload (display the content of the payload transported over the bus)<br>
+				</ul>
+				You can OR together these bits to suppress the debug messages you do not want to see. The default value is a good choice for a program unter test but without any specific hint about malfunction.
+				short option: -M long option: --debugmask, default : 0xFFF0
+				
+			<li><strong>help</strong><br>
+				
+				to print usage and configuration information<br>
+				short option: -?, long option: --help<br>
+			
+				
+		</ul>
+		<h3>
+            Configuration
+            </h3>
+		<ul>
+			<li><strong>define</strong><br>
+				
+				value: the device name for conditionals (see below). Note: if the device name is the first item on the command line after the program name, you can omit the &quot;-D&quot; or the &quot;--define&quot;. Just puting the device name first is sufficient.<br>
+				short option: -D, long option:  --define, default:&nbsp;the programs name
+			<li><strong>config</strong><br>
+				
+				value: filename for a configuration file<br>
+				short option: -c, long option: --config, default:&nbsp;none
+			
+		</ul>
+		<h3>Executing Commands</h3>
+		<ul>
+			<li><strong>exec</strong><br>
+				value: the command line of the command to be executed. This parameter is for use by the motherboard, but in the future, other devices might have the need to start auxiliar devices using the exec parameter. If the parameter value does not give the program to be executed with an absolute path name, the motherboard will try to find the program first in the current working directory, then in the same directory where the motherboard executable resides, and finally on the system  path. This mechanism together with configuration file variables (as explained below) should enable you to write configurations that start  whole assemblies with a doubleclick and still can be moved around in the directory tree.<br>
+				short option: -X, long option: --exec, default:&nbsp;none
+		</ul>
+		<h2>Conditionals</h2>
+		
+		Looking at the list of parameters and the intended use in a central configuration file, you might wonder how to specify the address of a device in a file that is shared by all the devices in an assembly. The answer is:&nbsp;by designating parts of the configuration file for specific devices using a conditional.
+		<p>A conditional has the simple form:</p>
+		<pre>
+		<code>
+#if <i>devicename</i>
+...
+#endif
+</code>
+</pre>
+		When a device reads a configuration file and it encounters a conditional, it will check its device name against the devicename given in the conditional. If the names are equal it will continue to process the input. If the names are not equal it will simply skip over the input until it finds the <code>#endif</code>. By default, the name of a device it the name of the program. So a section like
+		<pre><code>
+#if ram
+address 0x10000000
+size      0x400000
+#endif 
+</code></pre>
+		<p>will apply to the ram device, giving 4MB Ram at address 0x100000000. If you have two ram modules as part of your assembly, you can use <code><kbd>--define highram</kbd></code> or <kbd>-D highram</kbd> on the command line when starting the second ram device and the configuration file then contains this:</p>
+		<pre><code>
+#if ram
+address 0x10000000
+size      0x400000
+#endif 
+
+#if highram
+address 0x80000000
+size      0x400000
+#endif 
+</code></pre>
+		<h2>Comments</h2>
+		When configuration files get more and mor complex, it is a good idea to sprinkle in some comments. Do do so, just begin a line with a hashmark <kbd>#</kbd>, then the rest of the whole line will be ignored.
+		<h2>Variables</h2>
+		Currently, configuration files know only two variables: <kbd>#FILE#</kbd> and <kbd>#PATH#</kbd>. Any occurence on the sting <kbd>#FILE#</kbd> in a parameter value will be replaced by the full absolute filename of the configuration file itself; any occurrence of <kbd>#PATH#</kbd> will be replaced by the full absolute path (including the last &quot;<kbd>/</kbd>&quot; or &quot;<kbd>\</kbd>&quot; character) of the configuration file. A typical use of such a variable is
+		<pre><code>
+exec rom -c &quot;#FILE#&quot;
+</code></pre>
+		<p>here the motherboard will start the rom device with the same configuration file by explicitely specifying it on the devices command line. Note the double qoutes. Especially under Windows, filenames often contain spaces. Without the double quotes, the -c option would only take the first part of the string <kbd>#FILE'#</kbd>, up to the first space as argument value. An other example is:</p>
+		<pre><code>
+#if rom 
+address 0x0 
+file &quot;#PATH#linux/vmlinux.img&quot; 
+#endif
+</code></pre>
+		<p>Here the rom device gets the rom image <kbd>vmlinux.img</kbd> from the<kbd> linux</kbd> subdirectory of the directory that contains the configuration file.</p>
+		<p></p>
+	</BODY>
+</HTML>
