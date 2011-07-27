@@ -1,11 +1,9 @@
-PROG= hostdisk
+PROG= disk
 UTILDIR = ../util
 OPTDIR = ../opt
-UTILDIR = ../util
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
-LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
+LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread 
 CC = gcc
-
 
 all: $(PROG) TAGS
 
@@ -14,16 +12,17 @@ utilities:
 	$(MAKE) -C  $(OPTDIR)
 
 
-$(PROG): $(PROG).c main.c utilities
-	$(CC) $(CFLAGS) $(PROG).c main.c $(LDFLAGS) -o $(PROG)
+$(PROG): $(PROG).c  utilities
+	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
 
-install: all
+
+TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
+	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
+
+install:
 	install $(PROG) $(BINDIR)
 
-
-TAGS: *.c $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
-	etags *.c  $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
-
 clean:
-	rm -f $(PROG) *.o *~ TAGS
+	rm -f $(PROG) *.o *~
+
 

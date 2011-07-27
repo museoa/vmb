@@ -1,0 +1,165 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Disk Device Specification</title>
+	</head>
+
+	<BODY>
+		<H1>Host-Disk Device Specification</H1>
+		<h2><img src="disk.gif" alt="" width="314" height="114" border="0"></h2>
+		<h2>Memory Layout</h2>
+		<table border=1>
+			<tr>
+				<th>Byte
+				<th>Mode
+				<th>Name
+				<th>Description
+
+			
+			<tr>
+				<td>00-03</td>
+				<td>R</td>
+				<td>Status</td>
+				<td>Status register, is negativ if an error occured,  0 if idle, 1 if bussy.</td>
+			</tr>
+			<tr>
+				<td>04-07<td>RW<td>Control
+				<td>Controll register, write to initiate disk operations
+			<tr>
+				<td>08-0F</td>
+				<td>RW</td>
+				<td>Handle</td>
+				<td>Handle for the current operation</td>
+			</tr>
+			<tr>
+				<td>10-17</td>
+				<td>R</td>
+				<td>Mode</td>
+				<td>Mode parameter</td>
+			</tr>
+			<tr>
+				<td>18-1F<td>RW
+				<td>Position<td>Position parameter<tr>
+				<td>20-27<td>RW
+				<td>DMA0.address<td>physical address of first  buffer where the next transfer takes place
+			<tr>
+				<td>28-2F</td>
+				<td>RW</td>
+				<td>DMA0.size</td>
+				<td>size of first buffer where the next transfer takes place</td>
+			</tr>
+			<tr>
+				<td>...</td>
+				<td>RW</td>
+				<td>DMA1-14</td>
+				<td> more DMA address and size registers</td>
+			</tr>
+			<tr>
+				<td>110-117</td>
+				<td>RW</td>
+				<td>DMAf.address</td>
+				<td>physical address of 16th and last buffer where the next transfer takes place</td>
+			</tr>
+			<tr>
+				<td>118-11F</td>
+				<td>RW</td>
+				<td>DMAf.size</td>
+				<td>size of 16th and last buffer where the next transfer takes place</td>
+			</tr>
+		</table>
+		<H2>Operation Summary</H2>
+		The program will contact the motherboard at [host:]port and register itself with the given address and interrupt.
+		<p>The disk simulates a  kind of disk controller but is using the host file system. </p>
+		<p>The disk understands the following commands:</p>
+		<ul>
+			<li>open a file
+			<li>close a file
+			<li>read data from a file
+			<li>write data to a file
+			<li>position the file (seek)
+			<li>get the file position (tell)
+		</ul>
+		<h2>Registers</h2>
+		<h3>Status Register</h3>
+		<p>The status register is read only. Only two bit are significant, the first and the last.</p>
+		<ul>
+			<li>The sign bit is set if any error prevented the successful completion of the last command. It makes the value in this register negative.
+			<li>0x01 BUSSY the lest significant bit is set by the hardware during command execution. When the command is completed (or cannot be completed due to an error), BUSSY is reset to zero. Comand completion also raises the disk interrupt if it is enabled.
+		</ul>
+		<p>Tesing the status register, there are three typical values: negative means error, 1 meand bussy, 0 means idle.</p>
+		<h3>Control Register</h3>
+		<p>The 2 low order bits of the control register are used to control the disk. These bits are from low order to high order:</p>
+		<ul>
+			<li>0x01 - GO As soon as a 1 is written to this bit, the next command is carried out.
+			<li>0x02 - IEN Enables (1) or disables (0) interrupts from the disk.
+		</ul>
+		<p>The next 6 bits of the control register contain the operation code. These are the following:</p>
+		<ul>
+			<li>0x04 - Open a file
+			<li>0x08 - Close a file
+			<li>0x0C - Read from a file
+			<li>0x10 - Write to a file
+			<li>0x14 - Seek
+			<li>0x18 - Tell
+		</ul>
+		<h3>Handle Register</h3>
+		<p>Files are identified by Handles. A Handle is a one byte unsigned value. Al l operations have a handle as a parameter and it is stored in this register.</p>
+		<h3>Mode Register</h3>
+		<p>The mode parameter of the open command is stored here.</p>
+		<h3>Position Register</h3>
+		<p>The position parameter of the seek command and the result of the tell command  is stored here.</p>
+		<h3>DMA Registers</h3>
+		<p>The memory buffers from where data is read in a write operation or to where data is written in a read operation is determined by the contents of the 16 <strong>DMA</strong> register. Each DMA register consists of an <strong>address</strong> and a <strong>size</strong> register. It holds the physical address of the buffer and its size. Several buffers can be used in a scatter or gather IO operation. This means that the IO operations view the content of the 16 DMA buffers as one consecutive data area, as if the buffers would have been concatenated. For example a write operation with gather its data first from buffer number one then from buffer number two, and so forth until the number of sectors requested are written or the buffers are all written. A read operation will scatter the sectors read from disk by filling the first buffer and then the second, until all disk sectors are written to memory or the bufferes are all filled.</p>
+		<h2>Commands</h2>
+		In the following, each command is expalined. In general the commands are mapped to the file operations from the C Library: fopen, fclose, fread, fwrite, fseek, ftell. If the corresponding call  from the C library fails, the error bit in the status register is set.
+		<h3>Open</h3>
+		<p>This command has three parameters, the handle, the mode, and the filename. Handle and mode must be set in the respective registers. The address of the filename and its length must be given in the first DMA register. The given filename will be concatenated with the configured root directory to form a host filename. Then this host file is opened and associated with the given handle. The mode can be a combination of </p>
+		<ul>
+			<li>0x01 - READ
+			<li>0x02 - WRITE
+			<li>0x04 - BINARY
+			<li>0x08 - APPEND
+		</ul>
+		<h3>Close</h3>
+		<p>This command has just one parameter, the handle. The handle should have been opened before with the open command.</p>
+		<h3>Read</h3>
+		<p>This command needs a handle and at least one of the DMA registers. When the command has completed, the size values in the DMA registers reflect the anount of data actually read.</p>
+		<h3>Write</h3>
+		<p>The command needs a handle and at least one of the DMA registers. When the command has completed, the size values in the DMA registers reflect the anount of data actually written.</p>
+		<h3>Seek</h3>
+		<p>The command needs a handle and a position parameter specifying the location of the next read or write operation. If the command is successful. the new location will be determined as follows: </p>
+		<ul>
+			<li>If the position parameter is positive or zero, the new location is position bytes after the begin of the file.
+			<li>If the position parameter is negative, the new location is -position-1 bytes before the end of the file.
+		</ul>
+		<h3>Tell</h3>
+		The command needs a handle and sets the position register to the current file position measured in bytes from the beginning of the file.
+		<h2>Configuration</h2>
+		The host-disk has the following configurable parameters:<table>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> default <td> address where the resource is located </tr>
+			<tr>
+				<td>interrupt</td>
+				<td>not set</td>
+				<td>interrupt sent when operation has completed</td>
+			</tr>
+			<tr>
+				<td>file</td>
+				<td>not set</td>
+				<td>Name of the directory where the root is located</td>
+			</tr>
+			<tr> <td> x        <td> 0<td>the x position of the window </tr>
+			<tr> <td> y        <td> 0<td>the y position of the window </tr>
+			<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+			<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose, sets debug mask to zero </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+		<p>These can be set in default.vmb</p>
+	</BODY>
+</HTML>
