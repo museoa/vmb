@@ -67,7 +67,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.35 $ $Date: 2011-07-10 02:35:17 $";
+char version[] = "$Revision: 1.36 $ $Date: 2011-07-27 18:33:13 $";
 
 char howto[] =
   "\n"
@@ -748,18 +748,21 @@ void do_commands(void)
           continue;
 #ifdef WIN32
 	Sleep(50); /* so delay 50 ms start processes in order given */
-	{ 
+	
 #define MAXPROG 512
-static char prog[MAXPROG];
+	{ static char prog[MAXPROG];
       char *FilePart;
-	  if (SearchPath(NULL,argv[0],".exe",MAXPROG,prog,&FilePart)<=0 ||
-			spawnvp(_P_NOWAIT,prog,argv)<0)
-	  { vmb_error2(__LINE__,"Unable to execute command",argv[0]);
+	  if (SearchPath(NULL,argv[0],".exe",MAXPROG,prog,&FilePart)<=0)
+		  vmb_error2(__LINE__,"Unable to find command",argv[0]);
+	  else 
+	  { argv[0]=prog;
+		if (spawnvp(_P_NOWAIT,prog,argv)<0)
+	      vmb_error2(__LINE__,"Unable to execute command",argv[0]);
 	  }
 	}
 #else
 	usleep(50000); /* so delay 50 ms start processes in order given */
-        { pid_t p;
+    { pid_t p;
           p = fork();
           if (p<0) vmb_error(__LINE__,"Unable to create new process");
           else if (p==0) /* child */

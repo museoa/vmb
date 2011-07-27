@@ -4,6 +4,7 @@
 [Setup]
 AppName=vmb
 AppVerName=vmb version 1.0, Virtual Hardware for the Real World
+AppVersion=1.0
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
 AppSupportURL=http://vmb.sourceforge.net/
@@ -18,8 +19,12 @@ WizardImageBackColor=$127917
 WizardImageStretch=no
 WizardSmallImageFile="C:\home\vmb\src\win32bin\ssetup.bmp"
 
+[Components]
+Name: "mmix"; Description: "MMIX Tools"; Types: full compact custom;
+
 [Tasks]
 ;Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
+Name: desktopicon; Description: "Create a &desktop icon for the README Application";
 
 [Files]
 Source: "C:\home\vmb\src\win32bin\Release\mother.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -36,14 +41,19 @@ Source: "C:\home\vmb\src\win32bin\Release\screen.exe"; DestDir: "{app}"; Flags: 
 Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
-  Source: "C:\home\vmb\src\win32bin\vmb.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+;Source: "C:\home\vmb\src\win32bin\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmoboot.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\vmb.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\default.vmb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "C:\home\vmb\src\win32bin\license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\copying.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\readme.vmb"; DestDir: "{app}"; Flags: ignoreversion;
-Source: "C:\home\vmb\src\win32bin\readme.img"; DestDir: "{app}"; Flags: ignoreversion;
+Source: "C:\home\vmb\src\win32bin\readme.vmb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\readme.img"; DestDir: "{app}"; Flags: ignoreversion
 
+[Icons]
+Name: "{commondesktop}\readme.vmb"; Filename: "{app}\readme.vmb"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\mother.exe"; Parameters: "-c readme.vmb"; Description: "Launch VMB Readme"; Flags: nowait postinstall skipifsilent

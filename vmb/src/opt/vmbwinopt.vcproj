@@ -106,6 +106,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\util"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"

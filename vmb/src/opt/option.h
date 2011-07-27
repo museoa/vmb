@@ -108,6 +108,9 @@ extern void option_defaults(void);
    otherwise.)
 */
 
+extern FILE *vmb_fopen(char *filename, char *mode);
+/* fopen(filename,mode) look in the configPATH and programpath before giving up 
+*/
 
 /* this is what you must provide: */
 

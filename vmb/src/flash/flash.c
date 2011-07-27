@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 #include "inspect.h"
 
 
-char version[]="$Revision: 1.15 $ $Date: 2011-07-10 02:35:17 $";
+char version[]="$Revision: 1.16 $ $Date: 2011-07-27 18:33:13 $";
 
 char howto[] =
 "\n"
@@ -68,7 +68,7 @@ void open_file(void)
     vmb_error(__LINE__,"No filename for image file given");
   else
   { vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
-	f = fopen(filename,"rb");
+	f = vmb_fopen(filename,"rb");
 	if (f==NULL) 
 		vmb_error2(__LINE__,"Unable to open image file", filename);
 	else

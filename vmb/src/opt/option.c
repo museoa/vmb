@@ -55,6 +55,8 @@ char *programpath = NULL;
 char *defined=NULL;
 static char * configFILE=NULL;
 static char * configPATH=NULL;
+static char *fopen_file=NULL;
+static char *cwd = NULL;
 static int cflen=0, cplen=0;
 
 void set_option(char **option, char *str)
@@ -488,78 +490,116 @@ int write_configfile(char *filename)
 }
 
 #define PATH_MAX 1024
-static void set_PATH_FILE(char *filename)
+
+static int absolute_path(char *path)
+{
+#ifdef WIN32
+  return (path[0]=='\\' || (isalpha(path[0])&&path[1]==':'&&path[2]=='\\'));
+#else
+  return (path[0]=='/');
+#endif
+}
+
+static void set_PATH_FILE(char *file)
 /* extract configPATH and configFILE from filename, 
    get the current working directory, if there is no path
  */
-{ int i,n;
-  char *path;
-  char *file;
-  path = malloc(strlen(filename)+1);
-  if (path==NULL) 
-  { vmb_fatal_error(__LINE__,"Out of memory");
-    return;
-  }
-  strcpy(path,filename);
-  i = 0;
-  n = 0;
-  while (filename[i]!=0)
-  { if (filename[i] == DIRCHAR) 
-      n = i+1;
-    i++;
-  }
-  path[n]=0;
-  /* check if path is absolute */
-#ifdef WIN32
-  if (path[0]=='\\' || (isalpha(path[0])&&path[1]==':'&&path[2]=='\\'))
-#else
-  if (path[0]=='/')
-#endif
-  {
-	file = malloc(strlen(filename)+1);
-    if (file==NULL) 
-    { vmb_fatal_error(__LINE__,"Out of memory");
-      return;
-    }
-    strcpy(file,filename);
-  }
-  else
-  { char *cwd;
-    cwd = _getcwd(NULL,0);
-	cwd = realloc(cwd,strlen(cwd)+1+strlen(path)+1);
-	if (cwd==NULL) 
-    { vmb_fatal_error(__LINE__,"Out of memory");
-      return;
-    }
-	strcat(cwd,DIRSTR);
-	strcat(cwd,path);
-	free(path);
-	path=cwd;
-	filename = filename+n;
-	file = malloc(strlen(path)+strlen(filename)+1);
-    if (file==NULL) 
-    { vmb_fatal_error(__LINE__,"Out of memory");
-      return;
-    }
-    strcpy(file,path);
-	strcat(file,filename);
-  }
-  configFILE = file;
-  cflen=(int)strlen(configFILE);
-  configPATH = path;
-  cplen=(int)strlen(configPATH);
-}
-
-static void unset_PATH_FILE(void)
 { if (configFILE!=NULL) free(configFILE);
   configFILE=NULL;
   cflen=0;
   if (configPATH!=NULL) free(configPATH);
   configPATH=NULL;
   cplen=0;
+  cflen=(int)strlen(file);
+  configFILE = malloc(cflen+1);
+  if (configFILE==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return;
+  }
+  strcpy(configFILE,file);
+
+  cplen=cflen;
+  configPATH = malloc(cplen+1);
+  if (configPATH==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return;
+  }
+  strcpy(configPATH,file);
+  while(cplen>0)
+	  if(configPATH[cplen-1]==DIRCHAR) break;
+	  else cplen=cplen-1;
+  configPATH[cplen]=0;
 }
 
-int parse_configfile(char *filename, char *condition)
+static void vmb_get_cwd(void)
+{ if (cwd!=NULL) return;
+  cwd = _getcwd(NULL,0);
+  if (cwd==NULL) 
+  { vmb_error(__LINE__,"Unable to get current working directory");
+    return;
+  }
+  cwd = realloc(cwd,strlen(cwd)+2);
+  if (cwd==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return;
+  }
+  strcat(cwd,DIRSTR);
+}
+
+FILE *vmb_fopen(char *filename, char *mode)
+/* open fiename, look in the configPATH and programpath before giving up */
+{ FILE *in;
+  char *search[3];
+  int i;
+  if(filename==NULL)
+  { vmb_error(__LINE__,"Filename expected");
+    return NULL;
+  }
+  vmb_debugs(VMB_DEBUG_PROGRESS, "opening file %s",filename);
+  if (fopen_file!=NULL) free(fopen_file);
+  fopen_file = NULL;
+  fopen_file = malloc(strlen(filename)+1);
+  if (fopen_file==NULL) 
+  { vmb_fatal_error(__LINE__,"Out of memory");
+    return NULL;
+  }
+  strcpy(fopen_file,filename);
+  if (absolute_path(fopen_file)) 
+  { in = fopen(fopen_file,mode);
+    if (in==NULL)
+	{ free(fopen_file);
+      fopen_file = NULL;
+	}
+	return in;
+  }
+  free(fopen_file);
+  fopen_file = NULL;
+  vmb_get_cwd();
+  search[0]=cwd;
+  search[1]=configPATH;
+  search[2]=programpath;
+  for (i=0; i<3;i++)
+  { vmb_debugi(VMB_DEBUG_INFO, "searching path %d",i);
+    if (search[i]==NULL || search[i][0]==0) continue;
+	fopen_file= malloc(strlen(search[i])+strlen(filename)+1);
+    if (fopen_file==NULL)
+    { vmb_fatal_error(__LINE__,"Out of Memory");
+      return NULL;
+    }
+    strcpy(fopen_file,search[i]);
+    strcat(fopen_file,filename);
+	vmb_debugs(VMB_DEBUG_INFO, "try to open file %s",fopen_file);
+    in=fopen(fopen_file,mode);
+	if (in!=NULL)
+	  return in;
+	vmb_debugs(VMB_DEBUG_INFO, "file %s not found",fopen_file);
+	free(fopen_file);
+	fopen_file=NULL;
+  }
+  return NULL;
+}
+
+int parse_configfile(char *filename)
 /* return 1 if the file exists and could be opened
    return 0 if the file does not exist or could not be opened.
    substitute the defined variable for the condition if NULL
@@ -575,11 +615,9 @@ int parse_configfile(char *filename, char *condition)
     return 0;
   }
   vmb_debugs(VMB_DEBUG_PROGRESS, "reading configfile %s",filename);
-  in=fopen(filename,"r");
-  if (in==NULL)
-	return 0;
-  if (condition==NULL && defined!=NULL) condition=defined;
-  set_PATH_FILE(filename);
+  in=vmb_fopen(filename,"r");
+  if (in==NULL) return 0;
+  set_PATH_FILE(fopen_file);
   line = malloc(MAXLINE);
   if (line==NULL) 
   { vmb_fatal_error(__LINE__,"Out of memory");
@@ -611,7 +649,7 @@ int parse_configfile(char *filename, char *condition)
      if (strncmp(p,"#if",3)==0 && isspace(p[3])) 
      { p=p+4;
        while(isspace((int)(p[0]))) p++;
-       if ((condition!=NULL && strcmp(p,condition)==0))
+       if ((defined!=NULL && strcmp(p,defined)==0))
          conditional = 1;
        else
        { while (!feof(in))
@@ -662,7 +700,6 @@ int parse_configfile(char *filename, char *condition)
      
      do_option_long(cmd,arg);
   }
-  unset_PATH_FILE();
   fclose(in);
   free(line);
   vmb_debug(VMB_DEBUG_INFO, "done configfile");
@@ -670,7 +707,7 @@ int parse_configfile(char *filename, char *condition)
 }
 
 int do_option_configfile(char *filename)
-{ return parse_configfile(filename,NULL);
+{ return parse_configfile(filename);
 }
 
 int do_option_debug(char *dummy)
@@ -765,21 +802,6 @@ static int do_define(char *arg)
 }
 
 
-static void do_configfile(char *condition)
-{  char *filename;
-    if (parse_configfile("default.vmb",condition)) /* local configfile */
-      return;
-	filename = malloc(strlen(programpath)+strlen("default.vmb")+1);
-    if (filename==NULL)
-    { vmb_fatal_error(__LINE__,"Out of Memory");
-      return;
-    }
-    strcpy(filename,programpath);
-    strcat(filename,"default.vmb");
-    parse_configfile(filename,condition); /* global configfile last */
-	free(filename);
-}
-
 void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;    
@@ -788,7 +810,7 @@ void parse_commandstr(char *p)
   arguments=do_define(parse_argument(&p));
   arguments++;
   if (strstr(p,"-c")==NULL && strstr(p,"--config")==NULL)
-    do_configfile(defined); /* else use configfile provided */
+    parse_configfile("default.vmb"); /* else use configfile provided */
   while(*p != 0)
   {  while(isspace((int)(p[0]))) p++; /* skip spaces */
      if (p[0] == 0) /* done? */
@@ -847,7 +869,7 @@ void parse_commandline(int argc, char *argv[])
   vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline");
   do_program(argv[0]);
   i=do_define(argv[1]);
-  do_configfile(defined);
+  parse_configfile("default.vmb");
   while (++i < argc)
   { if (argv[i][0] == '-' && argv[i][1] != 0)
     {  if (argv[i][1] == '-' && argv[i][2] != 0)

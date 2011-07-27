@@ -43,7 +43,7 @@ extern HWND hMainWnd;
 
 
 
-char version[]="$Revision: 1.13 $ $Date: 2011-07-10 02:35:17 $";
+char version[]="$Revision: 1.14 $ $Date: 2011-07-27 18:33:13 $";
 
 char howto[] =
 "\n"
@@ -145,7 +145,7 @@ void open_file(void)
 	 vmb_error(__LINE__,"No filename for image file given");
 	else
 	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
-      if ((f = fopen(filename, "rb")) == NULL)
+      if ((f = vmb_fopen(filename, "rb")) == NULL)
         vmb_error2(__LINE__,"Unable to open image file",filename);
 	  else
 	  { c = strrchr(filename,'.');

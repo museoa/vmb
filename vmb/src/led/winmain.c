@@ -1,7 +1,5 @@
-#include <winsock2.h>
 #include <windows.h>
 #include <commctrl.h>
-#include <afxres.h>
 #include "vmb.h"
 #include "bus-arith.h"
 #include "resource.h"
@@ -26,7 +24,7 @@ int hcolors[8] = {IDC_COLOR0, IDC_COLOR1, IDC_COLOR2, IDC_COLOR3,
 HBITMAP hOn[8] = {0};
 HBITMAP hOff[8] = {0};
 
-HBITMAP hpictures[8]={0};
+LONG * picturebits[8]={0};
 
 static void init_metrics(void)
 { BITMAP bm;
@@ -54,42 +52,114 @@ unsigned char blend_color(unsigned char c, unsigned char b, unsigned char w, uns
 #define bmG(c) ((unsigned char)(((c)>>8)&0xFF))
 #define bmR(c) ((unsigned char)(((c)>>16)&0xFF))
 
-void load_pictures(void)
+static void load_pictures(void)
 { int i;
   for (i=0;i<8;i++)
-    if (pictures[i]==NULL || pictures[0]==0)
-        hpictures[i] =0;
-    else
-	{  hpictures[i]=LoadImage(NULL,pictures[i],IMAGE_BITMAP,32,32,LR_LOADFROMFILE|LR_CREATEDIBSECTION
-); 
-       if (hpictures[i]==0)
-		   vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to load picture %s",pictures[i]);
-    }
+  { if (picturebits[i]!=NULL) free(picturebits[i]);
+	picturebits[i] =NULL;
+    if (pictures[i]!=NULL && pictures[i]!=0)
+	   { HANDLE f =CreateFile(pictures[i],FILE_READ_DATA,FILE_SHARE_READ,
+	           NULL,OPEN_EXISTING,FILE_ATTRIBUTE_READONLY,NULL);
+	     if (f==INVALID_HANDLE_VALUE)
+			 vmb_error2(__LINE__,"Unable to load picture",pictures[i]);
+		 else
+		 { int size =  GetFileSize(f, NULL);
+		   int bmsize = 32*32*sizeof(LONG);
+		   DWORD n;
+		   BITMAPFILEHEADER bfh;
+		   BITMAPINFOHEADER bih;
+ 		   ReadFile(f,&bfh,sizeof(bfh),&n,NULL);
+		   if (bfh.bfType!=0x4D42) /* BM */
+			 vmb_error(__LINE__,"picture is not a bitmap file");
+		   ReadFile(f,&bih,sizeof(bih),&n,NULL);
+		   if (bih.biHeight!=32)
+			  vmb_error(__LINE__,"height not 32");
+		   if (bih.biWidth!=32)
+			  vmb_error(__LINE__,"width not 32");
+		   if (bih.biBitCount!=32)
+			  vmb_error(__LINE__,"bits/pixel not 32");
+		   if (bih.biCompression!=0)
+			  vmb_error(__LINE__,"bitmap is compressed");
+		   picturebits[i]=malloc(bmsize);
+		   if (picturebits[i]==NULL)
+		     vmb_error(__LINE__,"Out of Memory for picture");
+		   if (bfh.bfOffBits>sizeof(bfh)+sizeof(bih))
+		   { int d = bfh.bfOffBits-sizeof(bfh)-sizeof(bih);
+		     while (d>=bmsize) 
+			 { ReadFile(f,picturebits[i],bmsize,&n,NULL);
+			   d = d -bmsize;
+			 }
+			 if(d>0) 
+			   ReadFile(f,picturebits[i],d,&n,NULL);
+		   }
+		   ReadFile(f,picturebits[i],bmsize,&n,NULL);
+		   CloseHandle(f);
+		 }
+	   }
+
+
+
+#if 0
+	{  HBITMAP hbm=(HBITMAP)LoadImage(NULL,pictures[i],IMAGE_BITMAP,32,32,
+	                LR_LOADFROMFILE|LR_DEFAULTSIZE); 
+       if (hbm==0)
+		   vmb_error2(__LINE__,"Unable to load picture",pictures[i]);
+	   else 
+
+		   /* works simetimes but only consistently in debug mode */
+	   { HDC hDC;
+		BITMAPINFO bmi;
+		int lines;
+		bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biHeight=32;
+		bmi.bmiHeader.biWidth=32;
+		bmi.bmiHeader.biPlanes=1;
+		bmi.bmiHeader.biClrUsed=0;
+		bmi.bmiHeader.biCompression=BI_RGB;
+		bmi.bmiHeader.biBitCount=32;
+		bmi.bmiHeader.biSizeImage=32*32*sizeof(LONG); /* RGB */
+		bmi.bmiHeader.biClrImportant=0;
+		bmi.bmiHeader.biXPelsPerMeter=0;
+		bmi.bmiHeader.biYPelsPerMeter=0;
+	    vmb_debugs(VMB_DEBUG_PROGRESS,"Loaded picture %s",pictures[i]);
+		picturebits[i]=malloc(32*32*sizeof(LONG));
+		if (picturebits[i]==NULL)
+			vmb_error(__LINE__,"Out of Memory for picture");
+		hDC = GetDC(hMainWnd);
+		lines = GetDIBits(hDC, hbm, 0, 32, picturebits[i], &bmi,DIB_RGB_COLORS);
+		if (lines!=32){
+		  vmb_error(lines,"loding picture with lines != 32");
+          vmb_error(bmi.bmiHeader.biHeight,"height ");
+          vmb_error(bmi.bmiHeader.biWidth,"width  ");
+		  vmb_error(bmi.bmiHeader.biClrUsed,"crl used ");
+		  vmb_error(bmi.bmiHeader.biCompression,"compression ");
+		  vmb_error(bmi.bmiHeader.biBitCount,"bit count ");
+		  vmb_error(bmi.bmiHeader.biSizeImage,"sizeImage ");
+		  vmb_error(bmi.bmiHeader.biSize,"size ");
+		}
+		ReleaseDC(hMainWnd, hDC);
+	   }
+	}
+#endif
+  }
 }
 
-static void set_color(BITMAP *bm32, BITMAP *bm32B, BITMAP *bm32W, int color, BITMAP *bm32P)
+static void set_color(BITMAP *bm32, BITMAP *bm32B, BITMAP *bm32W, int color, LONG *pP)
 { int i,n;
   unsigned char r, g, b;
-  LONG *p, *pB, *pW, *pP, pPL;
+  LONG *p, *pB, *pW, pPL;
 
   r = (color>>16)&0xFF;
   g = (color>>8)&0xFF;;
   b =  color&0xFF;;
-
   n = bm32->bmHeight*bm32->bmWidth;
   p = (LONG *)bm32->bmBits;
   pB = (LONG *)bm32B->bmBits;
   pW = (LONG *)bm32W->bmBits;
-  if (bm32P==NULL)
-  { pPL = 0xFFFFFFFF;
-    pP = NULL;
-  }
-  else
-  { pP = (LONG *)bm32P->bmBits;
-  }
+
   for(i=0;i<n;i++)
   { int nr,ng,nb;
-	if (pP!=NULL) pPL=*pP;
+	if (pP!=NULL) pPL=*pP; else pPL= 0xFFFFFFFF;
     nr = blend_color(r,bmR(*pB),bmR(*pW),bmR(pPL));
     ng = blend_color(g,bmG(*pB),bmG(*pW),bmG(pPL));
     nb = blend_color(b,bmB(*pB),bmB(*pW),bmB(pPL));
@@ -100,21 +170,16 @@ static void set_color(BITMAP *bm32, BITMAP *bm32B, BITMAP *bm32W, int color, BIT
 }
 
 static void color_led(int i, int color)
-{ BITMAP bm, bmB, bmW, bmP, *bmPP;
-  if (hpictures[i]==NULL)
-    bmPP=NULL;
-  else
-  { GetObject(hpictures[i],sizeof(bmP),&bmP);
-    bmPP=&bmP;
-  }
+{ BITMAP bm, bmB, bmW;
+  
   GetObject(hOn[i], sizeof(bm), &bm);
   GetObject(ledOnB, sizeof(bmB), &bmB);
   GetObject(ledOnW, sizeof(bmW), &bmW);
-  set_color(&bm,&bmB,&bmW,color,bmPP);
+  set_color(&bm,&bmB,&bmW,color,picturebits[i]);
   GetObject(hOff[i], sizeof(bm), &bm);
   GetObject(ledOffB, sizeof(bmB), &bmB);
   GetObject(ledOffW, sizeof(bmW), &bmW);
-  set_color(&bm,&bmB,&bmW,color,bmPP);
+  set_color(&bm,&bmB,&bmW,color,picturebits[i]);
   colors[i]=color;
 }
 
@@ -283,6 +348,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_VMB_OFF: /* Power Off */
 	return 0;
     case WM_VMB_RESET: /* Reset */
+		load_pictures();
 	return 0;
     case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))

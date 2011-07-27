@@ -72,6 +72,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -149,6 +150,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"

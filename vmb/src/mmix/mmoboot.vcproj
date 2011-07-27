@@ -70,6 +70,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -145,6 +146,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -200,7 +202,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmoboot.w mmoboot.c"
+					CommandLine="ctangle mmoboot.w mmoboot.c&#x0D;&#x0A;"
 					Outputs="mmoboot.c"
 				/>
 			</FileConfiguration>
@@ -210,7 +212,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmoboot.w mmoboot.c"
+					CommandLine="ctangle mmoboot.w mmoboot.c&#x0D;&#x0A;"
 					Outputs="mmoboot.c"
 				/>
 			</FileConfiguration>

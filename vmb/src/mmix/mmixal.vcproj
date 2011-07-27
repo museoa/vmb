@@ -70,6 +70,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -145,6 +146,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -204,7 +206,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c"
+					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
 					Outputs="mmix-arith.c"
 				/>
 			</FileConfiguration>
@@ -214,7 +216,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c"
+					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
 					Outputs="mmix-arith.c"
 				/>
 			</FileConfiguration>
@@ -228,7 +230,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmixal.w mmixal.c"
+					CommandLine="ctangle mmixal.w mmixal.c&#x0D;&#x0A;"
 					Outputs="mmixal.c"
 				/>
 			</FileConfiguration>
@@ -238,7 +240,7 @@
 				<Tool
 					Name="VCCustomBuildTool"
 					Description="Tangle"
-					CommandLine="ctangle mmixal.w mmixal.c"
+					CommandLine="ctangle mmixal.w mmixal.c&#x0D;&#x0A;"
 					Outputs="mmixal.c"
 				/>
 			</FileConfiguration>

@@ -43,7 +43,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.18 $ $Date: 2011-05-27 00:06:07 $";
+char version[]="$Revision: 1.19 $ $Date: 2011-07-27 18:33:13 $";
 
 char howto[] =
 "\n"
@@ -121,7 +121,7 @@ void kb_terminate(void)
 void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
-  f = fopen(filename,"rb");
+  f = vmb_fopen(filename,"rb");
   if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);

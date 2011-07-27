@@ -192,6 +192,7 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	}
     break;
    case WM_VMB_MSG:
+	    if (hDebug!=NULL)
 		{ int n; 
 		  EnterCriticalSection (&msg_section);
 		  n = normalize_msg();
@@ -210,10 +211,10 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    unregister_subwindow(hMemory);
 		DestroyWindow(hMemory);
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
-	    DeleteCriticalSection(&msg_section);
 		unregister_subwindow(hDebug);
-	    EndDialog(hDlg, TRUE);
 		hDebug = NULL;
+		EndDialog(hDlg, TRUE);
+		DeleteCriticalSection(&msg_section);
         return TRUE;
       }
       break;

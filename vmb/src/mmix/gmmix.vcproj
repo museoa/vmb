@@ -74,6 +74,7 @@
 			<Tool
 				Name="VCManifestTool"
 				UseUnicodeResponseFiles="false"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -152,6 +153,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -272,7 +274,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Tangle mmix-sim with vmb and gdb"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch gdb.ch"
 						Outputs="mmix-gdb.c"
 					/>

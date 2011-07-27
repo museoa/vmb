@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.23 $ $Date: 2011-06-30 00:10:46 $";
+char version[]="$Revision: 1.24 $ $Date: 2011-07-27 18:33:13 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -405,7 +405,7 @@ static void diskInit(void) {
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
   if (filename != NULL) {
     /* try to install disk */
-    diskImage = fopen(filename, "r+b");
+    diskImage = vmb_fopen(filename, "r+b");
     if (diskImage == NULL)
       vmb_error(__LINE__,"cannot open disk image");
     else

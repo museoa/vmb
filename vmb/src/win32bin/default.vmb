@@ -6,17 +6,17 @@ host localhost
 debugmask 0xFFF0
 
 #if mother
-exec rom -c #FILE#
-exec ram -c #FILE#
-exec disk -c #FILE# 
-exec timer -c #FILE#
-exec screen -c #FILE#
-exec keyboard -c #FILE#
-exec button start -c #FILE#
-exec sevensegment -c #FILE#
+exec rom -c "#FILE#"
+exec ram -c "#FILE#"
+exec disk -c "#FILE#" 
+exec timer -c "#FILE#"
+exec screen -c "#FILE#"
+exec keyboard -c "#FILE#"
+exec button start -c "#FILE#"
+exec sevensegment -c "#FILE#"
 exec mmixcpu -i
-#exec xterm -geometry 40x10 -fn 7x13 -e keyboard -c #FILE#
-#exec xterm   -fn 7x13 -e screen -c #FILE#
+#exec xterm -geometry 40x10 -fn 7x13 -e keyboard -c "#FILE#"
+#exec xterm   -fn 7x13 -e screen -c "#FILE#"
 #endif
 
 # In the following all devices are listed with their
@@ -24,7 +24,7 @@ exec mmixcpu -i
 
 #if rom
 address 0x0000000000000000
-file #PATH#bios.bin
+file "#PATH#bios.bin"
 minimized
 #endif
 
@@ -85,7 +85,7 @@ leds 8
 #if disk
 address 0x0003000000000000
 interrupt 45
-file #PATH#root.img
+file "#PATH#root.img"
 debugmask 0xFFC0
 minimized
 #endif

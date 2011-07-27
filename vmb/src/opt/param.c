@@ -94,7 +94,7 @@ void param_init(void)
 void param_init(int argc, char *argv[])
 #endif
 { 
-// option_defaults();
+  option_defaults();
 #ifdef WIN32
   parse_commandstr(GetCommandLine());
   if (vmb_verbose_flag) vmb_debug_mask=0; 
