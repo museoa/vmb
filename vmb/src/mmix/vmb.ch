@@ -1390,13 +1390,12 @@ case SWYM:
      tracing=interacting;
      breakpoint=true;
      interrupt=false;
-     if (loc.h&sign_bit) show_operating_system=true;
      @<Set |b| from register X@>;
      n=mmgetchars((unsigned char *)buf,256,b,0);
      buf[n]=0;
      if (n>6 && strncmp(buf,"DEBUG ",6)==0) 
-     {
-       sprintf(rhs,"\n%s!\nrF=#%08X%08X\n",buf+6,g[rF].h, g[rF].l);
+     { fprintf(stdout,"\n%s!\n",buf+6);
+       sprintf(rhs,"rF=#%08X%08X\n",g[rF].h, g[rF].l);
        tracing= true;
      }
  }
@@ -2328,8 +2327,9 @@ case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
 case 'B': show_breaks(mem_root);
 @y
 case 'N': cur_seg.h=0x80000000;@+goto passit;
-case 'B': show_breaks();
+case 'B': show_breaks();@+goto passit;
 case 'O': show_operating_system=true;@+goto passit;
+case 'o': show_operating_system=false;@+goto passit;
 @z
 
 @x

@@ -726,8 +726,9 @@ case 'D': cur_seg.h=0x20000000;@+goto passit;
 case 'P': cur_seg.h=0x40000000;@+goto passit;
 case 'S': cur_seg.h=0x60000000;@+goto passit;
 case 'N': cur_seg.h=0x80000000;@+goto passit;
-case 'B': show_breaks();
+case 'B': show_breaks();@+goto passit;
 case 'O': show_operating_system=true;@+goto passit;
+case 'o': show_operating_system=false;@+goto passit;
 passit: p++;@+break;
 
 
