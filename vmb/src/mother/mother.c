@@ -67,7 +67,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.36 $ $Date: 2011-07-27 18:33:13 $";
+char version[] = "$Revision: 1.37 $ $Date: 2011-09-26 13:31:50 $";
 
 char howto[] =
   "\n"
@@ -572,7 +572,6 @@ connect_new_device (void)
 	  socklen_t addrlen;
       addrlen = sizeof (slot[i].addr);
       fd = (int)accept (mother_fd, &(slot[i].addr), &addrlen);
-	  vmb_debugi(VMB_DEBUG_PROGRESS,"Got new device on fd %d",fd);
 	  if (!valid_socket (fd))
 	  {
 #ifdef WIN32
@@ -590,6 +589,7 @@ connect_new_device (void)
 	    vmb_debug(VMB_DEBUG_ERROR,"Unsuccessful connection attempt");
 	    return 0; /* give up */
 	  }
+	  vmb_debugi(VMB_DEBUG_PROGRESS,"Got new device on fd %d",fd);
 	  slot[i].fd = fd; 
 	  slot[i].answers_pending = 0;
       if (i >= max_slot)
@@ -684,81 +684,102 @@ process_read_fdset ()
 #endif
 
 #define MAX_EXEC 256
-#define MAXARG 256
 
+static int command_count=0;
 static char *commands[MAX_EXEC]={0};
 
 
 void store_command(char *command)
-{ int i;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "storing command %s",command);
-  for (i=0; i<MAX_EXEC ;i++)
-    if (commands[i]!=NULL)
-    {  if (strcmp(commands[i],command)==0) 
-         return;
-       else
-         continue;
-    }
-    else
-      { set_option(&commands[i],command);
-        return;
-      }
-  vmb_error(__LINE__,"Too many commands");
+{ vmb_debugs(VMB_DEBUG_PROGRESS, "storing command: %s",command);
+  if (command_count>=MAX_EXEC)
+    vmb_error(__LINE__,"Too many commands");
+  else
+  { set_option(&commands[command_count],command);
+    command_count++;
+  }
 }
 
-
-static int mk_argv(char *argv[MAXARG],char *command)
-{ int argc;  
-
-  if (command==NULL||*command==0)
-  { argv[0]=NULL;
-    return 1;
-  }
-  for (argc=0;argc<MAXARG;argc++)
-  { 
-    while (isspace(*command)) command++;
-
-    if (*command==0)
-    { argv[argc]=NULL;
-        return 1;
-    }
-
-    argv[argc]=command;
-
-    while (!isspace(*command) && *command!=0) command++;
-
-    if (*command!=0)
-    { *command=0;
-      command++;
-    }
-  }
-  vmb_error(__LINE__,"Too many arguments in command");
-  return 0;
+static char * quote(char *str)
+/* allocate string and return "str" */
+{ int n;
+  char *quoted;
+  n = (int)strlen(str);
+    quoted = malloc(n+3);
+  if (quoted == NULL)
+	{ vmb_fatal_error(__LINE__,"Out of Memory for quoting");
+	  return NULL;
+	}
+   if (str[0]!='"')
+   { strcpy(quoted+1, str);
+     quoted[0]=quoted[n+1]='"';
+	 quoted[n+2]=0;
+   }
+   else
+	   strcpy(quoted, str);
+   return quoted;
 }
+
+static char * unquote(char *str)
+/* allocate string and return str with quotes removed */
+{ int n;
+  char *unquoted;
+  n = (int)strlen(str);
+  unquoted = malloc(n+1);
+  if (unquoted == NULL)
+	{ vmb_fatal_error(__LINE__,"Out of Memory for unquoting");
+	  return NULL;
+	}
+   if (str[0]=='"')
+   { strcpy(unquoted, str+1);
+     unquoted[n-2]=0;
+   }
+   else
+	 strcpy(unquoted, str);
+   return unquoted;
+}
+
 
 
 void do_commands(void)
 { int i;
-  for (i=0; i<MAX_EXEC ;i++)
+  for (i=0; i<command_count; i++)
     if (commands[i]!=NULL)
       { 
         char *argv[MAXARG] = {0};
-        vmb_debugs(VMB_DEBUG_PROGRESS, "executing command %s",commands[i]);
-        if (!mk_argv(argv,commands[i]))
+		char argc;
+		vmb_debugs(VMB_DEBUG_PROGRESS, "executing command: %s",commands[i]);
+        argc = mk_argv(argv,commands[i],FALSE);
+		if (argc<=0)
           continue;
 #ifdef WIN32
 	Sleep(50); /* so delay 50 ms start processes in order given */
 	
 #define MAXPROG 512
-	{ static char prog[MAXPROG];
+	{ char prog[MAXPROG];
+	  char *name;
       char *FilePart;
-	  if (SearchPath(NULL,argv[0],".exe",MAXPROG,prog,&FilePart)<=0)
+	  name = unquote(argv[0]);
+	  if (SearchPath(NULL,name,".exe",MAXPROG,prog,&FilePart)<=0)
 		  vmb_error2(__LINE__,"Unable to find command",argv[0]);
 	  else 
-	  { argv[0]=prog;
-		if (spawnvp(_P_NOWAIT,prog,argv)<0)
+	  { free(name);
+		argv[0]= name = quote(prog);
+#if 0
+        STARTUPINFO sui = {0};
+	    PROCESS_INFORMATION pi = {0};
+		sui.cb=sizeof(sui);
+	    if (CreateProcess(argv[0],commands[i],NULL,NULL,FALSE,
+			DETACHED_PROCESS,NULL,NULL,&sui,&pi))
+		{ CloseHandle(pi.hProcess);
+		  CloseHandle(pi.hThread);
+		}
+		else
+#else
+		if (_spawnvp(_P_NOWAIT,prog,argv)<0)
+#endif
 	      vmb_error2(__LINE__,"Unable to execute command",argv[0]);
 	  }
+	  free(name);
 	}
 #else
 	usleep(50000); /* so delay 50 ms start processes in order given */
@@ -772,8 +793,6 @@ void do_commands(void)
 	}
 #endif
 	}
-    else
-      return;
 }
 
 

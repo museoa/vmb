@@ -26,7 +26,6 @@
    explains the usage
    contains the defaults
    and processes the commandline
-   ( not implemented: reads the secondary configuration file (if any))
  */
 
 #include <stdlib.h>
@@ -43,6 +42,7 @@
 #define DIRSTR  ("/")
 #endif
 #include "vmb.h"
+#include "param.h"
 #include "option.h"
 
 
@@ -56,7 +56,7 @@ char *defined=NULL;
 static char * configFILE=NULL;
 static char * configPATH=NULL;
 static char *fopen_file=NULL;
-static char *cwd = NULL;
+char *vmb_cwd = NULL;
 static int cflen=0, cplen=0;
 
 void set_option(char **option, char *str)
@@ -170,10 +170,9 @@ static double strtodouble(char *arg)
 }
 
 
-static void store_strarg(char **to, char *arg)
+static void store_strarg(char **to, char *arg, int strip_quote)
 {  int n;  
    char *p;
-   int strip_quote;
    if (arg==NULL)
      return;
    if (*to!=NULL)
@@ -181,12 +180,7 @@ static void store_strarg(char **to, char *arg)
      *to = NULL;
    }
    while (isspace(*arg)) arg++;
-   if (*arg=='"')
-   { arg++; 
-     strip_quote=1;
-   }
-   else
-     strip_quote=0;	  
+   if (*arg=='"' && strip_quote) arg++;
    n=0; p=arg;
    while(*p!=0)
    { if (strncmp(p,"#FILE#",6)==0)
@@ -248,8 +242,6 @@ static void store_strarg(char **to, char *arg)
 		if (strip_quote)
 		{ if (*(p-1)=='"')
 		    p=p-1;
-		  else
-			vmb_debug(VMB_DEBUG_NOTIFY,"Closing \" expected in argument");
 		}
         *p=0;
       }
@@ -267,7 +259,7 @@ int do_option(option_spec *p, char *arg)
       if (arg==NULL)
         vmb_error2(__LINE__,"Argument expected",p->description);
       else
-        store_strarg(p->handler.str,arg);
+        store_strarg(p->handler.str,arg,1);
       return 1;
   case int_arg:
 	  if (arg==NULL)
@@ -335,7 +327,7 @@ int do_option(option_spec *p, char *arg)
       vmb_debug(VMB_DEBUG_INFO, "calling handler");
       { char *str=NULL;
         int r;
-        store_strarg(&str,arg);
+        store_strarg(&str,arg,0);
         r = (p->handler.f)(str);
         free(str);
         str=NULL;
@@ -531,19 +523,19 @@ static void set_PATH_FILE(char *file)
   configPATH[cplen]=0;
 }
 
-static void vmb_get_cwd(void)
-{ if (cwd!=NULL) return;
-  cwd = _getcwd(NULL,0);
-  if (cwd==NULL) 
+void vmb_get_cwd(void)
+{ if (vmb_cwd!=NULL) return;
+  vmb_cwd = _getcwd(NULL,0);
+  if (vmb_cwd==NULL) 
   { vmb_error(__LINE__,"Unable to get current working directory");
     return;
   }
-  cwd = realloc(cwd,strlen(cwd)+2);
-  if (cwd==NULL) 
+  vmb_cwd = realloc(vmb_cwd,strlen(vmb_cwd)+2);
+  if (vmb_cwd==NULL) 
   { vmb_fatal_error(__LINE__,"Out of memory");
     return;
   }
-  strcat(cwd,DIRSTR);
+  strcat(vmb_cwd,DIRSTR);
 }
 
 FILE *vmb_fopen(char *filename, char *mode)
@@ -575,7 +567,7 @@ FILE *vmb_fopen(char *filename, char *mode)
   free(fopen_file);
   fopen_file = NULL;
   vmb_get_cwd();
-  search[0]=cwd;
+  search[0]=vmb_cwd;
   search[1]=configPATH;
   search[2]=programpath;
   for (i=0; i<3;i++)
@@ -599,6 +591,8 @@ FILE *vmb_fopen(char *filename, char *mode)
   return NULL;
 }
 
+static char *parg;
+
 int parse_configfile(char *filename)
 /* return 1 if the file exists and could be opened
    return 0 if the file does not exist or could not be opened.
@@ -615,6 +609,8 @@ int parse_configfile(char *filename)
     return 0;
   }
   vmb_debugs(VMB_DEBUG_PROGRESS, "reading configfile %s",filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "defined %s",defined==NULL?"NULL":defined);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "program arg %s",parg);
   in=vmb_fopen(filename,"r");
   if (in==NULL) return 0;
   set_PATH_FILE(fopen_file);
@@ -754,6 +750,7 @@ static void do_program(char * arg)
 { int i,n;
   if (arg == NULL)
     return;
+  parg=arg;
   i = 0;
   n = 0;
   while (arg[i]!=0)
@@ -801,10 +798,11 @@ static int do_define(char *arg)
  return 1;
 }
 
-
+#if 0
 void parse_commandstr(char *p)
 { int arguments;
-  char *cmd, *arg;    
+  char *cmd, *arg;  
+vmb_debug_flag=1;vmb_debug_mask=0;
   vmb_debugs(VMB_DEBUG_PROGRESS, "reading commandstr %s",p);
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
@@ -862,27 +860,32 @@ void parse_commandstr(char *p)
   }
   vmb_debug(VMB_DEBUG_INFO, "done commandstr");
 }
+#endif
 
 void parse_commandline(int argc, char *argv[])
 { int i,j;
-
+  int has_config=0;
   vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline");
   do_program(argv[0]);
-  i=do_define(argv[1]);
-  parse_configfile("default.vmb");
-  while (++i < argc)
+  if (do_define(argv[1])) i=2; else i=1;
+  for (j=i;j<argc;j++)
+    if (strcmp(argv[j],"-c")==0 || strcmp(argv[j],"--config")==0)
+	{ has_config = 1; break;}
+  if (!has_config)
+    parse_configfile("default.vmb"); /* else use configfile provided */
+  while(i< argc)
   { if (argv[i][0] == '-' && argv[i][1] != 0)
-    {  if (argv[i][1] == '-' && argv[i][2] != 0)
-	 i = i+ do_option_long(argv[i]+2, argv[i+1]);
-       else
-       { for (j=1;argv[i][j]!=0 && argv[i][j+1]!=0;j++)
-	   do_option_short(argv[i][j], NULL);
-	 i = i+ do_option_short(argv[i][j], argv[i+1]);
-       }
+    { if (argv[i][1] == '-' && argv[i][2] != 0)
+	    i = i+ do_option_long(argv[i]+2, argv[i+1]);
+      else
+      { for (j=1;argv[i][j]!=0 && argv[i][j+1]!=0;j++)
+	      do_option_short(argv[i][j], NULL);
+	    i = i+ do_option_short(argv[i][j], argv[i+1]);
+      }
     }
     else
       do_argument(i, argv[i]);
-
+    i++;
   }
   vmb_debug(VMB_DEBUG_INFO, "done commandline");
 }

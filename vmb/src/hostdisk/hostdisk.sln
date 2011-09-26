@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hostdisk", "hostdisk.vcproj", "{C12BCD03-F88D-4468-B4A0-1FF0E4818221}"

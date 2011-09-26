@@ -7,7 +7,6 @@ host localhost
 #if mother
 debug
 debugmask 0xFFF0
-#verbose
 on
 exec rom -c "#FILE#"
 exec keyboard -c "#FILE#"

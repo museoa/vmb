@@ -48,15 +48,15 @@ extern void process_input_file(char *filename);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
-  {    case WM_SETFOCUS:
+  { case WM_SETFOCUS:
       vmb_debug(VMB_DEBUG_PROGRESS, "got focus");
 	  hBmp = hBmpActive;
       RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
       break;
     case WM_KILLFOCUS:
-      vmb_debug(VMB_DEBUG_PROGRESS, "lost focus");
 	  hBmp = hBmpInactive;
 	  RedrawWindow(hMainWnd,NULL,NULL,RDW_INVALIDATE);
+	  vmb_debug(VMB_DEBUG_PROGRESS, "lost focus");
 	  break;
     case WM_DROPFILES:
 	  { HDROP hDrop;
@@ -69,7 +69,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  return 0;
     case WM_VMB_ON: /* Power On */
 	  DragAcceptFiles(hWnd,TRUE);
-	  /* fall through to reset */
+	  	  if (filename!=NULL)
+	    process_input_file(filename);
+      break;
 	case WM_VMB_RESET:
 	  if (filename!=NULL)
 	    process_input_file(filename);

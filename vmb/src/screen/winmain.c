@@ -178,7 +178,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 "EDIT",     // predefined class 
                 NULL,       // no window title 
                 WS_CHILD | WS_VISIBLE | 
-                    ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
+                    ES_NOHIDESEL | ES_LEFT | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
 					/* | WS_VSCROLL */, 
                 25, 25, 400, 300, 
                 hWnd,       // parent window 
@@ -188,7 +188,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	 setfont();
              // Add text to the window. 
      SendMessage(hwndEdit, WM_SETTEXT, 0, 
-                (LPARAM)"");   
+                (LPARAM)"");  
     return 0;
   case WM_PAINT:
     { PAINTSTRUCT ps;
@@ -210,7 +210,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		   LOWORD(lParam),HIWORD(lParam),0 ,hWnd,NULL);
     return 0;
   case WM_COMMAND:
-    if (HIWORD(wParam)==0) /* Menu */
+	if (HIWORD(wParam)==0) /* Menu */
       switch(LOWORD(wParam))
 	{ 
       case ID_HEXOUTPUT:

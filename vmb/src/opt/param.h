@@ -39,6 +39,8 @@ extern char *filename;
 
 
 #ifdef WIN32
+#define MAXARG 256
+extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 extern void param_init(void);
 #else
 extern void param_init(int argc, char *argv[]);

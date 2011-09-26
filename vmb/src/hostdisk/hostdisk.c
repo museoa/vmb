@@ -29,7 +29,7 @@ extern HBITMAP hbussy;
 
 extern device_info vmb;
 
-char version[]="$Revision: 1.7 $ $Date: 2011-07-27 23:54:16 $";
+char version[]="$Revision: 1.8 $ $Date: 2011-09-26 13:31:50 $";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";
@@ -293,11 +293,34 @@ static void *disk_server(void *_dummy)
 			{ diskStatus=diskStatus| DISK_ERR;
 			  break;
 			}
+			{ int i;
+			  for (i=1;i<16;i++)
+			    diskDma[i].size=0;
+			}
 			getMemory(); /* filename */
-			files[diskHnd] = fopen(dma_buffer,modestring[diskMod]);
-			if (files[diskHnd]==NULL)
-			{ diskStatus=diskStatus| DISK_ERR;
-			  break;
+			{ char *name;
+			  if (filename==NULL)
+                name=dma_buffer;
+			  else
+			  { int len = (int)strlen(dma_buffer)+(int)strlen(filename);
+		        name = malloc(len+1);
+			    if (name==NULL)
+				  vmb_error(__LINE__,"Out of Memory");
+				else
+				{ strcpy(name,filename);
+				  strcat(name,dma_buffer);
+				}
+			  }
+			  if (name!=NULL)
+ 			    files[diskHnd] = fopen(name,modestring[diskMod]);
+			  else
+                files[diskHnd] = NULL;
+			  if (files[diskHnd]==NULL)
+			  { diskStatus=diskStatus| DISK_ERR;
+			    break;
+			  }
+			  if (filename!=NULL)
+				  free(name);
 			}
 			break;
 	    case DISK_CLOSE:

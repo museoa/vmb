@@ -87,16 +87,68 @@ void do_argument(int pos, char * arg)
   vmb_debug(VMB_DEBUG_ERROR, "too many arguments"); 
 }
 
+#ifdef WIN32
+
+int mk_argv(char *argv[MAXARG],char *command, int unquote)
+/* splits command into arguments, knows how to handle strings.
+   if unquote is true, double-quote characters are removed
+   before putting them im the vector
+   returns argc.
+
+
+*/
+
+{ int argc=0;  
+
+  if (command==NULL||*command==0)
+  { argv[0]=NULL;
+    return argc;
+  }
+  for (argc=0;argc<MAXARG-1;argc++)
+  { 
+    while (isspace(*command)) command++;
+
+    if (*command==0)
+    { argv[argc]=NULL;
+        return argc;
+    }
+
+	if( *command=='"')
+	{ if (unquote) argv[argc]=++command;
+	  else argv[argc]=command++;
+      while (*command!='"' && *command!=0) command++;
+	  if (*command=='"' && !unquote) command++;
+	}
+	else
+	{ argv[argc]=command;
+      while (!isspace(*command) && *command!=0) command++;
+	}
+    if (*command!=0)
+    { *command=0;
+      command++;
+    }
+  }
+  argc=MAXARG-1;
+  argv[argc]=NULL;
+  return argc;
+}
+#endif
 
 #ifdef WIN32
 void param_init(void)
+{ int argc;
+  char *argv[MAXARG];
 #else
 void param_init(int argc, char *argv[])
-#endif
-{ 
+{
+#endif 
   option_defaults();
 #ifdef WIN32
-  parse_commandstr(GetCommandLine());
+//    MessageBox(hMainWnd,GetCommandLine(),"Commandline",MB_OK);
+    argc=mk_argv(argv,GetCommandLine(),TRUE);
+//  argv = CommandLineToArgvW( GetCommandLine(),&argc);
+//  parse_commandstr(GetCommandLine());
+    parse_commandline(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0; 
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 #else

@@ -7,7 +7,7 @@
 
 	<BODY>
 		<H1>Host-Disk Device Specification</H1>
-		<h2><img src="disk.gif" alt="" width="314" height="114" border="0"></h2>
+		<h2><img src="hostdisk.gif" alt="" width="314" height="114" border="0"></h2>
 		<h2>Memory Layout</h2>
 		<table border=1>
 			<tr>
@@ -96,44 +96,99 @@
 		</ul>
 		<p>The next 6 bits of the control register contain the operation code. These are the following:</p>
 		<ul>
-			<li>0x04 - Open a file
-			<li>0x08 - Close a file
-			<li>0x0C - Read from a file
-			<li>0x10 - Write to a file
-			<li>0x14 - Seek
-			<li>0x18 - Tell
-		</ul>
+			<li>1 (0x04) - Open a file<li>2 (0x08) - Close a file<li>3 (0x0C) - Read from a file<li>4 (0x10) - Write to a file<li>5 (0x14) - Seek<li>6 (0x18)- Tell</ul>
 		<h3>Handle Register</h3>
-		<p>Files are identified by Handles. A Handle is a one byte unsigned value. Al l operations have a handle as a parameter and it is stored in this register.</p>
+		<p>Files are identified by Handles. A Handle is a one byte unsigned value. Al l operations have a handle as a parameter and it is stored in  the low byte of  this register.</p>
 		<h3>Mode Register</h3>
-		<p>The mode parameter of the open command is stored here.</p>
+		<p>The mode parameter of the open command is stored  in the low byte of this register. See the <a href="#opencommand">open comand </a>below for details.</p>
 		<h3>Position Register</h3>
-		<p>The position parameter of the seek command and the result of the tell command  is stored here.</p>
+		<p>The position parameter of the <a href="#seekcommand">seek command</a> and the result of the <a href="#tellcommand">tell command</a> is stored here. See the commands for details.</p>
 		<h3>DMA Registers</h3>
-		<p>The memory buffers from where data is read in a write operation or to where data is written in a read operation is determined by the contents of the 16 <strong>DMA</strong> register. Each DMA register consists of an <strong>address</strong> and a <strong>size</strong> register. It holds the physical address of the buffer and its size. Several buffers can be used in a scatter or gather IO operation. This means that the IO operations view the content of the 16 DMA buffers as one consecutive data area, as if the buffers would have been concatenated. For example a write operation with gather its data first from buffer number one then from buffer number two, and so forth until the number of sectors requested are written or the buffers are all written. A read operation will scatter the sectors read from disk by filling the first buffer and then the second, until all disk sectors are written to memory or the bufferes are all filled.</p>
+		<p>The memory buffers from where data is read in a write-to-disk operation or to where data is written in a read-from-disk operation is determined by the contents of the 16 <strong>DMA</strong> registers. Each DMA register consists of an <strong>address</strong> and a <strong>size</strong> register. It holds the physical address of the buffer and its size. Several buffers can be used in a scatter or gather IO operation. This means that the IO operations view the content of the 16 DMA buffers as one consecutive data area, as if the buffers would have been concatenated. For example a write operation will gather its data first from buffer number one then from buffer number two, and so forth until all the buffers are all written (or some error has occured). A read operation will scatter the data read from disk by filling the first buffer and then the second, until all buffers are filled or the end of the file has been reached.</p>
 		<h2>Commands</h2>
 		In the following, each command is expalined. In general the commands are mapped to the file operations from the C Library: fopen, fclose, fread, fwrite, fseek, ftell. If the corresponding call  from the C library fails, the error bit in the status register is set.
 		<h3>Open</h3>
-		<p>This command has three parameters, the handle, the mode, and the filename. Handle and mode must be set in the respective registers. The address of the filename and its length must be given in the first DMA register. The given filename will be concatenated with the configured root directory to form a host filename. Then this host file is opened and associated with the given handle. The mode can be a combination of </p>
+		<p><a id="opencommand" name="opencommand"></a>This command has three parameters, the handle, the mode, and the filename. Handle and mode must be set in the respective registers. The address of the filename and its length must be given using the first DMA register. The given filename will be concatenated with the configured root directory to form a host filename. Then this host file is opened and associated with the given handle. It is an error to use a handle that is already associated with an open  file. You must close the file before you can reuse the handle. </p>
+		<p>The mode can be a combination of</p>
 		<ul>
 			<li>0x01 - READ
 			<li>0x02 - WRITE
 			<li>0x04 - BINARY
+			
 			<li>0x08 - APPEND
+		
 		</ul>
+		<p>Not all combinations are, however possible. Vallid combinations and their corresponding mode strings of the UNIX fopen function are:</p>
+		<table width="320" border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<td>Value</td>
+				<td>Mode Bits</td>
+				<td>Mode String</td>
+			</tr>
+			<tr>
+				<td>1</td>
+				<td>READ</td>
+				<td>rt</td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>WRITE</td>
+				<td>wt</td>
+			</tr>
+			<tr>
+				<td>3</td>
+				<td>READ|WRITE</td>
+				<td>r+t</td>
+			</tr>
+			<tr>
+				<td>5</td>
+				<td>READ|BINARY</td>
+				<td>rb</td>
+			</tr>
+			<tr>
+				<td>6</td>
+				<td>WRITE|BINARY</td>
+				<td>wb</td>
+			</tr>
+			<tr>
+				<td>7</td>
+				<td>READ|WRITE|BINARY</td>
+				<td>r+b</td>
+			</tr>
+			<tr>
+				<td>10</td>
+				<td>WRITE|APPEND</td>
+				<td>at</td>
+			</tr>
+			<tr>
+				<td>11</td>
+				<td>READ|WRITE|APPEND</td>
+				<td>a+t</td>
+			</tr>
+			<tr>
+				<td>14</td>
+				<td>WRITE|BINARY|APPEND</td>
+				<td>ab</td>
+			</tr>
+			<tr>
+				<td>15</td>
+				<td>READ|WRITE|BINARY|APPEND</td>
+				<td>a+b</td>
+			</tr>
+		</table>
 		<h3>Close</h3>
-		<p>This command has just one parameter, the handle. The handle should have been opened before with the open command.</p>
+		<p>This command has just one parameter, the handle. The handle must have been opened before with the open command.</p>
 		<h3>Read</h3>
 		<p>This command needs a handle and at least one of the DMA registers. When the command has completed, the size values in the DMA registers reflect the anount of data actually read.</p>
 		<h3>Write</h3>
 		<p>The command needs a handle and at least one of the DMA registers. When the command has completed, the size values in the DMA registers reflect the anount of data actually written.</p>
-		<h3>Seek</h3>
+		<h3><a id="seekcommand" name="seekcommand"></a>Seek</h3>
 		<p>The command needs a handle and a position parameter specifying the location of the next read or write operation. If the command is successful. the new location will be determined as follows: </p>
 		<ul>
 			<li>If the position parameter is positive or zero, the new location is position bytes after the begin of the file.
 			<li>If the position parameter is negative, the new location is -position-1 bytes before the end of the file.
 		</ul>
-		<h3>Tell</h3>
+		<h3><a id="tellcommand" name="tellcommand"></a>Tell</h3>
 		The command needs a handle and sets the position register to the current file position measured in bytes from the beginning of the file.
 		<h2>Configuration</h2>
 		The host-disk has the following configurable parameters:<table>

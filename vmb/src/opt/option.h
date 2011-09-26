@@ -47,6 +47,7 @@ extern uint64_t strtouint64(char *arg);
 /* strings with the program path  and program name */
 extern char *programpath;
 extern char *vmb_program_name;
+extern char *vmb_cwd;
 
 extern char *defined;
 /* NULL, or a string that is used to identify conditionals
@@ -78,8 +79,10 @@ extern void parse_commandline(int argc, char **argv);
    in the case of long options only, a single "=" can be used to separate the
    option from the following argument
 */
+#if 0
 extern void parse_commandstr(char *p);
 /* like parse_commandline takes all the information from one string */
+#endif
 extern int do_option_debug(char *dummy);
 /* switch debugging on immediately */
 extern int do_option_configfile(char *filename);
@@ -111,6 +114,9 @@ extern void option_defaults(void);
 extern FILE *vmb_fopen(char *filename, char *mode);
 /* fopen(filename,mode) look in the configPATH and programpath before giving up 
 */
+extern void vmb_get_cwd(void); 
+/* set vmb_cwd*/
+
 
 /* this is what you must provide: */
 
@@ -128,7 +134,7 @@ extern void do_argument(int pos, char *arg);
 /* the agument 0 is the program name it is found in the corresponding
    variable, arument 1, if it exists, it the defined name for conditionals,
    it id found in the variable "defined".
-   All the other arguments for pos=2,3,... arge passed to this function
+   All the other arguments for pos=2,3,... argc passed to this function
 */
 
 /* the option description */

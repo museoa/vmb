@@ -1,5 +1,9 @@
+#define _WIN32_DCOM
+
 #include <winsock2.h>
 #include <windows.h>
+#include <shlobj.h>
+#include <objbase.h>
 #include <afxres.h>
 #include "vmb.h"
 #include "bus-arith.h"
@@ -37,6 +41,22 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
+      { BROWSEINFO bif = {0};
+	    LPITEMIDLIST p;
+		CoInitializeEx(NULL,COINIT_MULTITHREADED);
+	    bif.hwndOwner = hMainWnd;
+	    GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
+	    bif.pszDisplayName=tmp_option;
+	    bif.lpszTitle="Autoname Folder";
+	    p = SHBrowseForFolder(&bif);
+        if(p!=0)
+	    { SHGetPathFromIDList(p,tmp_option);
+	      strcat(tmp_option,"\\");
+	      SetDlgItemText(hDlg,IDC_FILE,tmp_option);
+	    }
+		CoUninitialize();
+      }
+#if 0
 	  { OPENFILENAME ofn;       /* common dialog box structure */
          /* Initialize OPENFILENAME */
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
@@ -56,7 +76,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         if (GetOpenFileName(&ofn)==TRUE) 
 		   SetDlgItemText(hDlg,IDC_FILE,tmp_option);
 	  }
-     if (wparam == IDOK || wparam == IDCANCEL)
+#endif
+	  if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
         return TRUE;
       }

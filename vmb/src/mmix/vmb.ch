@@ -664,7 +664,7 @@ typedef unsigned char Char; /* bytes that will become wydes some day */
   if (resuming)
   { loc=incr(inst_ptr,-4), inst=g[rzz?rXX:rX].l;
     if (rzz==0)
-    { if ((loc.h&sign_bit) && !(inst_ptr.h&sign_bit))
+    { if ((loc.h&sign_bit) != (inst_ptr.h&sign_bit))
       { resuming = false;
         goto protection_violation;
       }
@@ -1757,7 +1757,7 @@ leading to an immediate interrupt.
 
 @<Check for security violation@>=
 {
-  if (loc.h&sign_bit)
+  if (inst_ptr.h&sign_bit)
   { if (g[rK].h&P_BIT) 
     { g[rQ].h |= P_BIT;
       new_Q.h |= P_BIT;
@@ -1829,7 +1829,7 @@ if ( rzz == 0)
 else if ( rzz == 1)
 { 
   if (!(loc.h&sign_bit)) goto privileged_inst;
-  loc=inst_ptr=z=g[rWW];
+  inst_ptr=z=g[rWW];
   b=g[rXX];
   g[rK]=g[255];
   x=g[255]=g[rBB];
@@ -2078,12 +2078,10 @@ boot:
 
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
-    else {
-      breakpoint=false;
-      if (interacting && 
-         (!(inst_ptr.h&sign_bit) || 
-          show_operating_system || 
-          (inst_ptr.h==0x80000000 && inst_ptr.l==0)))
+    else if (!(inst_ptr.h&sign_bit) || show_operating_system || 
+          (inst_ptr.h==0x80000000 && inst_ptr.l==0))
+    { breakpoint=false;
+      if (interacting)
         @<Interact with the user@>;
     }
     if (halted) break;

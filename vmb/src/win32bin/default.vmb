@@ -6,15 +6,15 @@ host localhost
 debugmask 0xFFF0
 
 #if mother
-exec rom -c "#FILE#"
+exec "C:\Programme\v m b\rom.exe" -M 0 -d -c "#FILE#"
 exec ram -c "#FILE#"
-exec disk -c "#FILE#" 
-exec timer -c "#FILE#"
-exec screen -c "#FILE#"
-exec keyboard -c "#FILE#"
-exec button start -c "#FILE#"
-exec sevensegment -c "#FILE#"
-exec mmixcpu -i
+#exec disk -c "#FILE#" 
+#exec timer -c "#FILE#"
+#exec screen -c "#FILE#"
+#exec keyboard -c "#FILE#"
+#exec button start -c "#FILE#"
+#exec sevensegment -c "#FILE#"
+#exec mmixcpu -i
 #exec xterm -geometry 40x10 -fn 7x13 -e keyboard -c "#FILE#"
 #exec xterm   -fn 7x13 -e screen -c "#FILE#"
 #endif
