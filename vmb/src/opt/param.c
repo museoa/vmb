@@ -87,15 +87,12 @@ void do_argument(int pos, char * arg)
   vmb_debug(VMB_DEBUG_ERROR, "too many arguments"); 
 }
 
-#ifdef WIN32
 
 int mk_argv(char *argv[MAXARG],char *command, int unquote)
 /* splits command into arguments, knows how to handle strings.
    if unquote is true, double-quote characters are removed
    before putting them im the vector
    returns argc.
-
-
 */
 
 { int argc=0;  
@@ -132,7 +129,7 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
   argv[argc]=NULL;
   return argc;
 }
-#endif
+
 
 #ifdef WIN32
 void param_init(void)

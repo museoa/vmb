@@ -14,15 +14,16 @@ CFLAGS = -ggdb -O0 -D_REENTRANT -Wall
 #CFLAGS = -O3 -D_REENTRANT -Wall 
 
 UTILDIR = ../util
+OPTDIR = ../opt
 CC = gcc
-INCDIRS = -I$(UTILDIR)
-LIBS    = -L$(UTILDIR) -lm -lvmb -lpthread -lrt
+INCDIRS = -I $(UTILDIR) -I $(OPTDIR)
+LIBS    = -L $(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
 all: .depend mmix gmmix mmixal mmoboot mmotype
 
 .depend:
-	gcc -MM *.c > .depend
+	gcc $(INCDIRS) -MM *.c > .depend
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)

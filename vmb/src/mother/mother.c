@@ -67,7 +67,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.37 $ $Date: 2011-09-26 13:31:50 $";
+char version[] = "$Revision: 1.38 $ $Date: 2011-10-11 15:47:51 $";
 
 char howto[] =
   "\n"
@@ -699,6 +699,7 @@ void store_command(char *command)
   }
 }
 
+#ifdef WIN32
 static char * quote(char *str)
 /* allocate string and return "str" */
 { int n;
@@ -719,6 +720,7 @@ static char * quote(char *str)
    return quoted;
 }
 
+
 static char * unquote(char *str)
 /* allocate string and return str with quotes removed */
 { int n;
@@ -738,7 +740,7 @@ static char * unquote(char *str)
    return unquoted;
 }
 
-
+#endif
 
 void do_commands(void)
 { int i;
@@ -746,9 +748,9 @@ void do_commands(void)
     if (commands[i]!=NULL)
       { 
         char *argv[MAXARG] = {0};
-		char argc;
-		vmb_debugs(VMB_DEBUG_PROGRESS, "executing command: %s",commands[i]);
-        argc = mk_argv(argv,commands[i],FALSE);
+	char argc;
+	vmb_debugs(VMB_DEBUG_PROGRESS, "executing command: %s",commands[i]);
+        argc = mk_argv(argv,commands[i],0);
 		if (argc<=0)
           continue;
 #ifdef WIN32

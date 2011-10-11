@@ -525,7 +525,11 @@ static void set_PATH_FILE(char *file)
 
 void vmb_get_cwd(void)
 { if (vmb_cwd!=NULL) return;
+#ifdef WIN32
   vmb_cwd = _getcwd(NULL,0);
+#else
+  vmb_cwd = getcwd(NULL,0);
+#endif
   if (vmb_cwd==NULL) 
   { vmb_error(__LINE__,"Unable to get current working directory");
     return;
@@ -711,39 +715,6 @@ int do_option_debug(char *dummy)
   return 0;
 }
 
-static 
-char *parse_argument(char **str)
-/* makes *str point past the argument and returns the argument */
-{ char *p, *arg;
-  p = *str;
-  if (*p == '\0') 
-    arg = NULL;
-  else
-  { /* skip spaces */
-    while(isspace((int)(p[0])))
-      p++;
-    if (*p=='\0' || *p=='-')
-      arg = NULL;
-    else
-    { arg = p;
-      if (*arg == '"')
-      { arg++; p++;
-        while(*p!= 0 && *p != '"')
-          p++;
-      }
-      else
-      { while(*p!= 0 && !isspace((int)(*p)))
-          p++;
-      }
-      if (*p != 0)
-      {*p = 0;
-        p++;
-      }
-    }
-  }
-  *str = p;
-  return arg;
-}
 
 
 static void do_program(char * arg)
@@ -799,6 +770,40 @@ static int do_define(char *arg)
 }
 
 #if 0
+static 
+char *parse_argument(char **str)
+/* makes *str point past the argument and returns the argument */
+{ char *p, *arg;
+  p = *str;
+  if (*p == '\0') 
+    arg = NULL;
+  else
+  { /* skip spaces */
+    while(isspace((int)(p[0])))
+      p++;
+    if (*p=='\0' || *p=='-')
+      arg = NULL;
+    else
+    { arg = p;
+      if (*arg == '"')
+      { arg++; p++;
+        while(*p!= 0 && *p != '"')
+          p++;
+      }
+      else
+      { while(*p!= 0 && !isspace((int)(*p)))
+          p++;
+      }
+      if (*p != 0)
+      {*p = 0;
+        p++;
+      }
+    }
+  }
+  *str = p;
+  return arg;
+}
+
 void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;  

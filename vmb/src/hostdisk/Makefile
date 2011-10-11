@@ -1,4 +1,4 @@
-PROG= disk
+PROG= hostdisk
 UTILDIR = ../util
 OPTDIR = ../opt
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
