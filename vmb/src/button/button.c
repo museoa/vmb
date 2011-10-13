@@ -1,3 +1,5 @@
+#ifdef WIN32
+
 #include <winsock2.h>
 #include <windows.h>
 #include <winuser.h>
@@ -277,3 +279,94 @@ void init_device(device_info *vmb)
   vmb->disconnected=vmb_disconnected;
   vmb->terminate=vmb_terminate;
 }
+
+#else
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <termio.h>
+#include "vmb.h"
+#include "resource.h"
+#include "param.h"
+#include "option.h"
+
+
+device_info vmb = {0};
+
+
+int color;
+int upinterrupt;
+int pushbutton;
+int pushstate;
+int enable_interrupts;
+char *label=NULL;
+
+void process_input(unsigned char c) 
+{ if (c!='\n') return;
+  if (pushbutton && pushstate)
+  { pushstate = 0;
+    vmb_debug(VMB_DEBUG_PROGRESS,"Button UP");
+    if (enable_interrupts&2)
+   	  vmb_raise_interrupt(&vmb, upinterrupt);
+  }
+  else
+  { pushstate = 1;
+    vmb_debug(VMB_DEBUG_PROGRESS,"Button DOWN");
+    if (enable_interrupts&1)
+  	  vmb_raise_interrupt(&vmb, interrupt);
+  }
+}
+
+void button_terminate(void)
+{ vmb_terminate();
+  vmb_debug(VMB_DEBUG_PROGRESS,"Disconnecting");
+  exit(0);
+}
+
+void init_device(device_info *vmb)
+{  vmb->poweron=vmb_poweron;
+   vmb->poweroff=vmb_poweroff;
+   vmb->disconnected=vmb_disconnected;
+   vmb->reset=vmb_reset;
+   vmb->terminate=button_terminate;
+   vmb_size=0;
+   vmb_address=0;
+   pushstate=0;
+}
+
+int main(int argc, char *argv[])
+{
+  param_init(argc, argv);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ",vmb_program_name);
+  vmb_debugs(VMB_DEBUG_INFO, "%s ", version);
+  vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
+  vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
+  init_device(&vmb);
+  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt);
+  
+  vmb_connect(&vmb,host,port); 
+
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
+               0, 0, vmb_program_name);
+
+  while (vmb.connected)
+  { unsigned char c;
+    int i;
+    vmb_debugs(VMB_DEBUG_INFO,"%s:",label);
+    vmb_debugs(VMB_DEBUG_INFO,"%s",pushstate?"DOWN":"UP");
+    vmb_debug(VMB_DEBUG_INFO, "reading character:");
+    i = read(0,&c,1);
+    if (i == 0) 
+      continue;
+    if (i < 0)
+    { vmb_error(__LINE__,"Read Error");
+      break;
+    }
+    vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
+    process_input(c);
+  }
+  vmb_disconnect(&vmb);
+  return 0;
+}
+
+#endif

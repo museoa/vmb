@@ -567,14 +567,17 @@ static void clean_up_read_thread(void *dummy)
     bus_unregister(vmb->fd);
     bus_disconnect(vmb->fd); 
     vmb->fd = INVALID_SOCKET;
+    vmb_debug(VMB_DEBUG_INFO, "connection closed.");
   }
   change_event(vmb, &vmb->connected, 0);
   flush_pending_read_queue();
+  vmb_debug(VMB_DEBUG_INFO, "read queue flushed.");
   if (vmb->disconnected) vmb->disconnected();
-  #ifdef WIN32
+#ifdef WIN32
    CloseHandle(vmb->hevent); vmb->hevent = NULL;
    DeleteCriticalSection(&vmb->event_section);
 #endif
+  vmb_debug(VMB_DEBUG_INFO, "read tread cleaned.");
 }
 
 #ifdef WIN32
@@ -598,6 +601,7 @@ static void *read_loop(void *dummy)
 #else
   pthread_cleanup_pop(1);
 #endif
+    vmb_debug(VMB_DEBUG_INFO, "read thread terminated.");
   return 0;
 }
 
