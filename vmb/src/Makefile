@@ -8,9 +8,9 @@ SUBDIRS  = util opt device mother\
            disk hostdisk led timer
 
 .PHONY: hardware $(SUBDIRS) clean
-     
+
 hardware: $(GENERICS) $(SUBDIRS)
-     
+
 $(SUBDIRS):
 	$(MAKE) -C $@
 
@@ -21,8 +21,13 @@ install:
 	done
 
 
+source.tgz:
+	(cd /tmp; rm -rf vmb; cvs -d :ext:ruckert@vmb.cvs.sourceforge.net:/cvsroot/vmb co -P vmb/src)
+	tar -czvf source.tgz -C /tmp --exclude-vcs  vmb/src
+	rm -rf /tmp/vmb
 
-     
+
+
 clean:
 	rm -f *.o *~ TAGS
 	for dir in $(SUBDIRS); do \
