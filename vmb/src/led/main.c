@@ -36,10 +36,10 @@ extern void init_device(device_info *vmb);
 
 extern unsigned char led;
 extern int nleds; /* number of leds to display */
-
+extern char *label;
 void update_display(void)
 { int i;
-  printf("LED: ");
+  printf("LED %s: ",label==NULL?"":label);
   for (i=nleds-1;i>=0;i--)
     if (led & (0x01<<i))
       printf("ON  ");
