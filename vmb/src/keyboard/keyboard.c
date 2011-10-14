@@ -43,7 +43,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.19 $ $Date: 2011-07-27 18:33:13 $";
+char version[]="$Revision: 1.20 $ $Date: 2011-10-14 11:48:13 $";
 
 char howto[] =
 "\n"
@@ -105,6 +105,7 @@ unsigned char *kb_get_payload(unsigned int offset,int size)
     return payload+offset;
 }
 
+static void restore_input(void);
 
 void kb_terminate(void)
 /* this function is called when the motherboard politely asks the device to terminate.*/
@@ -112,6 +113,8 @@ void kb_terminate(void)
 #ifdef WIN32
    PostMessage(hMainWnd,WM_CLOSE,0,0);
 #else
+   restore_input();
+   vmb_debug(VMB_DEBUG_INFO, "Closing Input.");  
    close(0);
 #endif
 
@@ -166,14 +169,19 @@ void process_input(unsigned char c)
 
 #ifdef WIN32
 #else
-static struct termios *tio=NULL;
 
+static struct termios oldtio;
+
+static void restore_input(void)
+{ tcsetattr(0,TCSADRAIN,&oldtio);
+  vmb_debug(VMB_DEBUG_INFO, "Terminal restored.");
+}
+
+ 
 static void prepare_input(void)
-{ static struct termios oldtio;
-  struct termios newtio;
+{ struct termios newtio;
   
   tcgetattr(0,&oldtio); /* save current port settings */
-  tio = &oldtio;
 
   memset(&newtio, 0, sizeof(newtio));
   newtio.c_cflag = CS8 | CLOCAL | CREAD; /* input modes */
@@ -184,11 +192,12 @@ static void prepare_input(void)
   newtio.c_lflag = 0;     /* local modes */
  
   /* control characters */
-  newtio.c_cc[VTIME]    = 50;   /* inter-character timerin 1/10 s unused */
+  newtio.c_cc[VTIME]    = 20;   /* inter-character timerin 1/10 s unused */
   newtio.c_cc[VMIN]     = 0;   /* blocking read until 0 chars received */
 
   tcflush(0, TCIFLUSH);
   tcsetattr(0,TCSANOW,&newtio);
+  atexit(restore_input);
 }
 #endif
 
@@ -277,15 +286,16 @@ int main(int argc, char *argv[])
   { unsigned char c;
     int i;
     vmb_debug(VMB_DEBUG_INFO, "reading character:");
-    i = read(0,&c,1);
-    if (i == 0) 
+    while ((i = read(0,&c,1))==0 && vmb.connected)
       continue;
     if (i < 0)
     { vmb_error(__LINE__,"Read Error");
       break;
     }
-    vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
-    process_input(c);
+    else if (i>0)
+    { vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
+      process_input(c);
+    }
   }
   vmb_disconnect(&vmb);
   return 0;

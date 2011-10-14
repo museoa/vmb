@@ -601,7 +601,7 @@ static void *read_loop(void *dummy)
 #else
   pthread_cleanup_pop(1);
 #endif
-    vmb_debug(VMB_DEBUG_INFO, "read thread terminated.");
+    vmb_debug(VMB_DEBUG_INFO, "read loop terminated.");
   return 0;
 }
 

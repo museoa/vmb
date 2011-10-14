@@ -285,6 +285,7 @@ void init_device(device_info *vmb)
 #include <stdio.h>
 #include <unistd.h>
 #include <termio.h>
+#include <string.h>
 #include "vmb.h"
 #include "resource.h"
 #include "param.h"
@@ -318,13 +319,47 @@ void process_input(unsigned char c)
 }
 
 void button_terminate(void)
-{ vmb_terminate();
+{ close(0);
+#if 0
+  vmb_terminate();
   vmb_debug(VMB_DEBUG_PROGRESS,"Disconnecting");
+  vmb_disconnect(&vmb);
+  vmb_debug(VMB_DEBUG_PROGRESS,"Exiting");
   exit(0);
+#endif
+}
+
+static struct termios *tio=NULL;
+
+static void prepare_input(void)
+{ static struct termios oldtio;
+  struct termios newtio;
+  
+  tcgetattr(0,&oldtio); /* save current port settings */
+  tio = &oldtio;
+
+  newtio=oldtio;
+  //memset(&newtio, 0, sizeof(newtio));
+
+  //newtio.c_cflag = CS8 | CLOCAL | CREAD; /* input modes */
+  //newtio.c_iflag = 0; /* IGNBRK; */ /* control modes */
+  //newtio.c_oflag = 0;      /* output modes */
+
+  /* set input mode (non-canonical, no echo,...) */
+  //newtio.c_lflag = 0;     /* local modes */
+  newtio.c_lflag &= ~ICANON;
+ 
+  /* control characters */
+  newtio.c_cc[VTIME]    = 20;   /* inter-character timerin 1/10 s unused */
+  newtio.c_cc[VMIN]     = 0;   /* blocking read until 0 chars received */
+
+  tcflush(0, TCIFLUSH);
+  tcsetattr(0,TCSANOW,&newtio);
 }
 
 void init_device(device_info *vmb)
-{  vmb->poweron=vmb_poweron;
+{  prepare_input();
+   vmb->poweron=vmb_poweron;
    vmb->poweroff=vmb_poweroff;
    vmb->disconnected=vmb_disconnected;
    vmb->reset=vmb_reset;
@@ -349,21 +384,20 @@ int main(int argc, char *argv[])
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
                0, 0, vmb_program_name);
 
+  vmb_debug(VMB_DEBUG_INFO, "Reading characters");
   while (vmb.connected)
   { unsigned char c;
     int i;
-    vmb_debugs(VMB_DEBUG_INFO,"%s:",label);
-    vmb_debugs(VMB_DEBUG_INFO,"%s",pushstate?"DOWN":"UP");
-    vmb_debug(VMB_DEBUG_INFO, "reading character:");
-    i = read(0,&c,1);
-    if (i == 0) 
+    while ((i = read(0,&c,1))==0 && vmb.connected)
       continue;
     if (i < 0)
     { vmb_error(__LINE__,"Read Error");
       break;
     }
-    vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
-    process_input(c);
+    else if (i>0 && c=='\n')
+    { vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
+      process_input(c);
+    }
   }
   vmb_disconnect(&vmb);
   return 0;
