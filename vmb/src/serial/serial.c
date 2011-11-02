@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.3 $ $Date: 2011-11-02 14:38:58 $";
+char version[]="$Revision: 1.4 $ $Date: 2011-11-02 17:52:57 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -98,7 +98,7 @@ struct buf {
 } inbuf, outbuf;
 
 #ifdef WIN32
-#define bufacquire(buf)  EnterCriticalSection (buf->buf_section)
+#define bufacquire(buf)  EnterCriticalSection (&(buf->buf_section))
 #else
 #define bufacquire(buf)  ((pthread_mutex_lock(&buf->buf_mutex))?	\
 		       (vmb_error(__LINE__,"Locking buf mutex failed"), \
@@ -106,7 +106,7 @@ struct buf {
 #endif 
 
 #ifdef WIN32
-#define bufrelease(buf)  LeaveCriticalSection (buf->buf_section);
+#define bufrelease(buf)  LeaveCriticalSection (&(buf->buf_section))
 #else
 #define bufrelease(buf)  ((pthread_mutex_unlock(&buf->buf_mutex))? \
                        (vmb_error(__LINE__,"Unlocking buf mutex failed"), \
@@ -126,10 +126,11 @@ static int is_empty(struct buf *buf)
 static int is_full(struct buf *buf)
 { return ((buf->tail+1)&BUF_MASK)==buf->head;
 }
-
+#ifndef WIN32
 static void clean_up_buffer_mutex(void *buf)
 { pthread_mutex_unlock(&(((struct buf *)buf)->buf_mutex)); /* needed if canceled waiting */
 }
+#endif
 static void wait_not_empty(struct buf *buf)
 { 
  #ifndef WIN32
@@ -201,11 +202,39 @@ static int put(struct buf *buf, unsigned char c)
 return 1;
 }
 
+#ifdef WIN32
+static HANDLE hCom;
+int writetty(unsigned char *buf, int size)
+{ DWORD n;
+  if (!WriteFile(hCom,buf,size,&n,NULL))
+    return -1;
+  else
+	return (int)n;
+}
+
+int readtty(unsigned char *buf, int size)
+{ DWORD n;
+  if (!ReadFile(hCom,buf,size,&n,NULL))
+	return -1;
+  else
+	return (int)n;
+}
+
+#else
 static int ttyfd;
+int writetty(unsigned char *buf, int size)
+{ return write(ttyfd,buf,size);
+}
 
-
-
+int readtty(unsigned char *buf, int size)
+{ return read(ttyfd,buf,size);
+}
+#endif
+#ifdef WIN32
+static DWORD WINAPI write_thread(LPVOID dummy)
+#else
 static void *write_thread(void *dummy)
+#endif
 /* wait for outbuf to be not empty and write (blocking)
   the content to ttyfd, if the thread blocks in the end the
   device blocks to the application, which is what we want.
@@ -217,7 +246,7 @@ static void *write_thread(void *dummy)
     size=getall(&outbuf,buf,BUF_MAX);
     while (i<size)
     { int ret;
-      ret = write(ttyfd,buf+i,size-i);
+      ret = writetty(buf+i,size-i);
       if (ret<=0)
       { vmb_debug(VMB_DEBUG_ERROR,"Error Writing to TTY");
         return 0;
@@ -232,8 +261,11 @@ void set_read(unsigned char c)
   if (ryy<0xFF) ryy++;
   if (ryy>1) rxx=0x80;
 }
-
+#ifdef WIN32
+static DWORD WINAPI read_thread(LPVOID dummy)
+#else
 static void *read_thread(void *dummy)
+#endif
 /* wait (blocking) for a character to become available
    on the tty, if so put it in the inbuf, if the
    inbuf gets full, take out a character to make room
@@ -245,7 +277,7 @@ static void *read_thread(void *dummy)
   { int size;
     unsigned char buf[BUF_MAX];
   start:
-    size = read(ttyfd,buf,BUF_MAX);
+    size = readtty(buf,BUF_MAX);
     if (size==0) 
       { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input Reading from TTY");
         return 0;
@@ -308,18 +340,61 @@ static pthread_t write_thr;
 static void init_threads(void)
 {
 #ifdef WIN32
-  vmb_critical_error(__LINE__,"Threads not yet implemented");
-#else
-  pthread_mutex_init(&inbuf.buf_mutex,NULL);
-  pthread_cond_init(&inbuf.buf_cond,NULL);
-  pthread_mutex_init(&outbuf.buf_mutex,NULL);
-  pthread_cond_init(&outbuf.buf_cond,NULL);
+    DWORD dwThreadId;
+    HANDLE hThread;
 
+    hThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            read_thread,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of read thread failed");
+/* in the moment, I really dont use the handle */
+    CloseHandle(hThread);
+    hThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            write_thread,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of write thread failed");
+/* in the moment, I really dont use the handle */
+    CloseHandle(hThread);
+
+#else
    read_tid  = pthread_create(&read_thr,NULL,read_thread,NULL);
    write_tid = pthread_create(&write_thr,NULL,write_thread,NULL);
 #endif
 }
 
+
+#define MAXIBUFFER (32*1024)
+static char input_buffer[MAXIBUFFER];
+static int input_buffer_first=0, input_buffer_last=0;
+
+
+void process_input_file(char *filename)
+{ FILE *f;
+  if (filename==NULL) return;
+  f = vmb_fopen(filename,"rb");
+  if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
+  input_buffer_first = 0;
+  input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
+  if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_ERROR, "Unable to read input file");
+  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_NOTIFY, "Empty file"); return;}
+  if (input_buffer_last==MAXIBUFFER) 
+	  vmb_debugi(VMB_DEBUG_ERROR, "Maximum File size %d reached, File truncated",MAXIBUFFER);
+  fclose(f);
+  if (input_buffer_last>input_buffer_first)
+    put(&inbuf,input_buffer[input_buffer_first++]);
+}
 
 
 unsigned char *serial_get_payload(unsigned int offset,int size)
@@ -331,6 +406,8 @@ unsigned char *serial_get_payload(unsigned int offset,int size)
           if (RYY>1) RZZ=0x80;
           RZZ=get(&inbuf); 
           vmb_debugi(VMB_DEBUG_PROGRESS,"reading charcter 0x%02X",RZZ);
+		  if (input_buffer_last>input_buffer_first)
+            put(&inbuf,input_buffer[input_buffer_first++]);
 	}
       else
          vmb_debug(VMB_DEBUG_NOTIFY,"no charcter available");
@@ -396,9 +473,12 @@ void serial_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { 
   vmb_debug(VMB_DEBUG_PROGRESS,"Serial disconnected");
-  close(ttyfd);
+
 #ifdef WIN32
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0);
+  CloseHandle(hCom);
+#else
+  close(ttyfd);
 #endif
 }
 
@@ -408,35 +488,45 @@ void serial_disconnected(void)
 
 static char *slave_tty_path;
 
-int create_pseudo_tty(void)
+void create_pseudo_tty(void)
 /* returns fd of master device
    sets path name of slave tty in slave_tty_path
 */
 {
-  int fd;
 
-#if 1
-  fd = posix_openpt(O_RDWR /* | O_NOCTTY */ );
-  if (fd == -1)
+#ifdef WIN32
+  hCom=CreateFile("COM1", 
+	              GENERIC_READ | GENERIC_WRITE, 
+                  0, 
+                  0, 
+                  OPEN_EXISTING,
+                  0,
+                  0);
+  if (hCom==INVALID_HANDLE_VALUE)
+    vmb_fatal_error(__LINE__,"Unable to open COM Port");
+
+#else
+  ttyfd = open("/dev/pty/m99", O_RDWR);
+  if (ttyfd == -1)
+    vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal /dev/ptypf \n");
+  slave_tty_path =  "/dev/pty/s99";
+
+#if 0
+  ttyfd = posix_openpt(O_RDWR /* | O_NOCTTY */ );
+  if (ttyfd == -1)
     vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal.\n");
 
-  if (grantpt(fd)!=0)
+  if (grantpt(ttyfd)!=0)
     vmb_debug(VMB_DEBUG_ERROR,"Error opening slave pseudo terminal.\n");
 
-  if (unlockpt(fd)!=0)
+  if (unlockpt(ttyfd)!=0)
     vmb_debug(VMB_DEBUG_ERROR,"Error unlocking pseudo terminal.\n");
 
 
-  slave_tty_path = ptsname(fd);
+  slave_tty_path = ptsname(ttyfd);
   if (slave_tty_path==NULL)
     vmb_debug(VMB_DEBUG_ERROR,"unable to get Name of slave tty device.\n");
-
- 
-#else
-  fd = open("/dev/ptypf", O_RDWR);
-  if (fd == -1)
-    vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal /dev/ptypf \n");
-  slave_tty_path =  "/dev/ttypf";
+#endif
 #endif
 
  /* to remove echos we do this 
@@ -444,7 +534,10 @@ int create_pseudo_tty(void)
      input with cat file > /dev/pts/4 produces an end of file
      seems ok !
   */
-  { struct termios tios;
+  { 
+#ifdef WIN32
+#else
+	  struct termios tios;
 #if 0   
 #define BAUDRATE B38400
  
@@ -478,16 +571,29 @@ int create_pseudo_tty(void)
     tios.c_cc[VTIME]=0;
     tcsetattr(fd,TCSANOW,&tios);
 #endif
+	if (ttyfd<0) vmb_fatal_error(__LINE__,"Unable to open pseudo tty");
+
+#endif
 
   }
-  return fd;
+ 
 }
 
 
 void serial_init(void)
-{ ttyfd =  create_pseudo_tty();
-  if (ttyfd<0) vmb_fatal_error(__LINE__,"Unable to open pseudo tty");
+{ create_pseudo_tty();
   fprintf(stderr,"Created device %s\n",slave_tty_path);
+#ifdef WIN32
+	InitializeCriticalSection (&inbuf.buf_section);
+	inbuf.hbuf =CreateEvent(NULL,FALSE,FALSE,NULL);
+    InitializeCriticalSection (&outbuf.buf_section);
+	outbuf.hbuf =CreateEvent(NULL,FALSE,FALSE,NULL);
+#else
+  pthread_mutex_init(&inbuf.buf_mutex,NULL);
+  pthread_cond_init(&inbuf.buf_cond,NULL);
+  pthread_mutex_init(&outbuf.buf_mutex,NULL);
+  pthread_cond_init(&outbuf.buf_cond,NULL);
+#endif
   serial_null();
 }
    
@@ -504,6 +610,9 @@ void init_device(device_info *vmb)
   vmb->get_payload=serial_get_payload;
 }
 
+
+
+#ifndef WIN32
 static
 void sighndl(int signo)
 {
@@ -566,3 +675,5 @@ int main(int argc, char *argv[])
   vmb_debug(VMB_DEBUG_PROGRESS, "Serial exit.");
   return 0;
 }
+
+#endif
