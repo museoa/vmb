@@ -1,84 +1,103 @@
 <HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Serial Device Specification</title>
+	</head>
 <BODY>
 <H1>Serial Device Specification</H1>
-
+<p>
+<img src="serial.gif" alt="" width="364" height="132" border="0">
+</p>
 <H2>Memory Layout</H2>
 <p>
 <table border=1>
 <tr><th>Byte<th>Mode<th>Name<th>Description
-<tr><td>00<td>R <td>XX<td> read error indicator: 0x80
+<tr><td>00   <td>R <td>EIn<td> read error indicator: 0x80
 <tr><td>01-02<td>R <td>-  <td> zero
-<tr><td>03   <td>R <td>YY<td> read byte count
+<tr><td>03   <td>R <td>CIn<td> read byte count
 <tr><td>04-06<td>R <td>-<td>  zero
-<tr><td>07   <td>R <td>ZZ<td> read byte
-<tr><td>08   <td>R <td>XX<td> write error indicator: 0x80
+<tr><td>07   <td>R <td>DIn<td> read byte
+<tr><td>08   <td>R <td>EOut<td> write error indicator: 0x80
 <tr><td>09-0A<td>R <td>-  <td> zero
-<tr><td>0B   <td>R <td>YY<td> write byte count
+<tr><td>0B   <td>R <td>COut<td> write byte count
 <tr><td>0C-0E<td>R <td>-<td>  zero
-<tr><td>0F   <td>RW<td>ZZ<td> write byte
+<tr><td>0F   <td>RW<td>DOut<td> write byte
 </table>
 
 <H2>Serial Operation</H2>
 The program will contact the motherboard at [host:]port
 and register itself with the given address and interrupt.
-Then, the program will create a pseudo tty and is ready to
-send and receive bytes from the virtual board
-connecting the send and receive channel to the pseudo tty.
+It will then connect to a serial port on the host computer
+and forward send and receive data between the host serial device
+and the virtual serial device.
 <p>
-The name of the created pseudo tty device is written to stderr.
-A testprogram <code>talk</code> is avaliable to read and write
-interactively to this pseudo tty by connecting stdin and stdout
-of talk with the pseudo tty.
-<p>
-<H3>Reading from the tty</H3>
-At offset 0, it will provide a read/write octabyte
+The Serial Device can be used to connect a real serial device
+to the virtual bus or, using a (real or virtual) null-modem,
+it can be used to connect the host computer to the virtual bus,
+thus providing a serial connection between the host computer 
+and the virtual computer.
+
+The tty (Unix) or the COM port (Windows) is configurable (see below).
+Under Unix, virtual null modems are called pseudo ttys and can be
+found in /dev/pty as pairs of master and slave devices that ar connected
+pairwise. Under Windows, the program com0com (see
+<a href="http://com0com.sourceforge.net/">com0com.sourceforge.net</a>
+can be used to create a virtual null-modem.
+
+<H3>Input</H3>
+At offset 0, the serial device will provide a read only octabyte
 in the following format:
 <p>
-XX00 00YY 0000 00ZZ
+EE00 00CC 0000 00DD
 <p>
-The XX byte signals errors it will be 0x80 if an error occured
-and 0x00 otherwise.
+The EE byte signals errors. It will be 0x80 if an error occured
+(making the octabyte negativ) and 0x00 otherwise.
 <p>
-The YY byte contains the number of characters read from 
-the tty since the last read operation.  This should be 0
+The CC byte contains a count of the characters read from 
+the input since the last read operation.  This should be 0
 if no new character was received and 1 if one charcter was
 received. Any other value will indicate that characters were
 lost since the last read operation.
 <p>
-The ZZ byte contains the last character received. It is valid only
-if YY is not zero.
+The DD byte contains the last character received. It is valid only
+if CC is not zero.
 <p>
-The complete ocatbyte will be reset to zero after a read operation to ZZ.
+The full ocatbyte will be reset to zero after reading the DD byte.
 <p>
-Reading a YY byte equal to zero means there is no ZZ byte avalable
-Reading a YY value that is zero, will generate an interrupt
-as soon as YY is becomming non zero, if interrupts are enabled.
-If the application does not read YY, there will be no interrupts.
+Reading a CC byte equal to zero means there is no DD byte avalable.
+If the read interrupt is enabled, reading a zero CC value, 
+will cause generation of a read interrupt as soon as CC becomes non zero.
+If the application does not read CC, there will be no read interrupts.
 <p>
-<H3>Writing to the tty</H3>
-At offset 8, it will provide a read/write octabyte
+<H3>Output</H3>
+At offset 8, the serial device will provide a read/write octabyte
 in the following format:
 <p>
-XX00 00YY 0000 00ZZ
+EE00 00CC 0000 00DD
 <p>
-The XX byte signals errors it will be 0x80 if an error occured
-and 0x00 otherwise.
+The EE byte signals errors. It will be 0x80 if an error occured
+(making the octabyte negativ) and 0x00 otherwise.
 <p>
-The YY byte contains the number of characters that were written
-to this address since the last output. This should be 0
-if the address is ready to receive a character or 1 if the hardware
-is bussy with writing a byte. Any other value will indicate that characters were
+<p>
+The CC byte contains a count of the characters written to DD since
+the last output from the serial device was completed.
+This should be 0 if DD is ready to receive a character 
+or 1 if the (virtual) hardware is bussy with writing the DD byte.
+Any other value will indicate that characters were
 lost since the last write operation.
 <p>
-The ZZ byte contains the last character received. It is valid only
-if YY is not zero.
+The DD byte contains the last character written to DD.
+It is valid only if CC is non zero.
 <p>
-The complete ocatbyte will be reset to zero after a byte is output.
+The full ocatbyte will be reset to zero after sending of the DD byte
+completes.
 <p>
-Reading a YY byte equal to zero means you can write one byte to ZZ to
-produce output. Reading a YY value that is not zero, will generate an
-interrupt as soon as YY is returning to zero, if interrupts are enabled.
-If the application does not read YY, there will be no interrupts.
+Reading a CC byte equal to zero means you can write one byte to DD to
+send output. If the write interrupt is enabled, 
+reading a non zero CC value, will cause generation of a
+write interrupt as soon as CC is returning to zero.
+If the application does not read CC, there will be no write interrupts.
 
 <H2>Serial Configuration</H2>
 The serial device has the following configurable parameters:
@@ -89,8 +108,9 @@ The serial device has the following configurable parameters:
 <tr> <td>address   <td> default <td> address where the resource is located </tr>
 <tr> <td>rinterrupt <td> default <td>read interrupt send by device  </tr>
 <tr> <td>winterrupt <td> default <td>write interrupt send by device  </tr>
-<tr> <td>rdisable <td> false <td> disable read interrupts </tr>
-<tr> <td>wdisable <td> false <td> disable write interrupts  </tr>
+<tr> <td>rdisable  <td> false <td> disable read interrupts </tr>
+<tr> <td>wdisable  <td> false <td> disable write interrupts  </tr>
+<tr> <td>serial    <td>       <td> connect to the given serial device </tr>
 <tr> <td> x        <td> 0<td>the x position of the window </tr>
 <tr> <td> y        <td> 0<td>the y position of the window </tr>
 <tr> <td> minimized<td> false<td>start with a minimized window </tr>
@@ -101,9 +121,7 @@ The serial device has the following configurable parameters:
 <tr> <td> config   <td> not set<td>filename for a configuration file</tr>
 <tr> <td> help     <td> false<td>to print information</tr>
 </table>
-These should be set in default.mmc
-Later versions of the timer device might specify a resolution, to change
-the units of ms, t, i, t0 and dt. Currently, only a millisecond timer is available.
+These an be set on the command line or in configuration file.
 
 </BODY>
 </HTML>

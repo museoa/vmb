@@ -19,65 +19,9 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.2 $ $Date: 2011-04-26 19:55:40 $";
+char version[]="$Revision: 1.3 $ $Date: 2011-11-02 14:38:58 $";
 
-char howto[] =
-"The program will contact the motherboard at [host:]port\r\n"
-"and register itself with the given address and interrupt.\r\n"
-"Then, the program will create a pseudo tty and be ready to\r\n"
-"send and receive bytes from the virtual board sending\r\n"
-"connecting the send and receive channel to the pseudo tty.\r\n"
-"\r\n"
-"Reading from the tty:\r\n"
-"At offset 0, it will provide a read/write octabyte\r\n"
-"in the following format:\r\n"
-"\r\n"
-"   XX00 00YY 0000 00ZZ\r\n"
-"\r\n"
-"The XX byte signals errors it will be 0x80 if an error occured\r\n"
-"and 0x00 otherwise.\r\n"
-"\r\n"
-"The YY byte contains the number of characters read from \r\n"
-"the tty since the last read operation.  This should be 0\r\n"
-"if no new character was received and 1 if one charcter was\r\n"
-"received. Any other value will indicate that character were\r\n"
-"lost since the last read operation.\r\n"
-"\r\n"
-"The ZZ byte contains the last character received. It is valid only\r\n"
-"if YY is not zero.\r\n"
-"\r\n"
-"The complete ocatbyte will be reset to zero after a read operation to ZZ.\r\n"
-"\r\n"
-"Reading a YY byte equal to zero means there is no ZZ byte available\r\n"
-"Reading a YY value that is zero, will generate an interrupt\r\n"
-"as soon as YY is becomming non zero, if interrupts are enabled.\r\n"
-"If the application does not read YY, there will be no interrupts.\r\n"
-"\r\n"
-"Writing to the tty:\r\n"
-"At offset 8, it will provide a read/write octabyte\r\n"
-"in the following format:\r\n"
-"\r\n"
-"   XX00 00YY 0000 00ZZ\r\n"
-"\r\n"
-"The XX byte signals errors it will be 0x80 if an error occured\r\n"
-"and 0x00 otherwise.\r\n"
-"\r\n"
-"The YY byte contains the number of characters that were written\r\n"
-"to this address since the last output. This should be 0\r\n"
-"if the address is ready to receive a character or 1 if the hardware\r\n"
-"is bussy with writing a byte. Any other value will indicate that characters were\r\n"
-"lost since the last write operation.\r\n"
-"\r\n"
-"The ZZ byte contains the last character received. It is valid only\r\n"
-"if YY is not zero.\r\n"
-"\r\n"
-"The complete ocatbyte will be reset to zero after a byte is output.\r\n"
-"\r\n"
- "Reading a YY byte equal to zero means you can write one byte to ZZ to\r\n"
-"produce output. Reading a YY value that is not zero, will generate an\r\n"
-"interrupt as soon as YY is returning to zero, if interrupts are enabled.\r\n"
-"If the application does not read YY, there will be no interrupts.\r\n"
-;
+char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
 #ifdef WIN32
 #include <windows.h>
