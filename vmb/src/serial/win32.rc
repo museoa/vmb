@@ -30,6 +30,8 @@ IDB_BITMAP              BITMAP                  "main.bmp"
 IDB_CONNECT             BITMAP                  "connect.bmp"
 IDB_OFF                 BITMAP                  "off.bmp"
 IDB_ON                  BITMAP                  "on.bmp"
+IDB_PIN_ON              BITMAP                  "pinon.bmp"
+IDB_PIN_OFF             BITMAP                  "pinoff.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

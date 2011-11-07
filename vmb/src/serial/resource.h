@@ -19,7 +19,9 @@
 #define IDD_CONNECT                     122
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
-
+#define IDB_PIN_ON                      127
+#define IDB_BITMAP4                     128
+#define IDB_PIN_OFF                     128
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
 #define ID_CONNECT                      40007
@@ -36,7 +38,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        127
+#define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40018
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101

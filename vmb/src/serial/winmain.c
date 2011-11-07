@@ -9,7 +9,7 @@
 #include "option.h"
 
 
-HBITMAP hBmpActive, hBmpInactive;
+HBITMAP hBmpPinOn,hBmpPinOff;
 
 
 INT_PTR CALLBACK   
@@ -43,10 +43,59 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 }
 extern void process_input_file(char *filename);
 
+extern int pins, npins;
+
+void display_pins(void)
+{ RECT Rect;
+  Rect.top=18;
+  Rect.bottom=27;
+  Rect.left=25;
+  Rect.right=25+25*npins+9;
+  InvalidateRect(hMainWnd,&Rect,FALSE);
+}
+
+void paint_pins(HDC memdc, HDC hdc)
+{ int i;
+  for (i=0;i<npins;i++)  
+  { if ((pins>>i)&1)
+	  SelectObject(memdc, hBmpPinOn);
+    else
+	  SelectObject(memdc, hBmpPinOff);
+    BitBlt(hdc, 25+25*i, 18, 9, 9, memdc, 0, 0, SRCCOPY);
+  }
+}
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
-  { case WM_DROPFILES:
+  {  case WM_CREATE: 
+	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,145,80,32,32,hWnd,NULL,hInst,0);
+    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
+	hBmpPinOn= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_ON), 
+				IMAGE_BITMAP, 9, 9, LR_CREATEDIBSECTION);
+	hBmpPinOff= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_OFF), 
+				IMAGE_BITMAP, 9, 9, LR_CREATEDIBSECTION);
+
+    return 0;
+  case WM_PAINT:
+    { PAINTSTRUCT ps;
+      HDC hdc = BeginPaint (hWnd, &ps);
+	  if (hBmp)
+	  { HDC memdc = CreateCompatibleDC(NULL);
+        HBITMAP h = (HBITMAP)SelectObject(memdc, hBmp);
+        BITMAP bm;
+        GetObject(hBmp, sizeof(bm), &bm);
+        BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, memdc, 0, 0, SRCCOPY);
+
+        paint_pins(memdc, hdc);
+
+        SelectObject(memdc, h);
+	    DeleteDC(memdc);
+	  }
+      EndPaint (hWnd, &ps);
+    }
+    return 0;
+   case WM_DROPFILES:
 	  { HDROP hDrop;
 	    char filename[500];
 	    hDrop = (HDROP)wParam;

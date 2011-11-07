@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.4 $ $Date: 2011-11-02 17:52:57 $";
+char version[]="$Revision: 1.5 $ $Date: 2011-11-07 16:03:52 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -204,20 +204,57 @@ return 1;
 
 #ifdef WIN32
 static HANDLE hCom;
-int writetty(unsigned char *buf, int size)
-{ DWORD n;
-  if (!WriteFile(hCom,buf,size,&n,NULL))
-    return -1;
-  else
-	return (int)n;
+
+int get_pins(void)
+{  DWORD      dwCommEvent;
+   OVERLAPPED osStatus = {0};
+
+   osStatus.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+   if (osStatus.hEvent == NULL)
+	  vmb_fatal_error(__LINE__,"Unable to create overlapped event");
+   
+   if (!WaitCommEvent(hCom, &dwCommEvent, &osStatus) &&
+        (WaitForSingleObject(osStatus.hEvent, INFINITE)!=WAIT_OBJECT_0 || 
+         !GetOverlappedResult(hCom, &osStatus, &dwCommEvent, FALSE)))
+	  dwCommEvent = -1;
+   else
+      GetCommModemStatus(hCom,&dwCommEvent);
+   CloseHandle(osStatus.hEvent);
+   return dwCommEvent;
 }
 
+int writetty(unsigned char *buf, int size)
+{ 
+   OVERLAPPED osWrite = {0};
+   DWORD dwWritten;
+
+   osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+   if (osWrite.hEvent == NULL)
+	  vmb_fatal_error(__LINE__,"Unable to create overlapped event");
+   if (!WriteFile(hCom, buf, size, &dwWritten, &osWrite) &&
+        ( GetLastError() != ERROR_IO_PENDING ||
+          WaitForSingleObject(osWrite.hEvent, INFINITE)!= WAIT_OBJECT_0 ||
+ 	      !GetOverlappedResult(hCom, &osWrite, &dwWritten, FALSE)))
+     dwWritten = -1;
+   CloseHandle(osWrite.hEvent);
+   return dwWritten;
+}
+
+
 int readtty(unsigned char *buf, int size)
-{ DWORD n;
-  if (!ReadFile(hCom,buf,size,&n,NULL))
-	return -1;
-  else
-	return (int)n;
+{ DWORD dwRead=0;
+  OVERLAPPED osReader = {0};
+  osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+  if (osReader.hEvent == NULL)
+	  vmb_fatal_error(__LINE__,"Unable to create overlapped event");
+  while (dwRead==0)
+    if (!ReadFile(hCom, buf, size, &dwRead, &osReader) &&
+        ( GetLastError() != ERROR_IO_PENDING ||
+          WaitForSingleObject(osReader.hEvent, INFINITE)!=WAIT_OBJECT_0 ||
+          !GetOverlappedResult(hCom, &osReader, &dwRead, FALSE)))
+      dwRead=-1;
+  CloseHandle(osReader.hEvent);
+  return dwRead;
 }
 
 #else
@@ -230,6 +267,32 @@ int readtty(unsigned char *buf, int size)
 { return read(ttyfd,buf,size);
 }
 #endif
+
+int pins=-1, npins=0;
+
+#ifdef WIN32
+extern void display_pins(void);
+
+static DWORD WINAPI status_thread(LPVOID dummy)
+#else
+static void *status_thread(void *dummy)
+#endif
+/* wait for a status change and report
+*/
+{ do 
+  { pins = get_pins();
+	if (pins==-1) {
+        vmb_debug(VMB_DEBUG_ERROR,"Error reading TTY status");
+        return 0;
+	}
+	vmb_debugi(VMB_DEBUG_INFO,"Status change %X",pins);
+	if (pins& MS_CTS_ON) vmb_debug(VMB_DEBUG_INFO,"Status CTS"); 
+	if (pins& MS_DSR_ON) vmb_debug(VMB_DEBUG_INFO,"Status DSR"); 
+	if (pins& MS_RING_ON) vmb_debug(VMB_DEBUG_INFO,"Status RING"); 
+    if (pins& MS_RLSD_ON) vmb_debug(VMB_DEBUG_INFO,"Status RLSD"); 
+    display_pins();
+  } while (1);
+}
 #ifdef WIN32
 static DWORD WINAPI write_thread(LPVOID dummy)
 #else
@@ -368,6 +431,19 @@ static void init_threads(void)
 /* in the moment, I really dont use the handle */
     CloseHandle(hThread);
 
+	    hThread = CreateThread( 
+            NULL,              // default security attributes
+            0,                 // use default stack size  
+            status_thread,        // thread function 
+            NULL,             // argument to thread function 
+            0,                 // use default creation flags 
+            &dwThreadId);   // returns the thread identifier 
+        // Check the return value for success. 
+    if (hThread == NULL) 
+      vmb_fatal_error(__LINE__, "Creation of status thread failed");
+/* in the moment, I really dont use the handle */
+    CloseHandle(hThread);
+
 #else
    read_tid  = pthread_create(&read_thr,NULL,read_thread,NULL);
    write_tid = pthread_create(&write_thr,NULL,write_thread,NULL);
@@ -495,15 +571,30 @@ void create_pseudo_tty(void)
 {
 
 #ifdef WIN32
-  hCom=CreateFile("COM1", 
+	COMMTIMEOUTS ctm;
+	hCom=CreateFile("COM5", 
 	              GENERIC_READ | GENERIC_WRITE, 
                   0, 
                   0, 
                   OPEN_EXISTING,
-                  0,
+                  FILE_FLAG_OVERLAPPED,
                   0);
   if (hCom==INVALID_HANDLE_VALUE)
     vmb_fatal_error(__LINE__,"Unable to open COM Port");
+  GetCommTimeouts(hCom,&ctm);
+  ctm.ReadIntervalTimeout=10;
+  ctm.ReadTotalTimeoutMultiplier=1;
+  ctm.ReadTotalTimeoutConstant=5000;
+  ctm.WriteTotalTimeoutConstant=5000;
+  ctm.WriteTotalTimeoutMultiplier=1;
+  SetCommTimeouts(hCom,&ctm);
+
+npins=8;
+pins=0;
+if (!SetCommMask(hCom, EV_BREAK | EV_CTS   | EV_DSR | EV_ERR | EV_RING |
+                       EV_RLSD | EV_RXCHAR | EV_RXFLAG | EV_TXEMPTY))
+  vmb_debug(VMB_DEBUG_ERROR,"Unable to activate Communication Events");
+
 
 #else
   ttyfd = open("/dev/pty/m99", O_RDWR);
@@ -608,6 +699,7 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=serial_put_payload;
   vmb->get_payload=serial_get_payload;
+  init_threads();
 }
 
 
@@ -643,7 +735,7 @@ int main(int argc, char *argv[])
   vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "size: %x ",vmb_size);
   
-  init_threads();
+ 
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,

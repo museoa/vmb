@@ -189,6 +189,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\optiontab.c"
+				>
+			</File>
+			<File
 				RelativePath=".\serial.c"
 				>
 			</File>
@@ -230,6 +234,14 @@
 			</File>
 			<File
 				RelativePath=".\on.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\pinoff.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\pinon.bmp"
 				>
 			</File>
 			<File

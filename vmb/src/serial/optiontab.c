@@ -39,13 +39,13 @@ option_spec options[] = {
 {"make debugging verbose",              'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
-{"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x8000000000000000", {&vmb_address}},
+{"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x0001000000000000", {&vmb_address}},
 {"read interrupt send by device",       'R', "rinterrupt", "interrupt number", int_arg, "41", {&rinterrupt}},
 {"write interrupt send by device",      'W', "winterrupt", "interrupt number", int_arg, "42", {&winterrupt}},
 {"disable read interrupt",              'r', "rdisable", "", on_arg, NULL, {&rdisable}},
 {"disable write interrupt",             'w', "wdisable", "", on_arg, NULL, {&wdisable}},
 {"the serial device to connect to",     's', "serial",   "device",  str_arg, NULL, {&serial}},
-{"filename for a configuration file",   'c', "config", "file",          fun_arg, NULL, {parse_configfile}},
+{"filename for a configuration file",   'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},
 {"to print usage information",          '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };
