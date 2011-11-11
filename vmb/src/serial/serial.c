@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.5 $ $Date: 2011-11-07 16:03:52 $";
+char version[]="$Revision: 1.6 $ $Date: 2011-11-11 12:15:17 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -51,21 +51,19 @@ extern HWND hMainWnd;
 /* options */
 extern int rinterrupt, winterrupt, rdisable, wdisable;
 static int wrequested=0, rrequested=0;
-
+extern char *serial;
+extern int buffered;
 device_info vmb;
 
 
 #define SERIAL_MEM	0x10
 unsigned char smem[SERIAL_MEM];
-#define RXX (smem[0])
-#define RYY (smem[3])
-#define RZZ (smem[7])
-#define WXX (smem[8])
-#define WYY (smem[11])
-#define WZZ (smem[15])
-
-/* official copies of RYY, RXX, RZZ */
-static unsigned char rxx=0,ryy=0, rzz=0;
+#define REE (smem[0])
+#define RCC (smem[3])
+#define RDD (smem[7])
+#define WEE (smem[8])
+#define WCC (smem[11])
+#define WDD (smem[15])
 
 /* events/actions: 
     getpayload from the vmb thread
@@ -79,14 +77,15 @@ static unsigned char rxx=0,ryy=0, rzz=0;
       
     input from the ptty
       place input in the input buffer
-      signal avalable data if required
+      signal available data if required
 */
 
-/* two circular buffers for io */
-#define BUF_MAX (1<<6)
-#define BUF_MASK (BUF_MAX-1)
+/* Buffer management: two circular buffers for io 
+   ----------------------------------------------
+*/
 struct buf {
-  unsigned char buf[BUF_MAX];
+  unsigned int buf_max, buf_mask;
+  unsigned char *buf;
   int head, tail;
 #ifdef WIN32
   HANDLE hbuf;
@@ -99,24 +98,38 @@ struct buf {
 
 #ifdef WIN32
 #define bufacquire(buf)  EnterCriticalSection (&(buf->buf_section))
+#define bufrelease(buf)  LeaveCriticalSection (&(buf->buf_section))
+#define bufinit(buf) InitializeCriticalSection (&(buf->buf_section)),\
+	                 buf->hbuf =CreateEvent(NULL,FALSE,FALSE,NULL)
 #else
 #define bufacquire(buf)  ((pthread_mutex_lock(&buf->buf_mutex))?	\
 		       (vmb_error(__LINE__,"Locking buf mutex failed"), \
 			pthread_exit(NULL)):0)
-#endif 
 
-#ifdef WIN32
-#define bufrelease(buf)  LeaveCriticalSection (&(buf->buf_section))
-#else
 #define bufrelease(buf)  ((pthread_mutex_unlock(&buf->buf_mutex))? \
                        (vmb_error(__LINE__,"Unlocking buf mutex failed"), \
 			pthread_exit(NULL)):0)
+#define bufinit(buf) pthread_mutex_init(buf->buf_mutex,NULL),\
+                     pthread_cond_init(buf->buf_cond,NULL)
 #endif
 
+void buf_init(struct buf *buf)
+{	buf->buf_max = (1<<6);
+	buf->buf_mask = buf->buf_max-1;
+	buf->buf = malloc(buf->buf_max);
+	if (buf->buf==NULL)
+		vmb_fatal_error(__LINE__,"Unable to allocate Buffer");
+	buf->head=buf->tail=0;
+	bufinit(buf);
+}
 static void clear(struct buf *buf)
 { bufacquire(buf);
   buf->head=buf->tail=0;
   bufrelease(buf);
+}
+
+static int buf_size(struct buf *buf)
+{ return (buf->tail-buf->head)&buf->buf_mask;
 }
 
 static int is_empty(struct buf *buf)
@@ -124,8 +137,37 @@ static int is_empty(struct buf *buf)
 }
 
 static int is_full(struct buf *buf)
-{ return ((buf->tail+1)&BUF_MASK)==buf->head;
+{ return ((buf->tail+1)&buf->buf_mask)==buf->head;
 }
+static int bufcopy(struct buf *buf, unsigned char b[], int size)
+/* copy buffer to string, needs aquired buffer */
+{ int i=0;
+  while (i<size && ! is_empty(buf))
+    { b[i] = *(buf->buf+buf->head);
+      buf->head = (buf->head+1)&buf->buf_mask;
+    i++;
+  }
+  return i;
+}
+
+static void buf_grow(struct buf *buf)
+/* double buffer size, needs aquired buffer */
+{ unsigned char *bigbuf;
+  int bigmax, bigtail;
+  bigmax = buf->buf_mask*2;
+  bigbuf = malloc(bigmax);
+  if (buf->buf==NULL)
+		vmb_fatal_error(__LINE__,"Unable to allocate Buffer");
+  bigtail=bufcopy(buf, bigbuf, bigmax);
+  free(buf->buf);
+  buf->buf=bigbuf;
+  buf->buf_max=bigmax;
+  buf->buf_mask=bigmax-1;
+  buf->head=0;
+  buf->tail=bigtail;
+}
+
+
 #ifndef WIN32
 static void clean_up_buffer_mutex(void *buf)
 { pthread_mutex_unlock(&(((struct buf *)buf)->buf_mutex)); /* needed if canceled waiting */
@@ -154,7 +196,7 @@ static void wait_not_empty(struct buf *buf)
 }
 
 static int get(struct buf *buf)
-/* return -1 on failure the character on success */
+/* return -1 on failure, return the character on success */
 { unsigned char c;
   bufacquire(buf);
   if (is_empty(buf))
@@ -162,29 +204,34 @@ static int get(struct buf *buf)
       return -1;
     }
   c = *(buf->buf+buf->head);
-  buf->head = (buf->head+1)&BUF_MASK;
+  buf->head = (buf->head+1)&buf->buf_mask;
   bufrelease(buf);
   return c;
 }
 
+
 static int getall(struct buf *buf, unsigned char b[], int size)
-/* return -1 on failure the number if charactes written to b on success */
+/* return -1 on failure,
+   return the number of charactes written to b on success */
 { int i=0;
   bufacquire(buf);
-  while (i<size && ! is_empty(buf))
-    { b[i] = *(buf->buf+buf->head);
-    buf->head = (buf->head+1)&BUF_MASK;
-    i++;
-  }
+  i = bufcopy(buf,b,size);
   bufrelease(buf);
   return i;
 }
 
 static int put(struct buf *buf, unsigned char c)
-/* return -1 on failure, 1 on success, put c into buffer */
+/* return -1 on failure, return 1 on success, put c into buffer 
+   grow buffer if necessary.
+*/
 { int next;
-  bufacquire(buf);
-  next = (buf->tail+1)&BUF_MASK;
+  if (is_full(buf)) 
+  { bufacquire(buf);
+	buf_grow(buf);
+  }
+  else
+    bufacquire(buf);
+  next = (buf->tail+1)&buf->buf_mask;
   if (next==buf->head)
     { bufrelease(buf);
       return -1;
@@ -202,8 +249,12 @@ static int put(struct buf *buf, unsigned char c)
 return 1;
 }
 
+/* Low level Input, output and status
+   -------------------------------------------
+*/
+
 #ifdef WIN32
-static HANDLE hCom;
+static HANDLE hCom=INVALID_HANDLE_VALUE;
 
 int get_pins(void)
 {  DWORD      dwCommEvent;
@@ -258,7 +309,7 @@ int readtty(unsigned char *buf, int size)
 }
 
 #else
-static int ttyfd;
+static int ttyfd=-1;
 int writetty(unsigned char *buf, int size)
 { return write(ttyfd,buf,size);
 }
@@ -267,6 +318,10 @@ int readtty(unsigned char *buf, int size)
 { return read(ttyfd,buf,size);
 }
 #endif
+
+/* Threads to read, write, and get status
+   --------------------------------------
+*/
 
 int pins=-1, npins=0;
 
@@ -303,44 +358,45 @@ static void *write_thread(void *dummy)
   device blocks to the application, which is what we want.
 */
 { do 
-    { int size, i=0;
-    unsigned char buf[BUF_MAX];
-    wait_not_empty(&outbuf);
-    size=getall(&outbuf,buf,BUF_MAX);
-    while (i<size)
-    { int ret;
-      ret = writetty(buf+i,size-i);
-      if (ret<=0)
-      { vmb_debug(VMB_DEBUG_ERROR,"Error Writing to TTY");
-        return 0;
+  { wait_not_empty(&outbuf);
+	while (!is_empty(&outbuf))
+	{ int size, i=0;
+      unsigned char buf[0x100];
+      size=getall(&outbuf,buf,0x100);
+      while (i<size)
+      { int ret;
+        ret = writetty(buf+i,size-i);
+        if (ret<=0)
+        { vmb_debug(VMB_DEBUG_ERROR,"Error Writing to TTY");
+          return 0;
+        }
+        i=i+ret;
       }
-      i=i+ret;
+	}
+	if (wrequested && !wdisable)
+    { wrequested=0;
+      vmb_raise_interrupt(&vmb,winterrupt);
+      vmb_debug(VMB_DEBUG_PROGRESS,"Read Interrupt sent");
     }
   } while (1);
 }
 
-void set_read(unsigned char c)
-{ rzz=c;
-  if (ryy<0xFF) ryy++;
-  if (ryy>1) rxx=0x80;
-}
+
 #ifdef WIN32
 static DWORD WINAPI read_thread(LPVOID dummy)
 #else
 static void *read_thread(void *dummy)
 #endif
 /* wait (blocking) for a character to become available
-   on the tty, if so put it in the inbuf, if the
-   inbuf gets full, take out a character to make room
-   and push it to rzz, incrementing ryy, and possibly
-   setting rxx,  creating errors on the vmb side.
-   then put the new character in the inbuf.
+   on the tty, 
+   if buffered input, put it in the inbuf,
+   else directly into rdd.
  */
 { do 
   { int size;
-    unsigned char buf[BUF_MAX];
+    unsigned char buf[0x100];
   start:
-    size = readtty(buf,BUF_MAX);
+    size = readtty(buf,0x100);
     if (size==0) 
       { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input Reading from TTY");
         return 0;
@@ -372,22 +428,18 @@ static void *read_thread(void *dummy)
       { int i;
         vmb_debugi(VMB_DEBUG_PROGRESS,"Reading %i byte from TTY", size);
         for (i=0; i<size;i++)
-	  { if (is_full(&inbuf))
-	      { set_read(get(&inbuf));
-                vmb_debug(VMB_DEBUG_NOTIFY,"Input buffer full");
-	      }
-            if (rrequested&!rdisable&is_empty(&inbuf))
-	      { rrequested=0;
-                vmb_raise_interrupt(&vmb,rinterrupt);
-                vmb_debug(VMB_DEBUG_PROGRESS,"Read Interrupt sent");
-	      }
-	    put(&inbuf,buf[i]);
-            if (isprint(buf[i]))
+	    { put(&inbuf,buf[i]);
+          if (isprint(buf[i]))
               vmb_debugi(VMB_DEBUG_INFO,"Reading %c from TTY", buf[i]);
-	    else
+	      else
               vmb_debugi(VMB_DEBUG_INFO,"Reading %02X from TTY", buf[i]);
+	    }
+		if (rrequested && !rdisable)
+        { rrequested=0;
+          vmb_raise_interrupt(&vmb,rinterrupt);
+          vmb_debug(VMB_DEBUG_PROGRESS,"Read Interrupt sent");
+        }
 	  }
-      }
   } while(1);
 }
 
@@ -450,73 +502,51 @@ static void init_threads(void)
 #endif
 }
 
-
-#define MAXIBUFFER (32*1024)
-static char input_buffer[MAXIBUFFER];
-static int input_buffer_first=0, input_buffer_last=0;
-
-
-void process_input_file(char *filename)
-{ FILE *f;
-  if (filename==NULL) return;
-  f = vmb_fopen(filename,"rb");
-  if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
-  input_buffer_first = 0;
-  input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
-  if (input_buffer_last<0)  vmb_debug(VMB_DEBUG_ERROR, "Unable to read input file");
-  if (input_buffer_last==0) {vmb_debug(VMB_DEBUG_NOTIFY, "Empty file"); return;}
-  if (input_buffer_last==MAXIBUFFER) 
-	  vmb_debugi(VMB_DEBUG_ERROR, "Maximum File size %d reached, File truncated",MAXIBUFFER);
-  fclose(f);
-  if (input_buffer_last>input_buffer_first)
-    put(&inbuf,input_buffer[input_buffer_first++]);
+static void set_read(unsigned char c)
+{ RDD=c;
+  if (RCC<0xFF) RCC++;
+  if (RCC>1) REE=0x80;
 }
 
-
 unsigned char *serial_get_payload(unsigned int offset,int size)
-{ vmb_debug(VMB_DEBUG_INFO,"Reading serial information");
-  RXX=rxx,RYY=ryy,RZZ=rzz;
-  if (offset<=7 && offset+size>7) /* reading input */
-    { if (!is_empty(&inbuf))
-	{ if (RYY<0xFF) RYY++;
-          if (RYY>1) RZZ=0x80;
-          RZZ=get(&inbuf); 
-          vmb_debugi(VMB_DEBUG_PROGRESS,"reading charcter 0x%02X",RZZ);
-		  if (input_buffer_last>input_buffer_first)
-            put(&inbuf,input_buffer[input_buffer_first++]);
-	}
-      else
-         vmb_debug(VMB_DEBUG_NOTIFY,"no charcter available");
-      rxx=ryy=rzz=0; /* reading clears the octabyte */
-    }
-  if (offset<=3 && offset+size>3 && RYY==0) rrequested=1;
-  if (offset<=11 && offset+size>11 && WYY!=0) wrequested=1;
-  return smem+offset;
+{ static char payload[SERIAL_MEM];
+  vmb_debug(VMB_DEBUG_INFO,"Reading serial information");
+  if (RCC==0 && !is_empty(&inbuf)) set_read(get(&inbuf));
+  if (!buffered) while(!is_empty(&inbuf)) set_read(get(&inbuf));
+  if (offset<=3 && offset+size>3 && RCC==0) /* reading RCC==00 */
+	  rrequested=1;
+  if (offset<=11 && offset+size>11)/* reading WCC */
+  { if (buffered || is_empty(&outbuf)) WCC=0;
+	if (WCC!=0) wrequested=1;
+  }
+  memcpy(payload,smem+offset,size);
+  if (offset<=7 && offset+size>7) /* reading RDD */
+	  REE=RCC=RDD=0;
+  if (RCC==0 && !is_empty(&inbuf)) set_read(get(&inbuf));
+  return payload;
 }
 
 void serial_put_payload(unsigned int offset,int size, unsigned char *payload)
 { vmb_debug(VMB_DEBUG_INFO,"Writing serial information");
-  if (offset<=15 && offset+size>15) /* writing output */
-    { WZZ= payload[15-offset]; /* the only writable byte the rest is ignored */
-      if (is_full(&outbuf))
-      {  WXX=0x80;
-         if (WYY<0xFF) WYY++;
-         vmb_debugi(VMB_DEBUG_NOTIFY,"unable to write charcter 0x%02X",WZZ);
-      }
-      else
-	{ WXX=0;
-	  put(&outbuf,WZZ);
-          WYY=0;
-          vmb_debugi(VMB_DEBUG_PROGRESS,"writing charcter 0x%02X",WZZ);
-          WZZ=0;
+  if (offset<=15 && offset+size>15) /* writing WDD*/
+  { WDD= payload[15-offset]; /* the only writable byte the rest is ignored */
+	if (buffered || is_empty(&outbuf))
+	{ put(&outbuf,WDD);
+	  vmb_debugi(VMB_DEBUG_PROGRESS,"writing charcter 0x%02X",WDD);
+	  if (buffered) WCC=0; else WCC=1;
+	  WEE=0;
 	}
+	else
+	{ if (WCC<0xFF) WCC++;
+	  if (WCC>1) WEE=0x80;
+      vmb_debugi(VMB_DEBUG_NOTIFY,"unable to write charcter 0x%02X",WDD);
     }
+  }
 }
 
 
 void serial_null(void)
 { memset(smem,0,sizeof(smem));
-  rxx=0,ryy=0, rzz=0;
   wrequested=0, rrequested=0;
   clear(&inbuf);
   clear(&outbuf);
@@ -564,15 +594,18 @@ void serial_disconnected(void)
 
 static char *slave_tty_path;
 
-void create_pseudo_tty(void)
-/* returns fd of master device
-   sets path name of slave tty in slave_tty_path
+int create_pseudo_tty(void)
+/* returns 1 for success 0 on failure
 */
 {
 
 #ifdef WIN32
 	COMMTIMEOUTS ctm;
-	hCom=CreateFile("COM5", 
+  if (hCom!=INVALID_HANDLE_VALUE)
+  { CloseHandle(hCom);
+    hCom=INVALID_HANDLE_VALUE;
+  }
+  hCom=CreateFile(serial, 
 	              GENERIC_READ | GENERIC_WRITE, 
                   0, 
                   0, 
@@ -580,7 +613,9 @@ void create_pseudo_tty(void)
                   FILE_FLAG_OVERLAPPED,
                   0);
   if (hCom==INVALID_HANDLE_VALUE)
-    vmb_fatal_error(__LINE__,"Unable to open COM Port");
+  { vmb_error(__LINE__,"Unable to open COM Port");
+    return 0;
+  }
   GetCommTimeouts(hCom,&ctm);
   ctm.ReadIntervalTimeout=10;
   ctm.ReadTotalTimeoutMultiplier=1;
@@ -597,9 +632,15 @@ if (!SetCommMask(hCom, EV_BREAK | EV_CTS   | EV_DSR | EV_ERR | EV_RING |
 
 
 #else
-  ttyfd = open("/dev/pty/m99", O_RDWR);
+  if (ttyfd!=-1)
+  { close(ttyfd);
+    ttyfd=-1;
+  }
+  ttyfd = open(serial, O_RDWR);
   if (ttyfd == -1)
-    vmb_debug(VMB_DEBUG_ERROR,"Error opening a pseudo terminal /dev/ptypf \n");
+  { vmb_error(__LINE__,"Error opening serial device\n");
+    return 0;
+  }
   slave_tty_path =  "/dev/pty/s99";
 
 #if 0
@@ -667,24 +708,15 @@ if (!SetCommMask(hCom, EV_BREAK | EV_CTS   | EV_DSR | EV_ERR | EV_RING |
 #endif
 
   }
- 
+ return 1;
 }
 
 
 void serial_init(void)
 { create_pseudo_tty();
   fprintf(stderr,"Created device %s\n",slave_tty_path);
-#ifdef WIN32
-	InitializeCriticalSection (&inbuf.buf_section);
-	inbuf.hbuf =CreateEvent(NULL,FALSE,FALSE,NULL);
-    InitializeCriticalSection (&outbuf.buf_section);
-	outbuf.hbuf =CreateEvent(NULL,FALSE,FALSE,NULL);
-#else
-  pthread_mutex_init(&inbuf.buf_mutex,NULL);
-  pthread_cond_init(&inbuf.buf_cond,NULL);
-  pthread_mutex_init(&outbuf.buf_mutex,NULL);
-  pthread_cond_init(&outbuf.buf_cond,NULL);
-#endif
+  buf_init(&inbuf);
+  buf_init(&outbuf);
   serial_null();
 }
    

@@ -42,7 +42,7 @@ extern HWND hMainWnd;
 #include "inspect.h"
 
 
-char version[]="$Revision: 1.16 $ $Date: 2011-07-27 18:33:13 $";
+char version[]="$Revision: 1.17 $ $Date: 2011-11-11 12:15:59 $";
 
 char howto[] =
 "\n"
@@ -61,43 +61,40 @@ static int image_changed = 0;
 
 void open_file(void)
 { FILE *f;
+  int file_size;
   struct stat fs;
   f=NULL;
-  vmb_size=0;
   if (filename==NULL || strcmp(filename,"") == 0)
     vmb_error(__LINE__,"No filename for image file given");
   else
-  { vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
-	f = vmb_fopen(filename,"rb");
+  { f = vmb_fopen(filename,"rb");
 	if (f==NULL) 
-		vmb_error2(__LINE__,"Unable to open image file", filename);
+		vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to open image file", filename);
 	else
-	{ if (fstat(fileno(f),&fs)<0) 
+	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
+	  if (fstat(fileno(f),&fs)<0) 
 	    vmb_error(__LINE__,"Unable to get file size");
 	  else
-	  { vmb_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /* make it a multiple of pages */
-	    if (vmb_size <= 0)  vmb_error(__LINE__,"File empty");
-	    else
-	   { if (flash!=NULL) free(flash);
-	     flash = malloc(vmb_size);
-		 if (flash==NULL) vmb_fatal_error(__LINE__,"Out of memory");
-		 vmb_size=(int)fread(flash,1,vmb_size,f);
-		 if (vmb_size<0) vmb_error(__LINE__,"Unable to read file");
-		 if (vmb_size==0) vmb_error(__LINE__,"Empty file");
-	   }
+	  { file_size = (fs.st_size+PAGESIZE-1)&~(PAGESIZE-1); /* make it a multiple of pages */
+        if ((unsigned int)file_size>vmb_size) vmb_size=(unsigned int)file_size;
 	  }
-	fclose(f);
 	}
   }
-  if (vmb_size<=0)
-  { vmb_size = PAGESIZE;
-    flash = malloc(vmb_size);
-      if (flash==NULL) vmb_fatal_error(__LINE__,"Out of memory");
+  if (vmb_size<=0) vmb_size=1;
+  if (flash!=NULL) free(flash);
+  flash = malloc(vmb_size);
+  if (flash==NULL) vmb_fatal_error(__LINE__,"Out of memory");
+  memset(flash,0,vmb_size);
+  image_changed = 1;
+  if (f!=NULL) {
+    file_size=(int)fread(flash,1,vmb_size,f);
+	if (file_size<0) vmb_error(__LINE__,"Unable to read file");
+	else image_changed = 0;
+	fclose(f);
   }
   inspector[0].address=vmb_address;
   inspector[0].size=vmb_size;
   mem_update(0,0,vmb_size);
-  image_changed = 0;
   vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 }
 

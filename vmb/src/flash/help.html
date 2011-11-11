@@ -8,7 +8,8 @@
 	<BODY>
 		<H1>FLASH Device Specification</H1>
 		<img src="flash.gif" alt="" width="314" height="114" border="0">
-		<p>The FLASH device offers a variable amount of read7write memory at a configurable address.  The content of the memory is taken form an image file. Any type of file can be used as an image file, as the file is just placed into memory and mapped into the address space. The maximum file size is 4GByte. The actual size depends on the size of the image file. The size of the image file is rounded up to multiples of 1 kByte. Upon Power Off or Reset, the memory content is written back to the image file. Upon Power On or Reset,  the FLASH image file is reread to update the FLASH in case of changes were made to the image file. Through the use of the image file, the flash device provides persistent memory.</p>
+		<p>The FLASH device offers a variable amount of read7write memory at a configurable address. The content of the memory is taken form an image file. Any type of file can be used as an image file, as the file is just placed into memory and mapped into the address space. The maximum file size is 4GByte. The actual size depends on the size of the image file and the value of the size parameter. The size of the image file is rounded up to multiples of 1 kByte. If the size of the image file is less then the size specified, or if the file specified does not exist, the image is extended with zeros to give a flash memory of the size specified.</p>
+		<p> Upon Power Off or Reset, the memory content is written back to the image file. Upon Power On or Reset, the FLASH image file is reread to update the FLASH in case of changes were made to the image file. Through the use of the image file, the flash device provides persistent memory.</p>
 		<h2>FLASH Configuration</h2>
 		The FLASH has the following configurable parameters:
 		<table>
@@ -19,6 +20,11 @@
 				<td>file</td>
 				<td></td>
 				<td>the file containing the FLASH image</td>
+			</tr>
+			<tr>
+				<td>size</td>
+				<td>1</td>
+				<td>the minimum size of the FLASH memory</td>
 			</tr>
 			<tr> <td> x        <td> 0<td>the x position of the window </tr>
 			<tr> <td> y        <td> 0<td>the y position of the window </tr>

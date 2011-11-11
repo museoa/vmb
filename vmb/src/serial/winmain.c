@@ -10,6 +10,11 @@
 
 
 HBITMAP hBmpPinOn,hBmpPinOff;
+extern int rinterrupt, winterrupt, rdisable, wdisable;
+static int wrequested=0, rrequested=0;
+extern char *serial;
+extern int buffered;
+extern int create_pseudo_tty(void);
 
 
 INT_PTR CALLBACK   
@@ -19,8 +24,13 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
 	  uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
-      return TRUE;
+	  SetDlgItemInt(hDlg,IDC_RINTERRUPT,rinterrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_WINTERRUPT,winterrupt,FALSE);
+      CheckDlgButton(hDlg,IDC_RENABLE,!rdisable?BST_CHECKED:BST_UNCHECKED);
+      CheckDlgButton(hDlg,IDC_WENABLE,!wdisable?BST_CHECKED:BST_UNCHECKED);
+      CheckDlgButton(hDlg,IDC_BUFFERED,buffered?BST_CHECKED:BST_UNCHECKED);
+      SetDlgItemText(hDlg,IDC_DEVICENAME,serial);
+	  return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
       { EndDialog(hDlg, TRUE);
@@ -31,7 +41,16 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
 	    vmb_address = strtouint64(tmp_option);
-		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		winterrupt  = GetDlgItemInt(hDlg,IDC_WINTERRUPT,NULL,FALSE);
+		rinterrupt  = GetDlgItemInt(hDlg,IDC_RINTERRUPT,NULL,FALSE);
+		wdisable=!IsDlgButtonChecked(hDlg,IDC_WENABLE);
+		rdisable=!IsDlgButtonChecked(hDlg,IDC_RENABLE);
+	    buffered=IsDlgButtonChecked(hDlg,IDC_BUFFERED);
+		GetDlgItemText(hDlg,IDC_DEVICENAME,tmp_option,MAXTMPOPTION);
+		if (strncmp(serial,tmp_option,MAXTMPOPTION)!=0)
+		{ set_option(&serial, tmp_option);
+		  create_pseudo_tty();
+		}
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -68,16 +87,16 @@ void paint_pins(HDC memdc, HDC hdc)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { switch (message) 
-  {  case WM_CREATE: 
-	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,145,80,32,32,hWnd,NULL,hInst,0);
-    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
-	hBmpPinOn= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_ON), 
-				IMAGE_BITMAP, 9, 9, LR_CREATEDIBSECTION);
-	hBmpPinOff= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_OFF), 
+  { case WM_CREATE: 
+	  hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,145,80,32,32,hWnd,NULL,hInst,0);
+      SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
+	  hBmpPinOn= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_ON), 
+	              IMAGE_BITMAP, 9, 9, LR_CREATEDIBSECTION);
+	  hBmpPinOff= (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(IDB_PIN_OFF), 
 				IMAGE_BITMAP, 9, 9, LR_CREATEDIBSECTION);
 
-    return 0;
-  case WM_PAINT:
+      return 0;
+    case WM_PAINT:
     { PAINTSTRUCT ps;
       HDC hdc = BeginPaint (hWnd, &ps);
 	  if (hBmp)
@@ -95,28 +114,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       EndPaint (hWnd, &ps);
     }
     return 0;
-   case WM_DROPFILES:
-	  { HDROP hDrop;
-	    char filename[500];
-	    hDrop = (HDROP)wParam;
-		DragQueryFile(hDrop,0,filename,500);
-	    process_input_file(filename);
-		DragFinish(hDrop);
-	  }
-	  return 0;
-    case WM_VMB_ON: /* Power On */
-	  DragAcceptFiles(hWnd,TRUE);
-	  	  if (filename!=NULL)
-	    process_input_file(filename);
-      break;
-	case WM_VMB_RESET:
-	  if (filename!=NULL)
-	    process_input_file(filename);
-      break;
-   return 0;
-    case WM_VMB_OFF: /* Power Off */
-	  DragAcceptFiles(hWnd,FALSE);
-	  break;
   }
   return (OptWndProc(hWnd, message, wParam, lParam));
 }

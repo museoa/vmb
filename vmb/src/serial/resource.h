@@ -20,10 +20,16 @@
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
 #define IDB_PIN_ON                      127
-#define IDB_BITMAP4                     128
 #define IDB_PIN_OFF                     128
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
+#define IDC_RINTERRUPT                  1006
+#define IDC_WINTERRUPT                  1007
+#define IDC_RENABLE                     1008
+#define IDC_WENABLE                     1009
+#define IDC_BUFFERED                    1010
+#define IDC_ADDRESS2                    1011
+#define IDC_DEVICENAME                  1011
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -40,7 +46,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
