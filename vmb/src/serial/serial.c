@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.6 $ $Date: 2011-11-11 12:15:17 $";
+char version[]="$Revision: 1.7 $ $Date: 2011-11-11 16:37:05 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -154,9 +154,9 @@ static void buf_grow(struct buf *buf)
 /* double buffer size, needs aquired buffer */
 { unsigned char *bigbuf;
   int bigmax, bigtail;
-  bigmax = buf->buf_mask*2;
+  bigmax = buf->buf_max*2;
   bigbuf = malloc(bigmax);
-  if (buf->buf==NULL)
+  if (bigbuf==NULL)
 		vmb_fatal_error(__LINE__,"Unable to allocate Buffer");
   bigtail=bufcopy(buf, bigbuf, bigmax);
   free(buf->buf);
@@ -337,7 +337,7 @@ static void *status_thread(void *dummy)
 { do 
   { pins = get_pins();
 	if (pins==-1) {
-        vmb_debug(VMB_DEBUG_ERROR,"Error reading TTY status");
+        vmb_debug(VMB_DEBUG_ERROR,"Error reading status");
         return 0;
 	}
 	vmb_debugi(VMB_DEBUG_INFO,"Status change %X",pins);
@@ -364,12 +364,14 @@ static void *write_thread(void *dummy)
       unsigned char buf[0x100];
       size=getall(&outbuf,buf,0x100);
       while (i<size)
-      { int ret;
+      { int ret, k;
         ret = writetty(buf+i,size-i);
         if (ret<=0)
-        { vmb_debug(VMB_DEBUG_ERROR,"Error Writing to TTY");
+        { vmb_debug(VMB_DEBUG_ERROR,"Error in Output");
           return 0;
         }
+		for (k=0;k<ret;k++)
+          vmb_debugi(VMB_DEBUG_PROGRESS,"Output 0x%02X", buf[i+k]);
         i=i+ret;
       }
 	}
@@ -398,7 +400,7 @@ static void *read_thread(void *dummy)
   start:
     size = readtty(buf,0x100);
     if (size==0) 
-      { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input Reading from TTY");
+      { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input");
         return 0;
       }
     else if (size<0)
@@ -413,7 +415,7 @@ static void *read_thread(void *dummy)
               vmb_debugi(VMB_DEBUG_ERROR,"Error %d Reading Modem Lines", errno);
 	    }
             if (flags!=old_flags)
-	      { vmb_debugi(VMB_DEBUG_ERROR,"Modem Lines from TTY %X", flags);
+	      { vmb_debugi(VMB_DEBUG_ERROR,"Modem Lines %X", flags);
                 old_flags=flags;
 	      }
             usleep(10000);
@@ -421,18 +423,15 @@ static void *read_thread(void *dummy)
 	  }
 	else
 #endif
-        vmb_debugi(VMB_DEBUG_ERROR,"Error %d Reading from TTY", errno);
+        vmb_debugi(VMB_DEBUG_ERROR,"Input Error %d ", errno);
         return 0;
       }
     else
       { int i;
-        vmb_debugi(VMB_DEBUG_PROGRESS,"Reading %i byte from TTY", size);
+        vmb_debugi(VMB_DEBUG_INFO,"Input %d byte", size);
         for (i=0; i<size;i++)
 	    { put(&inbuf,buf[i]);
-          if (isprint(buf[i]))
-              vmb_debugi(VMB_DEBUG_INFO,"Reading %c from TTY", buf[i]);
-	      else
-              vmb_debugi(VMB_DEBUG_INFO,"Reading %02X from TTY", buf[i]);
+          vmb_debugi(VMB_DEBUG_PROGRESS,"Input 0x%02X", buf[i]);
 	    }
 		if (rrequested && !rdisable)
         { rrequested=0;
@@ -510,15 +509,23 @@ static void set_read(unsigned char c)
 
 unsigned char *serial_get_payload(unsigned int offset,int size)
 { static char payload[SERIAL_MEM];
-  vmb_debug(VMB_DEBUG_INFO,"Reading serial information");
   if (RCC==0 && !is_empty(&inbuf)) set_read(get(&inbuf));
   if (!buffered) while(!is_empty(&inbuf)) set_read(get(&inbuf));
-  if (offset<=3 && offset+size>3 && RCC==0) /* reading RCC==00 */
-	  rrequested=1;
+  if (offset<=3 && offset+size>3) /* reading RCC==00 */
+  {  if (RCC==0) 
+     { rrequested=1;
+  	   vmb_debugi(VMB_DEBUG_INFO,"Read Count %d",RCC);
+     }
+     else
+  	   vmb_debugi(VMB_DEBUG_PROGRESS,"Read Count %d",RCC);
+  }
   if (offset<=11 && offset+size>11)/* reading WCC */
   { if (buffered || is_empty(&outbuf)) WCC=0;
 	if (WCC!=0) wrequested=1;
+	vmb_debugi(VMB_DEBUG_PROGRESS,"Write Count %d",WCC);
   }
+  if (offset<=7 && offset+size>7 && RCC!=0) /* reading RDD */
+	vmb_debugi(VMB_DEBUG_PROGRESS,"Get Read Data 0x%02X",RDD);
   memcpy(payload,smem+offset,size);
   if (offset<=7 && offset+size>7) /* reading RDD */
 	  REE=RCC=RDD=0;
@@ -527,12 +534,11 @@ unsigned char *serial_get_payload(unsigned int offset,int size)
 }
 
 void serial_put_payload(unsigned int offset,int size, unsigned char *payload)
-{ vmb_debug(VMB_DEBUG_INFO,"Writing serial information");
-  if (offset<=15 && offset+size>15) /* writing WDD*/
+{ if (offset<=15 && offset+size>15) /* writing WDD*/
   { WDD= payload[15-offset]; /* the only writable byte the rest is ignored */
 	if (buffered || is_empty(&outbuf))
 	{ put(&outbuf,WDD);
-	  vmb_debugi(VMB_DEBUG_PROGRESS,"writing charcter 0x%02X",WDD);
+	  vmb_debugi(VMB_DEBUG_PROGRESS,"Set Write Data 0x%02X",WDD);
 	  if (buffered) WCC=0; else WCC=1;
 	  WEE=0;
 	}
@@ -783,7 +789,7 @@ int main(int argc, char *argv[])
       perror("select()");
     else if (FD_ISSET(ttyfd,&except_set))
     { int arg;
-      vmb_debug(VMB_DEBUG_PROGRESS,"Exception on TTY\n");
+      vmb_debug(VMB_DEBUG_PROGRESS,"Exception\n");
       if(ioctl(ttyfd, TIOCMGET, &arg) < 0)
             perror("TIOCMGET ioctl failed");
       else
