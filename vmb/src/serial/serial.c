@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.7 $ $Date: 2011-11-11 16:37:05 $";
+char version[]="$Revision: 1.8 $ $Date: 2011-12-23 13:40:15 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -52,7 +52,7 @@ extern HWND hMainWnd;
 extern int rinterrupt, winterrupt, rdisable, wdisable;
 static int wrequested=0, rrequested=0;
 extern char *serial;
-extern int buffered;
+extern int unbuffered;
 device_info vmb;
 
 
@@ -282,11 +282,17 @@ int writetty(unsigned char *buf, int size)
    osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
    if (osWrite.hEvent == NULL)
 	  vmb_fatal_error(__LINE__,"Unable to create overlapped event");
-   if (!WriteFile(hCom, buf, size, &dwWritten, &osWrite) &&
-        ( GetLastError() != ERROR_IO_PENDING ||
-          WaitForSingleObject(osWrite.hEvent, INFINITE)!= WAIT_OBJECT_0 ||
- 	      !GetOverlappedResult(hCom, &osWrite, &dwWritten, FALSE)))
-     dwWritten = -1;
+   if (!WriteFile(hCom, buf, size, &dwWritten, &osWrite))
+   { dwWritten = -1;
+     if (GetLastError() != ERROR_IO_PENDING)
+       vmb_debug(VMB_DEBUG_NOTIFY,"Output Error");
+     else if (WaitForSingleObject(osWrite.hEvent, INFINITE)!= WAIT_OBJECT_0)
+       vmb_debug(VMB_DEBUG_INFO,"Spurious Output Event");
+	 else if (!GetOverlappedResult(hCom, &osWrite, &dwWritten, FALSE))
+	 { vmb_debug(VMB_DEBUG_INFO,"Spurious Output Error");
+       dwWritten = -1;
+	 }
+   }
    CloseHandle(osWrite.hEvent);
    return dwWritten;
 }
@@ -299,11 +305,24 @@ int readtty(unsigned char *buf, int size)
   if (osReader.hEvent == NULL)
 	  vmb_fatal_error(__LINE__,"Unable to create overlapped event");
   while (dwRead==0)
-    if (!ReadFile(hCom, buf, size, &dwRead, &osReader) &&
-        ( GetLastError() != ERROR_IO_PENDING ||
-          WaitForSingleObject(osReader.hEvent, INFINITE)!=WAIT_OBJECT_0 ||
-          !GetOverlappedResult(hCom, &osReader, &dwRead, FALSE)))
-      dwRead=-1;
+  { vmb_debug(VMB_DEBUG_INFO,"Wait for Input");
+    if (!ReadFile(hCom, buf, size, &dwRead, &osReader))
+	{ dwRead=-1;
+      vmb_debug(VMB_DEBUG_INFO,"Input Empty");
+      if (GetLastError() == ERROR_IO_PENDING)
+	  {  vmb_debug(VMB_DEBUG_INFO,"Input Pending");
+         if (WaitForSingleObject(osReader.hEvent, INFINITE)==WAIT_OBJECT_0)
+		 { vmb_debug(VMB_DEBUG_INFO,"Input Event");
+           if (!GetOverlappedResult(hCom, &osReader, &dwRead, FALSE))
+		   { vmb_debug(VMB_DEBUG_NOTIFY,"Could not get Input Result");
+		     dwRead=-1;
+		   }
+		 }
+		 else
+           vmb_debug(VMB_DEBUG_INFO,"Spurious Input Event");
+	  }
+    }
+  }
   CloseHandle(osReader.hEvent);
   return dwRead;
 }
@@ -364,14 +383,13 @@ static void *write_thread(void *dummy)
       unsigned char buf[0x100];
       size=getall(&outbuf,buf,0x100);
       while (i<size)
-      { int ret, k;
+      { int ret;
         ret = writetty(buf+i,size-i);
         if (ret<=0)
         { vmb_debug(VMB_DEBUG_ERROR,"Error in Output");
           return 0;
         }
-		for (k=0;k<ret;k++)
-          vmb_debugi(VMB_DEBUG_PROGRESS,"Output 0x%02X", buf[i+k]);
+        vmb_debugx(VMB_DEBUG_PROGRESS,"Output %s", buf+i, ret);
         i=i+ret;
       }
 	}
@@ -429,9 +447,9 @@ static void *read_thread(void *dummy)
     else
       { int i;
         vmb_debugi(VMB_DEBUG_INFO,"Input %d byte", size);
+        vmb_debugx(VMB_DEBUG_INFO,"Input %s", buf,size);
         for (i=0; i<size;i++)
 	    { put(&inbuf,buf[i]);
-          vmb_debugi(VMB_DEBUG_PROGRESS,"Input 0x%02X", buf[i]);
 	    }
 		if (rrequested && !rdisable)
         { rrequested=0;
@@ -494,6 +512,7 @@ static void init_threads(void)
       vmb_fatal_error(__LINE__, "Creation of status thread failed");
 /* in the moment, I really dont use the handle */
     CloseHandle(hThread);
+	vmb_debug(VMB_DEBUG_INFO,"Threads created");
 
 #else
    read_tid  = pthread_create(&read_thr,NULL,read_thread,NULL);
@@ -510,7 +529,7 @@ static void set_read(unsigned char c)
 unsigned char *serial_get_payload(unsigned int offset,int size)
 { static char payload[SERIAL_MEM];
   if (RCC==0 && !is_empty(&inbuf)) set_read(get(&inbuf));
-  if (!buffered) while(!is_empty(&inbuf)) set_read(get(&inbuf));
+  if (unbuffered) while(!is_empty(&inbuf)) set_read(get(&inbuf));
   if (offset<=3 && offset+size>3) /* reading RCC==00 */
   {  if (RCC==0) 
      { rrequested=1;
@@ -520,7 +539,7 @@ unsigned char *serial_get_payload(unsigned int offset,int size)
   	   vmb_debugi(VMB_DEBUG_PROGRESS,"Read Count %d",RCC);
   }
   if (offset<=11 && offset+size>11)/* reading WCC */
-  { if (buffered || is_empty(&outbuf)) WCC=0;
+  { if (!unbuffered || is_empty(&outbuf)) WCC=0;
 	if (WCC!=0) wrequested=1;
 	vmb_debugi(VMB_DEBUG_PROGRESS,"Write Count %d",WCC);
   }
@@ -536,10 +555,10 @@ unsigned char *serial_get_payload(unsigned int offset,int size)
 void serial_put_payload(unsigned int offset,int size, unsigned char *payload)
 { if (offset<=15 && offset+size>15) /* writing WDD*/
   { WDD= payload[15-offset]; /* the only writable byte the rest is ignored */
-	if (buffered || is_empty(&outbuf))
+	if (!unbuffered || is_empty(&outbuf))
 	{ put(&outbuf,WDD);
 	  vmb_debugi(VMB_DEBUG_PROGRESS,"Set Write Data 0x%02X",WDD);
-	  if (buffered) WCC=0; else WCC=1;
+	  if (!unbuffered) WCC=0; else WCC=1;
 	  WEE=0;
 	}
 	else
@@ -622,13 +641,15 @@ int create_pseudo_tty(void)
   { vmb_error(__LINE__,"Unable to open COM Port");
     return 0;
   }
+  vmb_debugs(VMB_DEBUG_PROGRESS,"COM Port %s opened", serial);
   GetCommTimeouts(hCom,&ctm);
-  ctm.ReadIntervalTimeout=10;
-  ctm.ReadTotalTimeoutMultiplier=1;
-  ctm.ReadTotalTimeoutConstant=5000;
-  ctm.WriteTotalTimeoutConstant=5000;
-  ctm.WriteTotalTimeoutMultiplier=1;
+  ctm.ReadIntervalTimeout=MAXDWORD; //10;
+  ctm.ReadTotalTimeoutMultiplier=MAXDWORD; //1;
+  ctm.ReadTotalTimeoutConstant=MAXDWORD-1; //5000;
+  ctm.WriteTotalTimeoutConstant=MAXDWORD; //5000;
+  ctm.WriteTotalTimeoutMultiplier=MAXDWORD; //1;
   SetCommTimeouts(hCom,&ctm);
+  vmb_debug(VMB_DEBUG_INFO,"COM Port timeouts set");
 
 npins=8;
 pins=0;

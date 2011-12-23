@@ -69,7 +69,9 @@ Reading a CC byte equal to zero means there is no DD byte avalable.
 If the read interrupt is enabled, reading a zero CC value, 
 will cause generation of a read interrupt as soon as CC becomes non zero.
 If the application does not read CC, there will be no read interrupts.
-<p>Especially when debugging such a serial device, it is often not possible to read data from the DD Byte fast enough. Then the CC count  will increase past 1 and data is lost. Setting the buffered  flag to true (on the commandline or under WIN32 in the Settings Dialog), the serial device will buffer incomming data internaly and stores the next byte from the input stream in the DD byte only after the previous byte was read from DD. In buffered mode, the CC Counter will always be 0 or at most 1.
+<p>
+Especially when debugging such a serial device, it is often not possible to read data from the DD Byte fast enough. Then the CC count  will increase past 1 and data is lost. Therefore the Input by default is bufferd. The device stores the next byte from the input stream in the DD byte only after the previous byte was read from DD. In buffered mode, the CC Counter will always be 0 or at most 1. Setting the unbuffered  flag to true (on the commandline or under WIN32 in the Settings Dialog), the serial device will  no longer buffer incomming data internaly.
+
 <H3>Output</H3>
 At offset 8, the serial device will provide a read/write octabyte
 in the following format:
@@ -98,6 +100,10 @@ send output. If the write interrupt is enabled,
 reading a non zero CC value, will cause generation of a
 write interrupt as soon as CC is returning to zero.
 If the application does not read CC, there will be no write interrupts.
+<p>
+To make the use of the device simple, by default it operates in buffered mode.
+In this mode a byte written to DD is send immediately to the output buffer. So
+reading the CC Byte will always return zero.
 
 <H2>Serial Configuration</H2>
 The serial device has the following configurable parameters:

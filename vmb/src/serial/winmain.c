@@ -13,7 +13,7 @@ HBITMAP hBmpPinOn,hBmpPinOff;
 extern int rinterrupt, winterrupt, rdisable, wdisable;
 static int wrequested=0, rrequested=0;
 extern char *serial;
-extern int buffered;
+extern int unbuffered;
 extern int create_pseudo_tty(void);
 
 
@@ -28,7 +28,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SetDlgItemInt(hDlg,IDC_WINTERRUPT,winterrupt,FALSE);
       CheckDlgButton(hDlg,IDC_RENABLE,!rdisable?BST_CHECKED:BST_UNCHECKED);
       CheckDlgButton(hDlg,IDC_WENABLE,!wdisable?BST_CHECKED:BST_UNCHECKED);
-      CheckDlgButton(hDlg,IDC_BUFFERED,buffered?BST_CHECKED:BST_UNCHECKED);
+      CheckDlgButton(hDlg,IDC_BUFFERED,unbuffered?BST_CHECKED:BST_UNCHECKED);
       SetDlgItemText(hDlg,IDC_DEVICENAME,serial);
 	  return TRUE;
    case WM_SYSCOMMAND:
@@ -45,7 +45,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		rinterrupt  = GetDlgItemInt(hDlg,IDC_RINTERRUPT,NULL,FALSE);
 		wdisable=!IsDlgButtonChecked(hDlg,IDC_WENABLE);
 		rdisable=!IsDlgButtonChecked(hDlg,IDC_RENABLE);
-	    buffered=IsDlgButtonChecked(hDlg,IDC_BUFFERED);
+	    unbuffered=IsDlgButtonChecked(hDlg,IDC_BUFFERED);
 		GetDlgItemText(hDlg,IDC_DEVICENAME,tmp_option,MAXTMPOPTION);
 		if (strncmp(serial,tmp_option,MAXTMPOPTION)!=0)
 		{ set_option(&serial, tmp_option);

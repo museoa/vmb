@@ -157,11 +157,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\connect.c"
+				>
+			</File>
+			<File
 				RelativePath=".\error.c"
 				>
 			</File>
 			<File
 				RelativePath=".\message.c"
+				>
+			</File>
+			<File
+				RelativePath=".\msgerror.c"
 				>
 			</File>
 			<File

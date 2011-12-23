@@ -21,7 +21,7 @@
 
 void vmb_raise_reset(device_info *vmb)
      /* trigger a hard reset on the bus */
-{ send_msg(vmb->fd, TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
+{ send_msg(&(vmb->fd), TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
 }
 
 
@@ -52,7 +52,7 @@ void vmb_raise_interrupt(device_info *vmb, unsigned char i)
      /* raise interrupt i to the bus */
 {  if ( i >= 64)
     return;
-   send_msg(vmb->fd, TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
+   send_msg(&(vmb->fd), TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
    vmb_debugi(VMB_DEBUG_INFO,"Raising interrupt %d",i);
 }
 
@@ -391,12 +391,12 @@ static void answer_readrequest(device_info *vmb, unsigned char slot,
     { type = TYPE_ADDRESS|TYPE_ROUTE|TYPE_PAYLOAD;
       id = ID_READREPLY; 
       size = (size+7)/8-1;}
-  send_msg(vmb->fd, type,(unsigned char)size,slot,id,0,address,data);
+  send_msg(&(vmb->fd), type,(unsigned char)size,slot,id,0,address,data);
 }
 
 static void failed_writerequest(device_info *vmb, unsigned char slot,
    			   unsigned char address[8])
-{ send_msg(vmb->fd, TYPE_ADDRESS|TYPE_ROUTE,0,slot,ID_NOWRITE,0,address,NULL);
+{ send_msg(&(vmb->fd), TYPE_ADDRESS|TYPE_ROUTE,0,slot,ID_NOWRITE,0,address,NULL);
 }
 
 
@@ -551,7 +551,7 @@ static int get_request(device_info *vmb,
 { unsigned int  time;
 
   int i;
-  i=receive_msg(vmb->fd,type,size,slot,id,&time,address,payload);
+  i=receive_msg(&(vmb->fd),type,size,slot,id,&time,address,payload);
   if (i<0) 
 	return 0;
   vmb_debugm(VMB_DEBUG_MSG, *type,*size,*slot,*id,address,payload);
@@ -565,7 +565,7 @@ static void clean_up_read_thread(void *dummy)
   if (vmb->fd>=0)
   { vmb_debug(VMB_DEBUG_INFO, "closing connection.");
     bus_unregister(vmb->fd);
-    bus_disconnect(vmb->fd); 
+    bus_disconnect(&(vmb->fd)); 
     vmb->fd = INVALID_SOCKET;
     vmb_debug(VMB_DEBUG_INFO, "connection closed.");
   }
@@ -622,7 +622,7 @@ void vmb_disconnect(device_info *vmb)
 #endif 
   if (vmb->connected)
 #ifdef WIN32
-	  bus_disconnect(vmb->fd);
+	  bus_disconnect(&(vmb->fd));
 #else
     /* should not be used. Kills the thread immediately without cleaning up. */
     pthread_cancel(read_thr);
@@ -705,7 +705,7 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
    add_offset(vmb->address,size,limit);
    vmb->lo_mask = lo_mask;
    vmb->hi_mask = hi_mask;
-   r = bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name);
+   r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name);
 #ifdef WIN32
    if (r<0)
    { TIMEVAL tv;
@@ -714,7 +714,7 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
 	 tv.tv_usec= 10000;
 	 select(0,NULL,NULL,NULL,&tv);
 	 /* wait and try again */
-	 r = bus_register(vmb->fd,vmb->address,limit,lo_mask,hi_mask,name);
+	 r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name);
    }
 #endif
    if (r<0)
@@ -758,7 +758,7 @@ void vmb_store(device_info *vmb, data_address *da)
     inttochar(da->address_hi,address);
     inttochar(da->address_lo,address+4);
     vmb_debugx(VMB_DEBUG_INFO, "Writing to address %s",address,8);
-    send_msg(vmb->fd,
+    send_msg(&(vmb->fd),
            (unsigned char)(TYPE_ADDRESS|TYPE_PAYLOAD),
            size,0,id,0,address,da->data);
   }
@@ -784,7 +784,7 @@ void vmb_load(device_info *vmb, data_address *da)
     inttochar(da->address_lo,address+4);
     enqueue_read_request(da);
     vmb_debugx(VMB_DEBUG_INFO, "Read request added for address %s",address,8);
-    send_msg(vmb->fd,
+    send_msg(&(vmb->fd),
            (unsigned char)(TYPE_ADDRESS|TYPE_REQUEST),
            size,0,id,0,address,NULL);
   }

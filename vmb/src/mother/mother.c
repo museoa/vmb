@@ -67,7 +67,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.38 $ $Date: 2011-10-11 15:47:51 $";
+char version[] = "$Revision: 1.39 $ $Date: 2011-12-23 13:40:15 $";
 
 char howto[] =
   "\n"
@@ -178,14 +178,14 @@ create_server ()
        (mother_fd, (struct sockaddr *) &mother_addr,
 	sizeof (mother_addr))) != 0)
   {
-    bus_disconnect (mother_fd);
+    closesocket(mother_fd);
     vmb_fatal_error (__LINE__, "Can't bind server socket to address");
   }
 
 
   if (listen (mother_fd, SOMAXCONN) != 0)
   {
-    bus_disconnect (mother_fd);
+    closesocket(mother_fd);
     vmb_fatal_error (__LINE__, "Can't listen");
   }
 
@@ -229,7 +229,7 @@ int
 write_to_slot (int i)
 { if ((mtype & TYPE_ROUTE) && (slot[i].answers_pending>0))
     slot[i].answers_pending--;
-  if (send_msg(slot[i].fd, mtype, msize, mslot, mid, mtime, maddress,mpayload) <= 0)
+  if (send_msg(&(slot[i].fd), mtype, msize, mslot, mid, mtime, maddress,mpayload) <= 0)
   { if (server_terminating) 
       return 1; /* dont bother */
     vmb_error2 (__LINE__, "Unable to deliver message to:", (char *)slot[i].name);
@@ -301,7 +301,7 @@ send_dummy_answer (unsigned char id, int dest_slot)
 
 static void
 disconnect_device (int slotnr)
-{
+{ int error;
   while (slot[slotnr].answers_pending > 0)
   { vmb_debugs(VMB_DEBUG_NOTIFY,"\tpending answers for %s", (char *)slot[slotnr].name);
     vmb_debugi(VMB_DEBUG_NOTIFY,"\tpending answers:    %d", slot[slotnr].answers_pending);
@@ -310,16 +310,16 @@ disconnect_device (int slotnr)
   if (powerflag)
     power_off (slotnr);
   terminate(slotnr);
-   if (!bus_unregister (slot[slotnr].fd))
+  Sleep(100);
+#ifdef WIN32
+   error = shutdown(slot[slotnr].fd,SD_BOTH);
+#else
+   error = shutdown(slot[slotnr].fd,SHUT_RDWR);
+#endif
+   if (!error)
     vmb_debugi(VMB_DEBUG_NOTIFY,"Shutdown of Slot %d", slotnr);
   else if (!server_terminating)
 	  vmb_error2(__LINE__,"Unable to shut down slot",(char *)slot[slotnr].name);
-
-  if (bus_disconnect (slot[slotnr].fd) >= 0)
-    vmb_debugi(VMB_DEBUG_PROGRESS,"Closed socket from Slot %d : Successful", slotnr);
-  else if (!server_terminating)
-    vmb_debugi(VMB_DEBUG_NOTIFY,"Closing socket from Slot %d : Failed", slotnr);
-
   remove_slot (slotnr);
 }
 
@@ -348,6 +348,7 @@ terminate_all (void)
 {
   for_all_slots (terminate);
   vmb_debug (0, "All slots terminated");
+  Sleep(100);
 }
 
 static void
@@ -355,7 +356,7 @@ shutdown_server ()
 { server_terminating=1;
   terminate_all();
   for_all_slots (disconnect_device);
-  if (bus_unregister (mother_fd) >= 0 && bus_disconnect (mother_fd) >= 0)
+  if (closesocket(mother_fd)==0)
     vmb_debugi(VMB_DEBUG_PROGRESS,"Shutdown server at Port %d : Successful", port);
 }
 
@@ -622,6 +623,23 @@ connect_new_device (void)
 }
 
 #ifdef WIN32
+
+void bus_read_error(int *socket)
+{ int error;
+  error = shutdown(*socket,SD_BOTH);
+  if (error!=0)
+	    vmb_errori(__LINE__,"Shutdown socket",WSAGetLastError());
+  *socket=INVALID_SOCKET;
+}
+
+void bus_write_error(int *socket)
+{ int error;
+  error = shutdown(*socket,SD_BOTH);
+  if (error!=0)
+	    vmb_errori(__LINE__,"Shutdown socket",WSAGetLastError());
+    *socket=INVALID_SOCKET;
+}
+
 static void
 close_socket (int fd)
 {
@@ -646,7 +664,7 @@ process_read_fdset (int fd)
     {
       int error;
       error =
-	receive_msg (slot[i].fd, &mtype, &msize, &mslot, &mid, &mtime,
+	receive_msg (&(slot[i].fd), &mtype, &msize, &mslot, &mid, &mtime,
 		     maddress, mpayload);
       if (error < 0)
 	remove_slot (i);
@@ -1014,7 +1032,11 @@ WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  {	 vmb_debugi(VMB_DEBUG_ERROR,"Socket error %d", error);
 	  }
       if (event == FD_CLOSE || error != 0)
-	  { vmb_debug(VMB_DEBUG_PROGRESS,"Socket Close");
+	  { int error;
+	    vmb_debug(VMB_DEBUG_PROGRESS,"Socket Close");
+	  	error= closesocket((int)wParam);
+	    if (error!=0)
+	      vmb_errori(__LINE__,"Close socket",WSAGetLastError());
       	close_socket ((int)wParam);
 	  }
       else if (event == FD_READ)

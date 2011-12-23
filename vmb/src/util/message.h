@@ -62,7 +62,7 @@
 #define MAXMESSAGE (4 + 4 + 8+ MAXPAYLOAD)
 /* header time address payload */
 
-extern int send_msg(int socket,
+extern int send_msg(int *socket,
          unsigned char type,
          unsigned char size,
          unsigned char slot,
@@ -71,7 +71,7 @@ extern int send_msg(int socket,
          unsigned char address[8],
          unsigned char *payload);
 
-extern int receive_msg(int socket,
+extern int receive_msg(int *socket,
          unsigned char *type,
          unsigned char *size,
          unsigned char *slot,
@@ -142,11 +142,14 @@ extern int message_size(unsigned char msg[4]);
 
 extern  int bus_connect(char *hostname,int port);
 /* returns the socket or -1 on error */
-extern  int bus_register(int socket,
+extern  int bus_register(int *socket,
                 unsigned char address[8],unsigned char limit[8],
 			unsigned int hi_mask, unsigned int low_mask, char *name);
 extern  int bus_unregister(int socket);
-extern int bus_disconnect(int socket);
+extern int bus_disconnect(int *socket);
+
+extern void bus_read_error(int *socket);
+extern void bus_write_error(int *socket);
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET  (~0)

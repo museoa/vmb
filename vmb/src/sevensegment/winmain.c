@@ -241,6 +241,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!InitInstance (hInstance)) return FALSE;
 
 	param_init();
+	SetWindowText(hMainWnd,defined);
 	get_pos_key(&xpos,&ypos,defined);
     init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);

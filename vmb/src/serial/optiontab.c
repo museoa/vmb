@@ -27,7 +27,7 @@
 
 int rinterrupt=41, winterrupt=42, rdisable=0, wdisable=0;
 char *serial=NULL;
-int buffered=0;
+int unbuffered=0;
 
 option_spec options[] = {
 /* description short long kind default handler */
@@ -36,12 +36,12 @@ option_spec options[] = {
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"start with a minimized window",       'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
-{"to generate debug output",            'd', "debug",   "debugflag",     on_arg, NULL, {&vmb_debug_flag}},
-{"make debugging verbose",              'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
+{"to generate debug output",            'd', "debug",   "debugflag",     fun_arg, NULL, {&do_option_debug}},
+{"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x0001000000000000", {&vmb_address}},
-{"to buffer input data",                'b', "buffered",   "bufferflag",     on_arg, NULL, {&buffered}},
+{"disable data buffering",              'b', "unbuffered",   "bufferflag",     on_arg, NULL, {&unbuffered}},
 {"read interrupt send by device",       'R', "rinterrupt", "interrupt number", int_arg, "41", {&rinterrupt}},
 {"write interrupt send by device",      'W', "winterrupt", "interrupt number", int_arg, "42", {&winterrupt}},
 {"disable read interrupt",              'r', "rdisable", "", on_arg, NULL, {&rdisable}},

@@ -45,12 +45,12 @@
 
 
 /* functions to send and receive a message */
-static int write_socket(int socket, unsigned char *msg, int size)
+static int write_socket(int *socket, unsigned char *msg, int size)
 /* write buffer to the socket either completely or, if blocking is false, not at all */
 { int snd = 0;
   while(snd < size)
   { int i;
-    i = send(socket, &msg[snd], size-snd,0);
+    i = send(*socket, &msg[snd], size-snd,0);
     if (i<0) /* error */
     {   
 #ifdef WIN32 
@@ -62,11 +62,11 @@ static int write_socket(int socket, unsigned char *msg, int size)
 		}
 		i= -e;
 #endif		
-		bus_disconnect(socket);
+		bus_write_error(socket);
 	  return i;
 	}
     else if (i==0) /* connection has closed */
-    { bus_disconnect(socket);
+    { bus_write_error(socket);
       return -3;
     }
     else
@@ -75,7 +75,7 @@ static int write_socket(int socket, unsigned char *msg, int size)
   return 1;
 }
 
-int send_msg(int socket,
+int send_msg(int *socket,
          unsigned char type,
          unsigned char size,
          unsigned char slot,
@@ -86,7 +86,7 @@ int send_msg(int socket,
 { unsigned char buf[MAXMESSAGE] = {0}, *msg=buf;
   int msg_size;
         
-  if (!valid_socket(socket))
+  if (!valid_socket(*socket))
     return -1;
 
   if (address == NULL)
@@ -122,12 +122,12 @@ int send_msg(int socket,
 HANDLE  recv_event;
 #endif
 
-static int read_socket(int socket, unsigned char *msg, int size)
+static int read_socket(int *socket, unsigned char *msg, int size)
 /* read a complete message from the socket */
 { int rcv = 0;
   while(rcv < size)
   { int i;
-    i = recv(socket, &msg[rcv], size-rcv,0);
+    i = recv(*socket, &msg[rcv], size-rcv,0);
     if (i<0) /* error */
     { 
 #ifdef WIN32 
@@ -138,9 +138,8 @@ static int read_socket(int socket, unsigned char *msg, int size)
 			return 0;
 		}
 #endif		
-    vmb_debug(VMB_DEBUG_NOTIFY,"Socket Read Error");
-
-		bus_disconnect(socket);
+        vmb_debug(VMB_DEBUG_NOTIFY,"Socket Read Error");
+		bus_read_error(socket);
 	  return -1;
 	}
     else if (i==0) /* connection has closed */
@@ -148,7 +147,7 @@ static int read_socket(int socket, unsigned char *msg, int size)
     vmb_debug(VMB_DEBUG_PROGRESS,"Socket was closed");
 
 /* there was a #ifdef WIN32 #else here to skip the disconnect with WIN32 */
-      bus_disconnect(socket); 
+      bus_read_error(socket); 
  	  return -1;
     } 
     else
@@ -159,7 +158,7 @@ static int read_socket(int socket, unsigned char *msg, int size)
 
 
 
-int receive_msg(int socket,
+int receive_msg(int *socket,
          unsigned char *type,
          unsigned char *size,
          unsigned char *slot,
@@ -172,7 +171,7 @@ int receive_msg(int socket,
   int msg_size;
   int rcv;
 
-  if (!valid_socket(socket))
+  if (!valid_socket(*socket))
     return -1;
   rcv = read_socket(socket,msg,4);
   if (rcv <= 0)
@@ -224,191 +223,4 @@ int message_size(unsigned char msg[4])
   return size;
 }
 
-
-
-
-/* functions to connect, register, unregister, and disconnect */
-
-int bus_connect(char *hostname,int port)
-{ int i;
-  int fd = 0;
-  struct sockaddr_in host_addr;
-  static char localhost[] = "localhost";
-
-  if (hostname == NULL)
-    hostname = localhost;
-  else if (hostname[0]==0)
-    hostname = localhost;
-
-#ifdef WIN32
-  {	WSADATA wsadata;
-	if(WSAStartup(MAKEWORD(1,1), &wsadata) != 0)
-    {  vmb_error(__LINE__,"Unable to initialize Winsock dll");
-	   return INVALID_SOCKET;
-	}
-  }
-#endif
-  fd = (int)socket( PF_INET, SOCK_STREAM, 0);
-  vmb_debug(VMB_DEBUG_PROGRESS,"Creating socket");
-  if (!valid_socket(fd))
-  {
-#ifdef WIN32
-	  WSACleanup();
-#endif
-	  vmb_error(__LINE__,"Unable to create a socket");    
-	  return INVALID_SOCKET;
-  }
-
-#if 0
-   /* create an event corresponding to the socket */
-	 recv_event = CreateEvent(NULL,False,False,NULL);
-	 if (recv_event == NULL)
-       return INVALID_SOCKET;
-	 WSAEventSelect (fd, e,FD_READ );
-#endif
-
-{ 
-  unsigned long server_ip;
-
-  server_ip = inet_addr(hostname);
-  if (server_ip == INADDR_NONE)
-  { struct hostent *hp;
-    hp = gethostbyname(hostname);
-    if (hp==NULL)
-    { server_ip = 0;
-#ifdef WIN32
-	  WSACleanup();
-#endif
-	  vmb_error(__LINE__,"Unable to get host by name");    
-      return INVALID_SOCKET;
-    }
-    memcpy(&server_ip,hp->h_addr,sizeof(server_ip));
-  }
-  host_addr.sin_addr.s_addr = server_ip;
-}
-  vmb_debug(VMB_DEBUG_PROGRESS,"Got server IP");
-  host_addr.sin_family = AF_INET;
-  host_addr.sin_port = htons((unsigned short)port);
-
-  i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
-  vmb_debugi(VMB_DEBUG_PROGRESS,"Connecting to server (%d)",i);
-  if (i < 0 )
-  { 
-#ifdef WIN32
-    int error;
-    error = WSAGetLastError();
-	if (error == WSAECONNREFUSED) /* try a second time */
-	{ i = connect(fd,(struct sockaddr *)&host_addr,sizeof(host_addr));
-      if (i < 0 )
-	  {	error = WSAGetLastError();
-	    vmb_error(error,"Unable to connect to socket");    
-		WSACleanup();
-        return INVALID_SOCKET;
-      }
-	}
-#else
-          return INVALID_SOCKET;
-#endif
-  }
-    /* wait until it is writable, then the connection has succeeded */
-  { 
-    fd_set write_set;
-    FD_ZERO(&write_set);
-    FD_SET((unsigned)fd, &write_set);
-	i = select (fd+1, NULL, &write_set, NULL, NULL);
-	if (i!=1)
-    {
-#ifdef WIN32
-		  WSACleanup();
-#endif
-	  vmb_error(__LINE__,"Unable to get a writeable socket");    
-      return INVALID_SOCKET;
-    }
-	vmb_debug(VMB_DEBUG_PROGRESS,"Socket is writable");
-  }
-
-  {
-    /* Tell TCP not to delay small packets.  This greatly speeds up
-       interactive response. */
-    int tmp = 1;
-    i = setsockopt (fd, IPPROTO_TCP, TCP_NODELAY,
-		(char *) &tmp, sizeof (tmp));
-	if (i==0)
-	  vmb_debug(VMB_DEBUG_PROGRESS,"Socket is set to TCP_NODELAY");
-	else
-	{
-#ifdef WIN32
-          i = WSAGetLastError();
-#endif
-	  vmb_debugi(VMB_DEBUG_ERROR,"Unable to set Socket to TCP_NODELAY, error %d",i);
-	}
-  }
-  return fd; 
-}
-
-int bus_register(int socket,
-                unsigned char address[8],
-                unsigned char limit[8],
-                unsigned int hi_mask, unsigned int low_mask,
-				char *name)
-{ unsigned char size;
-  unsigned char msg[MAXMESSAGE] = {0};
-  if (socket<0)
-    return -4;
-  if (address!=NULL && limit!=NULL)
-  { memmove(msg, address, 8);
-    memmove(msg+8, limit, 8);
-  }
-  else
-    memset(msg,0,16);
-  inttochar(hi_mask, &msg[16]);
-  inttochar(low_mask, &msg[20]);
-
-  size = 2;
-
-  if (name!=NULL)
-
-  { int n;
-
-    n = (int)strlen(name);
-    if ((n/8+1)> 255-3)
-       n = (255-4)*8;
-
-    strncpy((char *)(msg+24),name,n*8);
-    size += n/8+1;
-  }
-  /* send bus register message */
-  return send_msg(socket, TYPE_BUS|TYPE_PAYLOAD, size, 0, ID_REGISTER, 0, 0, msg);
-}
-
-
-int bus_unregister(int socket)
-{ if (socket<0)
-    return -1;
-  /* TODO per Message abmelden */
-#ifdef WIN32
-  return shutdown(socket,SD_BOTH);
-#else
-  return shutdown(socket,SHUT_RDWR);
-#endif
-}
-
-int bus_disconnect(int socket)
-{
-    vmb_debug(VMB_DEBUG_PROGRESS,"Disconnecting Socket");
-#ifdef WIN32
-    if (valid_socket(socket))
-	{ int error;
-	  shutdown(socket,SD_BOTH);
-	  error = closesocket(socket);
-	  if (error==0)
-	    WSACleanup();
-	}
-#else
-    if (valid_socket(socket))
-      close(socket);
-#endif
-  
-  return 0;
-}
 

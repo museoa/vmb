@@ -458,6 +458,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!InitInstance (hInstance)) return FALSE;
 	
 	param_init();
+	SetWindowText(hMainWnd,defined);
 	if (nleds<1) nleds=1;
 	if (nleds>8) nleds=8;
     get_pos_key(&xpos,&ypos,defined);

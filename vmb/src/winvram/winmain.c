@@ -1163,6 +1163,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!InitInstance (hInstance)) return FALSE;
 	
 	param_init();
+	SetWindowText(hMainWnd,defined);
     get_pos_key(&xpos,&ypos,defined);
     init_screen(&vmb);
     init_mouse();
