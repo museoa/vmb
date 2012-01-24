@@ -1,6 +1,8 @@
 PROG= mother
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
+
 #CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 CFLAGS= -O3  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
@@ -18,7 +20,7 @@ $(PROG): $(PROG).c optiontab.c utilities
 	$(CC) $(CFLAGS) $(PROG).c optiontab.c $(LDFLAGS) -o $(PROG)
 
 install: all
-	install $(PROG) $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
 
 
 TAGS:

@@ -19,7 +19,7 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.8 $ $Date: 2011-12-23 13:40:15 $";
+char version[]="$Revision: 1.9 $ $Date: 2012-01-24 09:49:11 $";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -109,8 +109,8 @@ struct buf {
 #define bufrelease(buf)  ((pthread_mutex_unlock(&buf->buf_mutex))? \
                        (vmb_error(__LINE__,"Unlocking buf mutex failed"), \
 			pthread_exit(NULL)):0)
-#define bufinit(buf) pthread_mutex_init(buf->buf_mutex,NULL),\
-                     pthread_cond_init(buf->buf_cond,NULL)
+#define bufinit(buf) pthread_mutex_init(&buf->buf_mutex,NULL),\
+                     pthread_cond_init(&buf->buf_cond,NULL)
 #endif
 
 void buf_init(struct buf *buf)
@@ -348,11 +348,6 @@ int pins=-1, npins=0;
 extern void display_pins(void);
 
 static DWORD WINAPI status_thread(LPVOID dummy)
-#else
-static void *status_thread(void *dummy)
-#endif
-/* wait for a status change and report
-*/
 { do 
   { pins = get_pins();
 	if (pins==-1) {
@@ -367,6 +362,14 @@ static void *status_thread(void *dummy)
     display_pins();
   } while (1);
 }
+#else
+static void *status_thread(void *dummy)
+{ return NULL;
+}
+#endif
+/* wait for a status change and report
+*/
+
 #ifdef WIN32
 static DWORD WINAPI write_thread(LPVOID dummy)
 #else
@@ -527,7 +530,7 @@ static void set_read(unsigned char c)
 }
 
 unsigned char *serial_get_payload(unsigned int offset,int size)
-{ static char payload[SERIAL_MEM];
+{ static unsigned char payload[SERIAL_MEM];
   if (RCC==0 && !is_empty(&inbuf)) set_read(get(&inbuf));
   if (unbuffered) while(!is_empty(&inbuf)) set_read(get(&inbuf));
   if (offset<=3 && offset+size>3) /* reading RCC==00 */
@@ -718,7 +721,7 @@ if (!SetCommMask(hCom, EV_BREAK | EV_CTS   | EV_DSR | EV_ERR | EV_RING |
         fcntl(fd, F_SETOWN, getpid());
 
 #else
-    tcgetattr(fd,&tios);
+    tcgetattr(ttyfd,&tios);
     /* make it a raw tty (like cfmakeraw(&tios) ) */
     tios.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
                       | INLCR | IGNCR | ICRNL | IXON);
@@ -728,7 +731,7 @@ if (!SetCommMask(hCom, EV_BREAK | EV_CTS   | EV_DSR | EV_ERR | EV_RING |
     tios.c_cflag |= CS8;
     tios.c_cc[VMIN]=1;
     tios.c_cc[VTIME]=0;
-    tcsetattr(fd,TCSANOW,&tios);
+    tcsetattr(ttyfd,TCSANOW,&tios);
 #endif
 	if (ttyfd<0) vmb_fatal_error(__LINE__,"Unable to open pseudo tty");
 

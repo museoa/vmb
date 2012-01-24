@@ -5,7 +5,7 @@ SUBDIRS  = util opt device mother\
            mmix \
            screen keyboard vram \
            ram rom flash \
-           disk hostdisk led timer
+           disk hostdisk led timer button serial
 
 .PHONY: hardware $(SUBDIRS) clean
 

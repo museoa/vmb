@@ -40,9 +40,9 @@ and the virtual computer.
 
 The tty (Unix) or the COM port (Windows) is configurable (see below).
 Under Unix, virtual null modems are called pseudo ttys and can be
-found in /dev/pty as pairs of master and slave devices that ar connected
+found in /dev/pty as pairs of master and slave devices that are connected
 pairwise. Under Windows, the program com0com (see
-<a href="http://com0com.sourceforge.net/">com0com.sourceforge.net</a>
+<a href="http://com0com.sourceforge.net/">com0com.sourceforge.net</a>)
 can be used to create a virtual null-modem.
 
 <H3>Input</H3>
@@ -51,21 +51,21 @@ in the following format:
 <p>
 EE00 00CC 0000 00DD
 <p>
-The EE byte signals errors. It will be 0x80 if an error occured
-(making the octabyte negativ) and 0x00 otherwise.
+The EE byte signals errors. It will be 0x80 if an error occurred
+(making the octabyte negative) and 0x00 otherwise.
 <p>
 The CC byte contains a count of the characters read from 
 the input since the last read operation.  This should be 0
-if no new character was received and 1 if one charcter was
+if no new character was received and 1 if one character was
 received. Any other value will indicate that characters were
 lost since the last read operation.
 <p>
 The DD byte contains the last character received. It is valid only
 if CC is not zero.
 <p>
-The full ocatbyte will be reset to zero after reading the DD byte.
+The full octabyte will be reset to zero after reading the DD byte.
 <p>
-Reading a CC byte equal to zero means there is no DD byte avalable.
+Reading a CC byte equal to zero means there is no DD byte available.
 If the read interrupt is enabled, reading a zero CC value, 
 will cause generation of a read interrupt as soon as CC becomes non zero.
 If the application does not read CC, there will be no read interrupts.
@@ -78,22 +78,22 @@ in the following format:
 <p>
 EE00 00CC 0000 00DD
 <p>
-The EE byte signals errors. It will be 0x80 if an error occured
-(making the octabyte negativ) and 0x00 otherwise.
+The EE byte signals errors. It will be 0x80 if an error occurred
+(making the octabyte negative) and 0x00 otherwise.
 <p>
 <p>
 The CC byte contains a count of the characters written to DD since
 the last output from the serial device was completed.
 This should be 0 if DD is ready to receive a character 
-or 1 if the (virtual) hardware is bussy with writing the DD byte.
+or 1 if the (virtual) hardware is busy with writing the DD byte.
 Any other value will indicate that characters were
 lost since the last write operation.
 <p>
 The DD byte contains the last character written to DD.
 It is valid only if CC is non zero.
 <p>
-The full ocatbyte will be reset to zero after sending of the DD byte
-completes.
+The full octabyte will be reset to zero after sending of the DD byte
+completes successfully.
 <p>
 Reading a CC byte equal to zero means you can write one byte to DD to
 send output. If the write interrupt is enabled, 

@@ -10,17 +10,19 @@
 MMIXDIR=/usr/local/bin
 AS=$(MMIXDIR)/mmix-as
 LD=$(MMIXDIR)/mmix-ld
-CFLAGS = -ggdb -O0 -D_REENTRANT -Wall 
-#CFLAGS = -O3 -D_REENTRANT -Wall 
+#CFLAGS = -ggdb -O0 -D_REENTRANT -Wall 
+CFLAGS = -O3 -D_REENTRANT -Wall 
 
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
+
 CC = gcc
 INCDIRS = -I $(UTILDIR) -I $(OPTDIR)
 LIBS    = -L $(UTILDIR) -lm -lvmb -lpthread -lrt
 
 
-all: .depend mmix gmmix mmixal mmoboot mmotype
+all: .depend mmixcpu mmixgdb mmixal mmoimg mmotype
 
 .depend:
 	gcc $(INCDIRS) -MM *.c > .depend
@@ -34,14 +36,14 @@ GDBOBJECTS=gdb.o remote-utils.o buffers.o
 abstime.h: abstime
 	./abstime > abstime.h
 
-mmix:  mmix-vmb.c abstime utilities  $(VMBOBJECTS)
+mmixcpu:  mmix-vmb.c abstime utilities  $(VMBOBJECTS)
 	./abstime > abstime.h
-	$(CC) $(CFLAGS) $(INCDIRS) mmix-vmb.c $(VMBOBJECTS) $(LIBS)  -o mmix
+	$(CC) $(CFLAGS) $(INCDIRS) mmix-vmb.c $(VMBOBJECTS) $(LIBS)  -o mmixcpu
 	rm abstime.h
 
-gmmix:  mmix-gdb.c abstime utilities $(VMBOBJECTS) $(GDBOBJECTS)
+mmixgdb:  mmix-gdb.c abstime utilities $(VMBOBJECTS) $(GDBOBJECTS)
 	./abstime > abstime.h
-	$(CC) $(CFLAGS) $(INCDIRS) mmix-gdb.c $(VMBOBJECTS) $(GDBOBJECTS) $(LIBS)  -o gmmix
+	$(CC) $(CFLAGS) $(INCDIRS) mmix-gdb.c $(VMBOBJECTS) $(GDBOBJECTS) $(LIBS)  -o mmixgdb
 	rm abstime.h
 
 
@@ -120,18 +122,24 @@ doc:    mmix-doc.ps mmixal.dvi mmix-sim.dvi
 	dvips -n8 mmix-sim.dvi -o mmix-sim-intro.ps
 
 install: all
-	install $(PROG) $(BINDIR)
+	install mmixcpu mmixgdb mmoimg $(INSTALLDIR)
 
 
 clean:
 	rm -f *~ *.o *.tex *.log *.dvi *.toc *.idx *.scn *.ncb *.ps core 
-	rm -f mmix-arith.c mmix-sim.c mmixal.c mmoboot.c mmotype.c 
+	rm -f mmix-arith.c mmix-sim.c mmixal.c mmoimg.c mmotype.c 
 	rm -f mmix-vmb.w mmix-gdb.w mmix-vmb.c mmix-gdb.c vmb-gdb.ch
-	rm -f abstime mmix gmmix mmixal mmotype mmoboot
+	rm -f abstime mmixcpu mmixgdb mmixal mmotype mmoimg
 
 mmixal: mmix-arith.o mmixal.c
 	$(CC) $(CFLAGS) mmixal.c mmix-arith.o -o mmixal
 
+
+mmoimg.c: mmotype.w mmoimg.ch
+	ctangle mmotype.w mmoimg.ch mmoimg.c
+
+mmoimg.tex: mmotype.w mmoimg.ch
+	cweave mmotype.w mmoimg.ch mmoimg.tex
 
 TAGS:
 	etags *.c *.h ../util/*.c ../util/*.h

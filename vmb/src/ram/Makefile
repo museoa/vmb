@@ -1,6 +1,7 @@
 PROG= ram
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
 
 #CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 CFLAGS= -O3  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
@@ -19,7 +20,7 @@ $(PROG): $(PROG).c  main.c utilities
 	$(CC) $(CFLAGS) $(PROG).c main.c $(LDFLAGS) -o $(PROG)
 
 install: all
-	install $(PROG) $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~

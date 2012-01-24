@@ -1,6 +1,9 @@
 PROG= led
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
+
+
 #CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 CFLAGS= -O3  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
@@ -23,7 +26,7 @@ TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
 
 
 install: all
-	install $(PROG) $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~ *.elf TAGS

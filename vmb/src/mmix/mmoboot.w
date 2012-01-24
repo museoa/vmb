@@ -1,7 +1,7 @@
 % This file is part of the MMIXware package (c) Donald E Knuth 1999
 @i boilerplate.w %<< legal stuff: PLEASE READ IT BEFORE MAKING ANY CHANGES!
 
-\def\title{MMOBOOT}
+\def\title{MMOIMG}
 \def\MMIX{\.{MMIX}}
 \def\MMIXAL{\.{MMIXAL}}
 \def\Hex#1{\hbox{$^{\scriptscriptstyle\#}$\tt#1}} % experimental hex constant
@@ -20,6 +20,7 @@ of tetras and writes these tetras to the output file after completeing the run.
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 @<Prototype preparations@>@;
 @<Type definitions@>@;
 @<Global variables@>@;
@@ -39,16 +40,39 @@ int main(argc,argv)
 }
 
 @ @<Process the command line@>=
-listing=1, verbose=0;
+listing=0, verbose=0,base.h=0x80000000,base.l=0;
 for (j=1;j<argc-1 && argv[j][0]=='-' && argv[j][2]=='\0';j++) {
-  if (argv[j][1]=='s') listing=0;
+  if (argv[j][1]=='l') listing=1;
   else if (argv[j][1]=='v') verbose=1;
+  else if (argv[j][1]=='b' && j<argc-2) base=scan_hex(argv[++j]);
   else break;
 }
+if (verbose) printf("base: %08X%08X\n",base.h, base.l);
 if (j!=argc-1) {
-  fprintf(stderr,"Usage: %s [-s] [-v] mmofile\n",argv[0]);
+  fprintf(stderr,"Usage: %s [-l] [-v] [-b hexbase] mmofile\n"
+                 "       -l         show listing\n"
+                 "       -v         be verbose\n"
+                 "       -b hexbase start image at hexbase (default #8000000000000000)\n",argv[0]);
 @.Usage: ...@>
   exit(-1);
+}
+
+@ @<Sub...@>=
+octa scan_hex @,@,@[ARGS((char*))@];@+@t}\6{@>
+octa scan_hex(p)
+  char *p;
+{ octa o = {0,0};
+  if (p[0]=='0' && p[1]=='x') p=p+2;
+  else if (p[0]=='#') p=p+1;
+  for (;isxdigit(*p);p++) {
+    int d;
+    if (*p>='a') d=*p-'a'+10;
+    else if (*p>='A')  d=*p-'A'+10;
+    else d = *p-'0';
+    o.h = (o.h<<4)+((o.l>>(32-4))&0xF);
+    o.l = (o.l<<4)+d;
+  }
+  return o;
 }
 
 @ @<Initialize everything@>=
@@ -62,8 +86,10 @@ if (!mmo_file) {
 @ @<Glob...@>=
 int listing; /* are we listing everything? */
 int verbose; /* are we also showing the tetras of input as they are read? */
+octa base;   /* the start address of the immage */
 FILE *mmo_file; /* the input file */
 FILE *image_file; /* the output file */
+char *image_file_name;
 
 @ @<Prototype preparations@>=
 #ifdef __STDC__
@@ -175,7 +201,10 @@ count=byte_count=0;
    default: err("Unknown lopcode");
 @.Unknown lopcode@>
   }
+  if (store_image(cur_loc,tet) && listing) printf("* ");
+  else if (listing) printf("  ");
   if (listing) @<List |tet| as a normal item@>;
+  cur_loc=incr(cur_loc,4);@+ cur_loc.l &=-4;
 }
 
 @ We want to catch all cases where the rules of \.{mmo} format are
@@ -190,8 +219,20 @@ location but also the current file position, if |cur_line| is nonzero
 and |cur_loc| belongs to segment~0.
 
 @<List |tet| as a normal item@>=
-{ store_image(cur_loc,tet);
-  cur_loc=incr(cur_loc,4);@+ cur_loc.l &=-4;
+{
+  printf("%08x%08x: %08x",cur_loc.h,cur_loc.l,tet);
+  if (!cur_line) printf("\n");
+  else {
+    if (cur_loc.h&0xe0000000) printf("\n");
+    else {
+      if (cur_file==listed_file) printf(" (line %d)\n",cur_line);
+      else {
+        printf(" (\"%s\", line %d)\n", file_name[cur_file], cur_line);
+        listed_file=cur_file;
+      }
+    }
+    cur_line++;
+  }
 }
 
 @ @<Glob...@>=
@@ -342,29 +383,34 @@ if (z>0) {
 We first write the image to a long array of tetras keepting track
 of the highest index we used in writing.
 
-@d max_image_tetras 0x10000
+@d max_image_tetras 0x100000
 
 @<Glob...@>=
 tetra image[max_image_tetras];
-int higest_image_tetra = 0;
+int image_tetras = 0;
 
 @ We fill the array using this function. It checks that the 
 location is negative and will fit into the image.
 
 @<Sub...@>=
-void store_image @,@,@[ARGS((octa, tetra))@];
-void store_image(loc,tet)
+int store_image @,@,@[ARGS((octa, tetra))@];
+int store_image(loc,tet)
 octa loc;
 tetra tet;
 { int i;
-  if (loc.h!=0x80000000) return;
-  i = loc.l>>2;
-  if (i>=max_image_tetras) 
-  { fprintf(stderr,"Location %x to large for image (max %x)",loc.l, max_image_tetras*4);
+  octa x;
+  if (loc.h<base.h || (loc.h==base.h && loc.l<base.l)) return 0;
+  x.h=loc.h-base.h;@+
+  x.l=loc.l-base.l;
+  if (x.l>loc.l) x.h--;
+  i = x.l>>2;
+  if (x.h!=0 || i>=max_image_tetras) 
+  { fprintf(stderr,"Location %08x%08x to large for image (max %x)",loc.h,loc.l, max_image_tetras*4);
     exit(1);
   }
   image[i] ^= tet;
-  if (i> higest_image_tetra)higest_image_tetra=i;
+  if (i>= image_tetras) image_tetras=i+1;
+  return 1;
 }
 
 @ Before we can open the otput file, we have to determine a filename for the output file.
@@ -372,7 +418,7 @@ tetra tet;
   we append the extension .img to the input file name.
 
 @<Open the image file@>=
-  { char *image_file_name, *extension;
+  { char *extension;
     image_file_name = (char*)calloc(strlen(argv[argc-1])+5,1);
     if (!image_file_name) {
       fprintf(stderr,"No room to store the file name!\n");@+exit(-4);
@@ -396,7 +442,8 @@ tetra tet;
   { int i;
     unsigned char buffer[4];
     tetra tet;
-    for (i=0;i<=higest_image_tetra;i++)  
+    printf("Writing %d byte to image file %s\n",image_tetras*4,image_file_name);
+    for (i=0;i<image_tetras;i++)  
     { tet = image[i]; 
       buffer[0] = (tet>>(3*8))&0xFF;
       buffer[1] = (tet>>(2*8))&0xFF;

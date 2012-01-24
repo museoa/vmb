@@ -15,7 +15,7 @@ $(PROG): $(PROG).c  maintemplate.c utilities
 	-L$(UTILDIR) -lvmb -lpthread -o $(PROG)
 
 install: all
-	install $(PROG) $(BINDIR)
+	echo nothing to do
 
 clean:
 	rm -f $(PROG) *.o *~

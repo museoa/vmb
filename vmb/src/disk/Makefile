@@ -1,6 +1,8 @@
 PROG= disk
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
+
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread 
 CC = gcc
@@ -19,8 +21,8 @@ $(PROG): $(PROG).c  utilities
 TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
 	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
 
-install:
-	install $(PROG) $(BINDIR)
+install: $(PROG)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~

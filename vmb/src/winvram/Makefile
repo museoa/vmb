@@ -1,5 +1,6 @@
 PROG= ram
 UTILDIR = ../util
+INSTALLDIR=../bin
 CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
 
@@ -14,7 +15,7 @@ $(PROG): $(PROG).c  utilities
 	$(CC) $(CFLAGS) -I$(UTILDIR) $(PROG).c  -L$(UTILDIR) -lvmb -lvmbopt -lpthread  -o $(PROG)
 
 install: all
-	install $(PROG) $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~

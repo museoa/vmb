@@ -1,7 +1,8 @@
 PROG= keyboard
 UTILDIR = ../util
 OPTDIR = ../opt
-UTILDIR = ../util
+INSTALLDIR=../bin
+
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
@@ -17,8 +18,8 @@ utilities:
 $(PROG): $(PROG).c  utilities
 	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)
 
-install:
-	install $(PROG) $(BINDIR)
+install: $(PROG)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~

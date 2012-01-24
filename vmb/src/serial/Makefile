@@ -3,6 +3,7 @@
 PROGS = talk serial utilities options
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
 
 CFLAGS= -ggdb  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
@@ -18,6 +19,9 @@ utilities:
 
 options:
 	$(MAKE) -C  $(OPTDIR)
+
+install: serial
+	install serial $(INSTALLDIR)
 
 
 clean:

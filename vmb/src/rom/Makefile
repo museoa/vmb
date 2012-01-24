@@ -1,7 +1,7 @@
 PROG= rom
 UTILDIR = ../util
 OPTDIR = ../opt
-UTILDIR = ../util
+INSTALLDIR=../bin
 #CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 CFLAGS= -O3  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
@@ -47,8 +47,8 @@ bios.o: bios.s
 
 OBJECTS= bios.o 
 
-bios.rom: $(OBJECTS)
-	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.rom
+bios.img: $(OBJECTS)
+	$(MLD) -t -T bios.x $(MLDFLAGS) --oformat binary $(OBJECTS) -o bios.img
 
 
 bios.elf: $(OBJECTS)
@@ -62,9 +62,9 @@ bios.elf: $(OBJECTS)
 
 
 install: all
-	install $(PROG) $(BINDIR)
-	install bios.rom $(BINDIR)
-	install bios.elf $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
+#	install bios.img $(INSTALLDIR)
+#	install bios.elf $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~ *.rom *.elf

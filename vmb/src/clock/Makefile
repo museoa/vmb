@@ -1,6 +1,7 @@
 PROG= clock
 UTILDIR = ../util
 OPTDIR = ../opt
+INSTALLDIR=../bin
 
 CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
 LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
@@ -17,7 +18,7 @@ $(PROG): main.c  utilities
 	$(CC) $(CFLAGS)  main.c  $(LDFLAGS) -o $(PROG)
 
 install: all
-	install $(PROG) $(BINDIR)
+	install $(PROG) $(INSTALLDIR)
 
 clean:
 	rm -f $(PROG) *.o *~
