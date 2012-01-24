@@ -182,6 +182,10 @@
 				RelativePath=".\mmoimg.c"
 				>
 			</File>
+			<File
+				RelativePath=".\mmoimg.ch"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
