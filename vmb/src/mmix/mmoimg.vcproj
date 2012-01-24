@@ -24,6 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="build mmoimg.c"
+				CommandLine="ctangle mmotype.w mmoimg.ch mmoimg.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
