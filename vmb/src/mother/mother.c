@@ -57,6 +57,9 @@ device_info vmb = {0};
 #include <netinet/tcp.h>
 #include "errno.h"
 
+#define Sleep(x) usleep((x)*1000)
+#define closesocket(x) close(x)
+
 #endif
 #include "vmb.h"
 #include "option.h"
@@ -67,7 +70,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.39 $ $Date: 2011-12-23 13:40:15 $";
+char version[] = "$Revision: 1.40 $ $Date: 2012-02-06 16:35:42 $";
 
 char howto[] =
   "\n"
@@ -310,7 +313,7 @@ disconnect_device (int slotnr)
   if (powerflag)
     power_off (slotnr);
   terminate(slotnr);
-  Sleep(100);
+  Sleep(50);
 #ifdef WIN32
    error = shutdown(slot[slotnr].fd,SD_BOTH);
 #else
@@ -348,7 +351,7 @@ terminate_all (void)
 {
   for_all_slots (terminate);
   vmb_debug (0, "All slots terminated");
-  Sleep(100);
+  Sleep(50);
 }
 
 static void
@@ -688,7 +691,7 @@ process_read_fdset ()
     {
       int error;
       error =
-	receive_msg (slot[i].fd, &mtype, &msize, &mslot, &mid, &mtime,
+	receive_msg (&(slot[i].fd), &mtype, &msize, &mslot, &mid, &mtime,
 		     maddress, mpayload);
       if (error < 0)
 	remove_slot (i);
@@ -769,10 +772,10 @@ void do_commands(void)
 	char argc;
 	vmb_debugs(VMB_DEBUG_PROGRESS, "executing command: %s",commands[i]);
         argc = mk_argv(argv,commands[i],0);
-		if (argc<=0)
+	if (argc<=0)
           continue;
-#ifdef WIN32
 	Sleep(50); /* so delay 50 ms start processes in order given */
+#ifdef WIN32
 	
 #define MAXPROG 512
 	{ char prog[MAXPROG];
@@ -802,7 +805,6 @@ void do_commands(void)
 	  free(name);
 	}
 #else
-	usleep(50000); /* so delay 50 ms start processes in order given */
     { pid_t p;
           p = fork();
           if (p<0) vmb_error(__LINE__,"Unable to create new process");
