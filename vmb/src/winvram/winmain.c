@@ -508,6 +508,8 @@ static int read_gpu(unsigned int offset, int size, unsigned char *buf)
   return size;
 }
 
+#define GPU_STATUS		(gpu_mem[0])
+#define GPU_IDLE		0
 #define GPU_COMMAND		(gpu_mem[0])
 #define GPU_NOP			0x00
 #define GPU_WRITE_CHAR		0x01
@@ -524,10 +526,10 @@ static int read_gpu(unsigned int offset, int size, unsigned char *buf)
 #define GPU_X_2			((gpu_mem[0x4]<<8)|gpu_mem[0x5])
 #define GPU_Y_2			((gpu_mem[0x6]<<8)|gpu_mem[0x7])
 
-#define GPU_W			((gpu_mem[8]<<8)|gpu_mem[9])
-#define GPU_H			((gpu_mem[0xa]<<8)|gpu_mem[0xb])
-#define GPU_X				((gpu_mem[0xc]<<8)|gpu_mem[0xd])
-#define GPU_Y				((gpu_mem[0xe]<<8)|gpu_mem[0xf])
+#define GPU_W			((unsigned)((gpu_mem[8]<<8)|gpu_mem[9]))
+#define GPU_H			((unsigned)((gpu_mem[0xa]<<8)|gpu_mem[0xb]))
+#define GPU_X				((unsigned)((gpu_mem[0xc]<<8)|gpu_mem[0xd]))
+#define GPU_Y				((unsigned)((gpu_mem[0xe]<<8)|gpu_mem[0xf]))
 #define SET_16(i,v)		((gpu_mem[i]=(unsigned char)((v)>>8)),(gpu_mem[(i)+1]=(unsigned char)(v)))
 #define SET_GPU_X(x)	SET_16(0xc,x)
 #define SET_GPU_Y(y)	SET_16(0xe,y)
@@ -627,21 +629,21 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		  SET_GPU_X(x+w);
 		}
 	    if (size<0x10) size=0x10;
+		GPU_STATUS=GPU_IDLE;
         break;
 	case GPU_RECTANGLE:
 	    { HBRUSH hold, hnew;
 		  hnew = CreateSolidBrush(RGB(GPU_R_FILL,GPU_G_FILL,GPU_B_FILL)); 
 		  hold = SelectObject(hCanvas, hnew);
-		  x=GPU_X;
-		  y=GPU_Y;
-		  w=GPU_X_2-GPU_X;
-		  h=GPU_Y_2-GPU_Y;
-		  if (w<0) { x=x+w; w=-w; }
-		  if (h<0) { y=y+h; h=-h; }
+		  x=GPU_X_2;
+		  y=GPU_Y_2;
+		  w=GPU_W;
+		  h=GPU_H;
 		  PatBlt(hCanvas, x,y, w, h ,PATCOPY);  
 		  SelectObject(hCanvas, hold);
 		  DeleteObject(hnew);
 		}
+		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_LINE:
 	    { int lwidth;
@@ -669,6 +671,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		  SET_GPU_Y(GPU_Y_2);
 		  if (size<0x10) size=0x10;
 		}
+		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_BLT:
 		BitBlt(hCanvas,GPU_X,GPU_Y,GPU_W,GPU_H,hCanvas,GPU_X_2,GPU_Y_2,GPU_COMMAND_AUX);
@@ -676,6 +679,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		h = GPU_H;
 		x = GPU_X;
 		w = GPU_W;
+		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_BLT_IN:
 		LeaveCriticalSection (&bitmap_section);
@@ -909,6 +913,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			da.address_lo += d;
 		  }
 		  vmb_raise_interrupt(&vmb_gpu, gpu_interrupt);
+		  GPU_STATUS=GPU_IDLE;
 		  rect.top = (int)(y*zoom);
 		  rect.bottom = (int)((y+h)*zoom);
 		  rect.left = (int)(x*zoom);
@@ -950,6 +955,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			da.address_lo += d;
 		  }
 		  vmb_raise_interrupt(&vmb_gpu, gpu_interrupt);
+		  GPU_STATUS=GPU_IDLE;
 		  return 0;
 		}
 	case WM_CREATE:

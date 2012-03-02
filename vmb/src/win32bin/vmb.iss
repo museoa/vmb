@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=vmb
-AppVerName=vmb version 1.0, Virtual Hardware for the Real World
+AppVerName=vmb version 1.3, Virtual Hardware for the Real World
 AppVersion=1.0
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
@@ -29,6 +29,7 @@ Name: desktopicon; Description: "Create a &desktop icon for the README Applicati
 [Files]
 Source: "C:\home\vmb\src\win32bin\Release\mother.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\button.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\serial.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\disk.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\flash.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\keyboard.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -42,8 +43,8 @@ Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; F
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-;Source: "C:\home\vmb\src\win32bin\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\vmb\src\win32bin\Release\mmoboot.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmoimg.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\vmb.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\default.vmb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme

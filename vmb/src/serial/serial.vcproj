@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8,00"
 	Name="serial"
-	ProjectGUID="{EEEBF854-5B18-4DA9-897B-02D6201F20CF}"
+	ProjectGUID="{2A8B7118-00BA-4933-9BA9-D061861643C9}"
 	RootNamespace="serial"
 	Keyword="Win32Proj"
 	>

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="gmmixcpu"
+	Name="mmixgdb"
 	ProjectGUID="{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
 	RootNamespace="gmmix"
 	Keyword="Win32Proj"
@@ -178,7 +178,6 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
-			RelativePathToProject="..\util\vmbwin.vcproj"
 		/>
 	</References>
 	<Files>

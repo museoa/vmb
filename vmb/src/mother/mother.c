@@ -33,6 +33,8 @@
 #include "resource.h"
 #include "winopt.h"
 
+extern int terminate_flag;
+
 typedef int socklen_t;
 
 HWND hpower;
@@ -70,7 +72,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 
-char version[] = "$Revision: 1.40 $ $Date: 2012-02-06 16:35:42 $";
+char version[] = "$Revision: 1.41 $ $Date: 2012-03-02 12:17:52 $";
 
 char howto[] =
   "\n"
@@ -1148,6 +1150,10 @@ WinMain (HINSTANCE hInstance,
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
 
   param_init ();
+  if (terminate_flag)
+  {   do_commands ();
+      return 0;
+  }
   get_pos_key(&xpos,&ypos,defined);
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
@@ -1155,16 +1161,16 @@ WinMain (HINSTANCE hInstance,
   create_server ();
   do_commands ();
   if (vmb_power_flag) power_all(1);
-
-  while (GetMessage (&msg, NULL, 0, 0))
-    if (!TranslateAccelerator (msg.hwnd, hAccelTable, &msg))
-    {
-      TranslateMessage (&msg);
-      DispatchMessage (&msg);
-    }
+  if (!terminate_flag)
+    while (GetMessage (&msg, NULL, 0, 0))
+      if (!TranslateAccelerator (msg.hwnd, hAccelTable, &msg))
+      {
+        TranslateMessage (&msg);
+        DispatchMessage (&msg);
+      }
   shutdown_server ();
-  WSACleanup ();
   set_pos_key(hMainWnd,defined);
+  WSACleanup ();
   return (int)msg.wParam;
 }
 #else
@@ -1265,6 +1271,10 @@ main (int argc, char *argv[])
 {
   printf ("Type 'quit' to shutdown the motherboard\n");
   param_init (argc, argv);
+  if (terminate_flag)
+  {   do_commands ();
+      return 0;
+  }
   initialize_slots ();
   create_server ();
   do_commands ();

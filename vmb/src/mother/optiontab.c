@@ -26,6 +26,7 @@
 #include "vmb.h"
 
 int vmb_power_flag = 0;
+int terminate_flag = 0;
 extern void store_command(char *command);
 
 option_spec options[] = {
@@ -39,6 +40,7 @@ option_spec options[] = {
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"start with power on",   'o', "on",    "initial power on", on_arg, NULL, {&vmb_power_flag}},
+{"terminate after processing configuration file",   't', "terminate",    "terminate early", on_arg, NULL, {&terminate_flag}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"command to execute",                   'X', "exec",    "command line",     fun_arg, NULL, {store_command}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},

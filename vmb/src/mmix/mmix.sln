@@ -6,9 +6,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbwin", "..\util\vmbwin.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixal", "mmixal.vcproj", "{B0BD2341-516A-4FC7-B239-0BC4996426C9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmmixcpu", "gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixgdb", "gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmoimg", "mmoimg.vcproj", "{1ED92422-F16F-419A-BC94-6EC9628DEA0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmotype", "mmotype.vcproj", "{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Debug|Win32.Build.0 = Debug|Win32
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Release|Win32.ActiveCfg = Release|Win32
 		{1ED92422-F16F-419A-BC94-6EC9628DEA0C}.Release|Win32.Build.0 = Release|Win32
+		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Debug|Win32.Build.0 = Debug|Win32
+		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Release|Win32.ActiveCfg = Release|Win32
+		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
