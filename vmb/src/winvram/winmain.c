@@ -363,7 +363,7 @@ static struct register_def gpu_regs[GPU_REGS+1] = {
     {"Fill Color",     11,0x20,4,tetra_chunk,hex_format},
     {"Line Color",     12,0x24,4,tetra_chunk,hex_format},
     {"Text Width",     13,0x28,2,wyde_chunk,unsigned_format},
-    {"Text Height",    14,0x2c,2,wyde_chunk,unsigned_format},
+    {"Text Height",    14,0x2a,2,wyde_chunk,unsigned_format},
     {"Frame Width",    15,0x30,2,wyde_chunk,unsigned_format},
     {"Frame Height",   16,0x32,2,wyde_chunk,unsigned_format},
     {"Screen Width",   17,0x34,2,wyde_chunk,unsigned_format},
@@ -600,6 +600,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
   EnterCriticalSection (&bitmap_section);
   switch (GPU_COMMAND)
   { case GPU_WRITE_CHAR: 
+		vmb_debugi(VMB_DEBUG_PROGRESS,"Writing Character 0x%2x",GPU_COMMAND_AUX_LO);
 		if (GPU_COMMAND_AUX_LO == '\n')
 		{ int newline;
 		  SET_GPU_X(0);
@@ -612,7 +613,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 			w=width;
 			h=height;
 		  }
-		  SET_GPU_Y(y);
+		  SET_GPU_Y(newline);
 		}
 		else if (GPU_COMMAND_AUX_LO == '\r')
 		{ SET_GPU_X(0);
@@ -632,6 +633,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		GPU_STATUS=GPU_IDLE;
         break;
 	case GPU_RECTANGLE:
+		 vmb_debug(VMB_DEBUG_PROGRESS,"Writing Rectangle");
 	    { HBRUSH hold, hnew;
 		  hnew = CreateSolidBrush(RGB(GPU_R_FILL,GPU_G_FILL,GPU_B_FILL)); 
 		  hold = SelectObject(hCanvas, hnew);
@@ -646,6 +648,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_LINE:
+		 vmb_debug(VMB_DEBUG_PROGRESS,"Writing Line");
 	    { int lwidth;
 		  HPEN hold, hnew;
 		  if (GPU_COMMAND_AUX==0) lwidth=1;
@@ -692,7 +695,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		mem_update(2,offset,size);
         return;
   }
-  LeaveCriticalSection (&bitmap_section);
+
   if (x<0) x=0;
   if (y<0) y=0;
   if (w>framewidth) w=framewidth;
@@ -703,7 +706,9 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
     rect.bottom=(int)((y+h+1)*zoom);
     rect.right=(int)((x+w+1)*zoom);
     InvalidateRect(hMainWnd,&rect,FALSE);
+	vmb_debugi(VMB_DEBUG_INFO,"refresh at x=%d",x);
   }
+  LeaveCriticalSection (&bitmap_section);  
   if (w>0 && h>0)
     mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
   mem_update(2,offset,size);
