@@ -122,8 +122,8 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
   rect.left=(int)(minx*zoom);
   rect.bottom=(int)((maxy+1)*zoom);
   rect.right=(int)((maxx+1)*zoom);
-  LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,&rect,FALSE);
+  LeaveCriticalSection (&bitmap_section);
   mem_update(0,offset,size);
 }
 
@@ -135,8 +135,8 @@ void screen_poweron(void)
   hbr = CreateSolidBrush(RGB(0,0,0));
   rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
   rc = FillRect(hCanvas,&rect,hbr);
-  LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,NULL,FALSE);
+  LeaveCriticalSection (&bitmap_section);
   mem_update(0,0,vmb_size);
 }
 
@@ -149,8 +149,8 @@ void screen_poweroff(void)
   hbr = CreateSolidBrush(RGB(127,127,127));
   rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
   rc = FillRect(hCanvas,&rect,hbr);
-  LeaveCriticalSection (&bitmap_section);
   InvalidateRect(hMainWnd,NULL,FALSE);
+  LeaveCriticalSection (&bitmap_section);
   mem_update(0,0,vmb_size);
 }
 
@@ -165,8 +165,8 @@ void screen_disconnected(void)
     hbr = CreateSolidBrush(RGB(127,0,0));
     rect.top=0, rect.left=0, rect.bottom=frameheight+1, rect.right=framewidth+1;
     rc = FillRect(hCanvas,&rect,hbr);
-    LeaveCriticalSection (&bitmap_section);
     InvalidateRect(hMainWnd,NULL,FALSE);
+    LeaveCriticalSection (&bitmap_section);
 	mem_update(0,0,vmb_size);
   }
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
@@ -574,12 +574,7 @@ void init_gpu_memory(void)
   SET_FRAME_H(frameheight);
   SET_SCREEN_W(width);	
   SET_SCREEN_H(height);
-  inspector[2].name = "GPU";
-  inspector[2].get_mem=read_gpu;
-  inspector[2].size=GPU_MEM_SIZE;
-  inspector[2].address=0;
-  inspector[2].num_regs= GPU_REGS;
-  inspector[2].regs =gpu_regs;
+
   mem_update(2,0,GPU_MEM_SIZE);
 }
 void gpu_poweron(void)
@@ -706,7 +701,6 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
     rect.bottom=(int)((y+h+1)*zoom);
     rect.right=(int)((x+w+1)*zoom);
     InvalidateRect(hMainWnd,&rect,FALSE);
-	vmb_debugi(VMB_DEBUG_INFO,"refresh at x=%d",x);
   }
   LeaveCriticalSection (&bitmap_section);  
   if (w>0 && h>0)
@@ -747,6 +741,13 @@ void init_gpu(void)
 	vmb_gpu.poweron = gpu_poweron;
 	vmb_gpu.reset= gpu_poweron;
 	vmb_gpu.terminate = NULL;
+    memset(gpu_mem,0,sizeof(gpu_mem));
+    inspector[2].name = "GPU";
+    inspector[2].get_mem=read_gpu;
+    inspector[2].size=GPU_MEM_SIZE;
+    inspector[2].address=0;
+    inspector[2].num_regs= GPU_REGS;
+    inspector[2].regs =gpu_regs;
 }
 
 
@@ -923,7 +924,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  rect.bottom = (int)((y+h)*zoom);
 		  rect.left = (int)(x*zoom);
 		  rect.right = (int)((x+w)*zoom);  
+		  EnterCriticalSection (&bitmap_section);
           InvalidateRect(hMainWnd,&rect,FALSE);
+          LeaveCriticalSection (&bitmap_section);
 		  if (w>0 && h>0)
             mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
 		  return 0;
