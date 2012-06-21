@@ -213,7 +213,7 @@
 					Name="VCCustomBuildTool"
 					Description="Tangle"
 					CommandLine="ctangle mmotype.w mmotype.c&#x0D;&#x0A;"
-					Outputs="mmixal.c"
+					Outputs="mmotype.c"
 				/>
 			</FileConfiguration>
 		</File>

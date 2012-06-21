@@ -185,6 +185,15 @@
 			<File
 				RelativePath=".\mmoimg.ch"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="ctangle mmotype mmoimg.ch mmoimg.c"
+						Outputs="mmoimg.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
