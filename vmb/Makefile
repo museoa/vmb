@@ -16,7 +16,7 @@ install:
 	done
 
 source:
-	tar -cvzf src_1_2.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
+	tar -cvzf src_1_3.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
 
 
 www: wwwdoc
@@ -45,7 +45,11 @@ clean:
 ssh:
 	ssh ruckert,vmb@shell.sourceforge.net
 
-
+version:
+	echo Neue Version anlegen:
+	echo Einloggen bei sourceforge
+	echo src und setup und readme hochladen
+	echo link in htdocs/index.html updaten und committen
 
 TAGS:
 	etags */*.c */*.h */*.w
