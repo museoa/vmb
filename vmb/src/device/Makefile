@@ -1,4 +1,4 @@
-PROG= devicetemplate
+PROG= msp
 UTILDIR = ../util
 CFLAGS= -g -D_REENTRANT -Wall
 CC = gcc
@@ -10,8 +10,8 @@ utilities:
 	$(MAKE) -C  $(UTILDIR)
 
 
-$(PROG): $(PROG).c  maintemplate.c utilities
-	$(CC) $(CFLAGS) -I$(UTILDIR) maintemplate.c $(PROG).c  \
+$(PROG): $(PROG).c  mspmain.c utilities
+	$(CC) $(CFLAGS) -I$(UTILDIR) mspmain.c $(PROG).c  \
 	-L$(UTILDIR) -lvmb -lpthread -o $(PROG)
 
 install: all
