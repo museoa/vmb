@@ -39,28 +39,14 @@ HWND hMainWnd = NULL; /* there is no Window */
 
 #include "mspcore.h"
 
-device_info vmb = {0};
+
 extern int ramsize;
 
 int main(int argc, char *argv[])
 {
-  /* the vmb library uses debuging output, that we need to switch on if we
-     want to see it. It will use the variable vmb_program_name to mark the output
-     as comming from this program.*/
-  vmb_debug_on();
-  vmb_program_name = "MSP430";
+  // Init core and start execution
+  initCore();
 
-  /* establish a connection to the virtual bus on the localhost
-     on port 9002. This port is the default port for the virtual bus. */
-  vmb_connect(&vmb,"localhost",9002); 
-
-  vmb_register(&vmb,0x00000008,0x00000000, /* start address, hi 32bit, lo 32 bit
-                                         where the device is mapped. */
-               ramsize, /* the size of the mapped area */
-               0x00000000,0x00000000, /* the mask for the 64 interupt lines
-                                         only interrups with the corresponding
-                                         bit set will reach this device. */
-               "Simple RAM");         /* the name of this device */
 
   /* now the virtual motherboard interface is set up.
      There is nothing left to do, because this is a pasive device
@@ -69,7 +55,7 @@ int main(int argc, char *argv[])
      We just wait until the motherboard disconnects,
      before returning home. */
 
-  vmb_wait_for_disconnect(&vmb);
+  wait_for_disconnect();
   return 0;
 }
 

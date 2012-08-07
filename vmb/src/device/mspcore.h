@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
+#define MSP_CORE 1
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -11,11 +12,10 @@
 #ifndef NULL
 #define NULL 0
 #endif
+#ifndef MSP_BUS
+#include "mspbus.h"
+#endif
 
-typedef struct {
-	char HIGH;
-	char LOW;
-} MSP_WORD;
 
 // Registers
 enum msp_register {
@@ -204,15 +204,18 @@ enum jump_conditions {
 
 #define REGISTERS_COUNT 16
 // MSP registers
-static MSP_WORD* registers;
+static UINT16 registers[REGISTERS_COUNT];
+static unsigned long clocks = 0;
+static UINT16 currentInstruction = 0;
+#define MEMORY_WRITEBACK_NO (-1)
 
-// Maps an MSP address to the "real" address
-extern void* getAddress(MSP_WORD mspAddress);
+static INT32 memoryWriteBack = MEMORY_WRITEBACK_NO;
+
+#define EXECUTION_START_AT 0xFFFE
+#define RAM_START_AT 0x200
+
 // Increases the programm counter
 extern void increasePC();
-// Load functions for msp memory
-extern MSP_WORD getWordAt(MSP_WORD msp_address);
-extern char getByteAt(MSP_WORD msp_address);
 
 // Sets the status bits. If arguments are NULL the corresponding status bits won't be affected.
 extern void setStatusBits(int *carry, int *zero, int *negative, int *arithmetic);
@@ -222,19 +225,14 @@ extern int getZeroBit();
 extern int getNegativeBit();
 extern int getArithmeticBit();
 
-unsigned int wordToUInt(MSP_WORD word);
-unsigned int byteToUInt(char byte);
-int wordToInt(MSP_WORD word);
-int byteToInt(char byte);
-MSP_WORD intToMSPWord(int i);
-MSP_WORD uintToMSPWord(unsigned int ui);
+extern int decodeInstructionFormat(UINT16 instruction, executorPtr *executor);
+extern executorPtr findExecutor(UINT16 instructionCode);
+extern int decodeF1Instruction(UINT16 instruction, void **source, void **destination, int *isByte);
+extern int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte);
+extern int decodeF3Instruction(UINT16 instruction, void **condition, void **offset);
+extern void executeInstruction(unsigned int instructionCode);
+extern UINT16 fetchInstruction(UINT16 msp_address);
+extern void executionLoop();
+extern void initCore(void);
+extern void initRegisters();
 
-MSP_WORD word_add_int(MSP_WORD op1, int op2);
-MSP_WORD word_add_word(MSP_WORD op1, MSP_WORD op2);
-
-int decodeInstructionFormat(MSP_WORD instruction, executorPtr *executor);
-executorPtr findExecutor(unsigned int instructionCode);
-int decodeF1Instruction(MSP_WORD instruction, void *source, void *destination, int *isByte);
-int decodeF2Instruction(MSP_WORD instruction, void *operand, int *isByte);
-int decodeF3Instruction(MSP_WORD instruction, void *condition, void *offset);
-void executeInstruction(unsigned int instructionCode);
