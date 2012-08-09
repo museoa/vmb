@@ -14,7 +14,7 @@ int ADD_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT32 result = 0;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
+/+	int bN, bZ, bC, bV; */
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -47,12 +47,8 @@ int ADD_executor (char **programmCounter) {
 	// (C-bit)
 	if (!isByteInstruction) 
 		compCarry |= 0xFF00;
-	if (result & (~compCarry)) {
-		bC = TRUE;
-	}
-	else {
-		bC = FALSE;
-	}
+	bC= (result & (~compCarry));
+
 	
 	// (V-bit)
 	if (((!(uiSource & compNegative)) && (!(uiDestination & compNegative)) && (bN)) 
@@ -111,34 +107,16 @@ int ADDC_executor (char **programmCounter) {
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
-
+	bB=(result & compNegative);
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
-
+	bZ= (!(result & 0xFFFF));
 	// (C-bit)
 	if (isByteInstruction) compCarry |= 0xFF00;
-	if (result & (~compCarry)) {
-		bC = TRUE;
-	}
-	else {
-		bC = FALSE;
-	}
+        bC = (result & (~compCarry));
 	
 	// (V-bit)
-	if ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (bN)) 
-		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!bN))) {
-			bV = TRUE;
-	}
-	else {
-		bV = FALSE;
-	}
+	bV= ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (bN)) 
+	     || ((uiSource & compNegative) && (uiDestination & compNegative) && (!bN)));
 
 	setStatusBits(&bC, &bZ, &bN, &bV);
 
@@ -191,10 +169,7 @@ int AND_executor (char **programmCounter) {
 		bN = FALSE;
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	bZ = (!(result & 0xFFFF));
 
 	// Carry bit is set, if result != ZERO
 	if (bZ)
@@ -1509,8 +1484,11 @@ int decodeF3Instruction(UINT16 instruction, void **condition, void **offset) {
 }
 
 executorPtr findExecutor(UINT16 instructionCode) {
+     return INSTRUCTIONS[instructionCode].executor;
+}
+
 	if (instructionCode == INSTRUCTIONS._ADD.code) {
-		return INSTRUCTIONS._ADD.executor;
+		return INSTRUCTIONS[instructionCode]._ADD.executor;
 	} else if (instructionCode == INSTRUCTIONS._ADDC.code) {
 		return INSTRUCTIONS._ADDC.executor;
 	} else if (instructionCode == INSTRUCTIONS._AND.code) {
@@ -1560,7 +1538,10 @@ void increasePC() {
 }
 
 void setStatusBits(int *carry, int *zero, int *negative, int *arithmetic) {
-	if (carry != NULL) {
+
+if (carry != NULL) cB=*carry;
+
+{
 		if (*carry)
 			registers[SR] |= 0x1;
 		else
@@ -1623,8 +1604,6 @@ int getArithmeticBit() {
 void initCore(void) {
 	// Initialize local storage
 	initRegisters();
-	// Initialize vmb interface
-	initVMBInterface();
 	
 	vmbReadWordAt(EXECUTION_START_AT, &registers[PC]);		/* Initialize the programm 
 														counter with the start address */
@@ -1632,7 +1611,7 @@ void initCore(void) {
 	// Initialize stack pointer to the top of RAM (must be in user programm)
 	registers[SP] = RAM_START_AT + vmbGetRamSize() - 2;	
 	*/
-	executionLoop();
+
 }
 
 
@@ -1651,18 +1630,5 @@ UINT16 fetchInstruction(UINT16 msp_address) {
 		return result;
 	else
 		return 0;
-}
-
-void executionLoop() {
-	executorPtr executor;
-	while (TRUE) {
-		currentInstruction = fetchInstruction(registers[PC]);
-		if (!currentInstruction)
-			break;
-		if (!decodeInstructionFormat(currentInstruction, &executor))
-			break;
-		if (executor == NULL || !executor(NULL))
-			break;
-	}
 }
 

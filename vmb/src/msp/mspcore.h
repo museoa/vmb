@@ -203,7 +203,30 @@ enum jump_conditions {
 
 #define REGISTERS_COUNT 16
 // MSP registers
-static UINT16 registers[REGISTERS_COUNT];
+static register registers[REGISTERS_COUNT];
+
+typedef union {
+  UINT16 u;
+  struct {
+    unsigned char Z : 1;
+    unsigned char C : 1;
+    unsigned int rest: 14;
+  } b;
+  struct {
+#ifdef BIGENDIAN
+    unsigned char hi : 8;
+    unsigned char lo : 8;
+#else
+    unsigned char lo : 8;
+    unsigned char hi : 8;
+#fi
+  } bytes;
+} register;
+
+#define bC registers[SR].b.C
+
+/* use: registers[SP].u for 16 bit int registers[SR].bits.bZ */
+
 static unsigned long clocks = 0;
 static UINT16 currentInstruction = 0;
 #define MEMORY_WRITEBACK_NO (-1)
