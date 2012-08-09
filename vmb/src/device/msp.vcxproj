@@ -93,7 +93,9 @@
   <ItemGroup>
     <ClCompile Include="mspbus.c" />
     <ClCompile Include="mspcore.c" />
-    <ClCompile Include="mspdev.c.old" />
+    <ClCompile Include="mspdev.c.old">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="mspmain.c" />
   </ItemGroup>
   <ItemGroup>

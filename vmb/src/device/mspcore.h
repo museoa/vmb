@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
-#define MSP_CORE 1
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -12,11 +12,10 @@
 #ifndef NULL
 #define NULL 0
 #endif
-#ifndef MSP_BUS
 #include "mspbus.h"
-#endif
 
-
+#ifndef MSP_CORE
+#define MSP_CORE
 // Registers
 enum msp_register {
 	PC,SP,SR,CG1=2,CG2,
@@ -236,3 +235,4 @@ extern void executionLoop();
 extern void initCore(void);
 extern void initRegisters();
 
+#endif

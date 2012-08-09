@@ -1,5 +1,6 @@
 #include "mspbus.h"
 #include "mspcore.h"
+#include "vmb.h"
 
 device_info vmb = {0};
 
@@ -10,7 +11,7 @@ void initVMBInterface() {
   vmb_debug_on();
   vmb_program_name = "MSP430";
 
-  init_device(&vmb);
+  //init_device(&vmb);
 	
   /* establish a connection to the virtual bus on the localhost
      on port 9002. This port is the default port for the virtual bus. */

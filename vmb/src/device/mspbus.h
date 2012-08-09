@@ -23,23 +23,23 @@
 
 
 */
-#define MSP_BUS 1
-#ifndef VMB_H
-#include "vmb.h"
-#endif
 
+#ifndef MSP_BUS
+#define MSP_BUS
+#include "vmb.h"		// Datatypes
 
 // Read and write access functions provide access to RAM, ROM and device memory
-// The function block the execution till the byte/word delivery
+// The function block the execution till the byte/word was delivered by bus
 extern int vmbReadByteAt(UINT16 msp_address, UINT8* readInto);
 extern int vmbReadWordAt(UINT16 msp_address, UINT16* readInto);
 extern int vmbWriteByteAt(UINT16 msp_address, UINT8* writeFrom);
 extern int vmbWriteWordAt(UINT16 msp_address, UINT16* writeFrom);
-extern UINT16 vmbGetRamSize();
+
 extern void initVMBInterface();
 extern void wait_for_disconnect();
-void init_device(device_info *vmb);
-void device_poweron(void);
-void device_reset(void);
-unsigned char *device_get_payload(unsigned int offset,int size);
-void device_put_payload(unsigned int offset,int size, unsigned char *payload);
+extern void init_device(device_info *vmb);
+extern void device_poweron(void);
+extern void device_reset(void);
+extern unsigned char *device_get_payload(unsigned int offset,int size);
+extern void device_put_payload(unsigned int offset,int size, unsigned char *payload);
+#endif
