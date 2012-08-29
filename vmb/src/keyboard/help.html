@@ -32,10 +32,16 @@
 				<td>Y
 				<td>character count
 			<tr>
-				<td>04-06
-				<td>R 
+				<td>04-05<td>R 
 				<td>-
 				<td>zero
+			
+			<tr>
+				<td>06</td>
+				<td>R</td>
+				<td>E</td>
+				<td>extension</td>
+			</tr>
 			<tr>
 				<td>07
 				<td>R
@@ -46,7 +52,9 @@
 		The program will contact the motherboard at [host:]port and register itself with the given address and interrupt. Then, the program will be ready to receive bytes and display them. Under Unix, bytes are read from Standard Input. Under Windows, characters might be typed when the keyboard device has the input focus or files may be droped on the keyboard. Whenever a byte is received, the device will signal an interrupt with the given interrupt number. At the given address, it will provide a read only octabyte in the format: given above.
 		<p>The X byte signals errors. It will be 0x80 if an error occured and 0x00 otherwise. By setting the sign bit errors can be easily checked..</p>
 		<p>The Y byte contains the number of characters that were typed since the last read operation on Z. This should be 0, if no character was received or 1 if a single character waits to be read from Z. Any other value will indicate that characters were lost since the last read operation.</p>
-		<p>The Z byte contains the last character typed. It is valid only if Y is not zero.</p>
+		<p>The E byte is zero if the key pressed corresonds to a ASCII character or is printable, it is one, if the key pressed is an extended key. Like PageUp, PageDown, LeftArrow, RightArrow, UpArrow, DownArrow, Home,End, Inser, Delete, or one of the Function Keys F1 to F12. This feature is currently only available in the Windows version.</p>
+		<p>The Z byte contains the last character typed if E is zero. If E is one, the Z byte will be the virtual key code.</p>
+		<p>The Z byte is valid only if Y is not zero.</p>
 		<p>The complete ocatbyte will be reset to zero after reading Z..</p>
 		<h2>Configuration</h2>
 		The Keyboard has the following configurable parameters:
@@ -69,9 +77,6 @@
 <tr> <td> config   <td> not set<td>filename for a configuration file</tr>
 <tr> <td> help     <td> false<td>to print information</tr>
 </table>
-		<p>
-These can be set in default.mmc
-
-</p>
+		<p>These can be set in default.vmb</p>
 	</BODY>
 </HTML>

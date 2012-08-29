@@ -42,12 +42,13 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
-extern void process_input(unsigned char c);
+extern void process_input(unsigned char c, unsigned char extended);
 extern void process_input_file(char *filename);
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{ switch (message) 
+{ 
+   switch (message) 
   { case WM_SETFOCUS:
       vmb_debug(VMB_DEBUG_PROGRESS, "got focus");
 	  hBmp = hBmpActive;
@@ -80,9 +81,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_VMB_OFF: /* Power Off */
 	  DragAcceptFiles(hWnd,FALSE);
 	  break;
-   case WM_CHAR:
-      process_input((unsigned char) wParam); 
+   case WM_CHAR:      process_input((unsigned char) wParam,0); 
       return 0;
+   case WM_KEYDOWN:
+      switch (wParam) 
+      { case VK_PRIOR:  case VK_NEXT:
+	    case VK_LEFT: case VK_RIGHT: case VK_UP: case VK_DOWN:
+        case VK_HOME: case VK_END:
+        case VK_INSERT: case VK_DELETE:
+		case VK_ESCAPE: case VK_SELECT: case VK_PRINT: case VK_EXECUTE: case VK_SNAPSHOT:
+		case VK_HELP:
+		case VK_SLEEP:
+		case VK_F1: case VK_F2: case VK_F3: case VK_F4:
+		case VK_F5: case VK_F6: case VK_F7: case VK_F8:
+		case VK_F9: case VK_F10: case VK_F11: case VK_F12:
+		case VK_F13: case VK_F14: case VK_F15: case VK_F16:
+		case VK_F17: case VK_F18: case VK_F19: case VK_F20:
+		case VK_F21: case VK_F22: case VK_F23: case VK_F24:
+          process_input((unsigned char) wParam,1); 
+          return 0;
+		default: 
+          break; 
+      }      
   }
+#if 0
+  if (message!=WM_PAINT && message!=WM_KILLFOCUS && message!=WM_SETFOCUS && message!=WM_VMB_ON && message!=WM_VMB_ON
+	  && message!=0x84 && message!=0x20 && message!=0xa0 && message!=0x46
+	  && message!=0x47 && message!=0x1c && message!=0x86 && message!=0x06
+	  && message!=0x281 && message!=0x282 && message!=0x138 
+	  && message!=0x21 && message!=0xa1 && message!=0x112 && message!=0x1f
+	  && message!=0x215 && message!=0xa2
+	  )
+	  vmb_debugi(VMB_DEBUG_PROGRESS, "message %X",message);
+#endif
   return (OptWndProc(hWnd, message, wParam, lParam));
 }

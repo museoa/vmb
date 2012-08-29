@@ -43,7 +43,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 void display_char(char c);
 
 
-char version[]="$Revision: 1.20 $ $Date: 2011-10-14 11:48:13 $";
+char version[]="$Revision: 1.21 $ $Date: 2012-08-29 16:16:20 $";
 
 char howto[] =
 "\n"
@@ -78,6 +78,7 @@ extern device_info vmb;
 static unsigned char data[8];
 #define ERROR 0
 #define COUNT 3
+#define EXTENSION 6
 #define DATA  7
 
 
@@ -96,6 +97,7 @@ unsigned char *kb_get_payload(unsigned int offset,int size)
 	{ memset(data,0,8);    /* reset to zero */
       if (input_buffer_first<input_buffer_last)
 	  { data[DATA] = input_buffer[input_buffer_first++];
+	    data[EXTENSION] = 0;
         data[COUNT] = 1;
         vmb_raise_interrupt(&vmb,interrupt);
         vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");  
@@ -134,6 +136,7 @@ void process_input_file(char *filename)
 	  vmb_debugi(VMB_DEBUG_ERROR, "Maximum File size %d reached, File truncated",MAXIBUFFER);
   fclose(f);
   data[DATA] = input_buffer[input_buffer_first++];
+  data[EXTENSION] = 0;
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
   mem_update(0,0,8);
@@ -141,16 +144,18 @@ void process_input_file(char *filename)
   vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
 }
 
-void process_input(unsigned char c) 
+void process_input(unsigned char c, unsigned char extended) 
 { /* The keyboard Interface */
-  if (c<0x20 || c >= 0x7F)
-    vmb_debugi(VMB_DEBUG_PROGRESS, "input (#%x)\n",c);
+  
+  if (extended != 0 || (c<0x20 || c >= 0x7F))
+    vmb_debugi(VMB_DEBUG_PROGRESS, "input (#%04x)\n",(extended<<8)|c);
   else
     vmb_debugi(VMB_DEBUG_PROGRESS, "input %c",c);
   if (input_buffer_first < input_buffer_last)
-	  vmb_debugi(VMB_DEBUG_NOTIFY, "Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
+	  vmb_debugi(VMB_DEBUG_NOTIFY, "Ignored. Still %d characters in the input file buffer",input_buffer_last-input_buffer_first);
   else if (vmb.power)
   { data[DATA] = c;
+    data[EXTENSION]=extended;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
 	mem_update(0,0,8);
@@ -294,7 +299,7 @@ int main(int argc, char *argv[])
     }
     else if (i>0)
     { vmb_debugi(VMB_DEBUG_INFO, "got %02X",c&0xFF);
-      process_input(c);
+      process_input(c,0);
     }
   }
   vmb_disconnect(&vmb);
