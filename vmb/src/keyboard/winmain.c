@@ -104,15 +104,5 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           break; 
       }      
   }
-#if 0
-  if (message!=WM_PAINT && message!=WM_KILLFOCUS && message!=WM_SETFOCUS && message!=WM_VMB_ON && message!=WM_VMB_ON
-	  && message!=0x84 && message!=0x20 && message!=0xa0 && message!=0x46
-	  && message!=0x47 && message!=0x1c && message!=0x86 && message!=0x06
-	  && message!=0x281 && message!=0x282 && message!=0x138 
-	  && message!=0x21 && message!=0xa1 && message!=0x112 && message!=0x1f
-	  && message!=0x215 && message!=0xa2
-	  )
-	  vmb_debugi(VMB_DEBUG_PROGRESS, "message %X",message);
-#endif
   return (OptWndProc(hWnd, message, wParam, lParam));
 }
