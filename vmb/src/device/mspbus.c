@@ -1,55 +1,44 @@
 #include "mspbus.h"
 #include "mspcore.h"
-#include "vmb.h"
+//#include "vmb.h"
 
 device_info vmb = {0};
+
+static void vmb_atexit(void)
+{ vmb_disconnect(&vmb);
+  vmb_end();
+}
 
 void initVMBInterface() {
 	/* the vmb library uses debuging output, that we need to switch on if we
 	want to see it. It will use the variable vmb_program_name to mark the output
 	as comming from this program.*/
-  vmb_debug_on();
+  vmb_begin();
+  vmb_debug_flag = 0;
   vmb_program_name = "MSP430";
+	vmb.reset=&initCore;
 
-  //init_device(&vmb);
-	
-  /* establish a connection to the virtual bus on the localhost
-     on port 9002. This port is the default port for the virtual bus. */
   vmb_connect(&vmb,"localhost",9002); 
-
-  // WD: MCU will not receive any interrupts from other devices
-  // RAM and ROM will answer to requests synchonous
-  vmb_register(&vmb,0x00000000,0x00000000, /* start address, hi 32bit, lo 32 bit
-                                         where the device is mapped. */
-               0xF, /* the size of the mapped area 
-					(meets the size of the special function registers @0x0) */
-               0x00000000,0x00000000, /* the mask for the 64 interupt lines
-                                         only interrups with the corresponding
-                                         bit set will reach this device. 
-										 (No interrupts will be accepted) */
-               "MSP430");         /* the name of this device */
-
+  /* vmb_connect(&vmb,host, port); */
+  vmb_register(&vmb,0,0,0,-1,-1,vmb_program_name);
+  atexit(vmb_atexit);
+  vmb_debug_on();
   
-  // WD: Wait for motherboard to power on
-  vmb_wait_for_power(&vmb);
+}
+
+int wait_for_power(void)
+{
+	fprintf(stderr,"Power...");
+	while(!vmb.power)
+	{
+		vmb_wait_for_power(&vmb);
+		if (!vmb.connected) return FALSE;
+	}
+	fprintf(stderr,"ON\n");
+	return TRUE;
 }
 
 
-
-void wait_for_disconnect() {
-	vmb_wait_for_disconnect(&vmb);
-}
-
-void init_device(device_info *vmb)
-{  
-	vmb->poweron=device_poweron;
-	vmb->poweroff=vmb_poweroff; /* use default */
-	vmb->disconnected=vmb_disconnected;  /* use default */
-	vmb->reset=&initCore;
-	vmb->terminate=vmb_terminate; /* use default */
-	vmb->get_payload=device_get_payload;
-	vmb->put_payload=device_put_payload;
-}
 
 int vmbReadByteAt(UINT16 msp_address, UINT8* readInto) {
 	data_address da;
@@ -95,51 +84,4 @@ int vmbWriteWordAt(UINT16 msp_address, UINT16* writeFrom) {
 	return TRUE;
 }
 
-/* the next funtions are required callback functions
-   for the vmb interface. They are called from threads
-   distinct from the main thread. If these callbacks
-   share resources with the main thread, it might be necessary
-   to use a mutex to synchronize access to the resources.
-   In this template, the main thread does nothing with
-   the ram. Hence no synchronization is needed.
-*/
 
-void device_poweron(void)
-/* this function is called when the virtual power is turned on */
-{  
-	initCore();
-}
-
-
-void device_reset(void)
-/* this function is called when the virtual reset button is pressed */
-{ 
-	initCore();
-}
-
-
-unsigned char *device_get_payload(unsigned int offset,int size)
-/* this function is called if some other device on the virtual bus
-   wants to read size byte from this device at the given offset.
-   offset and size are checked to fall completely within the
-   address space ocupied by this device
-   The function must return a pointer to the requested bytes.
-*/
-{ 
-	// Returns a zero map of size bytes
-	unsigned char *result = (unsigned char*)malloc(size);
-	return result;
-}
-
-void device_put_payload(unsigned int offset,int size, unsigned char *payload)
-/* this function is called if some other device on the virtual bus
-   wants to write size byte to this device at the given offset.
-   The new byte are contained in the payload.
-   offset and size are checked to fall completely within the
-   address space ocupied by this device.
-*/
-{  
-	//memmove(ram+offset,payload,size);
-	// do nothing
-	return;
-}

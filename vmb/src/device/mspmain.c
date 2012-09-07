@@ -31,32 +31,41 @@
 
 
 #include "vmb.h"
+#include "mspcore.h"
 
 #ifdef WIN32
 #include <windows.h>
 HWND hMainWnd = NULL; /* there is no Window */
 #endif
 
-#include "mspcore.h"
-
-
-extern int ramsize;
-
 int main(int argc, char *argv[])
-{
-  // Init core and start execution
-  initCore();
+{	
+	executorPtr executor;
 
+	// Init core and start execution
+	initVMBInterface();
+ boot:
+	wait_for_power();
+	initCore();
 
-  /* now the virtual motherboard interface is set up.
-     There is nothing left to do, because this is a pasive device
-     it will just service read and write requests from the bus
-     by the above callback functions. 
-     We just wait until the motherboard disconnects,
-     before returning home. */
+	while (TRUE) {
+		if (!vmb.connected) break;
+		if (!vmb.power || vmb.reset_flag)
+		{  /* breakpoint ?*/
+		  vmb.reset_flag= 0;
+		  goto boot;
+		}
 
-  wait_for_disconnect();
-  return 0;
+		currentInstruction = fetchInstruction(registers[PC].asWord);
+		if (!currentInstruction)
+			break;
+		if (!decodeInstructionFormat(currentInstruction, &executor))
+			break;
+		if (executor == NULL || !executor(NULL))
+			break;
+	}
+end_simulation:
+	return 0;
 }
 
 

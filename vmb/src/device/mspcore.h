@@ -43,37 +43,13 @@ enum addr_mode {
 typedef int (*executorPtr) (char**);
 
 // Instruction struct
-typedef struct _INSTRUCTION {
-	char name[5];
-	unsigned short code;
-	unsigned short format;
-	executorPtr executor;
-} INSTRUCTION;
+//typedef struct _INSTRUCTION {
+//	char name[5];
+//	unsigned short code;
+//	unsigned short format;
+//	executorPtr executor;
+//} INSTRUCTION;
 
-
-// MSP430 instructions
-typedef struct {
-	INSTRUCTION _ADD;
-	INSTRUCTION _ADDC;
-	INSTRUCTION _AND;
-	INSTRUCTION _BIC;
-	INSTRUCTION _BIS;
-	INSTRUCTION _BIT;
-	INSTRUCTION _CALL;
-	INSTRUCTION _CMP;
-	INSTRUCTION _DADD;
-	INSTRUCTION _JUMP;
-	INSTRUCTION _MOV;
-	INSTRUCTION _PUSH;
-	INSTRUCTION _RETI;
-	INSTRUCTION _RRA;
-	INSTRUCTION _RRC;
-	INSTRUCTION _SUB;
-	INSTRUCTION _SUBC;
-	INSTRUCTION _SWBP;
-	INSTRUCTION _SXT;
-	INSTRUCTION _XOR;
-} _INSTRUCTIONS;
 
 // Opcode-Masken
 // Format1: double operand instructions
@@ -106,7 +82,7 @@ typedef struct {
 } _FORMAT2_MASK;
 #define FORMAT2_MASK {0xFF80,0x0040,0x0030,0x000F,7,6,4,0}
 
-// Format2: jump instructions
+// Format3: jump instructions
 typedef struct {
 	unsigned int CommandBitMask;
 	unsigned int ConditionBitMask;
@@ -141,53 +117,58 @@ extern int RRA_executor (char **programmCounter);
 extern int RRC_executor (char **programmCounter);
 extern int SUB_executor (char **programmCounter);
 extern int SUBC_executor (char **programmCounter);
-extern int SWBP_executor (char **programmCounter);
+extern int SWPB_executor (char **programmCounter);
 extern int SXT_executor (char **programmCounter);
 extern int XOR_executor (char **programmCounter);
 
 // Instruction codes
-#define I_ADD {"ADD",5,1,&ADD_executor}
-#define I_ADDC {"ADDC",6,1,&ADDC_executor}
-#define I_AND {"AND",15,1,&AND_executor}
-#define I_BIC {"BIC",12,1,&BIC_executor}
-#define I_BIS {"BIS",13,1,&BIS_executor}
-#define I_BIT {"BIT",11,1,&BIT_executor}
-#define I_CALL {"CALL",37,2,&CALL_executor}
-#define I_CMP {"CMP",9,1,&CMP_executor}
-#define I_DADD {"DADD",10,1,&DADD_executor}
-#define I_JUMP {"JUMP",1,3,&JUMP_executor}
-#define I_MOV {"MOV",4,1,&MOV_executor}
-#define I_PUSH {"PUSH",36,2,&PUSH_executor}
-#define I_RETI {"RETI",38,2,&RETI_executor}
-#define I_RRA {"RRA",34,2,&RRA_executor}
-#define I_RRC {"RRC",32,2,&RRC_executor}
-#define I_SUB {"SUB",8,1,&SUB_executor}
-#define I_SUBC {"SUBC",7,1,&SUBC_executor}
-#define I_SWBP {"SWBP",33,2,&SWBP_executor}
-#define I_SXT {"SXT",35,2,&SXT_executor}
-#define I_XOR {"XOR",14,1,&XOR_executor}
-
-static const _INSTRUCTIONS INSTRUCTIONS = 
-	{I_ADD,
-	I_ADDC,
-	I_AND,
-	I_BIC,
-	I_BIS,
-	I_BIT,
-	I_CALL,
-	I_CMP,
-	I_DADD,
-	I_JUMP,
-	I_MOV,
-	I_PUSH,
-	I_RETI,
-	I_RRA,
-	I_RRC,
-	I_SUB,
-	I_SUBC,
-	I_SWBP,
-	I_SXT,
-	I_XOR};
+//#define I_ADD {"ADD",		5,1,&ADD_executor}
+//#define I_ADDC {"ADDC",	6,1,&ADDC_executor}
+//#define I_AND {"AND",		15,1,&AND_executor}
+//#define I_BIC {"BIC",		12,1,&BIC_executor}
+//#define I_BIS {"BIS",		13,1,&BIS_executor}
+//#define I_BIT {"BIT",		11,1,&BIT_executor}
+//#define I_CALL {"CALL",	37,2,&CALL_executor}
+//#define I_CMP {"CMP",		9,1,&CMP_executor}
+//#define I_DADD {"DADD",	10,1,&DADD_executor}
+//#define I_JUMP {"JUMP",	1,3,&JUMP_executor}
+//#define I_MOV {"MOV",		4,1,&MOV_executor}
+//#define I_PUSH {"PUSH",	36,2,&PUSH_executor}
+//#define I_RETI {"RETI",	38,2,&RETI_executor}
+//#define I_RRA {"RRA",		34,2,&RRA_executor}
+//#define I_RRC {"RRC",		32,2,&RRC_executor}
+//#define I_SUB {"SUB",		8,1,&SUB_executor}
+//#define I_SUBC {"SUBC",	7,1,&SUBC_executor}
+//#define I_SWBP {"SWBP",	33,2,&SWBP_executor}
+//#define I_SXT {"SXT",		35,2,&SXT_executor}
+//#define I_XOR {"XOR",		14,1,&XOR_executor}
+static const executorPtr INSTRUCTIONS[39] = 
+{
+	0,					// 0
+	&JUMP_executor,		// 1
+	0,					// 2
+	0,					// 3
+	&MOV_executor,		// 4
+	&ADD_executor,		// 5
+	&ADDC_executor,		// 6
+	&SUBC_executor,		// 7
+	&SUB_executor,		// 8
+	&CMP_executor,		// 9
+	&DADD_executor,		// 10
+	&BIT_executor,		// 11
+	&BIC_executor,		// 12
+	&BIS_executor,		// 13
+	&XOR_executor,		// 14
+	&AND_executor,		// 15
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 16-31
+	&RRC_executor,		// 32
+	&SWPB_executor,		// 33
+	&RRA_executor,		// 34
+	&SXT_executor,		// 35
+	&PUSH_executor,		// 36
+	&CALL_executor,		// 37
+	&RETI_executor		// 38
+};
 
 // Condition constants for the jump instruction
 enum jump_conditions {
@@ -201,9 +182,56 @@ enum jump_conditions {
 	JMP
 };
 
+typedef union {
+	// MSP is little endian!
+	UINT16 asWord;
+	struct {
+#ifdef BIGENDIAN
+		unsigned char V : 1;
+		unsigned char RESERVED : 7;
+		unsigned char C : 1;
+		unsigned char Z : 1;
+		unsigned char N : 1;
+		unsigned char GIE : 1;
+		unsigned char CPUOFF : 1;
+		unsigned char OSCOFF : 1;
+		unsigned char SCG0 : 1;
+		unsigned char SCG1 : 1;
+#else
+		unsigned char C : 1;
+		unsigned char Z : 1;
+		unsigned char N : 1;
+		unsigned char GIE : 1;
+		unsigned char CPUOFF : 1;
+		unsigned char OSCOFF : 1;
+		unsigned char SCG0 : 1;
+		unsigned char SCG1 : 1;
+		unsigned char V : 1;
+		unsigned char RESERVED : 7;
+#endif
+	} asBits;
+  
+  struct {
+#ifdef BIGENDIAN
+    unsigned char hi : 8;
+    unsigned char lo : 8;
+#else
+    unsigned char lo : 8;
+    unsigned char hi : 8;
+#endif
+  } asBytes;
+} msp_register;
+
 #define REGISTERS_COUNT 16
 // MSP registers
-static UINT16 registers[REGISTERS_COUNT];
+static msp_register registers[REGISTERS_COUNT];
+
+// Access status bits
+#define cBit registers[SR].asBits.C
+#define zBit registers[SR].asBits.Z
+#define nBit registers[SR].asBits.N
+#define vBit registers[SR].asBits.V
+
 static unsigned long clocks = 0;
 static UINT16 currentInstruction = 0;
 #define MEMORY_WRITEBACK_NO (-1)
@@ -213,16 +241,8 @@ static INT32 memoryWriteBack = MEMORY_WRITEBACK_NO;
 #define EXECUTION_START_AT 0xFFFE
 #define RAM_START_AT 0x200
 
-// Increases the programm counter
+// Increases the programm counter by 2
 extern void increasePC();
-
-// Sets the status bits. If arguments are NULL the corresponding status bits won't be affected.
-extern void setStatusBits(int *carry, int *zero, int *negative, int *arithmetic);
-// Getters for the status bits
-extern int getCarryBit();
-extern int getZeroBit();
-extern int getNegativeBit();
-extern int getArithmeticBit();
 
 extern int decodeInstructionFormat(UINT16 instruction, executorPtr *executor);
 extern executorPtr findExecutor(UINT16 instructionCode);
@@ -235,4 +255,6 @@ extern void executionLoop();
 extern void initCore(void);
 extern void initRegisters();
 
+
 #endif
+
