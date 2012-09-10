@@ -31,46 +31,41 @@
 
 
 #include "vmb.h"
+#include "mspcore.h"
 
 #ifdef WIN32
 #include <windows.h>
 HWND hMainWnd = NULL; /* there is no Window */
 #endif
 
-#include "mspcore.h"
-
-
-extern int ramsize;
-
 int main(int argc, char *argv[])
-{	executorPtr executor;
+{	
+	executorPtr executor;
 
-  // Init core and start execution
-  initVMBInterface();
+	// Init core and start execution
+	initVMBInterface();
  boot:
-  wait_for_power(void);
-  initCore();
+	wait_for_power();
+	initCore();
 
 	while (TRUE) {
-		currentInstruction = fetchInstruction(registers[PC]);
+		if (!vmb.connected) break;
+		if (!vmb.power || vmb.reset_flag)
+		{  /* breakpoint ?*/
+		  vmb.reset_flag= 0;
+		  goto boot;
+		}
+
+		currentInstruction = fetchInstruction(registers[PC].asWord);
 		if (!currentInstruction)
 			break;
 		if (!decodeInstructionFormat(currentInstruction, &executor))
 			break;
 		if (executor == NULL || !executor(NULL))
 			break;
-
-/* once in the instrcuction fetch cycle do this: */
-if(!vmb.connected) break;
-if(!vmb.power||vmb.reset_flag)
-{  /* breakpoint ?*/
-  vmb.reset_flag= 0;
-  goto boot;
-}
-
 	}
-
-  return 0;
+end_simulation:
+	return 0;
 }
 
 

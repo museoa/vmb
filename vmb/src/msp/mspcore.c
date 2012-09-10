@@ -14,7 +14,7 @@ int ADD_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT32 result = 0;
 	UINT16 uiSource, uiDestination;
-/+	int bN, bZ, bC, bV; */
+	/*	int bN, bZ, bC, bV; */
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -33,33 +33,19 @@ int ADD_executor (char **programmCounter) {
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = ((result & compNegative) != 0);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// (C-bit)
 	if (!isByteInstruction) 
 		compCarry |= 0xFF00;
-	bC= (result & (~compCarry));
-
+	cBit = ((result & (~compCarry)) != 0);
 	
 	// (V-bit)
-	if (((!(uiSource & compNegative)) && (!(uiDestination & compNegative)) && (bN)) 
-		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!bN))) {
-			bV = TRUE;
-	}
-	else {
-		bV = FALSE;
-	}
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = (((!(uiSource & compNegative)) && (!(uiDestination & compNegative)) && (nBit)) 
+		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -88,7 +74,6 @@ int ADDC_executor (char **programmCounter) {
 	//int iSource, iDestination;
 	//unsigned int uiSource, uiDestination;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 	
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -97,28 +82,27 @@ int ADDC_executor (char **programmCounter) {
 	if (isByteInstruction) {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
-		result = uiSource + uiDestination + getCarryBit();
+		result = uiSource + uiDestination + cBit;
 		*(UINT8*)destination = (UINT8)(result & 0xFF);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
-		result = uiSource + uiDestination + getCarryBit();
+		result = uiSource + uiDestination + cBit;
 		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	bB=(result & compNegative);
+	nBit = (result & compNegative);
 	// (Z-bit)
-	bZ= (!(result & 0xFFFF));
+	zBit= (!(result & 0xFFFF));
 	// (C-bit)
 	if (isByteInstruction) compCarry |= 0xFF00;
-        bC = (result & (~compCarry));
+        
+	cBit = (result & (~compCarry));
 	
 	// (V-bit)
-	bV= ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (bN)) 
-	     || ((uiSource & compNegative) && (uiDestination & compNegative) && (!bN)));
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit= ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (nBit)) 
+	     || ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -144,7 +128,6 @@ int AND_executor (char **programmCounter) {
 	UINT16 result;
 	//int iSource, iDestination;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -163,24 +146,16 @@ int AND_executor (char **programmCounter) {
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	bZ = (!(result & 0xFFFF));
+	zBit = (!(result & 0xFFFF));
 
 	// Carry bit is set, if result != ZERO
-	if (bZ)
-		bC = FALSE;
-	else
-		bC = TRUE;
+	cBit = !zBit;
 	
 	// V-bit: always reset
-	bV = FALSE;
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = 0;
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -289,7 +264,6 @@ int BIT_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -310,27 +284,16 @@ int BIT_executor (char **programmCounter) {
 	// Only status bits affected
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// Carry bit is set, if result != ZERO
-	if (bZ)
-		bC = FALSE;
-	else
-		bC = TRUE;
+	cBit = !zBit;
 	
 	// V-bit: always reset
-	bV = FALSE;
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = FALSE;
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -362,11 +325,11 @@ int CALL_executor (char **programmCounter) {
 		return FALSE;
 
 	operandValue = *(UINT16*)operand;
-	registers[SP] -= 2;
-	pcForStack = registers[PC]+2;
-	if (!vmbWriteWordAt(registers[SP], &pcForStack))
+	registers[SP].asWord -= 2;
+	pcForStack = registers[PC].asWord + 2;
+	if (!vmbWriteWordAt(registers[SP].asWord, &pcForStack))
 		return FALSE;
-	registers[PC] = operandValue;
+	registers[PC].asWord = operandValue;
 
 	//increasePC();
 
@@ -381,7 +344,6 @@ int CMP_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	unsigned int result;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -402,37 +364,18 @@ int CMP_executor (char **programmCounter) {
 	// Only status bits affected
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// C-bit
 	if (isByteInstruction) compCarry |= 0xFF00;
-	if ((result & (~compCarry)) != 0) {
-		bC = TRUE;
-	}
-	else {
-		bC = FALSE;
-	}
+	cBit = (result & (~compCarry));
 	
 	// (V-bit)
-	if ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (bN)) 
-		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!bN))) {
-			bV = TRUE;
-	}
-	else {
-		bV = FALSE;
-	}
-
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (nBit)) 
+		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -459,8 +402,6 @@ int DADD_executor (char **programmCounter) {
 	UINT16 uiSource, uiDestination;
 	UINT16 uiDigit, uiDigitMask = 0xF;
 	int carry, i, maxI;
-	int bN, bZ, bC, bV;
-
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -477,10 +418,9 @@ int DADD_executor (char **programmCounter) {
 		uiDestination = (*(UINT16*)destination);
 	}
 
-	carry = FALSE;
 	i = 0;
 	result = 0;
-	carry = getCarryBit();
+	carry = cBit;
 	while (i < maxI) {
 		uiDigit = uiSource & uiDigitMask + uiDestination & uiDigitMask;
 		if (carry) {
@@ -506,24 +446,16 @@ int DADD_executor (char **programmCounter) {
 
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// (C-bit)
-	bC = carry;
+	cBit = carry;
 	
 	// (V-bit undefined)
-	bV = FALSE;
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = 0;
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -556,31 +488,31 @@ int JUMP_executor (char **programmCounter) {
 
 	switch (uiCondition) {
 	case JNE:
-		if (!getZeroBit())
+		if (!zBit)
 			jump = TRUE;
 		break;
 	case JEQ:
-		if (getZeroBit())
+		if (zBit)
 			jump = TRUE;
 		break;
 	case JNC:
-		if (!getCarryBit())
+		if (!cBit)
 			jump = TRUE;
 		break;
 	case JC:
-		if (getCarryBit())
+		if (cBit)
 			jump = TRUE;
 		break;
 	case JN:
-		if (getNegativeBit())
+		if (nBit)
 			jump = TRUE;
 		break;
 	case JGE:
-		if (!(getNegativeBit() ^ getArithmeticBit()))
+		if (!(nBit ^ vBit))
 			jump = TRUE;
 		break;
 	case JL:
-		if (getNegativeBit() ^ getArithmeticBit())
+		if (nBit ^ vBit)
 			jump = TRUE;
 		break;
 	case JMP:
@@ -592,7 +524,7 @@ int JUMP_executor (char **programmCounter) {
 
 	if (jump) {
 		// The programm counter was not moved to the next instruction yet
-		registers[PC] += 2*iOffset;
+		registers[PC].asWord += 2*iOffset;
 	} else {
 		increasePC();
 	}
@@ -643,7 +575,7 @@ int PUSH_executor (char **programmCounter) {
 		return FALSE;
 	
 	// Update stack pointer
-	registers[SP] -= 2;
+	registers[SP].asWord -= 2;
 
 	if (isByteInstruction) {
 		operandValue = *(UINT8*)operand;
@@ -654,7 +586,7 @@ int PUSH_executor (char **programmCounter) {
 
 	// Status bits are not affected
 
-	if (!vmbWriteWordAt(registers[SP], &operandValue))
+	if (!vmbWriteWordAt(registers[SP].asWord, &operandValue))
 		return FALSE;
 
 	increasePC();
@@ -676,15 +608,15 @@ int RETI_executor (char **programmCounter) {
 		return FALSE;
 
 	// Restore status register
-	if (!vmbReadWordAt(registers[SP], &stack))
+	if (!vmbReadWordAt(registers[SP].asWord, &stack))
 		return FALSE;
-	registers[SR] = stack;
-	registers[SP] -= 2;
+	registers[SR].asWord = stack;
+	registers[SP].asWord -= 2;
 	// Restore programm counter
-	if (!vmbReadWordAt(registers[SP], &stack))
+	if (!vmbReadWordAt(registers[SP].asWord, &stack))
 		return FALSE;
-	registers[PC] = stack;
-	registers[SP] -= 2;
+	registers[PC].asWord = stack;
+	registers[SP].asWord -= 2;
 
 	//increasePC();
 
@@ -708,18 +640,12 @@ int RRA_executor (char **programmCounter) {
 	if (isByteInstruction) {
 		UINT8 operandValue;
 		operandValue = *(UINT8*)operand;
-		if (operandValue & 0x80) {
-			msb = TRUE;
-			bN = TRUE;
-		} else {
-			bN = FALSE;
-		}
-		if (!operandValue)
-			bZ = TRUE;
-		else
-			bZ = FALSE;
-		if ((operandValue & 0x1) > 0)
-			bC = TRUE;
+		
+		nBit = (operandValue & 0x80);
+		msb = nBit;
+		zBit = (!operandValue);
+		
+		cBit = ((operandValue & 0x1) > 0);
 
 		operandValue >>= 1;
 		if (msb)
@@ -728,18 +654,10 @@ int RRA_executor (char **programmCounter) {
 	} else {
 		UINT16 operandValue;
 		operandValue = *(UINT16*)operand;
-		if (operandValue & 0x8000) {
-			msb = TRUE;
-			bN = TRUE;
-		} else {
-			bN = FALSE;
-		}
-		if (operandValue & 0x1)
-			bC = TRUE;
-		if (!operandValue)
-			bZ = TRUE;
-		else
-			bZ = FALSE;
+		nBit = (operandValue & 0x8000);
+		msb = nBit;
+		cBit = (operandValue & 0x1);
+		zBit = (!operandValue);
 
 		operandValue >>= 1;
 		if (msb)
@@ -747,9 +665,7 @@ int RRA_executor (char **programmCounter) {
 		*(UINT16*)operand = operandValue;
 	}
 
-	bV = FALSE;
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = 0;
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -771,15 +687,12 @@ int RRC_executor (char **programmCounter) {
 		Rotates the operand right with carry:
 		C->MSB, ..., LSB->C
 	*/
-	int bN, bZ, bC, bV;
 	int lsb = FALSE;
 	int isByteInstruction = FALSE;
 	void *operand;
 
 	if (!decodeF2Instruction(currentInstruction, &operand, &isByteInstruction))
 		return FALSE;
-
-	bC = getCarryBit();
 
 	if (isByteInstruction) {
 		UINT8 operandValue;
@@ -788,44 +701,29 @@ int RRC_executor (char **programmCounter) {
 			lsb = TRUE;
 
 		operandValue >>= 1;
-		if (bC) {
+		if (cBit)
 			operandValue |= 0x80;
-			bN = TRUE;
-		} else {
-			bN = FALSE;
-		}
-		bC = lsb;
-		if (!operandValue)
-			bZ = TRUE;
-		else
-			bZ = FALSE;
+		nBit = cBit;
+		cBit = lsb;
+		zBit = (!operandValue);
 		*(UINT8*)operand = operandValue;
 	} else {
 		UINT16 operandValue;
 		//unsigned int uiOperandValue;
 		operandValue = *(UINT16*)operand;
 		//uiOperandValue = wordToUInt(operandValue);
-		if ((operandValue & 0x1) > 0)
-			lsb = TRUE;
+		lsb = ((operandValue & 0x1) > 0);
 
 		operandValue >>= 1;
-		if (bC) {
+		if (cBit)
 			operandValue |= 0x8000;
-			bN = TRUE;
-		} else {
-			bN = FALSE;
-		}
-		bC = lsb;
-		if (!operandValue)
-			bZ = TRUE;
-		else
-			bZ = FALSE;
+		nBit = cBit;
+		cBit = lsb;
+		zBit = (!operandValue);
 		*(UINT16*)operand = operandValue;
 	}
 
-	bV = FALSE;
-
-	setStatusBits(&lsb, &bZ, &bN, &bV);
+	vBit = 0;
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -850,7 +748,6 @@ int SUB_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT16 result = 0;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -870,36 +767,18 @@ int SUB_executor (char **programmCounter) {
 
 	// Ist Ergebnis negativ? (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if ((result & compNegative) > 0)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = ((result & compNegative) > 0);
 
 	// Ist Ergebnis 0? (Z-bit)
-	if ((result & 0xFFFF) == 0)
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = ((result & 0xFFFF) == 0);
 
 	// Wurde ein Übertrag erzeugt (C-bit)
 	if (!isByteInstruction) compCarry |= 0xFF00;
-	if (result & (~compCarry)) {
-		bC = TRUE;
-	}
-	else {
-		bC = FALSE;
-	}
+	cBit = (result & (~compCarry));
 	
 	// Wurde ein arithmetischer Fehler ausgelöst? (V-bit)
-	if ((!(uiSource & compNegative) && (uiDestination & compNegative) && (bN)) // pos - neg = neg?
-		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!bN))) {		// neg - pos = pos?
-			bV = TRUE;
-	}
-	else {
-		bV = FALSE;
-	}
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = ((!(uiSource & compNegative) && (uiDestination & compNegative) && (nBit)) // pos - neg = neg?
+		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!nBit)));		// neg - pos = pos?
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -924,7 +803,6 @@ int SUBC_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -933,47 +811,29 @@ int SUBC_executor (char **programmCounter) {
 	if (isByteInstruction) {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
-		result = uiSource - uiDestination + getCarryBit();
+		result = uiSource - uiDestination + cBit;
 		*(UINT8*)destination = (UINT8)(result & 0xFF);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
-		result = uiSource - uiDestination + getCarryBit();
+		result = uiSource - uiDestination + cBit;
 		*(UINT16*)destination = (UINT16)(result & 0xFF);
 	}
 
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// (C-bit)
 	if (!isByteInstruction) compCarry |= 0xFF00;
-	if (result & (~compCarry)) {
-		bC = TRUE;
-	}
-	else {
-		bC = FALSE;
-	}
+	cBit = (result & (~compCarry));
 	
 	// (V-bit)
-	if ((!(uiSource & compNegative) && (uiDestination & compNegative) && (bN)) 
-		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!bN))) {
-			bV = TRUE;
-	}
-	else {
-		bV = FALSE;
-	}
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = ((!(uiSource & compNegative) && (uiDestination & compNegative) && (nBit)) 
+		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!nBit)));
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -990,7 +850,7 @@ int SUBC_executor (char **programmCounter) {
 	return TRUE;
 }
 
-int SWBP_executor (char **programmCounter) {
+int SWPB_executor (char **programmCounter) {
 	/*
 		Swaps the both bytes of the operand
 	*/
@@ -1024,7 +884,6 @@ int SXT_executor (char **programmCounter) {
 	int isByteInstruction = FALSE;
 	void *operand;
 	UINT16 operandValue;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF2Instruction(currentInstruction, &operand, &isByteInstruction))
 		return FALSE;
@@ -1033,25 +892,20 @@ int SXT_executor (char **programmCounter) {
 
 	if (operandValue & 0x80) {
 		operandValue |= 0xFF00;
-		bN = TRUE;
+		nBit = TRUE;
 	}
 	else {
 		operandValue &= 0x00FF;
-		bN = FALSE;
+		nBit = FALSE;
 	}
 
-	if (!operandValue)
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!operandValue);
 
-	bC = !bZ;
+	cBit = !zBit;
 
-	bV = FALSE;
+	vBit = 0;
 
 	*(UINT16*)operand = operandValue;
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
 
 	if (memoryWriteBack >= 0) {
 		if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
@@ -1069,7 +923,6 @@ int XOR_executor (char **programmCounter) {
 	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
-	int bN, bZ, bC, bV;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
@@ -1089,24 +942,16 @@ int XOR_executor (char **programmCounter) {
 
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	if (result & compNegative)
-		bN = TRUE;
-	else
-		bN = FALSE;
+	nBit = (result & compNegative);
 
 	// (Z-bit)
-	if (!(result & 0xFFFF))
-		bZ = TRUE;
-	else
-		bZ = FALSE;
+	zBit = (!(result & 0xFFFF));
 
 	// Carry bit is set, if result != ZERO
-	bC = !bZ;
+	cBit = !zBit;
 	
 	// V-bit: set if both operands are negative
-	bV = ((uiSource & compNegative) && (uiDestination & compNegative));
-
-	setStatusBits(&bC, &bZ, &bN, &bV);
+	vBit = ((uiSource & compNegative) && (uiDestination & compNegative));
 
 	if (memoryWriteBack >= 0) {
 		if (isByteInstruction) {
@@ -1219,7 +1064,7 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			}
 			baseAddress = 0;
 			increasePC();
-			 if (!vmbReadWordAt(registers[PC], &offset))
+			 if (!vmbReadWordAt(registers[PC].asWord, &offset))
 				 return FALSE;
 			if (isByteInstruction) {
 				 if (!vmbReadByteAt(baseAddress+offset, (UINT8*)*source))
@@ -1282,9 +1127,9 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			} else {
 				*source = malloc(sizeof(UINT16));
 			}
-			baseAddress = registers[sReg];
+			baseAddress = registers[sReg].asWord;
 			increasePC();
-			if (!vmbReadWordAt(registers[PC], &offset))
+			if (!vmbReadWordAt(registers[PC].asWord, &offset))
 				return FALSE;
 			if (!vmbReadWordAt(baseAddress+offset, (UINT16*)*source))
 				return FALSE;
@@ -1293,11 +1138,11 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			// Register contains the address of the operand
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
-				if (!vmbReadByteAt(registers[sReg], (UINT8*)*source))
+				if (!vmbReadByteAt(registers[sReg].asBytes.lo, (UINT8*)*source))
 					 return FALSE;
 			} else {
 				*source = malloc(sizeof(UINT16));
-				if (!vmbReadWordAt(registers[sReg], (UINT16*)*source))
+				if (!vmbReadWordAt(registers[sReg].asBytes.lo, (UINT16*)*source))
 					 return FALSE;
 			}
 			break;
@@ -1305,7 +1150,7 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			// Register contains the address. Register value will be incremented (byte/wyde)
 			if (sReg == PC)
 				increasePC();
-			if (!vmbReadWordAt(registers[sReg], &baseAddress))
+			if (!vmbReadWordAt(registers[sReg].asWord, &baseAddress))
 				return FALSE;
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
@@ -1322,7 +1167,7 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 				UINT16 incr = 1;
 				if (!isByteInstruction)
 					incr++;
-				registers[sReg] += incr;
+				registers[sReg].asWord += incr;
 			}
 			break;
 		default:
@@ -1352,9 +1197,9 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 		break;
 	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
 		// Register contains the base address, next word contains the offset
-		baseAddress = registers[dReg];
+		baseAddress = registers[dReg].asWord;
 		increasePC();
-		if (!vmbReadWordAt(registers[PC], &offset))
+		if (!vmbReadWordAt(registers[PC].asWord, &offset))
 			return FALSE;
 		memoryWriteBack = baseAddress+offset;
 		if (isByteInstruction) {
@@ -1397,9 +1242,9 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		break;
 	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
 		// Register contains the base address, next word contains the offset
-		baseAddress = registers[DSReg];
+		baseAddress = registers[DSReg].asWord;
 		increasePC();
-		if (!vmbReadWordAt(registers[PC], &offset))
+		if (!vmbReadWordAt(registers[PC].asWord, &offset))
 			return FALSE;
 		//offset = getWordAt(registers[PC]);
 		memoryWriteBack = baseAddress+offset;
@@ -1416,7 +1261,7 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		break;
 	case ADDR_MODE_INDIRECT_REGISTER:
 		// Register contains the address of the operand
-		memoryWriteBack = registers[DSReg];
+		memoryWriteBack = registers[DSReg].asWord;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
 			if (!vmbReadByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)*operand))
@@ -1431,7 +1276,7 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		// Register contains the address. Register value will be incremented (byte/wyde)
 		if (DSReg == PC)
 			increasePC();
-		if (!vmbReadWordAt(registers[DSReg], &baseAddress))
+		if (!vmbReadWordAt(registers[DSReg].asWord, &baseAddress))
 			return FALSE;
 		memoryWriteBack = baseAddress;
 		if (isByteInstruction) {
@@ -1452,7 +1297,7 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 				incr = 1;
 			else
 				incr = 2;
-			registers[DSReg] += incr;
+			registers[DSReg].asWord += incr;
 		}
 		break;
 	default:
@@ -1484,115 +1329,57 @@ int decodeF3Instruction(UINT16 instruction, void **condition, void **offset) {
 }
 
 executorPtr findExecutor(UINT16 instructionCode) {
-     return INSTRUCTIONS[instructionCode].executor;
+     return INSTRUCTIONS[instructionCode];
 }
-
-	if (instructionCode == INSTRUCTIONS._ADD.code) {
-		return INSTRUCTIONS[instructionCode]._ADD.executor;
-	} else if (instructionCode == INSTRUCTIONS._ADDC.code) {
-		return INSTRUCTIONS._ADDC.executor;
-	} else if (instructionCode == INSTRUCTIONS._AND.code) {
-		return INSTRUCTIONS._AND.executor;
-	} else if (instructionCode == INSTRUCTIONS._BIC.code) {
-		return INSTRUCTIONS._BIC.executor;
-	} else if (instructionCode == INSTRUCTIONS._BIS.code) {
-		return INSTRUCTIONS._BIS.executor;
-	} else if (instructionCode == INSTRUCTIONS._BIT.code) {
-		return INSTRUCTIONS._BIT.executor;
-	} else if (instructionCode == INSTRUCTIONS._CALL.code) {
-		return INSTRUCTIONS._CALL.executor;
-	} else if (instructionCode == INSTRUCTIONS._CMP.code) {
-		return INSTRUCTIONS._CMP.executor;
-	} else if (instructionCode == INSTRUCTIONS._DADD.code) {
-		return INSTRUCTIONS._DADD.executor;
-	} else if (instructionCode == INSTRUCTIONS._JUMP.code) {
-		return INSTRUCTIONS._JUMP.executor;
-	} else if (instructionCode == INSTRUCTIONS._MOV.code) {
-		return INSTRUCTIONS._MOV.executor;
-	} else if (instructionCode == INSTRUCTIONS._PUSH.code) {
-		return INSTRUCTIONS._PUSH.executor;
-	} else if (instructionCode == INSTRUCTIONS._RETI.code) {
-		return INSTRUCTIONS._RETI.executor;
-	} else if (instructionCode == INSTRUCTIONS._RRA.code) {
-		return INSTRUCTIONS._RRA.executor;
-	} else if (instructionCode == INSTRUCTIONS._RRC.code) {
-		return INSTRUCTIONS._RRC.executor;
-	} else if (instructionCode == INSTRUCTIONS._SUB.code) {
-		return INSTRUCTIONS._SUB.executor;
-	} else if (instructionCode == INSTRUCTIONS._SUBC.code) {
-		return INSTRUCTIONS._SUBC.executor;
-	} else if (instructionCode == INSTRUCTIONS._SWBP.code) {
-		return INSTRUCTIONS._SWBP.executor;
-	} else if (instructionCode == INSTRUCTIONS._SXT.code) {
-		return INSTRUCTIONS._SXT.executor;
-	} else if (instructionCode == INSTRUCTIONS._XOR.code) {
-		return INSTRUCTIONS._XOR.executor;
-	} else {
-		return NULL;
-	}
-}
+	
+//	if (instructionCode == INSTRUCTIONS._ADD.code) {
+//		return INSTRUCTIONS[instructionCode]._ADD.executor;
+//	} else if (instructionCode == INSTRUCTIONS._ADDC.code) {
+//		return INSTRUCTIONS._ADDC.executor;
+//	} else if (instructionCode == INSTRUCTIONS._AND.code) {
+//		return INSTRUCTIONS._AND.executor;
+//	} else if (instructionCode == INSTRUCTIONS._BIC.code) {
+//		return INSTRUCTIONS._BIC.executor;
+//	} else if (instructionCode == INSTRUCTIONS._BIS.code) {
+//		return INSTRUCTIONS._BIS.executor;
+//	} else if (instructionCode == INSTRUCTIONS._BIT.code) {
+//		return INSTRUCTIONS._BIT.executor;
+//	} else if (instructionCode == INSTRUCTIONS._CALL.code) {
+//		return INSTRUCTIONS._CALL.executor;
+//	} else if (instructionCode == INSTRUCTIONS._CMP.code) {
+//		return INSTRUCTIONS._CMP.executor;
+//	} else if (instructionCode == INSTRUCTIONS._DADD.code) {
+//		return INSTRUCTIONS._DADD.executor;
+//	} else if (instructionCode == INSTRUCTIONS._JUMP.code) {
+//		return INSTRUCTIONS._JUMP.executor;
+//	} else if (instructionCode == INSTRUCTIONS._MOV.code) {
+//		return INSTRUCTIONS._MOV.executor;
+//	} else if (instructionCode == INSTRUCTIONS._PUSH.code) {
+//		return INSTRUCTIONS._PUSH.executor;
+//	} else if (instructionCode == INSTRUCTIONS._RETI.code) {
+//		return INSTRUCTIONS._RETI.executor;
+//	} else if (instructionCode == INSTRUCTIONS._RRA.code) {
+//		return INSTRUCTIONS._RRA.executor;
+//	} else if (instructionCode == INSTRUCTIONS._RRC.code) {
+//		return INSTRUCTIONS._RRC.executor;
+//	} else if (instructionCode == INSTRUCTIONS._SUB.code) {
+//		return INSTRUCTIONS._SUB.executor;
+//	} else if (instructionCode == INSTRUCTIONS._SUBC.code) {
+//		return INSTRUCTIONS._SUBC.executor;
+//	} else if (instructionCode == INSTRUCTIONS._SWBP.code) {
+//		return INSTRUCTIONS._SWBP.executor;
+//	} else if (instructionCode == INSTRUCTIONS._SXT.code) {
+//		return INSTRUCTIONS._SXT.executor;
+//	} else if (instructionCode == INSTRUCTIONS._XOR.code) {
+//		return INSTRUCTIONS._XOR.executor;
+//	} else {
+//		return NULL;
+//	}
+//}
 
 void increasePC() {
-	registers[PC] += 2;
+	registers[PC].asWord += 2;
 	return;
-}
-
-void setStatusBits(int *carry, int *zero, int *negative, int *arithmetic) {
-
-if (carry != NULL) cB=*carry;
-
-{
-		if (*carry)
-			registers[SR] |= 0x1;
-		else
-			registers[SR] &= 0xFFFE;
-	}
-
-	if (zero != NULL) {
-		if (*zero)
-			registers[SR] |= 0x2;
-		else
-			registers[SR] &= 0xFFFD;
-	}
-
-	if (negative != NULL) {
-		if (*negative)
-			registers[SR] |= 0x4;
-		else
-			registers[SR] &= 0xFFFB;
-	}
-
-	if (arithmetic != NULL) {
-		if (*arithmetic)
-			registers[SR] |= 0x100;
-		else
-			registers[SR] &= 0xFEFF;
-	}
-}
-
-int getCarryBit() {
-	if (registers[SR] & 0x1)
-		return TRUE;
-	else
-		return FALSE;
-}
-int getZeroBit() {
-	if (registers[SR] & 0x2)
-		return TRUE;
-	else
-		return FALSE;
-}
-int getNegativeBit() {
-	if (registers[SR] & 0x4)
-		return TRUE;
-	else
-		return FALSE;
-}
-int getArithmeticBit() {
-	if (registers[SR] & 0x1FF)
-		return TRUE;
-	else
-		return FALSE;
 }
 
 
@@ -1605,7 +1392,7 @@ void initCore(void) {
 	// Initialize local storage
 	initRegisters();
 	
-	vmbReadWordAt(EXECUTION_START_AT, &registers[PC]);		/* Initialize the programm 
+	vmbReadWordAt(EXECUTION_START_AT, (UINT16*)&registers[PC]);		/* Initialize the programm 
 														counter with the start address */
 	/*
 	// Initialize stack pointer to the top of RAM (must be in user programm)
@@ -1630,5 +1417,41 @@ UINT16 fetchInstruction(UINT16 msp_address) {
 		return result;
 	else
 		return 0;
+}
+
+#ifdef WIN32
+#include <windows.h>
+HWND hMainWnd = NULL; /* there is no Window */
+#endif
+
+int main(int argc, char *argv[])
+{	
+	executorPtr executor;
+
+	// Init core and start execution
+	initVMBInterface();
+ boot:
+	if (!wait_for_power())
+		goto end_simulation;
+	initCore();
+
+	while (TRUE) {
+		if (!vmb.connected) break;
+		if (!vmb.power || vmb.reset_flag)
+		{  /* breakpoint ?*/
+		  vmb.reset_flag= 0;
+		  goto boot;
+		}
+
+		currentInstruction = fetchInstruction(registers[PC].asWord);
+		if (!currentInstruction)
+			break;
+		if (!decodeInstructionFormat(currentInstruction, &executor))
+			break;
+		if (executor == NULL || !executor(NULL))
+			break;
+	}
+end_simulation:
+	return 0;
 }
 

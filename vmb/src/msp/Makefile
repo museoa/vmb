@@ -1,42 +1,22 @@
-#   produce an object file from the assembler file
-BIN=install/bin
-MAS=$(BIN)/mmix-as
-MLD=$(BIN)/mmix-ld
-MCC=$(BIN)/mmix-gcc
-MCFLAGS= -g -Wall
-MLDFLAGS=--entry=_start.
-#MLDFLAGS=--section-start .text=0x8000000000000000 
+PROG= msp
+UTILDIR = ../util
+CFLAGS= -g -D_REENTRANT -Wall
+CC = gcc
 
 
-all: hello.elf name.elf
+all: $(PROG)
+
+utilities:
+	$(MAKE) -C  $(UTILDIR)
 
 
-# to make mmo or elf files one can use the gnu binutils
+$(PROG): $(PROG).c  mspmain.c utilities
+	$(CC) $(CFLAGS) -I$(UTILDIR) mspmain.c $(PROG).c  \
+	-L$(UTILDIR) -lvmb -lpthread -o $(PROG)
 
-%.o: %.s
-	$(MAS) -g --linker-allocated-gregs $^ -o $@
-
-
-%.elf: %.o
-	$(MLD) -g --oformat elf64-mmix $^ -o $@
-
-
-%.o: %.c
-        $(MCC) -g -melf -mabi=mmixware -c $^ -o $@
-        
-
-%.elf: %.c
-	$(MCC) -g -melf -mabi=mmixware  $^ -o $@
-
-
-BIOSFLAGS=  -t -T bios.x --section-start .BIOS=0x8000000000000000 --entry=0x8000000000000000
-
-bios.elf: bios.o
-	$(MLD) $(BIOSFLAGS) --oformat elf64-mmix bios.o -o bios.elf
-
-# image file for rom
-bios.img: bios.o
-	$(MLD)  $(BIOSFLAGS) --oformat binary $^ -o $@
+install: all
+	echo nothing to do
 
 clean:
-	rm -f *.o  *~
+	rm -f $(PROG) *.o *~
+

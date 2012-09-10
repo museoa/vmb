@@ -1,6 +1,6 @@
 #include "mspbus.h"
 #include "mspcore.h"
-#include "vmb.h"
+//#include "vmb.h"
 
 device_info vmb = {0};
 
@@ -16,7 +16,7 @@ void initVMBInterface() {
   vmb_begin();
   vmb_debug_flag = 0;
   vmb_program_name = "MSP430";
-	vmb->reset=&initCore;
+	vmb.reset=&initCore;
 
   vmb_connect(&vmb,"localhost",9002); 
   /* vmb_connect(&vmb,host, port); */
@@ -26,14 +26,16 @@ void initVMBInterface() {
   
 }
 
-void wait_for_power(void)
+int wait_for_power(void)
 {
-fprintf(stderr,"Power...");
-while(!vmb.power)
-{vmb_wait_for_power(&vmb);
-if(!vmb.connected)goto end_simulation;
-}
-fprintf(stderr,"ON\n");
+	fprintf(stderr,"Power...");
+	while(!vmb.power)
+	{
+		vmb_wait_for_power(&vmb);
+		if (!vmb.connected) return FALSE;
+	}
+	fprintf(stderr,"ON\n");
+	return TRUE;
 }
 
 
