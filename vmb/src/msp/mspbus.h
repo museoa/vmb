@@ -13,15 +13,13 @@
 	0x0200 - 0x09FF: Up to 2K RAM are mapped here
 	0x0C00 - 0x0FFF: bootstrap loader flash ROM (1K)
 	0x1000 - 0x10FF: data flash ROM (256 bytes)
-	0x1100 - 0x38FF: extended RAM (or a copy of lower RAM address space, 2K)
+	0x1100 - 0x38FF: extended RAM (or a copy of lower RAM address space, 2K, upper border varies)
 	0x1100 - 0xFFFF: Up to 60KB programm ROM, smaller ROMs start at higher addresses
 	0xFFE0 - 0xFFFF: Interrupt vector table (16 words, might be 32 words)
 
 	Depending on the simulated msp430 device and the peripherals must be configured
 	accordingly. The read and write requests will be issued over the vmb bus.
 	Address decoding must be provided by the peripheral devices themself.
-
-
 */
 
 #ifndef MSP_BUS

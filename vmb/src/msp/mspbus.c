@@ -23,7 +23,6 @@ void initVMBInterface() {
   vmb_register(&vmb,0,0,0,-1,-1,vmb_program_name);
   atexit(vmb_atexit);
   vmb_debug_on();
-  
 }
 
 int wait_for_power(void)
@@ -49,6 +48,7 @@ int vmbReadByteAt(UINT16 msp_address, UINT8* readInto) {
 	while (da.status != STATUS_VALID)
 		vmb_wait_for_valid(&vmb, &da);
 	*readInto = *(UINT8*)da.data;
+	clocks++;
 	return TRUE;
 }
 
@@ -61,6 +61,7 @@ int vmbReadWordAt(UINT16 msp_address, UINT16* readInto) {
 	while (da.status != STATUS_VALID)
 		vmb_wait_for_valid(&vmb, &da);
 	*readInto = *(UINT16*)da.data;
+	clocks++;
 	return TRUE;
 }
 
@@ -71,6 +72,7 @@ int vmbWriteByteAt(UINT16 msp_address, UINT8* writeFrom) {
 	da.address_lo = msp_address;
 	da.data = (unsigned char*)writeFrom;
 	vmb_store(&vmb, &da);
+	clocks++;
 	return TRUE;
 }
 
@@ -81,6 +83,7 @@ int vmbWriteWordAt(UINT16 msp_address, UINT16* writeFrom) {
 	da.address_lo = msp_address;
 	da.data = (unsigned char*)writeFrom;
 	vmb_store(&vmb, &da);
+	clocks++;
 	return TRUE;
 }
 

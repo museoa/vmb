@@ -40,16 +40,7 @@ enum addr_mode {
 };
 
 // Instruction executor function definition
-typedef int (*executorPtr) (char**);
-
-// Instruction struct
-//typedef struct _INSTRUCTION {
-//	char name[5];
-//	unsigned short code;
-//	unsigned short format;
-//	executorPtr executor;
-//} INSTRUCTION;
-
+typedef int (*executorPtr)();
 
 // Opcode-Masken
 // Format1: double operand instructions
@@ -100,48 +91,28 @@ typedef struct {
 }_OPCODE_MASKS;
 static _OPCODE_MASKS OPCODE_MASKS = {FORMAT1_MASK,FORMAT2_MASK,FORMAT3_MASK};
 
-extern int ADD_executor (char **programmCounter);
-extern int ADDC_executor (char **programmCounter);
-extern int AND_executor (char **programmCounter);
-extern int BIC_executor (char **programmCounter);
-extern int BIS_executor (char **programmCounter);
-extern int BIT_executor (char **programmCounter);
-extern int CALL_executor (char **programmCounter);
-extern int CMP_executor (char **programmCounter);
-extern int DADD_executor (char **programmCounter);
-extern int JUMP_executor (char **programmCounter);
-extern int MOV_executor (char **programmCounter);
-extern int PUSH_executor (char **programmCounter);
-extern int RETI_executor (char **programmCounter);
-extern int RRA_executor (char **programmCounter);
-extern int RRC_executor (char **programmCounter);
-extern int SUB_executor (char **programmCounter);
-extern int SUBC_executor (char **programmCounter);
-extern int SWPB_executor (char **programmCounter);
-extern int SXT_executor (char **programmCounter);
-extern int XOR_executor (char **programmCounter);
+extern int ADD_executor();
+extern int ADDC_executor();
+extern int AND_executor();
+extern int BIC_executor();
+extern int BIS_executor();
+extern int BIT_executor();
+extern int CALL_executor();
+extern int CMP_executor();
+extern int DADD_executor();
+extern int JUMP_executor();
+extern int MOV_executor();
+extern int PUSH_executor();
+extern int RETI_executor();
+extern int RRA_executor();
+extern int RRC_executor();
+extern int SUB_executor();
+extern int SUBC_executor();
+extern int SWPB_executor();
+extern int SXT_executor();
+extern int XOR_executor();
 
 // Instruction codes
-//#define I_ADD {"ADD",		5,1,&ADD_executor}
-//#define I_ADDC {"ADDC",	6,1,&ADDC_executor}
-//#define I_AND {"AND",		15,1,&AND_executor}
-//#define I_BIC {"BIC",		12,1,&BIC_executor}
-//#define I_BIS {"BIS",		13,1,&BIS_executor}
-//#define I_BIT {"BIT",		11,1,&BIT_executor}
-//#define I_CALL {"CALL",	37,2,&CALL_executor}
-//#define I_CMP {"CMP",		9,1,&CMP_executor}
-//#define I_DADD {"DADD",	10,1,&DADD_executor}
-//#define I_JUMP {"JUMP",	1,3,&JUMP_executor}
-//#define I_MOV {"MOV",		4,1,&MOV_executor}
-//#define I_PUSH {"PUSH",	36,2,&PUSH_executor}
-//#define I_RETI {"RETI",	38,2,&RETI_executor}
-//#define I_RRA {"RRA",		34,2,&RRA_executor}
-//#define I_RRC {"RRC",		32,2,&RRC_executor}
-//#define I_SUB {"SUB",		8,1,&SUB_executor}
-//#define I_SUBC {"SUBC",	7,1,&SUBC_executor}
-//#define I_SWBP {"SWBP",	33,2,&SWBP_executor}
-//#define I_SXT {"SXT",		35,2,&SXT_executor}
-//#define I_XOR {"XOR",		14,1,&XOR_executor}
 static const executorPtr INSTRUCTIONS[39] = 
 {
 	0,					// 0

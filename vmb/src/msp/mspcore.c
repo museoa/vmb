@@ -6,7 +6,7 @@
 #include "mspcore.h"
 
 
-int ADD_executor (char **programmCounter) {
+int ADD_executor () {
 	int isByteInstruction;
 	void *source;
 	void *destination;
@@ -61,10 +61,11 @@ int ADD_executor (char **programmCounter) {
 
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int ADDC_executor (char **programmCounter) {
+int ADDC_executor () {
 	int isByteInstruction;
 	//char *instructionWordPtr = getAddress(wordToUInt(registers + PC*2));
 	void *source, *destination;
@@ -116,17 +117,17 @@ int ADDC_executor (char **programmCounter) {
 
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int AND_executor (char **programmCounter) {
+int AND_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
 	unsigned int compNegative = 0x80;
 	unsigned int compCarry = 0xFF;
 	UINT16 result;
-	//int iSource, iDestination;
 	UINT16 uiSource, uiDestination;
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
@@ -169,10 +170,11 @@ int AND_executor (char **programmCounter) {
 
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int BIC_executor (char **programmCounter) {
+int BIC_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -211,10 +213,11 @@ int BIC_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
-	return 1;
+	clocks++;
+	return TRUE;
 }
 
-int BIS_executor (char **programmCounter) {
+int BIS_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -253,10 +256,11 @@ int BIS_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
-	return 1;
+	clocks++;
+	return TRUE;
 }
 
-int BIT_executor (char **programmCounter) {
+int BIT_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -307,10 +311,11 @@ int BIT_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int CALL_executor (char **programmCounter) {
+int CALL_executor () {
 	/*
 		Decreases the stack pointer, pushes the PC (or rather the address of the next
 		instruction) to the stack and overwrites the programm counter with the
@@ -330,13 +335,11 @@ int CALL_executor (char **programmCounter) {
 	if (!vmbWriteWordAt(registers[SP].asWord, &pcForStack))
 		return FALSE;
 	registers[PC].asWord = operandValue;
-
-	//increasePC();
-
+	clocks++;
 	return TRUE;
 }
 
-int CMP_executor (char **programmCounter) {
+int CMP_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -389,10 +392,11 @@ int CMP_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int DADD_executor (char **programmCounter) {
+int DADD_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -446,7 +450,7 @@ int DADD_executor (char **programmCounter) {
 
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
-	nBit = (result & compNegative);
+	nBit = (result & compNegative) != 0;
 
 	// (Z-bit)
 	zBit = (!(result & 0xFFFF));
@@ -469,10 +473,11 @@ int DADD_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int JUMP_executor (char **programmCounter) {
+int JUMP_executor () {
 	// Jumps to address PC+2*offset (offset is signed!)
 	void *condition;
 	unsigned int uiCondition;
@@ -528,11 +533,11 @@ int JUMP_executor (char **programmCounter) {
 	} else {
 		increasePC();
 	}
-
+	clocks++;
 	return TRUE;
 }
 
-int MOV_executor (char **programmCounter) {
+int MOV_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -560,10 +565,11 @@ int MOV_executor (char **programmCounter) {
 
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int PUSH_executor (char **programmCounter) {
+int PUSH_executor () {
 	/*
 		Decreases stack pointer by 2 and pushes a byte or word to the stack.
 	*/
@@ -590,11 +596,11 @@ int PUSH_executor (char **programmCounter) {
 		return FALSE;
 
 	increasePC();
-
+	clocks++;
 	return TRUE;
 }
 
-int RETI_executor (char **programmCounter) {
+int RETI_executor () {
 	/*
 		Return from interrupt:
 		Word @TOS is moved to SR, stack pointer decreased by 2, @TOS is moved to PC,
@@ -617,13 +623,11 @@ int RETI_executor (char **programmCounter) {
 		return FALSE;
 	registers[PC].asWord = stack;
 	registers[SP].asWord -= 2;
-
-	//increasePC();
-
+	clocks++;
 	return TRUE;
 }
 
-int RRA_executor (char **programmCounter) {
+int RRA_executor () {
 	/*
 		Rotates the operand to the right (arithmetically):
 		MSB->MSB, MSB->MSB-1,...,LSB+1->LSB,LSB->C
@@ -678,11 +682,11 @@ int RRA_executor (char **programmCounter) {
 	}
 
 	increasePC();
-
+	clocks++;
 	return TRUE;
 }
 
-int RRC_executor (char **programmCounter) {
+int RRC_executor () {
 	/*
 		Rotates the operand right with carry:
 		C->MSB, ..., LSB->C
@@ -709,9 +713,7 @@ int RRC_executor (char **programmCounter) {
 		*(UINT8*)operand = operandValue;
 	} else {
 		UINT16 operandValue;
-		//unsigned int uiOperandValue;
 		operandValue = *(UINT16*)operand;
-		//uiOperandValue = wordToUInt(operandValue);
 		lsb = ((operandValue & 0x1) > 0);
 
 		operandValue >>= 1;
@@ -736,11 +738,11 @@ int RRC_executor (char **programmCounter) {
 	}
 
 	increasePC();
-
+	clocks++;
 	return TRUE;
 }
 
-int SUB_executor (char **programmCounter) {
+int SUB_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -765,18 +767,18 @@ int SUB_executor (char **programmCounter) {
 		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
 	}
 
-	// Ist Ergebnis negativ? (N-bit)
+	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
 	nBit = ((result & compNegative) > 0);
 
-	// Ist Ergebnis 0? (Z-bit)
+	// (Z-bit)
 	zBit = ((result & 0xFFFF) == 0);
 
-	// Wurde ein Übertrag erzeugt (C-bit)
+	// (C-bit)
 	if (!isByteInstruction) compCarry |= 0xFF00;
 	cBit = (result & (~compCarry));
 	
-	// Wurde ein arithmetischer Fehler ausgelöst? (V-bit)
+	// (V-bit)
 	vBit = ((!(uiSource & compNegative) && (uiDestination & compNegative) && (nBit)) // pos - neg = neg?
 		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!nBit)));		// neg - pos = pos?
 
@@ -792,10 +794,11 @@ int SUB_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int SUBC_executor (char **programmCounter) {
+int SUBC_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -847,10 +850,11 @@ int SUBC_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
-int SWPB_executor (char **programmCounter) {
+int SWPB_executor () {
 	/*
 		Swaps the both bytes of the operand
 	*/
@@ -873,11 +877,11 @@ int SWPB_executor (char **programmCounter) {
 		if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
 			return FALSE;
 	}
-
+	clocks++;
 	return TRUE;
 }
 
-int SXT_executor (char **programmCounter) {
+int SXT_executor () {
 	/*
 		Extends the sign of the lower byte to the higher byte
 	*/
@@ -911,11 +915,11 @@ int SXT_executor (char **programmCounter) {
 		if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
 			return FALSE;
 	}
-
+	clocks++;
 	return TRUE;
 }
 
-int XOR_executor (char **programmCounter) {
+int XOR_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
@@ -965,6 +969,7 @@ int XOR_executor (char **programmCounter) {
 	
 	// PC to next word
 	increasePC();
+	clocks++;
 	return TRUE;
 }
 
