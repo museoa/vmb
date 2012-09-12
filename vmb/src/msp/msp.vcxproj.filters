@@ -7,12 +7,6 @@
     <ClCompile Include="mspbus.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mspdev.c.old">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mspmain.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mspbus.h">

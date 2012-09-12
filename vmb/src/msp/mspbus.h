@@ -25,6 +25,8 @@
 #ifndef MSP_BUS
 #define MSP_BUS
 #include "vmb.h"		// Datatypes
+#include "option.h"		// configuration
+#include "param.h"
 
 extern device_info vmb;
 

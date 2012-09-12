@@ -16,11 +16,10 @@ void initVMBInterface() {
   vmb_begin();
   vmb_debug_flag = 0;
   vmb_program_name = "MSP430";
-	vmb.reset=&initCore;
+  vmb.reset=&initCore;
 
-  vmb_connect(&vmb,"localhost",9002); 
-  /* vmb_connect(&vmb,host, port); */
-  vmb_register(&vmb,0,0,0,-1,-1,vmb_program_name);
+  vmb_connect(&vmb,host,port); 
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),0,-1,-1,vmb_program_name);
   atexit(vmb_atexit);
   vmb_debug_on();
 }

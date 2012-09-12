@@ -1251,7 +1251,6 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		increasePC();
 		if (!vmbReadWordAt(registers[PC].asWord, &offset))
 			return FALSE;
-		//offset = getWordAt(registers[PC]);
 		memoryWriteBack = baseAddress+offset;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
@@ -1293,7 +1292,6 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 			if (!vmbReadWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)*operand))
 				return FALSE;
 		}
-		//operand = getAddress(baseAddress);
 		// Execute autoincrement
 		if (DSReg != PC) {
 			// PC is already incremented
@@ -1337,51 +1335,6 @@ executorPtr findExecutor(UINT16 instructionCode) {
      return INSTRUCTIONS[instructionCode];
 }
 	
-//	if (instructionCode == INSTRUCTIONS._ADD.code) {
-//		return INSTRUCTIONS[instructionCode]._ADD.executor;
-//	} else if (instructionCode == INSTRUCTIONS._ADDC.code) {
-//		return INSTRUCTIONS._ADDC.executor;
-//	} else if (instructionCode == INSTRUCTIONS._AND.code) {
-//		return INSTRUCTIONS._AND.executor;
-//	} else if (instructionCode == INSTRUCTIONS._BIC.code) {
-//		return INSTRUCTIONS._BIC.executor;
-//	} else if (instructionCode == INSTRUCTIONS._BIS.code) {
-//		return INSTRUCTIONS._BIS.executor;
-//	} else if (instructionCode == INSTRUCTIONS._BIT.code) {
-//		return INSTRUCTIONS._BIT.executor;
-//	} else if (instructionCode == INSTRUCTIONS._CALL.code) {
-//		return INSTRUCTIONS._CALL.executor;
-//	} else if (instructionCode == INSTRUCTIONS._CMP.code) {
-//		return INSTRUCTIONS._CMP.executor;
-//	} else if (instructionCode == INSTRUCTIONS._DADD.code) {
-//		return INSTRUCTIONS._DADD.executor;
-//	} else if (instructionCode == INSTRUCTIONS._JUMP.code) {
-//		return INSTRUCTIONS._JUMP.executor;
-//	} else if (instructionCode == INSTRUCTIONS._MOV.code) {
-//		return INSTRUCTIONS._MOV.executor;
-//	} else if (instructionCode == INSTRUCTIONS._PUSH.code) {
-//		return INSTRUCTIONS._PUSH.executor;
-//	} else if (instructionCode == INSTRUCTIONS._RETI.code) {
-//		return INSTRUCTIONS._RETI.executor;
-//	} else if (instructionCode == INSTRUCTIONS._RRA.code) {
-//		return INSTRUCTIONS._RRA.executor;
-//	} else if (instructionCode == INSTRUCTIONS._RRC.code) {
-//		return INSTRUCTIONS._RRC.executor;
-//	} else if (instructionCode == INSTRUCTIONS._SUB.code) {
-//		return INSTRUCTIONS._SUB.executor;
-//	} else if (instructionCode == INSTRUCTIONS._SUBC.code) {
-//		return INSTRUCTIONS._SUBC.executor;
-//	} else if (instructionCode == INSTRUCTIONS._SWBP.code) {
-//		return INSTRUCTIONS._SWBP.executor;
-//	} else if (instructionCode == INSTRUCTIONS._SXT.code) {
-//		return INSTRUCTIONS._SXT.executor;
-//	} else if (instructionCode == INSTRUCTIONS._XOR.code) {
-//		return INSTRUCTIONS._XOR.executor;
-//	} else {
-//		return NULL;
-//	}
-//}
-
 void increasePC() {
 	registers[PC].asWord += 2;
 	return;
@@ -1399,11 +1352,6 @@ void initCore(void) {
 	
 	vmbReadWordAt(EXECUTION_START_AT, (UINT16*)&registers[PC]);		/* Initialize the programm 
 														counter with the start address */
-	/*
-	// Initialize stack pointer to the top of RAM (must be in user programm)
-	registers[SP] = RAM_START_AT + vmbGetRamSize() - 2;	
-	*/
-
 }
 
 
@@ -1411,8 +1359,6 @@ void initCore(void) {
 	Initializes the registers
 */
 void initRegisters() {
-	//if (registers == NULL)
-	//	registers = (UINT16*)malloc(sizeof(UINT16) * REGISTERS_COUNT);
 	memset(&registers, 0, sizeof(UINT16) * REGISTERS_COUNT);
 }
 
@@ -1443,7 +1389,7 @@ int main(int argc, char *argv[])
 	while (TRUE) {
 		if (!vmb.connected) break;
 		if (!vmb.power || vmb.reset_flag)
-		{  /* breakpoint ?*/
+		{ 
 		  vmb.reset_flag= 0;
 		  goto boot;
 		}
@@ -1453,7 +1399,7 @@ int main(int argc, char *argv[])
 			break;
 		if (!decodeInstructionFormat(currentInstruction, &executor))
 			break;
-		if (executor == NULL || !executor(NULL))
+		if (executor == NULL || !executor())
 			break;
 	}
 end_simulation:
