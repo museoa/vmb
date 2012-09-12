@@ -40,6 +40,9 @@ int memsize = MEMSIZE;
 // The address of the output device
 uint64_t output_address;
 
+// vmb interface
+device_info vmb = {0};
+
 static void mem_clean(void)
 /* set the initial conditions */
 { int i;
@@ -121,16 +124,51 @@ void device_put_payload(unsigned int offset,int size, unsigned char *payload)
 	}
 }
 
+void initVMBInterface() {
+	/* the vmb library uses debuging output, that we need to switch on if we
+	want to see it. It will use the variable vmb_program_name to mark the output
+	as comming from this program.*/
+	vmb_begin();
+	vmb_debug_flag = 0;
+	vmb_program_name = "Digital I/O for MSP430";
+	vmb.poweron=device_poweron;
+	vmb.poweroff=vmb_poweroff; /* use default */
+	vmb.reset=device_reset;
+	vmb.get_payload=device_get_payload;
+	vmb.put_payload=device_put_payload;
+	vmb.terminate=vmb_terminate; /* use default */
 
+	vmb_connect(&vmb,host,port); 
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),memsize,0,0,vmb_program_name);
+	atexit(vmb_atexit);
+	vmb_debug_on();
+}
 
-void init_device(device_info *vmb)
-{  
-	vmb->poweron=device_poweron;
-	vmb->poweroff=vmb_poweroff; /* use default */
-	vmb->disconnected=vmb_disconnected;  /* use default */
-	vmb->reset=device_reset;
-	vmb->terminate=vmb_terminate; /* use default */
-	vmb->get_payload=device_get_payload;
-	vmb->put_payload=device_put_payload;
+static void vmb_atexit(void)
+{ 
+	vmb_disconnect(&vmb);
+	vmb_end();
+}
+
+int main(int argc, char *argv[])
+{	
+	// Init core and start execution
+	initVMBInterface();
+ boot:
+	if (!wait_for_power())
+		goto end_simulation;
+	device_reset();
+
+	
+	while (vmb.connected) {
+		if (!vmb.power || vmb.reset_flag)
+		{  /* breakpoint ?*/
+		  vmb.reset_flag = 0;
+		  goto boot;
+		}
+		vmb_wait_for_disconnect(&vmb);
+	}
+end_simulation:
+	return 0;
 }
 

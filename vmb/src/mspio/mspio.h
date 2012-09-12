@@ -31,12 +31,29 @@ enum reg_names {
 #define MEMSIZE 4
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+HWND hMainWnd = NULL; /* there is no Window */
+#endif
+
 // The address of the device where the output will be sent to
 extern uint64_t output_address;
 
 // vmb reference
 extern device_info vmb;
 
-// The size of mapped memory
+// The size of mapped memory (4 or 7 bytes)
 extern int memsize;
+
+// VMB interface functions
+extern void initVMBInterface();
+extern void wait_for_disconnect();
+extern void init_device(device_info *vmb);
+extern void device_poweron(void);
+extern void device_reset(void);
+extern unsigned char *device_get_payload(unsigned int offset,int size);
+extern void device_put_payload(unsigned int offset,int size, unsigned char *payload);
+
+extern int wait_for_power(void);
+
 #endif

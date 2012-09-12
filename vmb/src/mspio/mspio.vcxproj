@@ -92,7 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mspio.c" />
-    <ClCompile Include="mspiomain.c" />
     <ClCompile Include="mspiooptions.c" />
   </ItemGroup>
   <ItemGroup>
