@@ -68,7 +68,7 @@ extern HWND hMainWnd;
 
 void usage(char *message)
 {
-#ifdef WIN32
+#if defined WIN32 && !defined _CONSOLE
  if (programhelpfile==NULL)
     WinHelp(hMainWnd,(LPCTSTR)"mmixmb.hlp",HELP_CONTENTS, 0L);
   else
@@ -146,8 +146,10 @@ void param_init(int argc, char *argv[])
 //  argv = CommandLineToArgvW( GetCommandLine(),&argc);
 //  parse_commandstr(GetCommandLine());
     parse_commandline(argc, argv);
+#ifndef _CONSOLE
   if (vmb_verbose_flag) vmb_debug_mask=0; 
   CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
+#endif
 #else
   parse_commandline(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0; 
