@@ -63,6 +63,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -84,6 +86,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\opt\vmbwinopt.vcxproj">
+      <Project>{5a384688-86b5-439d-b700-c52330851681}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\util\vmbwin.vcxproj">
       <Project>{c7a37974-103b-4a8a-acd4-f304c0d9c35c}</Project>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
@@ -93,10 +98,12 @@
   <ItemGroup>
     <ClCompile Include="mspbus.c" />
     <ClCompile Include="mspcore.c" />
+    <ClCompile Include="mspoptions.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mspbus.h" />
     <ClInclude Include="mspcore.h" />
+    <ClInclude Include="mspshared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

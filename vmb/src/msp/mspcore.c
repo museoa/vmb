@@ -2,62 +2,59 @@
 	
 */
 
-#include "mspbus.h"
 #include "mspcore.h"
+
+
+// Version parameters
+char version[] = "1.0";
+char howto[] = "MSP430 Simulator for VMB\n";
+static msp_word breakpoints[MAX_BREAKPOINTS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static int continuosMode = FALSE;
+static msp_word currentInstruction = {0};
+static INT32 memoryWriteBack = MEMORY_WRITEBACK_NO;
+unsigned int compNegative = 0x80;
+unsigned int compCarryByte = ~BYTE_MASK;
+unsigned int compCarryWord = ~WORD_MASK;
 
 
 int ADD_executor () {
 	int isByteInstruction;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
+	
 	UINT32 result = 0;
 	UINT16 uiSource, uiDestination;
-	/*	int bN, bZ, bC, bV; */
 
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
 		return FALSE;
-
 	// Execute
 	if (isByteInstruction) {
 		uiSource = *(UINT8*)source;
 		uiDestination = *(UINT8*)destination;
 		result = uiSource + uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = *(UINT16*)source;
 		uiDestination = *(UINT16*)destination;
 		result = uiSource + uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
 	nBit = ((result & compNegative) != 0);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
-
-	// (C-bit)
-	if (!isByteInstruction) 
-		compCarry |= 0xFF00;
-	cBit = ((result & (~compCarry)) != 0);
+	zBit = (!(result & WORD_MASK));
+	
+	// C-Bit
+	checkCBit(result, isByteInstruction);
 	
 	// (V-bit)
 	vBit = (((!(uiSource & compNegative)) && (!(uiDestination & compNegative)) && (nBit)) 
 		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (! vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination)) {
-				return FALSE;
-			}
-		} else {
-			if (! vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination)) {
-				return FALSE;
-			}
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 
 	// PC to next word
 	increasePC();
@@ -67,13 +64,8 @@ int ADD_executor () {
 
 int ADDC_executor () {
 	int isByteInstruction;
-	//char *instructionWordPtr = getAddress(wordToUInt(registers + PC*2));
 	void *source, *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT32 result;
-	//int iSource, iDestination;
-	//unsigned int uiSource, uiDestination;
 	UINT16 uiSource, uiDestination;
 	
 	if (!decodeF1Instruction(currentInstruction, &source, &destination, &isByteInstruction))
@@ -84,36 +76,28 @@ int ADDC_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource + uiDestination + cBit;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource + uiDestination + cBit;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
 	nBit = (result & compNegative);
 	// (Z-bit)
-	zBit= (!(result & 0xFFFF));
+	zBit= (!(result & WORD_MASK));
 	// (C-bit)
-	if (isByteInstruction) compCarry |= 0xFF00;
-        
-	cBit = (result & (~compCarry));
+	checkCBit(result, isByteInstruction);
+
 	
 	// (V-bit)
 	vBit= ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (nBit)) 
 	     || ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 
 	// PC to next word
 	increasePC();
@@ -125,8 +109,6 @@ int AND_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -138,19 +120,19 @@ int AND_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource & uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource & uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	// (N-bit)
 	if (!isByteInstruction) compNegative <<= 8;
 	nBit = (result & compNegative);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// Carry bit is set, if result != ZERO
 	cBit = !zBit;
@@ -158,15 +140,8 @@ int AND_executor () {
 	// V-bit: always reset
 	vBit = 0;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 
 	// PC to next word
 	increasePC();
@@ -178,8 +153,6 @@ int BIC_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -191,38 +164,30 @@ int BIC_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = (~uiSource) & uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = (~uiSource) & uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	
 	// Status bits are not affected
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
-	
 	// PC to next word
 	increasePC();
 	clocks++;
 	return TRUE;
 }
 
+
+
 int BIS_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -234,25 +199,18 @@ int BIS_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource | uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource | uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	
 	// Status bits are not affected
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -264,8 +222,6 @@ int BIT_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -277,12 +233,12 @@ int BIT_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource & uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource & uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	
 	// Only status bits affected
@@ -291,7 +247,7 @@ int BIT_executor () {
 	nBit = (result & compNegative);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// Carry bit is set, if result != ZERO
 	cBit = !zBit;
@@ -299,15 +255,8 @@ int BIT_executor () {
 	// V-bit: always reset
 	vBit = FALSE;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -332,7 +281,7 @@ int CALL_executor () {
 	operandValue = *(UINT16*)operand;
 	registers[SP].asWord -= 2;
 	pcForStack = registers[PC].asWord + 2;
-	if (!vmbWriteWordAt(registers[SP].asWord, &pcForStack))
+	if (!vmbWriteWordAt(registers[SP], &pcForStack))
 		return FALSE;
 	registers[PC].asWord = operandValue;
 	clocks++;
@@ -343,8 +292,6 @@ int CMP_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	unsigned int result;
 	UINT16 uiSource, uiDestination;
 
@@ -356,12 +303,12 @@ int CMP_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource - uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource - uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 	
 	// Only status bits affected
@@ -370,25 +317,18 @@ int CMP_executor () {
 	nBit = (result & compNegative);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// C-bit
-	if (isByteInstruction) compCarry |= 0xFF00;
-	cBit = (result & (~compCarry));
+	checkCBit(result, isByteInstruction);
+
 	
 	// (V-bit)
 	vBit = ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (nBit)) 
 		|| ((uiSource & compNegative) && (uiDestination & compNegative) && (!nBit)));
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -400,8 +340,6 @@ int DADD_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	unsigned int result;
 	UINT16 uiSource, uiDestination;
 	UINT16 uiDigit, uiDigitMask = 0xF;
@@ -443,9 +381,9 @@ int DADD_executor () {
 	}
 		
 	if (isByteInstruction) {
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 
 	// (N-bit)
@@ -453,7 +391,7 @@ int DADD_executor () {
 	nBit = (result & compNegative) != 0;
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// (C-bit)
 	cBit = carry;
@@ -461,15 +399,8 @@ int DADD_executor () {
 	// (V-bit undefined)
 	vBit = 0;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -553,15 +484,8 @@ int MOV_executor () {
 
 	// Status bits are not affected
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 
 	// PC to next word
 	increasePC();
@@ -585,14 +509,13 @@ int PUSH_executor () {
 
 	if (isByteInstruction) {
 		operandValue = *(UINT8*)operand;
-
 	} else {
 		operandValue = *(UINT16*)operand;
 	}
 
 	// Status bits are not affected
 
-	if (!vmbWriteWordAt(registers[SP].asWord, &operandValue))
+	if (!vmbWriteWordAt(registers[SP], &operandValue))
 		return FALSE;
 
 	increasePC();
@@ -614,12 +537,12 @@ int RETI_executor () {
 		return FALSE;
 
 	// Restore status register
-	if (!vmbReadWordAt(registers[SP].asWord, &stack))
+	if (!vmbReadWordAt(registers[SP], &stack))
 		return FALSE;
 	registers[SR].asWord = stack;
 	registers[SP].asWord -= 2;
 	// Restore programm counter
-	if (!vmbReadWordAt(registers[SP].asWord, &stack))
+	if (!vmbReadWordAt(registers[SP], &stack))
 		return FALSE;
 	registers[PC].asWord = stack;
 	registers[SP].asWord -= 2;
@@ -633,7 +556,6 @@ int RRA_executor () {
 		MSB->MSB, MSB->MSB-1,...,LSB+1->LSB,LSB->C
 	*/
 	int bC = FALSE;
-	int bN, bZ, bV;
 	int msb = FALSE;
 	int isByteInstruction = FALSE;
 	void *operand;
@@ -671,15 +593,8 @@ int RRA_executor () {
 
 	vBit = 0;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)operand))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, operand, isByteInstruction+1))
+		return FALSE;
 
 	increasePC();
 	clocks++;
@@ -727,15 +642,8 @@ int RRC_executor () {
 
 	vBit = 0;
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)operand))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, operand, isByteInstruction+1))
+		return FALSE;
 
 	increasePC();
 	clocks++;
@@ -746,8 +654,6 @@ int SUB_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result = 0;
 	UINT16 uiSource, uiDestination;
 
@@ -759,12 +665,12 @@ int SUB_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource - uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource - uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 
 	// (N-bit)
@@ -772,25 +678,18 @@ int SUB_executor () {
 	nBit = ((result & compNegative) > 0);
 
 	// (Z-bit)
-	zBit = ((result & 0xFFFF) == 0);
+	zBit = ((result & WORD_MASK) == 0);
 
 	// (C-bit)
-	if (!isByteInstruction) compCarry |= 0xFF00;
-	cBit = (result & (~compCarry));
+	checkCBit(result, isByteInstruction);
+
 	
 	// (V-bit)
 	vBit = ((!(uiSource & compNegative) && (uiDestination & compNegative) && (nBit)) // pos - neg = neg?
 		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!nBit)));		// neg - pos = pos?
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -802,8 +701,6 @@ int SUBC_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -815,12 +712,12 @@ int SUBC_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource - uiDestination + cBit;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource - uiDestination + cBit;
-		*(UINT16*)destination = (UINT16)(result & 0xFF);
+		*(UINT16*)destination = (UINT16)(result & BYTE_MASK);
 	}
 
 	// (N-bit)
@@ -828,25 +725,17 @@ int SUBC_executor () {
 	nBit = (result & compNegative);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// (C-bit)
-	if (!isByteInstruction) compCarry |= 0xFF00;
-	cBit = (result & (~compCarry));
+	checkCBit(result, isByteInstruction);
 	
 	// (V-bit)
 	vBit = ((!(uiSource & compNegative) && (uiDestination & compNegative) && (nBit)) 
 		|| ((uiSource & compNegative) && !(uiDestination & compNegative) && (!nBit)));
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -873,10 +762,8 @@ int SWPB_executor () {
 	operandValue |= tmp;
 	*(UINT16*)operand = operandValue;
 
-	if (memoryWriteBack >= 0) {
-		if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
-			return FALSE;
-	}
+	if (!writeBack(memoryWriteBack, operand, 2))
+		return FALSE;
 	clocks++;
 	return TRUE;
 }
@@ -911,10 +798,8 @@ int SXT_executor () {
 
 	*(UINT16*)operand = operandValue;
 
-	if (memoryWriteBack >= 0) {
-		if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)operand))
-			return FALSE;
-	}
+	if (!writeBack(memoryWriteBack, operand, 2))
+		return FALSE;
 	clocks++;
 	return TRUE;
 }
@@ -923,8 +808,6 @@ int XOR_executor () {
 	int isByteInstruction = FALSE;
 	void *source;
 	void *destination;
-	unsigned int compNegative = 0x80;
-	unsigned int compCarry = 0xFF;
 	UINT16 result;
 	UINT16 uiSource, uiDestination;
 
@@ -936,12 +819,12 @@ int XOR_executor () {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
 		result = uiSource ^ uiDestination;
-		*(UINT8*)destination = (UINT8)(result & 0xFF);
+		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
 		result = uiSource ^ uiDestination;
-		*(UINT16*)destination = (UINT16)(result & 0xFFFF);
+		IntToWordByPtr(result,destination);
 	}
 
 	// (N-bit)
@@ -949,7 +832,7 @@ int XOR_executor () {
 	nBit = (result & compNegative);
 
 	// (Z-bit)
-	zBit = (!(result & 0xFFFF));
+	zBit = (!(result & WORD_MASK));
 
 	// Carry bit is set, if result != ZERO
 	cBit = !zBit;
@@ -957,15 +840,8 @@ int XOR_executor () {
 	// V-bit: set if both operands are negative
 	vBit = ((uiSource & compNegative) && (uiDestination & compNegative));
 
-	if (memoryWriteBack >= 0) {
-		if (isByteInstruction) {
-			if (!vmbWriteByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)destination))
-				return FALSE;
-		} else {
-			if (!vmbWriteWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)destination))
-				return FALSE;
-		}
-	}
+	if (!writeBack(memoryWriteBack, destination, isByteInstruction+1))
+		return FALSE;
 	
 	// PC to next word
 	increasePC();
@@ -979,24 +855,24 @@ int XOR_executor () {
 	Executor is returned by reference (*executor).
 	Returns format value.
 */
-int decodeInstructionFormat(UINT16 instruction, executorPtr *executor) {
+int decodeInstructionFormat(msp_word instruction, executorPtr *executor) {
 	UINT16 instructionCode;
 	int format = 0;
 
-	instructionCode = (instruction & OPCODE_MASKS.FORMAT1.CommandBitMask)>>OPCODE_MASKS.FORMAT1.CommandBitMaskShift;
+	instructionCode = instruction.asF1Mask.opcode;
 	
 	// Decode instruction code
 	switch (instructionCode) {
 	case 1:		// Format 2
-		instructionCode = (instruction & OPCODE_MASKS.FORMAT2.CommandBitMask)>>OPCODE_MASKS.FORMAT2.CommandBitMaskShift;
+		instructionCode = instruction.asF2Mask.opcode;
 		format = 2;
 		break;
 	case 2:	// Format 3
-		instructionCode = (instruction & OPCODE_MASKS.FORMAT3.CommandBitMask)>>OPCODE_MASKS.FORMAT3.CommandBitMaskShift;
+		instructionCode = instruction.asF3Mask.opcode;
 		format = 3;
 		break;
 	case 3: // Format 3
-		instructionCode = (instruction & OPCODE_MASKS.FORMAT3.CommandBitMask)>>OPCODE_MASKS.FORMAT3.CommandBitMaskShift;
+		instructionCode = instruction.asF3Mask.opcode;
 		format = 3;
 		break;
 	default:	// Format 1
@@ -1005,7 +881,7 @@ int decodeInstructionFormat(UINT16 instruction, executorPtr *executor) {
 	}
 
 	*executor = findExecutor(instructionCode);
-	if (*executor != NULL)
+	if (executor != NULL)
 		return format;
 	else
 		return 0;
@@ -1026,7 +902,7 @@ int decodeInstructionFormat(UINT16 instruction, executorPtr *executor) {
 	is returned for source/destination) should be implemented. The same measures
 	should be applied to the constant generator.
 */
-int decodeF1Instruction(UINT16 instruction, void **source, 
+int decodeF1Instruction(msp_word instruction, void **source, 
 	void **destination, int *isByte) {
 
 	unsigned int As, Ad, sReg, dReg;
@@ -1035,21 +911,17 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 	char cConstant = 0;
 	int createConstant = FALSE;
 	int isByteInstruction = FALSE;
-	UINT16 baseAddress = 0;
+	msp_word baseAddress = {0};
+	msp_word t_address = {0};
 	UINT16 offset = 0;
 
-	//uiInstruction = wordToUInt(instruction);
-
 	// Byte or word?
-	if ((instruction & OPCODE_MASKS.FORMAT1.BWBitMask) > 0)
-		isByteInstruction = TRUE;
+	isByteInstruction = instruction.asF1Mask.bflag;
 	*isByte = isByteInstruction;
 
-	
-
 	// Decode source operand
-	As = ((instruction & OPCODE_MASKS.FORMAT1.AsBitMask)>>OPCODE_MASKS.FORMAT1.AsBitMaskShift);
-	sReg = ((instruction & OPCODE_MASKS.FORMAT1.SRegBitMask)>>OPCODE_MASKS.FORMAT1.SRegBitMaskShift);
+	As = instruction.asF1Mask.as;
+	sReg = instruction.asF1Mask.sreg;
 
 	switch (sReg) {
 	case CG1:			// CG1 = SR!
@@ -1067,16 +939,18 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			} else {
 				*source = malloc(sizeof(UINT16));
 			}
-			baseAddress = 0;
+			baseAddress.asWord = 0;
+			
 			increasePC();
-			 if (!vmbReadWordAt(registers[PC].asWord, &offset))
+			if (!vmbReadWordAt(registers[PC], &offset))
 				 return FALSE;
+			t_address.asWord = offset;
 			if (isByteInstruction) {
-				 if (!vmbReadByteAt(baseAddress+offset, (UINT8*)*source))
+				 if (!vmbReadByteAt(t_address, (UINT8*)*source))
 					 return FALSE;
 			}
 			else {
-				if (!vmbReadWordAt(baseAddress+offset, (UINT16*)*source))
+				if (!vmbReadWordAt(t_address, (UINT16*)*source))
 					return FALSE;
 			}
 			break;
@@ -1121,8 +995,6 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 	default:
 		switch (As) {
 		case ADDR_MODE_REGISTER:		// Register is the operand
-			// Warning: little endian! Otherwise, the higher byte 
-			// should be selected for byte operations!
 			*source = &registers[sReg];
 			break;
 		case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
@@ -1132,22 +1004,23 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			} else {
 				*source = malloc(sizeof(UINT16));
 			}
-			baseAddress = registers[sReg].asWord;
+			baseAddress = registers[sReg];
 			increasePC();
-			if (!vmbReadWordAt(registers[PC].asWord, &offset))
+			if (!vmbReadWordAt(registers[PC], &offset))
 				return FALSE;
-			if (!vmbReadWordAt(baseAddress+offset, (UINT16*)*source))
+			t_address.asWord = baseAddress.asWord + offset;
+			if (!vmbReadWordAt(t_address, (UINT16*)*source))
 				return FALSE;
 			break;
 		case ADDR_MODE_INDIRECT_REGISTER:
 			// Register contains the address of the operand
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
-				if (!vmbReadByteAt(registers[sReg].asBytes.lo, (UINT8*)*source))
+				if (!vmbReadByteAt(registers[sReg], (UINT8*)*source))
 					 return FALSE;
 			} else {
 				*source = malloc(sizeof(UINT16));
-				if (!vmbReadWordAt(registers[sReg].asBytes.lo, (UINT16*)*source))
+				if (!vmbReadWordAt(registers[sReg], (UINT16*)*source))
 					 return FALSE;
 			}
 			break;
@@ -1155,7 +1028,7 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 			// Register contains the address. Register value will be incremented (byte/wyde)
 			if (sReg == PC)
 				increasePC();
-			if (!vmbReadWordAt(registers[sReg].asWord, &baseAddress))
+			if (!vmbReadWordAt(registers[sReg], &baseAddress.asWord))
 				return FALSE;
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
@@ -1190,8 +1063,8 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 	}
 	
 	// Decode destination operand
-	Ad = (instruction & OPCODE_MASKS.FORMAT1.AdBitMask)>>OPCODE_MASKS.FORMAT1.AdBitMaskShift;
-	dReg = ((instruction & OPCODE_MASKS.FORMAT1.DRegBitMask)>>OPCODE_MASKS.FORMAT1.DRegBitMaskShift);
+	Ad = instruction.asF1Mask.ad;
+	dReg = instruction.asF1Mask.dreg;
 
 	
 	switch (Ad) {
@@ -1202,18 +1075,19 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 		break;
 	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
 		// Register contains the base address, next word contains the offset
-		baseAddress = registers[dReg].asWord;
+		baseAddress = registers[dReg];
 		increasePC();
-		if (!vmbReadWordAt(registers[PC].asWord, &offset))
+		if (!vmbReadWordAt(registers[PC], &offset))
 			return FALSE;
-		memoryWriteBack = baseAddress+offset;
+		t_address.asWord = baseAddress.asWord + offset;
+		memoryWriteBack = t_address.asWord;
 		if (isByteInstruction) {
 			*destination = malloc(sizeof(UINT8));
-			if (!vmbReadByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)*destination))
+			if (!vmbReadByteAt(t_address, (UINT8*)*destination))
 				return FALSE;
 		} else {
 			*destination = malloc(sizeof(UINT16));
-			if (!vmbReadWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)*destination))
+			if (!vmbReadWordAt(t_address, (UINT16*)*destination))
 				return FALSE;
 		}
 		break;
@@ -1228,16 +1102,16 @@ int decodeF1Instruction(UINT16 instruction, void **source,
 }
 
 
-int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
+int decodeF2Instruction(msp_word instruction, void **operand, int *isByte) {
 	unsigned int Ad, DSReg;
 	int isByteInstruction = FALSE;
-	UINT16 baseAddress;
+	msp_word baseAddress;
+	msp_word t_address;
 	UINT16 offset;
 
-	Ad = (instruction & OPCODE_MASKS.FORMAT2.AdBitMask)>>OPCODE_MASKS.FORMAT2.AdBitMaskShift;
-	DSReg = (instruction & OPCODE_MASKS.FORMAT2.DSRegBitMask)>>OPCODE_MASKS.FORMAT2.DSRegBitMaskShift;
-	if (instruction & OPCODE_MASKS.FORMAT2.BWBitMask)
-		isByteInstruction = TRUE;
+	Ad = instruction.asF2Mask.ad;
+	DSReg = instruction.asF2Mask.dsreg;
+	isByteInstruction = instruction.asF2Mask.bflag;
 
 	*isByte = isByteInstruction;
 
@@ -1247,32 +1121,34 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		break;
 	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
 		// Register contains the base address, next word contains the offset
-		baseAddress = registers[DSReg].asWord;
+		baseAddress = registers[DSReg];
 		increasePC();
-		if (!vmbReadWordAt(registers[PC].asWord, &offset))
+		if (!vmbReadWordAt(registers[PC], &offset))
 			return FALSE;
-		memoryWriteBack = baseAddress+offset;
+		t_address.asWord = baseAddress.asWord + offset;
+		memoryWriteBack = t_address.asWord;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
-			if (!vmbReadByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)*operand))
+			if (!vmbReadByteAt(t_address, (UINT8*)*operand))
 				return FALSE;
 		}
 		else {
 			*operand = malloc(sizeof(UINT16));
-			if (!vmbReadWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)*operand))
+			if (!vmbReadWordAt(t_address, (UINT16*)*operand))
 				return FALSE;
 		}
 		break;
 	case ADDR_MODE_INDIRECT_REGISTER:
 		// Register contains the address of the operand
-		memoryWriteBack = registers[DSReg].asWord;
+		t_address = registers[DSReg];
+		memoryWriteBack = t_address.asWord;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
-			if (!vmbReadByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)*operand))
+			if (!vmbReadByteAt(t_address, (UINT8*)*operand))
 				return FALSE;
 		} else {
 			*operand = malloc(sizeof(UINT16));
-			if (!vmbReadWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)*operand))
+			if (!vmbReadWordAt(t_address, (UINT16*)*operand))
 				return FALSE;
 		}
 		break;
@@ -1280,16 +1156,17 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		// Register contains the address. Register value will be incremented (byte/wyde)
 		if (DSReg == PC)
 			increasePC();
-		if (!vmbReadWordAt(registers[DSReg].asWord, &baseAddress))
+		if (!vmbReadWordAt(registers[DSReg], &baseAddress.asWord))
 			return FALSE;
-		memoryWriteBack = baseAddress;
+		t_address = baseAddress;
+		memoryWriteBack = t_address.asWord;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
-			if (!vmbReadByteAt((UINT16)(memoryWriteBack&0xFFFF), (UINT8*)*operand))
+			if (!vmbReadByteAt(t_address, (UINT8*)*operand))
 				return FALSE;
 		} else {
 			*operand = malloc(sizeof(UINT16));
-			if (!vmbReadWordAt((UINT16)(memoryWriteBack&0xFFFF), (UINT16*)*operand))
+			if (!vmbReadWordAt(t_address, (UINT16*)*operand))
 				return FALSE;
 		}
 		// Execute autoincrement
@@ -1313,14 +1190,12 @@ int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte) {
 		return FALSE;
 }
 
-int decodeF3Instruction(UINT16 instruction, void **condition, void **offset) {
+int decodeF3Instruction(msp_word instruction, void **condition, void **offset) {
 	unsigned int /*uiInstruction, */uiCondition;
 	INT16 iOffset;
 
-	uiCondition = (instruction & OPCODE_MASKS.FORMAT3.ConditionBitMask)
-		>>OPCODE_MASKS.FORMAT3.ConditionBitMaskShift;
-	iOffset = (instruction & OPCODE_MASKS.FORMAT3.OffsetBitMask)
-		>>OPCODE_MASKS.FORMAT3.OffsetBitMaskShift;
+	uiCondition = instruction.asF3Mask.condition;
+	iOffset = instruction.asF3Mask.offset;
 	// Check for sign (offset has 10 bit)
 	if (iOffset & 512)
 		iOffset &= (-1);
@@ -1347,11 +1222,16 @@ void increasePC() {
 	value @ 0xFFFE (interrupt vector table).
 */
 void initCore(void) {
+	msp_word t_address;
 	// Initialize local storage
 	initRegisters();
-	
-	vmbReadWordAt(EXECUTION_START_AT, (UINT16*)&registers[PC]);		/* Initialize the programm 
+
+	if (!executionStartAddress) {
+		t_address.asWord = DEFAULT_EXECUTION_START_LOCATION;
+		vmbReadWordAt(t_address, &registers[PC].asWord);		/* Initialize the programm 
 														counter with the start address */
+	} else
+		registers[PC].asWord = executionStartAddress;
 }
 
 
@@ -1359,50 +1239,230 @@ void initCore(void) {
 	Initializes the registers
 */
 void initRegisters() {
-	memset(&registers, 0, sizeof(UINT16) * REGISTERS_COUNT);
+	memset(&registers, 0, sizeof(msp_word) * REGISTERS_COUNT);
 }
 
-UINT16 fetchInstruction(UINT16 msp_address) {
-	UINT16 result;
-	if (vmbReadWordAt(msp_address, &result))
+msp_word fetchInstruction(msp_word msp_address) {
+	msp_word result;
+	
+	if (vmbReadWordAt(msp_address, &result.asWord))
 		return result;
-	else
-		return 0;
+	else {
+		result.asWord = 0;
+		return result;
+	}
 }
 
-#ifdef WIN32
-#include <windows.h>
-HWND hMainWnd = NULL; /* there is no Window */
-#endif
+__inline int writeBack (UINT32 write_back_address, void *data, unsigned char size) {
+	msp_word t_address;
+	t_address.asWord = write_back_address & WORD_MASK;
+	if (write_back_address >= 0) {
+		if (size == 1) {
+			if (!vmbWriteByteAt(t_address, (UINT8*)data))
+				return FALSE;
+		} else if (size == 2) {
+			if (!vmbWriteWordAt(t_address, (UINT16*)data))
+				return FALSE;
+		} else 
+			return FALSE;
+	}
+	return TRUE;
+}
+
+__inline void checkCBit(UINT32 check, int asByte) {
+	if (asByte)
+		cBit = ((check & (compCarryByte)) != 0);
+	else
+		cBit = ((check & (compCarryWord)) != 0);
+}
 
 int main(int argc, char *argv[])
 {	
 	executorPtr executor;
+	unsigned int format = 0;
+	unsigned int opcode = 0;
+	char input_buffer[256];
+	char t_buffer[10];
+	int t_int;
+	int inErrFlag = FALSE;
+	msp_word t_address;
+	//unsigned char addrBuffer[2];
+	int i,j;
 
 	// Init core and start execution
 	initVMBInterface();
+	fprintf(stderr,"VMB connected.\n");
  boot:
 	if (!wait_for_power())
 		goto end_simulation;
 	initCore();
+	fprintf(stderr,"MSP430 initialized.\n");
 
+	// main loop
 	while (TRUE) {
-		if (!vmb.connected) break;
+		if (!vmb.connected) {
+			fprintf(stderr,"VMB disconnected during execution.\n");
+			break;
+		}
 		if (!vmb.power || vmb.reset_flag)
 		{ 
 		  vmb.reset_flag= 0;
 		  goto boot;
 		}
+		// fetch
+		currentInstruction = fetchInstruction(registers[PC]);
+		
 
-		currentInstruction = fetchInstruction(registers[PC].asWord);
-		if (!currentInstruction)
+		/*
+			Debug output
+		*/
+		fprintf(stdout,"Programm stats:\t");
+		fprintf(stdout,"PC @0x%X%X\t",registers[PC].asBytes.hi,registers[PC].asBytes.lo);
+		fprintf(stdout,"SP @0x%X%X\n",registers[SP].asBytes.hi,registers[SP].asBytes.lo);
+
+		if (!continuosMode) {
+retry_input:
+			fprintf(stdout,"Choose ENTER/x to execute,\nbHHHH to set or unset a breakpoint @0xHHHH,\nq to quit,\nrN to view register N (0-15),\nc to continue,\nmHHHH to view memory at address 0xHHHH: ");
+			inErrFlag = FALSE;
+
+			memset(&input_buffer,0,256);
+			fscanf(stdin,"%s",&input_buffer[0]);
+			if (strlen(&input_buffer[0])) {
+				t_int = -1;
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[r]%2d\n",&t_buffer[0],&t_int);	// Test r
+				if (!t_buffer[0] || (t_int < 0))
+					sscanf(&input_buffer[i],"%1[r]%1d\n",&t_buffer[0],&t_int);	// Test r
+				if (t_buffer[0] && (t_int >= 0) && (t_int < REGISTERS_COUNT)) {
+					fprintf(stdout,"\nRegister %d: 0x%X%X\n",t_int,
+						registers[t_int].asBytes.hi,registers[t_int].asBytes.lo);
+				} else {
+					inErrFlag = TRUE;
+					goto skip_i_checks;
+				}
+
+				t_int = -1;
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[b]%4hhhhx\n",&t_buffer[0],t_int); // Test b
+				if (t_buffer[0] && (t_int >= 0)) {
+					t_address.asWord = t_int;
+					fprintf(stderr,"\nBreakpoint address: 0x%x\n",t_address.asWord);
+					// (un)set breakpoint
+					for (i=0;i<MAX_BREAKPOINTS;i++) {
+						if (breakpoints[i].asWord == t_address.asWord) {
+							breakpoints[i].asWord = 0;
+							for (j=i;j<MAX_BREAKPOINTS-1;j++) {
+								breakpoints[i] = breakpoints[i+1];
+							}
+							breakpoints[MAX_BREAKPOINTS-1].asWord = 0;
+							fprintf(stdout,"\nBreakpoint @0x%X%X unset.",t_address.asBytes.hi,t_address.asBytes.lo);
+							break;
+						}
+						if (breakpoints[i].asWord == 0) {
+							breakpoints[i] = t_address;
+							fprintf(stdout,"\nBreakpoint @0x%X%X set.",t_address.asBytes.hi,t_address.asBytes.lo);
+							break;
+						}
+					}
+					goto skip_i_checks;
+				}
+
+				// Test m
+				t_int = -1;
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[b]%4hhhhx\n",&t_buffer[0],t_int); 
+				if (t_buffer[0] && t_int >= 0) {
+					t_address.asWord = t_int;
+					vmbReadWordAt(t_address, (UINT16*)&t_buffer[0]);
+					fprintf(stdout,"\nMemory @0x%X%X: 0x%X%X",t_address.asBytes.hi,t_address.asBytes.lo,
+						t_buffer[1],t_buffer[0]);
+					goto skip_i_checks;
+				}
+
+				// Test c
+				t_int = -1;
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[c]",&t_buffer[0]);	// Test c
+				if (t_buffer[0]) {
+					continuosMode = TRUE;
+					goto skip_i_checks;
+				}
+
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[q]",&t_buffer[0]);	// Test q
+				if (t_buffer[0])
+					goto end_simulation;
+
+				memset(&t_buffer[0],0,10);
+				sscanf(&input_buffer[i],"%1[x]",&t_buffer[0]);	// Test x
+				if (!t_buffer[0])
+					inErrFlag = TRUE;
+skip_i_checks:
+				fprintf(stdout,"\n");
+			} else {
+				inErrFlag = TRUE;
+			}
+
+			if (inErrFlag) {
+				fprintf(stdout,"Invalid input \"%s\".\n",&input_buffer[0]);
+				goto retry_input;
+			}
+		} else {
+			// Continous mode
+			// Check breakpoints
+			for(i=0;i<MAX_BREAKPOINTS;i++) {
+				if (breakpoints[i].asWord == registers[PC].asWord)
+					goto retry_input;
+			}
+		}
+
+		if (!currentInstruction.asWord) {
+			fprintf(stderr,"MSP430-Error: Invalid instruction format @0x%X%X in instruction 0x%X%X\n",
+				registers[PC].asBytes.hi,registers[PC].asBytes.lo,
+				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
 			break;
-		if (!decodeInstructionFormat(currentInstruction, &executor))
+		}
+		format = decodeInstructionFormat(currentInstruction, &executor);
+		
+		// Opcode for debugging output
+		switch (format) {
+		case 1:
+			opcode = currentInstruction.asF1Mask.opcode;
 			break;
-		if (executor == NULL || !executor())
+		case 2:
+			opcode = currentInstruction.asF2Mask.opcode;
 			break;
+		case 3:
+			opcode = currentInstruction.asF3Mask.opcode;
+			break;
+		default:
+			opcode = 0;
+			break;
+		}
+		if (!format) {
+			fprintf(stderr,"MSP430-Error: Invalid instruction format @0x%X%X in instruction 0x%X%X\n",
+				registers[PC].asBytes.hi,registers[PC].asBytes.lo,
+				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+			break;
+		}
+		if (executor == NULL) {
+			fprintf(stderr,"MSP430-Error: Invalid opcode %d @0x%X%X in instruction 0x%X%X\n",
+				opcode,registers[PC].asBytes.hi,registers[PC].asBytes.lo,
+				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+			break;
+		}
+		if (!executor()) {
+			fprintf(stderr,"MSP430-Error: Could not execute %s @0x%X%X in instruction 0x%X%X\n",
+				INSTRUCTION_NAMES[opcode],
+				registers[PC].asBytes.hi, registers[PC].asBytes.lo,
+				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+			break;
+		}
 	}
 end_simulation:
+	fprintf(stderr,"Exiting...");
+	vmb_disconnect(&vmb);
+	vmb_end();
 	return 0;
 }
 

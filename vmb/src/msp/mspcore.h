@@ -1,21 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <Windows.h>
-
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef NULL
-#define NULL 0
-#endif
-#include "mspbus.h"
-
 #ifndef MSP_CORE
 #define MSP_CORE
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef WIN32
+#include <windows.h>
+//HWND hMainWnd = NULL; /* there is no Window */
+#endif
+#include "mspbus.h"
+#include "mspshared.h"
+
 // Registers
 enum msp_register {
 	PC,SP,SR,CG1=2,CG2,
@@ -39,57 +33,20 @@ enum addr_mode {
 											// Immediate: The register is PC (the following word contains the pointer)
 };
 
+// Condition constants for the jump instruction
+enum jump_conditions {
+	JNE = 0,
+	JEQ,
+	JNC,
+	JC,
+	JN,
+	JGE,
+	JL,
+	JMP
+};
+
 // Instruction executor function definition
 typedef int (*executorPtr)();
-
-// Opcode-Masken
-// Format1: double operand instructions
-typedef struct {
-	unsigned int CommandBitMask;
-	unsigned int SRegBitMask;
-	unsigned int AdBitMask;
-	unsigned int BWBitMask;
-	unsigned int AsBitMask;
-	unsigned int DRegBitMask;
-	unsigned int CommandBitMaskShift;
-	unsigned int SRegBitMaskShift;
-	unsigned int AdBitMaskShift;
-	unsigned int BWBitMaskShift;
-	unsigned int AsBitMaskShift;
-	unsigned int DRegBitMaskShift;
-} _FORMAT1_MASK;
-#define FORMAT1_MASK {0xF000,0x0F00,0x0080,0x0040,0x0030,0x000F,12,8,7,6,4,0}
-
-// Format2: single operand instructions
-typedef struct {
-	unsigned int CommandBitMask;
-	unsigned int BWBitMask;
-	unsigned int AdBitMask;
-	unsigned int DSRegBitMask;
-	unsigned int CommandBitMaskShift;
-	unsigned int BWBitMaskShift;
-	unsigned int AdBitMaskShift;
-	unsigned int DSRegBitMaskShift;
-} _FORMAT2_MASK;
-#define FORMAT2_MASK {0xFF80,0x0040,0x0030,0x000F,7,6,4,0}
-
-// Format3: jump instructions
-typedef struct {
-	unsigned int CommandBitMask;
-	unsigned int ConditionBitMask;
-	unsigned int OffsetBitMask;
-	unsigned int CommandBitMaskShift;
-	unsigned int ConditionBitMaskShift;
-	unsigned int OffsetBitMaskShift;
-} _FORMAT3_MASK;
-#define FORMAT3_MASK {0xE000,0x1C00,0x03FF,13,10,0}
-
-typedef struct {
-	_FORMAT1_MASK FORMAT1;
-	_FORMAT2_MASK FORMAT2;
-	_FORMAT3_MASK FORMAT3;
-}_OPCODE_MASKS;
-static _OPCODE_MASKS OPCODE_MASKS = {FORMAT1_MASK,FORMAT2_MASK,FORMAT3_MASK};
 
 extern int ADD_executor();
 extern int ADDC_executor();
@@ -115,10 +72,10 @@ extern int XOR_executor();
 // Instruction codes
 static const executorPtr INSTRUCTIONS[39] = 
 {
-	0,					// 0
+	NULL,					// 0
 	&JUMP_executor,		// 1
-	0,					// 2
-	0,					// 3
+	NULL,					// 2
+	NULL,					// 3
 	&MOV_executor,		// 4
 	&ADD_executor,		// 5
 	&ADDC_executor,		// 6
@@ -131,7 +88,7 @@ static const executorPtr INSTRUCTIONS[39] =
 	&BIS_executor,		// 13
 	&XOR_executor,		// 14
 	&AND_executor,		// 15
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 16-31
+	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL, // 16-31
 	&RRC_executor,		// 32
 	&SWPB_executor,		// 33
 	&RRA_executor,		// 34
@@ -141,61 +98,38 @@ static const executorPtr INSTRUCTIONS[39] =
 	&RETI_executor		// 38
 };
 
-// Condition constants for the jump instruction
-enum jump_conditions {
-	JNE = 0,
-	JEQ,
-	JNC,
-	JC,
-	JN,
-	JGE,
-	JL,
-	JMP
+static const char* INSTRUCTION_NAMES[39] = 
+{
+	"n.a.",					// 0
+	"JMP",		// 1
+	"n.a.",					// 2
+	"n.a.",					// 3
+	"MOV",		// 4
+	"ADD",		// 5
+	"ADDC",		// 6
+	"SUBC",		// 7
+	"SUB",		// 8
+	"CMP",		// 9
+	"DADD",		// 10
+	"BIT",		// 11
+	"BIC",		// 12
+	"BIS",		// 13
+	"XOR",		// 14
+	"AND",		// 15
+	"n.a.","n.a.","n.a.","n.a.","n.a.","n.a.","n.a.","n.a.","n.a.",
+	"n.a.","n.a.","n.a.","n.a.","n.a.","n.a.","n.a.", // 16-31
+	"RRC",		// 32
+	"SWPB",		// 33
+	"RRA",		// 34
+	"SXT",		// 35
+	"PUSH",		// 36
+	"CALL",		// 37
+	"RETI"		// 38
 };
-
-typedef union {
-	// MSP is little endian!
-	UINT16 asWord;
-	struct {
-#ifdef BIGENDIAN
-		unsigned char V : 1;
-		unsigned char RESERVED : 7;
-		unsigned char C : 1;
-		unsigned char Z : 1;
-		unsigned char N : 1;
-		unsigned char GIE : 1;
-		unsigned char CPUOFF : 1;
-		unsigned char OSCOFF : 1;
-		unsigned char SCG0 : 1;
-		unsigned char SCG1 : 1;
-#else
-		unsigned char C : 1;
-		unsigned char Z : 1;
-		unsigned char N : 1;
-		unsigned char GIE : 1;
-		unsigned char CPUOFF : 1;
-		unsigned char OSCOFF : 1;
-		unsigned char SCG0 : 1;
-		unsigned char SCG1 : 1;
-		unsigned char V : 1;
-		unsigned char RESERVED : 7;
-#endif
-	} asBits;
-  
-  struct {
-#ifdef BIGENDIAN
-    unsigned char hi : 8;
-    unsigned char lo : 8;
-#else
-    unsigned char lo : 8;
-    unsigned char hi : 8;
-#endif
-  } asBytes;
-} msp_register;
 
 #define REGISTERS_COUNT 16
 // MSP registers
-static msp_register registers[REGISTERS_COUNT];
+static msp_word registers[REGISTERS_COUNT];
 
 // Access status bits
 #define cBit registers[SR].asBits.C
@@ -204,28 +138,39 @@ static msp_register registers[REGISTERS_COUNT];
 #define vBit registers[SR].asBits.V
 
 static unsigned long clocks = 0;
-static UINT16 currentInstruction = 0;
+
 #define MEMORY_WRITEBACK_NO (-1)
 
-static INT32 memoryWriteBack = MEMORY_WRITEBACK_NO;
+// TBD: There is a possibillity to mount the bootloader ROM
+// Execution start adress must be configurable
 
-#define EXECUTION_START_AT 0xFFFE
+#define DEFAULT_EXECUTION_START_LOCATION 0xFFFE
+// TBD: RAM configuration per config file
+
 #define RAM_START_AT 0x200
+
+#define MAX_BREAKPOINTS 16
+
+
+#define IntToWordByPtr(from,dest) *(UINT16*)dest = (UINT16)(from & WORD_MASK);
+#define IntToByteByPtr(from,dest) *(UINT8*)dest = (UINT8)(from & BYTE_MASK);
 
 // Increases the programm counter by 2
 extern void increasePC();
 
-extern int decodeInstructionFormat(UINT16 instruction, executorPtr *executor);
+extern int decodeInstructionFormat(msp_word instruction, executorPtr *executor);
 extern executorPtr findExecutor(UINT16 instructionCode);
-extern int decodeF1Instruction(UINT16 instruction, void **source, void **destination, int *isByte);
-extern int decodeF2Instruction(UINT16 instruction, void **operand, int *isByte);
-extern int decodeF3Instruction(UINT16 instruction, void **condition, void **offset);
+extern msp_word fetchInstruction(msp_word msp_address);
+extern int decodeF1Instruction(msp_word instruction, void **source, void **destination, int *isByte);
+extern int decodeF2Instruction(msp_word instruction, void **operand, int *isByte);
+extern int decodeF3Instruction(msp_word instruction, void **condition, void **offset);
 extern void executeInstruction(unsigned int instructionCode);
-extern UINT16 fetchInstruction(UINT16 msp_address);
+
 extern void executionLoop();
 extern void initCore(void);
 extern void initRegisters();
-
+extern int writeBack(UINT32 write_back_address, void *data, unsigned char size);
+extern void checkCBit(UINT32 check, int asByte);
 
 #endif
 
