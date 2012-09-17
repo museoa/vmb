@@ -84,6 +84,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\opt\vmbwinopt.vcxproj">
+      <Project>{5a384688-86b5-439d-b700-c52330851681}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\util\vmbwin.vcxproj">
       <Project>{c7a37974-103b-4a8a-acd4-f304c0d9c35c}</Project>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
@@ -96,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mspio.h" />
+    <ClInclude Include="mspioshared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

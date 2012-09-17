@@ -26,5 +26,8 @@
     <ClInclude Include="mspio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mspioshared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

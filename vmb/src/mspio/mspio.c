@@ -21,27 +21,22 @@
 
 */
 
-/*  the files maintemplate and devicetemplate
-   is a template for a simple device, containing just what is
-   necessary. Everyting else was omited.
-   Its a good starting pont for complex devices and a complete
-   reference to the functions needed and provided by the
-   vmb library.
-*/
-
 #include <string.h>
 #include "mspio.h"
 
 		
 // Memory-mapped registers	
 static unsigned char regs[MEMSIZE];
-int memsize = MEMSIZE;
+static int memsize = MEMSIZE;
+
+char version[] = "1.0";
+char howto[] = "Simulator for MSP430 digital i/o port\n";
 
 // The address of the output device
 uint64_t output_address;
 
 // vmb interface
-device_info vmb = {0};
+static device_info vmb = {0};
 
 static void mem_clean(void)
 /* set the initial conditions */
@@ -50,25 +45,18 @@ static void mem_clean(void)
     regs[i] = 0;
 }
 
-
-/* the next funtions are required callback functions
-   for the vmb interface. They are called from threads
-   distinct from the main thread. If these callbacks
-   share resources with the main thread, it might be necessary
-   to use a mutex to synchronize access to the resources.
-   In this template, the main thread does nothing with
-   the ram. Hence no synchronization is needed.
-*/
-
 void device_poweron(void)
-/* this function is called when the virtual power is turned on */
 {  mem_clean();
 }
 
 
 void device_reset(void)
-/* this function is called when the virtual reset button is pressed */
-{ mem_clean();
+{ 
+	// Send off to all leds
+	regs[REG_OUT] = (-1) & 0xFF;
+	sendChanges(0);
+	// Set to reset conditions
+	mem_clean();
 }
 
 
@@ -82,42 +70,42 @@ unsigned char *device_get_payload(unsigned int offset,int size)
 { return regs+offset;
 }
 
-void device_put_payload(unsigned int offset,int size, unsigned char *payload)
-/* this function is called if some other device on the virtual bus
-   wants to write size byte to this device at the given offset.
-   The new byte are contained in the payload.
-   offset and size are checked to fall completely within the
-   address space ocupied by this device.
+/*
+	Sends signals on state change
 */
-{  
-	unsigned char changedOut, signal, mask;
+void sendChanges(unsigned char payload) {
+	unsigned char mask, sendTo, signal;
 	int i;
+	sendTo = payload^regs[REG_OUT];
+	// If the state (level) of any output ports is changing, 
+	// a signal will be sent to the corresponding device
+	if (sendTo) {
+		regs[REG_OUT] = payload;
+		mask = 1;
+		for (i=0;i<8;i++) {
+			// Check if the channel is switched to out and
+			// there is a change in the output level
+			if ((sendTo & mask) & (regs[REG_DIR] & mask)) {
+				data_address da;
+				signal = ((regs[REG_OUT] & mask) != 0);
+				vmb_init_data_address(&da, 1);
+				da.address_hi = HI32(output_address+i);
+				da.address_lo = LO32(output_address+i);
+				da.data = &signal;
+				vmb_store(&vmb, &da);
+			}
+			mask <<= 1;
+		}
+	}
+}
 
+void device_put_payload(unsigned int offset,int size, unsigned char *payload)
+{  
 	// Check if the write access is bytewise
 	// and the read-only register is not accessed
 	if (size == 1 && offset != 0) {
-		// If the state (level) of any output ports is changing, 
-		// a signal will be sent to the corresponding device
 		if (offset == REG_OUT) {
-			changedOut = (*payload)^regs[REG_OUT];
-			if (changedOut) {
-				memmove(regs+offset,payload,size);
-				mask = 1;
-				for (i=0;i<8;i++) {
-					// Check if the channel is switched to out and
-					// there is a change in the output level
-					if ((changedOut & mask) & (regs[REG_DIR] & mask)) {
-						data_address da;
-						signal = (regs[REG_OUT] & mask != 0);
-						vmb_init_data_address(&da, 1);
-						da.address_hi = HI32(output_address+i);
-						da.address_lo = LO32(output_address+i);
-						da.data = &signal;
-						vmb_store(&vmb, &da);
-					}
-					mask <<= 1;
-				}
-			}
+			sendChanges(*payload);
 		} else {
 			memmove(regs+offset,payload,size);
 		}
@@ -148,6 +136,18 @@ static void vmb_atexit(void)
 { 
 	vmb_disconnect(&vmb);
 	vmb_end();
+}
+
+int wait_for_power(void)
+{
+	fprintf(stderr,"Power...");
+	while(!vmb.power)
+	{
+		vmb_wait_for_power(&vmb);
+		if (!vmb.connected) return FALSE;
+	}
+	fprintf(stderr,"ON\n");
+	return TRUE;
 }
 
 int main(int argc, char *argv[])
