@@ -3,33 +3,41 @@
 
 port 9002
 host localhost
-debug
 
 #if mother
 debug
-exec rom.exe bootrom
-exec rom.exe userrom
-
-exec C:/Programme/vmb/ram.exe
-#exec /home/vmb/example3/mmix.exe -i -B:9002 /home/vmb/example3/hello.mmo 
-terminate
+debugmask 0xFFF0
+on
+exec rom.exe -c "#FILE#"
+exec ram.exe -c "#FILE#"
+exec msp.exe -c "#FILE#"
+exec mspio.exe -c "#FILE#"
+exec mspmultiplier.exe -c "#FILE#"
+exec led.exe -c "#FILE#"
+# terminate
 #endif
 
-#if bootrom
-address 0x0000000000000000
-file bios.img
+#if rom
+address 0x000000000000C000
+file led.bin
 #endif
 
-#if userrom
-address 0x0000000000100000
-file user.img
+#if mspio
+address 0x0000000000000020
+# output to led address
+output 0x0000000000100000
 #endif
-
-
-
 
 #if ram
-size 3145728
-address 0x0000000100000000
+size 512
+address 0x0000000000000200
 #endif
 
+#if led
+size 8
+address 0x0000000000100000
+#endif
+
+#if mspmultiplier
+address 0x0000000000000130
+#endif

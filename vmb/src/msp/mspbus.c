@@ -52,7 +52,7 @@ int wait_for_power(void)
 
 
 int vmbReadByteAt(msp_word msp_address, UINT8* readInto) {
-	data_address da;
+	data_address da = {0};
 	vmb_init_data_address(&da, 1);
 	da.address_hi = 0x0;
 	da.address_lo = translate_address(msp_address).asWord;
@@ -65,7 +65,8 @@ int vmbReadByteAt(msp_word msp_address, UINT8* readInto) {
 }
 
 int vmbReadWordAt(msp_word msp_address, UINT16* readInto) {
-	data_address da;
+	data_address da = {0};
+	//da = (data_address*)malloc(sizeof(data_address));
 	vmb_init_data_address(&da, 2);
 	da.address_hi = 0x0;
 	da.address_lo = translate_address(msp_address).asWord;
@@ -78,7 +79,7 @@ int vmbReadWordAt(msp_word msp_address, UINT16* readInto) {
 }
 
 int vmbWriteByteAt(msp_word msp_address, UINT8* writeFrom) {
-	data_address da;
+	data_address da = {0};
 	vmb_init_data_address(&da, 1);
 	da.address_hi = 0x0;
 	da.address_lo = translate_address(msp_address).asWord;
@@ -89,7 +90,7 @@ int vmbWriteByteAt(msp_word msp_address, UINT8* writeFrom) {
 }
 
 int vmbWriteWordAt(msp_word msp_address, UINT16* writeFrom) {
-	data_address da;
+	data_address da = {0};
 	vmb_init_data_address(&da, 2);
 	da.address_hi = 0x0;
 	da.address_lo = translate_address(msp_address).asWord;
