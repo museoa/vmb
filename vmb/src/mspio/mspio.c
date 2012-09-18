@@ -23,8 +23,8 @@
 
 #include <string.h>
 #include "mspio.h"
+#include <Windows.h>
 
-		
 // Memory-mapped registers	
 static unsigned char regs[MEMSIZE];
 static int memsize = MEMSIZE;
@@ -33,7 +33,7 @@ char version[] = "1.0";
 char howto[] = "Simulator for MSP430 digital i/o port\n";
 
 // The address of the output device
-uint64_t output_address;
+uint64_t output_address = 0x0;
 
 // vmb interface
 static device_info vmb = {0};
@@ -45,64 +45,63 @@ static void mem_clean(void)
     regs[i] = 0;
 }
 
-void device_poweron(void)
+void mio_poweron(void)
 {  mem_clean();
 }
 
 
-void device_reset(void)
+void mio_reset(void)
 { 
+	// Send on to all leds
+	regs[REG_DIR] = -1;
+	regs[REG_OUT] = 0;
+	sendChanges((-1) & 0xFF);
 	// Send off to all leds
-	regs[REG_OUT] = (-1) & 0xFF;
+	regs[REG_OUT] = (-1);
 	sendChanges(0);
 	// Set to reset conditions
 	mem_clean();
 }
 
 
-unsigned char *device_get_payload(unsigned int offset,int size)
+unsigned char *mio_get_payload(unsigned int offset,int size)
 /* this function is called if some other device on the virtual bus
    wants to read size byte from this device at the given offset.
    offset and size are checked to fall completely within the
    address space ocupied by this device
    The function must return a pointer to the requested bytes.
 */
-{ return regs+offset;
+{ 
+	return (unsigned char*)&regs[offset];
 }
 
 /*
 	Sends signals on state change
 */
 void sendChanges(unsigned char payload) {
-	unsigned char mask, sendTo, signal;
-	int i;
-	sendTo = payload^regs[REG_OUT];
+	unsigned char sendTo, signal;
+	data_address da = {0};
+
 	// If the state (level) of any output ports is changing, 
 	// a signal will be sent to the corresponding device
+	sendTo = (payload^regs[REG_OUT]) & regs[REG_DIR];
 	if (sendTo) {
 		regs[REG_OUT] = payload;
-		mask = 1;
-		for (i=0;i<8;i++) {
-			// Check if the channel is switched to out and
-			// there is a change in the output level
-			if ((sendTo & mask) & (regs[REG_DIR] & mask)) {
-				data_address da;
-				signal = ((regs[REG_OUT] & mask) != 0);
-				vmb_init_data_address(&da, 1);
-				da.address_hi = HI32(output_address+i);
-				da.address_lo = LO32(output_address+i);
-				da.data = &signal;
-				vmb_store(&vmb, &da);
-			}
-			mask <<= 1;
-		}
+		//fprintf(stderr, "Sending signal to %4x\n",output_address);
+		signal = (regs[REG_OUT] & sendTo);
+		vmb_init_data_address(&da, 1);
+		da.address_hi = HI32(output_address);
+		da.address_lo = LO32(output_address);
+		da.data = &signal;
+		vmb_store(&vmb, &da);
 	}
 }
 
-void device_put_payload(unsigned int offset,int size, unsigned char *payload)
+void mio_put_payload(unsigned int offset,int size, unsigned char *payload)
 {  
 	// Check if the write access is bytewise
 	// and the read-only register is not accessed
+	//fprintf(stderr, "Received packet for reg %d: 0x%4x\n",offset,*payload);
 	if (size == 1 && offset != 0) {
 		if (offset == REG_OUT) {
 			sendChanges(*payload);
@@ -117,14 +116,15 @@ void initVMBInterface() {
 	want to see it. It will use the variable vmb_program_name to mark the output
 	as comming from this program.*/
 	vmb_begin();
+	param_init();
 	vmb_debug_flag = 0;
 	vmb_program_name = "Digital I/O for MSP430";
-	vmb.poweron=device_poweron;
-	vmb.poweroff=vmb_poweroff; /* use default */
-	vmb.reset=device_reset;
-	vmb.get_payload=device_get_payload;
-	vmb.put_payload=device_put_payload;
-	vmb.terminate=vmb_terminate; /* use default */
+	vmb.poweron=mio_reset;
+	//vmb.poweroff=vmb_poweroff; /* use default */
+	vmb.reset=mio_reset;
+	vmb.get_payload=mio_get_payload;
+	vmb.put_payload=mio_put_payload;
+	//vmb.terminate=vmb_terminate; /* use default */
 
 	vmb_connect(&vmb,host,port); 
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),memsize,0,0,vmb_program_name);
@@ -152,23 +152,38 @@ int wait_for_power(void)
 
 int main(int argc, char *argv[])
 {	
-	// Init core and start execution
 	initVMBInterface();
  boot:
 	if (!wait_for_power())
 		goto end_simulation;
-	device_reset();
+	mio_reset();
 
 	
 	while (vmb.connected) {
 		if (!vmb.power || vmb.reset_flag)
-		{  /* breakpoint ?*/
+		{
 		  vmb.reset_flag = 0;
 		  goto boot;
 		}
+		fprintf(stderr, "VMB address: 0x%4x\n",vmb_address);
+		fprintf(stderr, "Allocated registers: %d\n",memsize);
+		fprintf(stderr, "Output to 0x%4x\n",output_address);
+		
 		vmb_wait_for_disconnect(&vmb);
 	}
 end_simulation:
+	vmb_end();
 	return 0;
 }
-
+//
+//void init_device(device_info *vmb)
+//{  
+//   vmb->poweron=mio_poweron;
+//   vmb->poweroff=vmb_poweroff;
+//   vmb->disconnected=vmb_disconnected;
+//   vmb->reset=mio_reset;
+//   vmb->terminate=vmb_terminate;
+//   vmb->get_payload=mio_get_payload;
+//   vmb->put_payload=mio_put_payload;
+//   //mem_update(0,0,1);
+//}

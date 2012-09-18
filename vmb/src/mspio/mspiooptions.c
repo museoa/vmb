@@ -6,7 +6,7 @@ option_spec options[] = {
 {"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
 {"address where the resource is located",'a', "address", "hex address",  uint64_arg, "0x0000000000000020", {&vmb_address}},
-{"address where the output (led) is located",	'o', "output", "hex led address",  uint64_arg, "0x0000000000100000", {&output_address}},
+{"address where the output (led) is located",	't', "outputto", "hex address",  uint64_arg, "0x0000000000100000", {&output_address}},
 {"to generate debug output",            'd', "debug",   "debug flag",     fun_arg, NULL, {&do_option_debug}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},

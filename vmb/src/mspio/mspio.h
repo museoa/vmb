@@ -5,7 +5,7 @@
 
 #ifdef WIN32
 #include <windows.h>
-HWND hMainWnd = NULL; /* there is no Window */
+//HWND hMainWnd = NULL; /* there is no Window */
 #endif
 
 // Define INTERRUPTS if interrupts 
@@ -43,11 +43,13 @@ extern int memsize;
 // VMB interface functions
 extern void initVMBInterface();
 extern void wait_for_disconnect();
+//extern void init_device(device_info *vmb);
+extern void initVMBInterface();
 extern void init_device(device_info *vmb);
-extern void device_poweron(void);
-extern void device_reset(void);
-extern unsigned char *device_get_payload(unsigned int offset,int size);
-extern void device_put_payload(unsigned int offset,int size, unsigned char *payload);
+extern void mio_poweron(void);
+extern void mio_reset(void);
+extern unsigned char *mio_get_payload(unsigned int offset,int size);
+extern void mio_put_payload(unsigned int offset,int size, unsigned char *payload);
 extern void sendChanges(unsigned char payload);
 extern int wait_for_power(void);
 extern void vmb_atexit(void);
