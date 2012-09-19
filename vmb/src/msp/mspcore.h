@@ -137,7 +137,7 @@ static msp_word registers[REGISTERS_COUNT];
 #define nBit registers[SR].asBits.N
 #define vBit registers[SR].asBits.V
 
-static unsigned long clocks = 0;
+static UINT64 clocks = 0;
 
 #define MEMORY_WRITEBACK_NO (-1)
 
@@ -163,7 +163,7 @@ extern executorPtr findExecutor(UINT16 instructionCode);
 extern msp_word fetchInstruction(msp_word msp_address);
 extern int decodeF1Instruction(msp_word instruction, void **source, void **destination, int *isByte);
 extern int decodeF2Instruction(msp_word instruction, void **operand, int *isByte);
-extern int decodeF3Instruction(msp_word instruction, void **condition, void **offset);
+int decodeF3Instruction(msp_word instruction, unsigned int *condition, int *offset);
 extern void executeInstruction(unsigned int instructionCode);
 
 extern void executionLoop();

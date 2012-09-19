@@ -1,14 +1,8 @@
 #include "mspbus.h"
 #include "mspcore.h"
-//#include "vmb.h"
-//#include <Windows.h>
+#include "memcheck.h"
 
 device_info vmb = {0};
-//HINSTANCE hInst;
-//HWND hMainWnd;
-//HBITMAP hBmp=NULL;
-//HMENU hMenu;
-//HBITMAP hon,hoff,hconnect;
 
 static void vmb_atexit(void)
 { vmb_disconnect(&vmb);
@@ -60,13 +54,11 @@ int vmbReadByteAt(msp_word msp_address, UINT8* readInto) {
 	while (da.status != STATUS_VALID)
 		vmb_wait_for_valid(&vmb, &da);
 	*readInto = *(UINT8*)da.data;
-	clocks++;
 	return TRUE;
 }
 
 int vmbReadWordAt(msp_word msp_address, UINT16* readInto) {
 	data_address da = {0};
-	//da = (data_address*)malloc(sizeof(data_address));
 	vmb_init_data_address(&da, 2);
 	da.address_hi = 0x0;
 	da.address_lo = translate_address(msp_address).asWord;
@@ -74,7 +66,6 @@ int vmbReadWordAt(msp_word msp_address, UINT16* readInto) {
 	while (da.status != STATUS_VALID)
 		vmb_wait_for_valid(&vmb, &da);
 	*readInto = *(UINT16*)da.data;
-	clocks++;
 	return TRUE;
 }
 
@@ -85,7 +76,6 @@ int vmbWriteByteAt(msp_word msp_address, UINT8* writeFrom) {
 	da.address_lo = translate_address(msp_address).asWord;
 	da.data = (unsigned char*)writeFrom;
 	vmb_store(&vmb, &da);
-	clocks++;
 	return TRUE;
 }
 
@@ -96,7 +86,6 @@ int vmbWriteWordAt(msp_word msp_address, UINT16* writeFrom) {
 	da.address_lo = translate_address(msp_address).asWord;
 	da.data = (unsigned char*)writeFrom;
 	vmb_store(&vmb, &da);
-	clocks++;
 	return TRUE;
 }
 

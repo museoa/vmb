@@ -9,7 +9,6 @@
 
 #include "vmb.h"		// Datatypes & interfaces
 
-
 #ifndef TRUE
 #define TRUE 1
 #endif

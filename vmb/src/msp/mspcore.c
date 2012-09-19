@@ -3,7 +3,7 @@
 */
 
 #include "mspcore.h"
-
+#include "memcheck.h"
 
 // Version parameters
 char version[] = "1.0";
@@ -16,6 +16,12 @@ unsigned int compNegative = 0x80;
 unsigned int compCarryByte = ~BYTE_MASK;
 unsigned int compCarryWord = ~WORD_MASK;
 int x = FALSE;		// execution flag
+
+__inline void freeConditional(void * mem) {
+	if ((mem < (void*)&registers[0]) || (mem >= (void*)&registers[REGISTERS_COUNT+1])) {
+		free(mem);
+	}
+}
 
 int ADD_executor () {
 	int isByteInstruction;
@@ -55,6 +61,8 @@ int ADD_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(source);
+	freeConditional(destination);
 
 	// PC to next word
 	increasePC();
@@ -90,7 +98,6 @@ int ADDC_executor () {
 	zBit= (!(result & WORD_MASK));
 	// (C-bit)
 	checkCBit(result, isByteInstruction);
-
 	
 	// (V-bit)
 	vBit= ((!(uiSource & compNegative) && !(uiDestination & compNegative) && (nBit)) 
@@ -98,6 +105,8 @@ int ADDC_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(source);
+	freeConditional(destination);
 
 	// PC to next word
 	increasePC();
@@ -142,6 +151,8 @@ int AND_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(source);
+	freeConditional(destination);
 
 	// PC to next word
 	increasePC();
@@ -175,6 +186,8 @@ int BIC_executor () {
 	// Status bits are not affected
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(source);
+	freeConditional(destination);
 
 	// PC to next word
 	increasePC();
@@ -211,7 +224,9 @@ int BIS_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
+
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -257,7 +272,9 @@ int BIT_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
+
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -281,9 +298,14 @@ int CALL_executor () {
 	operandValue = *(UINT16*)operand;
 	registers[SP].asWord -= 2;
 	pcForStack = registers[PC].asWord + 2;
+	clocks++;
 	if (!vmbWriteWordAt(registers[SP], &pcForStack))
 		return FALSE;
+	else
+		clocks++;
 	registers[PC].asWord = operandValue;
+	clocks++;
+	freeConditional(operand);
 	clocks++;
 	return TRUE;
 }
@@ -302,12 +324,12 @@ int CMP_executor () {
 	if (isByteInstruction) {
 		uiSource = (*(UINT8*)source);
 		uiDestination = (*(UINT8*)destination);
-		result = uiSource - uiDestination;
+		result = uiDestination - uiSource;
 		IntToByteByPtr(result,destination);
 	} else {
 		uiSource = (*(UINT16*)source);
 		uiDestination = (*(UINT16*)destination);
-		result = uiSource - uiDestination;
+		result = uiDestination - uiSource;
 		IntToWordByPtr(result,destination);
 	}
 	
@@ -329,7 +351,9 @@ int CMP_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
+
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -401,7 +425,9 @@ int DADD_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
+
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -410,17 +436,17 @@ int DADD_executor () {
 
 int JUMP_executor () {
 	// Jumps to address PC+2*offset (offset is signed!)
-	void *condition;
+	//void *condition;
 	unsigned int uiCondition;
-	void *offset;
-	INT16 iOffset;
+	//void *offset;
+	int iOffset;
 	int jump = FALSE;
 
-	if (!decodeF3Instruction(currentInstruction, &condition, &offset))
+	if (!decodeF3Instruction(currentInstruction, &uiCondition, &iOffset))
 		return FALSE;
 
-	uiCondition = *(unsigned int*)condition;
-	iOffset = *(INT16*)offset;
+	//uiCondition = *(unsigned int*)condition;
+	//iOffset = *(INT16*)offset;
 
 	switch (uiCondition) {
 	case JNE:
@@ -459,8 +485,10 @@ int JUMP_executor () {
 	}
 
 	increasePC();
-	if (jump)
+	if (jump) {		
 		registers[PC].asWord += 2*iOffset;
+		clocks++;
+	}
 
 	clocks++;
 	return TRUE;
@@ -484,7 +512,8 @@ int MOV_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-
+	freeConditional(source);
+	freeConditional(destination);
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -504,6 +533,7 @@ int PUSH_executor () {
 	
 	// Update stack pointer
 	registers[SP].asWord -= 2;
+	clocks++;
 
 	if (isByteInstruction) {
 		operandValue = *(UINT8*)operand;
@@ -515,6 +545,9 @@ int PUSH_executor () {
 
 	if (!vmbWriteWordAt(registers[SP], &operandValue))
 		return FALSE;
+	else
+		clocks++;
+	freeConditional(operand);
 
 	increasePC();
 	clocks++;
@@ -529,21 +562,25 @@ int RETI_executor () {
 	*/
 	void *operand;
 	int isByteInstruction = FALSE;
-	UINT16 stack;
 
 	if (!decodeF2Instruction(currentInstruction, &operand, &isByteInstruction))
 		return FALSE;
 
 	// Restore status register
-	if (!vmbReadWordAt(registers[SP], &stack))
+	if (!vmbReadWordAt(registers[SP], &registers[SR].asWord))
 		return FALSE;
-	registers[SR].asWord = stack;
+	else
+		clocks++;
+
 	registers[SP].asWord -= 2;
+	clocks++;
 	// Restore programm counter
-	if (!vmbReadWordAt(registers[SP], &stack))
+	if (!vmbReadWordAt(registers[SP], &registers[PC].asWord))
 		return FALSE;
-	registers[PC].asWord = stack;
+	else
+		clocks++;
 	registers[SP].asWord -= 2;
+	clocks++;
 	clocks++;
 	return TRUE;
 }
@@ -593,6 +630,7 @@ int RRA_executor () {
 
 	if (!writeBack(memoryWriteBack, operand, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(operand);
 
 	increasePC();
 	clocks++;
@@ -642,6 +680,7 @@ int RRC_executor () {
 
 	if (!writeBack(memoryWriteBack, operand, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(operand);
 
 	increasePC();
 	clocks++;
@@ -688,7 +727,8 @@ int SUB_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -734,7 +774,8 @@ int SUBC_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
-	
+	freeConditional(source);
+	freeConditional(destination);
 	// PC to next word
 	increasePC();
 	clocks++;
@@ -762,6 +803,9 @@ int SWPB_executor () {
 
 	if (!writeBack(memoryWriteBack, operand, 2))
 		return FALSE;
+	freeConditional(operand);
+
+	increasePC();
 	clocks++;
 	return TRUE;
 }
@@ -798,7 +842,10 @@ int SXT_executor () {
 
 	if (!writeBack(memoryWriteBack, operand, 2))
 		return FALSE;
+	freeConditional(operand);
+
 	clocks++;
+	increasePC();
 	return TRUE;
 }
 
@@ -840,6 +887,8 @@ int XOR_executor () {
 
 	if (!writeBack(memoryWriteBack, destination, (!isByteInstruction)+1))
 		return FALSE;
+	freeConditional(source);
+	freeConditional(destination);
 	
 	// PC to next word
 	increasePC();
@@ -905,8 +954,7 @@ int decodeF1Instruction(msp_word instruction, void **source,
 	void **destination, int *isByte) {
 
 	unsigned int As, Ad, sReg, dReg;
-	//unsigned int uiInstruction;
-	void *constant;
+	//void *constant;
 	char cConstant = 0;
 	int createConstant = FALSE;
 	int isByteInstruction = FALSE;
@@ -941,15 +989,21 @@ int decodeF1Instruction(msp_word instruction, void **source,
 			increasePC();
 			if (!vmbReadWordAt(registers[PC], &offset))
 				return FALSE;
+			else
+				clocks++;
 			t_address.asWord = offset;
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*source))
 					return FALSE;
+				else
+					clocks++;
 			} else {
 				*source = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*source))
 					return FALSE;
+				else
+					clocks++;
 			}
 			break;
 		case CG2:		// const generator
@@ -961,16 +1015,22 @@ int decodeF1Instruction(msp_word instruction, void **source,
 			baseAddress = registers[sReg];
 			increasePC();
 			if (!vmbReadWordAt(registers[PC], &offset))
-					return FALSE;
+				return FALSE;
+			else
+				clocks++;
 			t_address.asWord = baseAddress.asWord + offset;
 			if (isByteInstruction) {
 				*source = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*source))
 					return FALSE;
+				else
+					clocks++;
 			} else {
 				*source = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*source))
 					return FALSE;
+				else
+					clocks++;
 			}
 			break;
 		}
@@ -992,10 +1052,14 @@ int decodeF1Instruction(msp_word instruction, void **source,
 				*source = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*source))
 					return FALSE;
+				else
+					clocks++;
 			} else {
 				*source = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*source))
 					return FALSE;
+				else
+					clocks++;
 			}
 			break;
 		}
@@ -1020,10 +1084,14 @@ int decodeF1Instruction(msp_word instruction, void **source,
 				*source = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*source))
 					return FALSE;
+				else
+					clocks++;
 			} else {
 				*source = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*source))
 					return FALSE;
+				else
+					clocks++;
 			}
 			if (sReg != PC) {
 				registers[sReg].asWord += (!isByteInstruction)+1;
@@ -1034,144 +1102,15 @@ int decodeF1Instruction(msp_word instruction, void **source,
 	default:
 		*source = NULL;
 	}
-
-	//switch (sReg) {
-	//case CG1:			// CG1 = SR!
-	//	switch (As) {	
-	//	case ADDR_MODE_REGISTER:			// SR-Register (non-cg case)
-	//		// Warning: little endian! Otherwise, the higher byte 
-	//		// should be selected for byte operations!
-	//		*source = &registers[PC];
-	//		break;
-	//	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:	/* Equivalent to constant 0 
-	//												for base address 
-	//												(absolute addressing) */
-	//		if (isByteInstruction) {
-	//			*source = malloc(sizeof(UINT8));
-	//		} else {
-	//			*source = malloc(sizeof(UINT16));
-	//		}
-	//		//baseAddress.asWord = 0;
-	//		
-	//		increasePC();
-	//		if (!vmbReadWordAt(registers[PC], &offset))
-	//			 return FALSE;
-	//		t_address.asWord = offset;
-	//		if (isByteInstruction) {
-	//			 if (!vmbReadByteAt(t_address, (UINT8*)*source))
-	//				 return FALSE;
-	//		}
-	//		else {
-	//			if (!vmbReadWordAt(t_address, (UINT16*)*source))
-	//				return FALSE;
-	//		}
-	//		break;
-	//	case 2:
-	//		createConstant = TRUE;
-	//		cConstant = 4;
-	//		break;
-	//	case 3:
-	//		createConstant = TRUE;
-	//		cConstant = 8;
-	//		break;
-	//	default:
-	//		source = NULL;
-	//		break;
-	//	}
-	//	break;
-
-
-	//case CG2:
-	//	switch (As) {
-	//	case 0:
-	//		createConstant = TRUE;
-	//		cConstant = 0;
-	//		break;
-	//	case 1:
-	//		createConstant = TRUE;
-	//		cConstant = 1;
-	//		break;
-	//	case 2:
-	//		createConstant = TRUE;
-	//		cConstant = 2;
-	//		break;
-	//	case 3:
-	//		createConstant = TRUE;
-	//		cConstant = -1;
-	//		break;
-	//	default:
-	//		source = NULL;
-	//		break;
-	//	}
-
-	//default:
-	//	switch (As) {
-	//	case ADDR_MODE_REGISTER:		// Register is the operand
-	//		*source = &registers[sReg];
-	//		break;
-	//	case ADDR_MODE_INDEXED_SYMBOLIC_ABSOLUTE:
-	//		// Register contains the base address, next word contains the offset
-	//		if (isByteInstruction) {
-	//			*source = malloc(sizeof(UINT8));
-	//		} else {
-	//			*source = malloc(sizeof(UINT16));
-	//		}
-	//		baseAddress = registers[sReg];
-	//		increasePC();
-	//		if (!vmbReadWordAt(registers[PC], &offset))
-	//			return FALSE;
-	//		t_address.asWord = baseAddress.asWord + offset;
-	//		if (!vmbReadWordAt(t_address, (UINT16*)*source))
-	//			return FALSE;
-	//		break;
-	//	case ADDR_MODE_INDIRECT_REGISTER:
-	//		// Register contains the address of the operand
-	//		if (isByteInstruction) {
-	//			*source = malloc(sizeof(UINT8));
-	//			if (!vmbReadByteAt(registers[sReg], (UINT8*)*source))
-	//				 return FALSE;
-	//		} else {
-	//			*source = malloc(sizeof(UINT16));
-	//			if (!vmbReadWordAt(registers[sReg], (UINT16*)*source))
-	//				 return FALSE;
-	//		}
-	//		break;
-	//	case ADDR_MODE_INDIRECT_AUTOINC_IMMEDIATE:
-	//		// Register contains the address. Register value will be incremented (byte/wyde)
-	//		if (sReg == PC)
-	//			increasePC();
-	//		//if (!vmbReadWordAt(registers[sReg], &baseAddress.asWord))
-	//		//	return FALSE;
-	//		if (isByteInstruction) {
-	//			*source = malloc(sizeof(UINT8));
-	//			if (!vmbReadByteAt(registers[sReg], (UINT8*)*source))
-	//				return FALSE;
-	//		} else {
-	//			*source = malloc(sizeof(UINT16));
-	//			if (!vmbReadWordAt(registers[sReg], (UINT16*)*source))
-	//				return FALSE;
-	//		}
-
-	//		// Execute autoincrement
-	//		if (sReg != PC) { // PC is already incremented
-	//			UINT16 incr = 1;
-	//			if (!isByteInstruction)
-	//				incr++;
-	//			registers[sReg].asWord += incr;
-	//		}
-	//		break;
-	//	default:
-	//		source = NULL;
-	//	}
-	//}
-
 	if (createConstant) {
-		if (isByteInstruction)
-			constant = malloc(sizeof(UINT8));
-		else
-			constant = malloc(sizeof(UINT16));
-		*(UINT16*)constant = cConstant;
-		*source = constant;
+		if (isByteInstruction) {
+			*source = malloc(sizeof(UINT8));
+			*(UINT8*)*source = cConstant;
+		}
+		else {
+			*source = malloc(sizeof(UINT16));
+			*(UINT16*)*source = cConstant;
+		}
 	}
 	
 	// Decode destination operand
@@ -1190,16 +1129,22 @@ int decodeF1Instruction(msp_word instruction, void **source,
 			increasePC();
 			if (!vmbReadWordAt(registers[PC], &offset))
 				return FALSE;
+			else
+				clocks++;
 			t_address.asWord = offset;
 			memoryWriteBack = t_address.asWord;
 			if (isByteInstruction) {
 				*destination = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*destination))
 					return FALSE;
+				else if (instruction.asF1Mask.opcode != 4)		// No clock for MOV
+					clocks++;
 			} else {
 				*destination = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*destination))
 					return FALSE;
+				else if (instruction.asF1Mask.opcode != 4)		// No clock for MOV
+					clocks++;
 			}
 			break;
 		default:
@@ -1208,36 +1153,25 @@ int decodeF1Instruction(msp_word instruction, void **source,
 			increasePC();
 			if (!vmbReadWordAt(registers[PC], &offset))
 				return FALSE;
+			else
+				clocks++;
 			t_address.asWord = baseAddress.asWord + offset;
 			memoryWriteBack = t_address.asWord;
 			if (isByteInstruction) {
 				*destination = malloc(sizeof(UINT8));
 				if (!vmbReadByteAt(t_address,(UINT8*)*destination))
 					return FALSE;
+				else if (instruction.asF1Mask.opcode != 4)		// No clock for MOV
+					clocks++;
 			} else {
 				*destination = malloc(sizeof(UINT16));
 				if (!vmbReadWordAt(t_address,(UINT16*)*destination))
 					return FALSE;
+				else if (instruction.asF1Mask.opcode != 4)		// No clock for MOV
+					clocks++;
 			}
 			break;
 		}
-		
-
-		//baseAddress = registers[dReg];
-		//increasePC();
-		//if (!vmbReadWordAt(registers[PC], &offset))
-		//	return FALSE;
-		//t_address.asWord = baseAddress.asWord + offset;
-		//memoryWriteBack = t_address.asWord;
-		//if (isByteInstruction) {
-		//	*destination = malloc(sizeof(UINT8));
-		//	if (!vmbReadByteAt(t_address, (UINT8*)*destination))
-		//		return FALSE;
-		//} else {
-		//	*destination = malloc(sizeof(UINT16));
-		//	if (!vmbReadWordAt(t_address, (UINT16*)*destination))
-		//		return FALSE;
-		//}
 		break;
 	default:
 		*destination = NULL;
@@ -1273,17 +1207,23 @@ int decodeF2Instruction(msp_word instruction, void **operand, int *isByte) {
 		increasePC();
 		if (!vmbReadWordAt(registers[PC], &offset))
 			return FALSE;
+		else
+			clocks++;
 		t_address.asWord = baseAddress.asWord + offset;
 		memoryWriteBack = t_address.asWord;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
 			if (!vmbReadByteAt(t_address, (UINT8*)*operand))
 				return FALSE;
+			else
+				clocks++;
 		}
 		else {
 			*operand = malloc(sizeof(UINT16));
 			if (!vmbReadWordAt(t_address, (UINT16*)*operand))
 				return FALSE;
+			else
+				clocks++;
 		}
 		break;
 	case ADDR_MODE_INDIRECT_REGISTER:
@@ -1304,13 +1244,8 @@ int decodeF2Instruction(msp_word instruction, void **operand, int *isByte) {
 		// Register contains the address. Register value will be incremented (byte/wyde)
 		if (DSReg == PC)
 			increasePC();
-		//if (!vmbReadWordAt(registers[DSReg], &baseAddress.asWord))
-		//	return FALSE;
-		//t_address = baseAddress;
-		if (DSReg != PC)
+		else
 			memoryWriteBack = registers[DSReg].asWord;
-		//else
-		//	memoryWriteBack = MEMORY_WRITEBACK_NO;
 		if (isByteInstruction) {
 			*operand = malloc(sizeof(UINT8));
 			if (!vmbReadByteAt(registers[DSReg], (UINT8*)*operand))
@@ -1320,16 +1255,9 @@ int decodeF2Instruction(msp_word instruction, void **operand, int *isByte) {
 			if (!vmbReadWordAt(registers[DSReg], (UINT16*)*operand))
 				return FALSE;
 		}
-		// Execute autoincrement
+		// Execute autoincrement (PC is already incremented)
 		if (DSReg != PC) {
-			// PC is already incremented
 			registers[DSReg].asWord += (!isByteInstruction)+1;
-			//int incr;
-			//if (isByteInstruction)
-			//	incr = 1;
-			//else
-			//	incr = 2;
-			//registers[DSReg].asWord += incr;
 		}
 		break;
 	default:
@@ -1342,7 +1270,7 @@ int decodeF2Instruction(msp_word instruction, void **operand, int *isByte) {
 		return FALSE;
 }
 
-int decodeF3Instruction(msp_word instruction, void **condition, void **offset) {
+int decodeF3Instruction(msp_word instruction, unsigned int *condition, int *offset) {
 	unsigned int /*uiInstruction, */uiCondition;
 	INT16 iOffset;
 
@@ -1352,8 +1280,8 @@ int decodeF3Instruction(msp_word instruction, void **condition, void **offset) {
 	if (iOffset & 512)
 		iOffset &= (-1);
 
-	*condition = &uiCondition;
-	*offset = &iOffset;
+	*condition = uiCondition;
+	*offset = iOffset;
 
 	return TRUE;
 }
@@ -1417,6 +1345,7 @@ __inline int writeBack (UINT32 write_back_address, void *data, unsigned char siz
 				return FALSE;
 		} else 
 			return FALSE;
+		clocks++;
 	}
 	return TRUE;
 }
@@ -1435,22 +1364,20 @@ void UI() {
 	int inErrFlag = FALSE;
 	msp_word t_address;
 	int i,j;
-
 	x = FALSE;
+
+	//Debug output
+	fprintf(stdout,"Programm stats:\tPC @ 0x%4X\tSP @ 0x%4X\tCycles: %d\n",
+		registers[PC].asWord,registers[SP].asWord,clocks);
+	
 	if (!continuosMode) {
-		//Debug output
-		fprintf(stdout,"Programm stats:\t");
-		fprintf(stdout,"PC @ 0x%4X\t",registers[PC].asWord);
-		fprintf(stdout,"SP @ 0x%4X\n\n",registers[SP].asWord);
-retry_input_onerror:
-		fprintf(stdout,"Choose ENTER/x to execute, bHHHH to set or unset a breakpoint @0xHHHH, q to quit, rN to view register N (0-15), c to continue, mHHHH to view memory at address 0xHHHH: ");
 retry_input:
+		fprintf(stdout,"Choose x to execute, q to quit, c to continue,\nbHex to set or unset a breakpoint @ 0xHex, rN to view register N (0-15),\nmHex to view memory @ 0xHex: ");
 		inErrFlag = FALSE;
 
 		memset(&input_buffer,0,256);
 		fscanf(stdin,"%s",&input_buffer[0]);
 		if (strlen(&input_buffer[0])) {
-			//t_int = -1;
 			memset(&t_buffer[0],0,10);
 			sscanf(&input_buffer[0],"%[c]",t_buffer);	// Test c
 			if (t_buffer[0]) {
@@ -1472,10 +1399,7 @@ retry_input:
 			}
 
 			t_int = -1;
-			//memset(&t_buffer[0],0,10);
 			sscanf(&input_buffer[0],"r%2d",&t_int);	// Test r
-			//if (t_int < 0)
-			//	sscanf(&input_buffer[0],"r%1d",&t_int);	// Test r
 			if ((t_int >= 0)) {
 				if (t_int < REGISTERS_COUNT) {
 					fprintf(stdout,"\nRegister %d: 0x%4X\n",t_int,
@@ -1488,11 +1412,9 @@ retry_input:
 			}
 
 			t_int = -1;
-			//memset(&t_buffer[0],0,10);
 			sscanf(&input_buffer[0],"b%4x",&t_int); // Test b
 			if (t_int >= 0) {
 				t_address.asWord = t_int;
-				//fprintf(stderr,"\nBreakpoint address: 0x%x\n",t_address.asWord);
 				// (un)set breakpoint
 				for (i=0;i<MAX_BREAKPOINTS;i++) {
 					if (breakpoints[i].asWord == t_address.asWord) {
@@ -1534,7 +1456,7 @@ skip_i_checks:
 
 		if (inErrFlag) {
 			fprintf(stdout,"Invalid input \"%s\".\n",&input_buffer[0]);
-			goto retry_input_onerror;
+			goto retry_input;
 		}
 		if (!x) {
 			goto retry_input;
@@ -1544,7 +1466,7 @@ skip_i_checks:
 		for(i=0;i<MAX_BREAKPOINTS;i++) {
 			if (breakpoints[i].asWord == registers[PC].asWord) {
 				continuosMode = FALSE;
-				goto retry_input_onerror;
+				goto retry_input;
 			}
 		}
 		// Continous mode
@@ -1609,22 +1531,19 @@ int main(int argc, char *argv[])
 			break;
 		}
 		if (!format) {
-			fprintf(stderr,"MSP430-Error: Invalid instruction format @0x%X%X in instruction 0x%X%X\n",
-				registers[PC].asBytes.hi,registers[PC].asBytes.lo,
-				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+			fprintf(stderr,"MSP430-Error: Invalid instruction format @0x%4X in instruction 0x%4X\n",
+				registers[PC].asWord,currentInstruction.asWord);
 			break;
 		}
 		if (executor == NULL) {
-			fprintf(stderr,"MSP430-Error: Invalid opcode %d @0x%X%X in instruction 0x%X%X\n",
-				opcode,registers[PC].asBytes.hi,registers[PC].asBytes.lo,
-				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+			fprintf(stderr,"MSP430-Error: Invalid opcode %d @0x%4X in instruction 0x%4X\n",
+				opcode,registers[PC].asWord,currentInstruction.asWord);
 			break;
 		}
 		if (!executor()) {
-			fprintf(stderr,"MSP430-Error: Could not execute %s @0x%X%X in instruction 0x%X%X\n",
+			fprintf(stderr,"MSP430-Error: Could not execute %s @0x%4X in instruction 0x%4X\n",
 				INSTRUCTION_NAMES[opcode],
-				registers[PC].asBytes.hi, registers[PC].asBytes.lo,
-				currentInstruction.asBytes.hi,currentInstruction.asBytes.lo);
+				registers[PC].asWord,currentInstruction.asWord);
 			break;
 		}
 	}
@@ -1632,6 +1551,10 @@ end_simulation:
 	fprintf(stderr,"Exiting...");
 	vmb_disconnect(&vmb);
 	vmb_end();
+#ifdef MEM_CHECK_H
+	EXIT_SUCC;
+#else
 	return 0;
+#endif
 }
 

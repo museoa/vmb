@@ -101,6 +101,7 @@
     <ClCompile Include="mspoptions.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="memcheck.h" />
     <ClInclude Include="mspbus.h" />
     <ClInclude Include="mspcore.h" />
     <ClInclude Include="mspshared.h" />
