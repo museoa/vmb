@@ -1,7 +1,7 @@
 /*
-    Copyright 2008  Martin Ruckert
+    Copyright 2012 Wladimir Danilov
     
-    ruckertm@acm.org
+    w.danilov@googlemail.com
 
     This file is part of the Virtual Motherboard project
 
@@ -19,8 +19,13 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
 
+
+	mspio.c
+
+	Provides the implementation for digital I/O for MSP430
+
+*/
 #include <string.h>
 #include "mspio.h"
 #include <Windows.h>
@@ -65,12 +70,6 @@ void mio_reset(void)
 
 
 unsigned char *mio_get_payload(unsigned int offset,int size)
-/* this function is called if some other device on the virtual bus
-   wants to read size byte from this device at the given offset.
-   offset and size are checked to fall completely within the
-   address space ocupied by this device
-   The function must return a pointer to the requested bytes.
-*/
 { 
 	return (unsigned char*)&regs[offset];
 }
@@ -112,19 +111,14 @@ void mio_put_payload(unsigned int offset,int size, unsigned char *payload)
 }
 
 void initVMBInterface() {
-	/* the vmb library uses debuging output, that we need to switch on if we
-	want to see it. It will use the variable vmb_program_name to mark the output
-	as comming from this program.*/
 	vmb_begin();
 	param_init();
 	vmb_debug_flag = 0;
 	vmb_program_name = "Digital I/O for MSP430";
 	vmb.poweron=mio_reset;
-	//vmb.poweroff=vmb_poweroff; /* use default */
 	vmb.reset=mio_reset;
 	vmb.get_payload=mio_get_payload;
 	vmb.put_payload=mio_put_payload;
-	//vmb.terminate=vmb_terminate; /* use default */
 
 	vmb_connect(&vmb,host,port); 
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),memsize,0,0,vmb_program_name);
@@ -175,15 +169,3 @@ end_simulation:
 	vmb_end();
 	return 0;
 }
-//
-//void init_device(device_info *vmb)
-//{  
-//   vmb->poweron=mio_poweron;
-//   vmb->poweroff=vmb_poweroff;
-//   vmb->disconnected=vmb_disconnected;
-//   vmb->reset=mio_reset;
-//   vmb->terminate=vmb_terminate;
-//   vmb->get_payload=mio_get_payload;
-//   vmb->put_payload=mio_put_payload;
-//   //mem_update(0,0,1);
-//}

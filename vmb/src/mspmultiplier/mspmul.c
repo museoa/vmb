@@ -1,7 +1,7 @@
 /*
-    Copyright 2008  Martin Ruckert
+    Copyright 2012 Wladimir Danilov
     
-    ruckertm@acm.org
+    w.danilov@googlemail.com
 
     This file is part of the Virtual Motherboard project
 
@@ -19,14 +19,10 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
 
-/*  the files maintemplate and devicetemplate
-   is a template for a simple device, containing just what is
-   necessary. Everyting else was omited.
-   Its a good starting pont for complex devices and a complete
-   reference to the functions needed and provided by the
-   vmb library.
+	mspmul.c
+
+	Implementation of MSP430 multiplier
 */
 
 #include <string.h>
@@ -42,8 +38,6 @@ int isByteOp1 = FALSE;
 int isByteOp2 = FALSE;
 #define setB1(b) isByteOp1 = b;
 #define setB2(b) isByteOp2 = b;
-
-/* This device simulates RAMSIZE bytes of RAM */
 
 static msp_word registers[REGISTERS_COUNT];
 int memsize = MEMSIZE;
@@ -103,19 +97,16 @@ void invokeMul() {
 }
 
 static void mem_clean(void)
-/* clean the ram, done after power on and reset */
 { 
 	memset(&registers,0,MEMSIZE);
 }
 
 void device_poweron(void)
-/* this function is called when the virtual power is turned on */
 {  mem_clean();
 }
 
 
 void device_reset(void)
-/* this function is called when the virtual reset button is pressed */
 { mem_clean();
 }
 
