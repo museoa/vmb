@@ -1,6 +1,27 @@
 /*
+    Copyright 2012 Wladimir Danilov
+    
+    w.danilov@googlemail.com
 
+    This file is part of the Virtual Motherboard project
 
+    This file is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this software; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+	mspshared.h
+
+	Header file for MSP430 simulator configuration, shared variables and definitions.
 */
 
 
@@ -29,38 +50,38 @@ typedef union {
 	UINT16 asWord;
 	struct {
 #ifdef BIGENDIAN
-		unsigned char RESERVED : 7;
-		unsigned char V : 1;
-		unsigned char SCG1 : 1;
-		unsigned char SCG0 : 1;
-		unsigned char OSCOFF : 1;
-		unsigned char CPUOFF : 1;
-		unsigned char GIE : 1;
-		unsigned char N : 1;
-		unsigned char Z : 1;
-		unsigned char C : 1;
+		unsigned int RESERVED : 7;
+		unsigned int V : 1;
+		unsigned int SCG1 : 1;
+		unsigned int SCG0 : 1;
+		unsigned int OSCOFF : 1;
+		unsigned int CPUOFF : 1;
+		unsigned int GIE : 1;
+		unsigned int N : 1;
+		unsigned int Z : 1;
+		unsigned int C : 1;
 #else
-		unsigned char C : 1;
-		unsigned char Z : 1;
-		unsigned char N : 1;
-		unsigned char GIE : 1;
-		unsigned char CPUOFF : 1;
-		unsigned char OSCOFF : 1;
-		unsigned char SCG0 : 1;
-		unsigned char SCG1 : 1;
-		unsigned char V : 1;
-		unsigned char RESERVED : 7;
+		unsigned int C : 1;
+		unsigned int Z : 1;
+		unsigned int N : 1;
+		unsigned int GIE : 1;
+		unsigned int CPUOFF : 1;
+		unsigned int OSCOFF : 1;
+		unsigned int SCG0 : 1;
+		unsigned int SCG1 : 1;
+		unsigned int V : 1;
+		unsigned int RESERVED : 7;
 #endif
 	} asBits;
 
 	// Byte access
 	struct {
 #ifdef BIGENDIAN
-		unsigned char hi : 8;
-		unsigned char lo : 8;
+		unsigned int hi : 8;
+		unsigned int lo : 8;
 #else
-		unsigned char lo : 8;
-		unsigned char hi : 8;
+		unsigned int lo : 8;
+		unsigned int hi : 8;
 #endif
 	} asBytes;
 
@@ -117,5 +138,6 @@ extern char version[];
 extern char howto[];
 static int executionStartAddress = 0;
 static int translate_ram_to_upper = 0;
+static int interactiveMode = 1;
 
 #endif

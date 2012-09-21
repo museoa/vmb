@@ -1,15 +1,39 @@
 /*
-	
+    Copyright 2012 Wladimir Danilov
+    
+    w.danilov@googlemail.com
+
+    This file is part of the Virtual Motherboard project
+
+    This file is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this software; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+	mspcore.c
+
+	Provides the implementation of MSP430 simulator core
 */
 
 #include "mspcore.h"
+#ifdef _DEBUG
 #include "memcheck.h"
+#endif
 
 // Version parameters
 char version[] = "1.0";
 char howto[] = "MSP430 Simulator for VMB\n";
 static msp_word breakpoints[MAX_BREAKPOINTS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-static int continuosMode = FALSE;
+//static int interactiveMode = TRUE;
 static msp_word currentInstruction = {0};
 static INT32 memoryWriteBack = MEMORY_WRITEBACK_NO;
 unsigned int compNegative = 0x80;
@@ -1312,6 +1336,7 @@ void initCore(void) {
 														counter with the start address */
 	} else
 		registers[PC].asWord = executionStartAddress;
+	fprintf(stderr,"MSP430 initialized.\n");
 }
 
 
@@ -1367,10 +1392,10 @@ void UI() {
 	x = FALSE;
 
 	//Debug output
-	fprintf(stdout,"Programm stats:\tPC @ 0x%4X\tSP @ 0x%4X\tCycles: %d\n",
-		registers[PC].asWord,registers[SP].asWord,clocks);
 	
-	if (!continuosMode) {
+	if (interactiveMode) {
+		fprintf(stdout,"Programm stats:\tPC @ 0x%4X\tSP @ 0x%4X\tCycles: %d\n",
+			registers[PC].asWord,registers[SP].asWord,clocks);
 retry_input:
 		fprintf(stdout,"Choose x to execute, q to quit, c to continue,\nbHex to set or unset a breakpoint @ 0xHex, rN to view register N (0-15),\nmHex to view memory @ 0xHex: ");
 		inErrFlag = FALSE;
@@ -1381,8 +1406,8 @@ retry_input:
 			memset(&t_buffer[0],0,10);
 			sscanf(&input_buffer[0],"%[c]",t_buffer);	// Test c
 			if (t_buffer[0]) {
-				continuosMode = !continuosMode;
-				x = continuosMode;
+				interactiveMode = !interactiveMode;
+				x = !interactiveMode;
 				goto skip_i_checks;
 			}
 
@@ -1462,10 +1487,14 @@ skip_i_checks:
 			goto retry_input;
 		}
 	} else {
+		if (clocks % 10000 < 5) {
+			fprintf(stdout,"Programm stats:\tPC @ 0x%4X\tSP @ 0x%4X\tCycles: %d\n",
+				registers[PC].asWord,registers[SP].asWord,clocks);
+		}
 		// Check breakpoints
 		for(i=0;i<MAX_BREAKPOINTS;i++) {
 			if (breakpoints[i].asWord == registers[PC].asWord) {
-				continuosMode = FALSE;
+				interactiveMode = TRUE;
 				goto retry_input;
 			}
 		}
@@ -1479,7 +1508,6 @@ int main(int argc, char *argv[])
 	executorPtr executor;
 	unsigned int format = 0;
 	unsigned int opcode = 0;
-	
 
 	// Init core and start execution
 	initVMBInterface();
@@ -1488,7 +1516,7 @@ int main(int argc, char *argv[])
 	if (!wait_for_power())
 		goto end_simulation;
 	initCore();
-	fprintf(stderr,"MSP430 initialized.\n");
+	
 
 	// main loop
 	while (TRUE) {
@@ -1548,7 +1576,8 @@ int main(int argc, char *argv[])
 		}
 	}
 end_simulation:
-	fprintf(stderr,"Exiting...");
+	
+	fprintf(stderr,"Exiting...\n");
 	vmb_disconnect(&vmb);
 	vmb_end();
 #ifdef MEM_CHECK_H
