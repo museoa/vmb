@@ -518,9 +518,15 @@ resume_simulation:;
     }
   }
 }
+@y
+@z
 
+@x
 @ @d command_buf_size 1024 /* make it plenty long, for floating point tests */
+@y
+@z
 
+@x
 @<Glob...@>=
 char command_buf[command_buf_size];
 FILE *incl_file; /* file of commands included by `\.i' */
@@ -639,7 +645,10 @@ switch (cur_disp_mode) {
   store_data(8,val,cur_disp_addr);
   @+break;
 }
+@y
+@z
 
+@x
 @ Here we essentially simulate a |PUT| command, but we simply |break|
 if the |PUT| is illegal or privileged.
 
@@ -658,7 +667,10 @@ if (k>=9 && k!=rI) {
     else break;
   }
 }
+@y
+@z
 
+@x
 @ @<Display the current octabyte@>=
 switch (cur_disp_mode) {
  case 'l': k=cur_disp_addr.l&lring_mask;
@@ -680,7 +692,10 @@ switch (cur_disp_type) {
  case '#': fputc('#',stdout);@+print_hex(aux);@+break;
  case '"': print_string(aux);@+break;
 }
+@y
+@z
 
+@x
 @ @<Subr...@>=
 void print_string @,@,@[ARGS((octa))@];@+@t}\6{@>
 void print_string(o)
@@ -703,7 +718,10 @@ void print_string(o)
 extern unsigned char get_break(octa a);
 extern void set_break(octa a, unsigned char b);
 extern void show_breaks(void);
+@y
+@z
 
+@x
 @ @<Cases that set and clear tracing and breakpoints@>=
 case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
  halted=false;@+break;
@@ -730,8 +748,10 @@ case 'B': show_breaks();@+goto passit;
 case 'O': show_operating_system=true;@+goto passit;
 case 'o': show_operating_system=false;@+goto passit;
 passit: p++;@+break;
+@y
+@z
 
-
+@x
 @ We put pointers to the command-line strings in
 M$[\.{Pool\_Segment}+8*(k+1)]_8$ for $0\le k<|argc|$;
 the strings themselves are octabyte-aligned, starting at
@@ -739,7 +759,10 @@ M$[\.{Pool\_Segment}+8*(|argc|+2)]_8$. The location of the first free
 octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
 @:Pool_Segment}\.{Pool\_Segment@>
 @^command line arguments@>
+@y
+@z
 
+@x
 @<Load the command line arguments@>=
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));

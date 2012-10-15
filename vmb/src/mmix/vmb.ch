@@ -173,6 +173,10 @@ should be included here as a literate program.
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
+
+
+@ @<Glob...@>=
+octa sclock; /* simulated clock */
 device_info vmb = {0};
 @z
 
@@ -1176,7 +1180,7 @@ push:@+if (xx>=G) {
 
 @x
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
- l[(O+L)&lring_mask].l=L++;
+ l[(O+L)&lring_mask].l=L, L++;
  if (((S-O-L)&lring_mask)==0) stack_store();
 @y
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
@@ -1289,7 +1293,8 @@ case PRELD: case PRELDI:
 
 @x
 case GO: case GOI: x=inst_ptr;@+inst_ptr=w;@+goto store_x;
-case JMP: case JMPB: inst_ptr=z;@+break;
+case JMP: case JMPB: inst_ptr=z;
+case SWYM: break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
  if (zz<=3) break;
 case LDVTS: case LDVTSI: privileged_inst: strcpy(lhs,"!privileged");
@@ -2301,6 +2306,7 @@ void show_breaks(p)
   }
   if (p->right) show_breaks(p->right);
 }
+
 @y
 @z
 
@@ -2333,7 +2339,7 @@ if (argc>0)
 
 @x
 @ @<Get ready to \.{UNSAVE} the initial context@>=
-x.h=0, x.l=0x90;
+x.h=0, x.l=0xf0;
 ll=mem_find(x);
 if (ll->tet) inst_ptr=x;
 @^subroutine library initialization@>

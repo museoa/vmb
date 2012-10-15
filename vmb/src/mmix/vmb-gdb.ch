@@ -19,34 +19,6 @@ that provide rudimentary input-output.
 @z
 
 @x
-All instructions take a fixed amount of time, given by the rough estimates
-stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
-\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
-$\mu$ and~$\upsilon$, ``mems'' and ``oops.'' The clock register~rC increases by
-@^mems@>
-@^oops@>
-$2^{32}$ for each~$\mu$ and 1~for each~$\upsilon$. But the interval
-counter~rI decreases by~1 for each instruction, and the usage
-counter~rU increases by~1 for each instruction.
-@^rC@>
-@^rI@>
-@^rU@>
-
-@y
-All instructions take a fixed amount of time, given by the rough estimates
-stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
-\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
-$\mu$ and~$\upsilon$, ``mems'' and ``oops.''
-@^mems@>
-@^oops@>
-The interval
-counter~rI decreases by~1 for each instruction, and the usage
-counter~rU increases by~1 for each instruction.
-@^rI@>
-@^rU@>
-@z
-
-@x
 is equivalent to \.{-eff}, tracing all eight exceptions.
 @y
 is equivalent to \.{-eff}, tracing all eight exceptions.
@@ -127,6 +99,7 @@ last_mem=mem_root;
 tetra priority=314159265; /* pseudorandom time stamp counter */
 mem_node *mem_root; /* root of the treap */
 mem_node *last_mem; /* the memory node most recently read or written */
+octa sclock; /* simulated clock */
 
 @ The |mem_find| routine finds a given tetrabyte in the simulated
 memory, inserting a new node into the treap if necessary.
@@ -199,6 +172,10 @@ should be included here as a literate program.
 #include "mmix-bus.h"
 #include "vmb.h"
 #include "gdb.h"
+
+
+@ @<Glob...@>=
+octa sclock; /* simulated clock */
 device_info vmb = {0};
 @z
 
@@ -704,7 +681,6 @@ bool interacting; /* are we in interactive mode? */
 static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
-static tetra mems, oops; /* counting  $\mu$ and  $\upsilon$ */
 static char localhost[]="localhost";
 static int busport=9002; /* on which port to connect to the bus */
 static char *bushost=localhost; /* on which host to connect to the bus */
@@ -929,12 +905,6 @@ void stack_load()
    if ((z.h&sign_bit) && !(loc.h&sign_bit))
    goto protection_violation;
    inst_ptr=z;
-@z
-
-@x
- else bad_guesses++, g[rC].l+=2; /* penalty is $2\upsilon$ for bad guess */
-@y
- else bad_guesses++, oops+=2; /* penalty is $2\upsilon$ for bad guess */
 @z
 
 @x
@@ -1204,7 +1174,7 @@ push:@+if (xx>=G) {
 
 @x
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
- l[(O+L)&lring_mask].l=L++;
+ l[(O+L)&lring_mask].l=L, L++;
  if (((S-O-L)&lring_mask)==0) stack_store();
 @y
 case SAVE:@+if (xx<G || yy!=0 || zz!=0) goto illegal_inst;
@@ -1317,7 +1287,8 @@ case PRELD: case PRELDI:
 
 @x
 case GO: case GOI: x=inst_ptr;@+inst_ptr=w;@+goto store_x;
-case JMP: case JMPB: inst_ptr=z;@+break;
+case JMP: case JMPB: inst_ptr=z;
+case SWYM: break;
 case SYNC:@+if (xx!=0 || yy!=0 || zz>7) goto illegal_inst;
  if (zz<=3) break;
 case LDVTS: case LDVTSI: privileged_inst: strcpy(lhs,"!privileged");
@@ -1933,14 +1904,6 @@ else
 @z
 
 @x
-  g[rC].h+=info[op].mems; /* clock goes up by $2^{32}$ for each $\mu$ */
-  g[rC]=incr(g[rC],info[op].oops); /* clock goes up by 1 for each $\upsilon$ */
-@y
-  mems+=info[op].mems; /* mems goes up by 1 for each $\mu$ */
-  oops+=info[op].oops; /* oops goes up by 1 for each $\upsilon$ */
-@z
-
-@x
   if (g[rI].l==0 && g[rI].h==0) tracing=breakpoint=true;
 @y
   if (g[rI].l==0 && g[rI].h==0) g[rQ].l |= IN_BIT, new_Q.l |= IN_BIT; /* set the i bit */
@@ -1995,14 +1958,6 @@ char switchable_string[48]; /* holds |rhs|; position 0 is ignored */
 @y
 char switchable_string[300] ={0}; /* holds |rhs|; position 0 is ignored */
  /* |switchable_string| must be able to hold any debug message */
-@z
-
-@x
-  g[rC].h,g[rC].h==1? "": "s",@|
-  g[rC].l,g[rC].l==1? "": "s",@|
-@y
-  mems,mems==1? "": "s",@|
-  oops,oops==1? "": "s",@|
 @z
 
 @x
@@ -2352,9 +2307,15 @@ resume_simulation:;
     }
   }
 }
+@y
+@z
 
+@x
 @ @d command_buf_size 1024 /* make it plenty long, for floating point tests */
+@y
+@z
 
+@x
 @<Glob...@>=
 char command_buf[command_buf_size];
 FILE *incl_file; /* file of commands included by `\.i' */
@@ -2474,7 +2435,10 @@ switch (cur_disp_mode) {
     ll->tet=val.h;@+ (ll+1)->tet=val.l;
   }@+break;
 }
+@y
+@z
 
+@x
 @ Here we essentially simulate a |PUT| command, but we simply |break|
 if the |PUT| is illegal or privileged.
 
@@ -2493,7 +2457,10 @@ if (k>=9 && k!=rI) {
     else break;
   }
 }
+@y
+@z
 
+@x
 @ @<Display the current octabyte@>=
 switch (cur_disp_mode) {
  case 'l': k=cur_disp_addr.l&lring_mask;
@@ -2518,7 +2485,10 @@ switch (cur_disp_type) {
  case '#': fputc('#',stdout);@+print_hex(aux);@+break;
  case '"': print_string(aux);@+break;
 }
+@y
+@z
 
+@x
 @ @<Subr...@>=
 void print_string @,@,@[ARGS((octa))@];@+@t}\6{@>
 void print_string(o)
@@ -2558,13 +2528,21 @@ case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
    ll->bkpt=(ll->bkpt&-8)|k;
  }
  break;
+@y
+
+@z
+
+@x
 case 'T': cur_seg.h=0;@+goto passit;
 case 'D': cur_seg.h=0x20000000;@+goto passit;
 case 'P': cur_seg.h=0x40000000;@+goto passit;
 case 'S': cur_seg.h=0x60000000;@+goto passit;
 case 'B': show_breaks(mem_root);
 passit: p++;@+break;
+@y
+@z
 
+@x
 @ @<Sub...@>=
 void show_breaks @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
 void show_breaks(p)
@@ -2591,7 +2569,10 @@ M$[\.{Pool\_Segment}+8*(|argc|+2)]_8$. The location of the first free
 octabyte in the pool segment is placed in M$[\.{Pool\_Segment}]_8$.
 @:Pool_Segment}\.{Pool\_Segment@>
 @^command line arguments@>
+@y
+@z
 
+@x
 @<Load the command line arguments@>=
 x.h=0x40000000, x.l=0x8;
 loc=incr(x,8*(argc+1));
@@ -2608,7 +2589,7 @@ x.l=0;@+ll=mem_find(x);@+ll->tet=loc.h, (ll+1)->tet=loc.l;
 
 @x
 @ @<Get ready to \.{UNSAVE} the initial context@>=
-x.h=0, x.l=0x90;
+x.h=0, x.l=0xf0;
 ll=mem_find(x);
 if (ll->tet) inst_ptr=x;
 @^subroutine library initialization@>
