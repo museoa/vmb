@@ -1,7 +1,7 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmmix", "gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixgdb", "mmixgdb.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -20,34 +20,6 @@ that provide rudimentary input-output.
 @z
 
 @x
-All instructions take a fixed amount of time, given by the rough estimates
-stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
-\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
-$\mu$ and~$\upsilon$, ``mems'' and ``oops.'' The clock register~rC increases by
-@^mems@>
-@^oops@>
-$2^{32}$ for each~$\mu$ and 1~for each~$\upsilon$. But the interval
-counter~rI decreases by~1 for each instruction, and the usage
-counter~rU increases by~1 for each instruction.
-@^rC@>
-@^rI@>
-@^rU@>
-
-@y
-All instructions take a fixed amount of time, given by the rough estimates
-stated in the \MMIX\ documentation. For example, \.{MUL} takes $10\upsilon$,
-\.{LDB} takes $\mu+\upsilon\mkern1mu$; all times are expressed in terms of
-$\mu$ and~$\upsilon$, ``mems'' and ``oops.'' 
-@^mems@>
-@^oops@>
-The interval
-counter~rI decreases by~1 for each instruction, and the usage
-counter~rU increases by~1 for each instruction.
-@^rI@>
-@^rU@>
-@z
-
-@x
 is equivalent to \.{-eff}, tracing all eight exceptions.
 @y
 is equivalent to \.{-eff}, tracing all eight exceptions.
@@ -129,6 +101,7 @@ last_mem=mem_root;
 tetra priority=314159265; /* pseudorandom time stamp counter */
 mem_node *mem_root; /* root of the treap */
 mem_node *last_mem; /* the memory node most recently read or written */
+octa sclock; /* simulated clock */
 
 @ The |mem_find| routine finds a given tetrabyte in the simulated
 memory, inserting a new node into the treap if necessary.
@@ -182,7 +155,7 @@ before all of |p|'s nodes.
     else *l=p, l=&p->right, p=*l;
   }
   *l=*r=NULL;
-}  
+} 
 @y  
 @* Simulated memory. 
 We now read memory using some external simulator.
@@ -701,7 +674,6 @@ bool interacting; /* are we in interactive mode? */
 static bool interacting; /* are we in interactive mode? */
 static bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
-static tetra mems, oops; /* counting  $\mu$ and  $\upsilon$ */
 static char localhost[]="localhost";
 static int busport=9002; /* on which port to connect to the bus */
 static char *bushost=localhost; /* on which host to connect to the bus */
@@ -933,12 +905,6 @@ void stack_load()
    if ((z.h&sign_bit) && !(loc.h&sign_bit))
    goto protection_violation;
    inst_ptr=z;
-@z
-
-@x
- else bad_guesses++, g[rC].l+=2; /* penalty is $2\upsilon$ for bad guess */
-@y
- else bad_guesses++, oops+=2; /* penalty is $2\upsilon$ for bad guess */
 @z
 
 
@@ -1932,13 +1898,6 @@ else
 }
 @z
 
-@x
-  g[rC].h+=info[op].mems; /* clock goes up by $2^{32}$ for each $\mu$ */
-  g[rC]=incr(g[rC],info[op].oops); /* clock goes up by 1 for each $\upsilon$ */
-@y
-  mems+=info[op].mems; /* mems goes up by 1 for each $\mu$ */
-  oops+=info[op].oops; /* oops goes up by 1 for each $\upsilon$ */
-@z
 
 @x
   if (g[rI].l==0 && g[rI].h==0) tracing=breakpoint=true;
@@ -1998,13 +1957,6 @@ char switchable_string[300] ={0}; /* holds |rhs|; position 0 is ignored */
  /* |switchable_string| must be able to hold any debug message */
 @z
 
-@x
-  g[rC].h,g[rC].h==1? "": "s",@|
-  g[rC].l,g[rC].l==1? "": "s",@|
-@y
-  mems,mems==1? "": "s",@|
-  oops,oops==1? "": "s",@|
-@z
 
 @x
 int main(argc,argv)
