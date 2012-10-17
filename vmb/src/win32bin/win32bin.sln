@@ -13,7 +13,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rom", "..\rom\rom.vcproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ram", "..\ram\ram.vcproj", "{C12BCD03-F88D-4468-B4A0-1FF0E4818221}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixcpu", "..\mmix\mmix.vcproj", "{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmix", "..\mmix\mmix.vcproj", "{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D49D454B-0839-4606-850D-03A6231DB2DA} = {D49D454B-0839-4606-850D-03A6231DB2DA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixal", "..\mmix\mmixal.vcproj", "{B0BD2341-516A-4FC7-B239-0BC4996426C9}"
 EndProject
@@ -31,11 +34,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "disk", "..\disk\disk.vcproj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "button", "..\button\button.vcproj", "{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}"
 	ProjectSection(ProjectDependencies) = postProject
-		{C7A37974-103B-4A8A-ACD4-F304C0D9C35C} = {C7A37974-103B-4A8A-ACD4-F304C0D9C35C}
 		{5A384688-86B5-439D-B700-C52330851681} = {5A384688-86B5-439D-B700-C52330851681}
+		{C7A37974-103B-4A8A-ACD4-F304C0D9C35C} = {C7A37974-103B-4A8A-ACD4-F304C0D9C35C}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixgdb", "..\mmix\gmmix.vcproj", "{428E0DCB-1AC5-41C7-AB33-FB3D5930BB4F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D49D454B-0839-4606-850D-03A6231DB2DA} = {D49D454B-0839-4606-850D-03A6231DB2DA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "led", "..\led\led.vcproj", "{3A0CE6CE-2E84-48CD-BF94-F03E97DDA7BF}"
 EndProject
@@ -44,6 +50,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serial", "..\serial\serial.vcproj", "{2A8B7118-00BA-4933-9BA9-D061861643C9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmotype", "..\mmix\mmotype.vcproj", "{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixcpu", "..\mmix\mmixcpu.vcproj", "{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D49D454B-0839-4606-850D-03A6231DB2DA} = {D49D454B-0839-4606-850D-03A6231DB2DA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmmix", "..\mmix\mmmix.vcproj", "{892DEC24-95DD-436A-8608-C1C76559F842}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "abstime", "..\mmix\abstime.vcproj", "{D49D454B-0839-4606-850D-03A6231DB2DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -131,6 +146,18 @@ Global
 		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Debug|Win32.Build.0 = Debug|Win32
 		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Release|Win32.ActiveCfg = Release|Win32
 		{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}.Release|Win32.Build.0 = Release|Win32
+		{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}.Debug|Win32.Build.0 = Debug|Win32
+		{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}.Release|Win32.ActiveCfg = Release|Win32
+		{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}.Release|Win32.Build.0 = Release|Win32
+		{892DEC24-95DD-436A-8608-C1C76559F842}.Debug|Win32.ActiveCfg = Debug|Win32
+		{892DEC24-95DD-436A-8608-C1C76559F842}.Debug|Win32.Build.0 = Debug|Win32
+		{892DEC24-95DD-436A-8608-C1C76559F842}.Release|Win32.ActiveCfg = Release|Win32
+		{892DEC24-95DD-436A-8608-C1C76559F842}.Release|Win32.Build.0 = Release|Win32
+		{D49D454B-0839-4606-850D-03A6231DB2DA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D49D454B-0839-4606-850D-03A6231DB2DA}.Debug|Win32.Build.0 = Debug|Win32
+		{D49D454B-0839-4606-850D-03A6231DB2DA}.Release|Win32.ActiveCfg = Release|Win32
+		{D49D454B-0839-4606-850D-03A6231DB2DA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

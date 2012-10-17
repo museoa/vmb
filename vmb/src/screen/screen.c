@@ -40,9 +40,10 @@ extern void setfont(void);
 
 static void display_char(char c);
 extern device_info vmb;
+char title[] ="VMB Screen";
 
-
-char version[]="$Revision: 1.12 $ $Date: 2011-07-07 00:27:45 $";
+int major_version=1, minor_version=0;
+char version[]="$Revision: 1.13 $ $Date: 2012-10-17 10:11:33 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"

@@ -22,7 +22,6 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 #define MAX_LOADSTRING 100		
   static TCHAR szClassName[MAX_LOADSTRING];
-  static TCHAR szTitle[MAX_LOADSTRING];
   hInst = hInstance; 
 
   r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
@@ -30,11 +29,6 @@ BOOL InitInstance(HINSTANCE hInstance)
   { r = GetLastError();
     vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
-  }
-  r = LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
-  if (r==0)
-  { r = GetLastError();
-    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load window title (%X)",r);
   }
   ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX); 
@@ -58,7 +52,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 	else
 		bm.bmWidth=bm.bmHeight=CW_USEDEFAULT;
 
-    hMainWnd = CreateWindow(szClassName, szTitle ,WS_POPUP,
+    hMainWnd = CreateWindow(szClassName, title ,WS_POPUP,
                             xpos, ypos, bm.bmWidth, bm.bmHeight,
 	                        NULL, NULL, hInstance, NULL);
 

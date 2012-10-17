@@ -3,6 +3,7 @@
 // Used by win32.rc
 //
 #define IDS_CLASS                       1
+#define MANIFEST_RESOURCE_ID            1
 #define IDS_TITLE                       2
 #define IDB_BITMAP1                     101
 #define IDB_BITMAP                      101
@@ -15,7 +16,6 @@
 #define IDB_OFF                         115
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
-#define IDD_ABOUT                       121
 #define IDD_CONNECT                     122
 #define IDD_SETTINGS                    124
 #define IDD_INFO                        124
@@ -37,9 +37,7 @@
 #define IDC_SLOTSIZE                    1013
 #define IDC_SLOTCLOSE                   1014
 #define IDC_SLOTMASK                    1015
-#define IDC_VERSION                     1015
-#define IDC_SLOTRESET                   1016
-#define IDC_HOWTO                       1016
+#define IDC_SLOTRESET                   1018
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -57,7 +55,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        128
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

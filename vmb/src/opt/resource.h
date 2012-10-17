@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32connect.rc
+// Used by win32about.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1
@@ -37,8 +37,8 @@
 #define IDC_DEBUG                       1003
 #define AFX_IDC_FONTSIZES               1003
 #define AFX_IDC_STRIKEOUT               1004
-#define AFX_IDC_UNDERLINE               1005
 #define IDC_TAB_DEBUG                   1005
+#define AFX_IDC_UNDERLINE               1005
 #define AFX_IDC_SAMPLEBOX               1006
 #define IDC_HIDE_ALL                    1006
 #define IDC_HIDE_MSG                    1007
@@ -49,15 +49,19 @@
 #define IDC_HIDE_ERROR                  1012
 #define IDC_HIDE_FATAL                  1013
 #define IDC_HIDE_PAYLOAD                1015
+#define IDC_VERSION                     1016
+#define IDC_TITLE                       1017
 #define IDC_SCROLLBAR1                  1017
 #define IDC_MEM_SCROLLBAR               1017
+#define IDC_REVISION                    1018
 #define IDC_GOTO                        1018
 #define IDC_HEX                         1019
 #define IDC_DECIMAL                     1020
 #define IDC_FORMAT                      1022
 #define IDC_GOTO_PROMPT                 1023
 #define IDC_CHUNK                       1024
-#define IDC_CONFIGURATION		     1025
+#define IDC_HOWTO                       1024
+#define IDC_CONFIGURATION               1025
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -142,7 +146,7 @@
 #define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
-#define ID_HELP_CONFIGURATION		    40017
+#define ID_HELP_CONFIGURATION           40017
 #define AFX_IDS_APP_TITLE               0xE000
 #define AFX_IDS_IDLEMESSAGE             0xE001
 #define AFX_IDS_HELPMODEMESSAGE         0xE002
@@ -534,7 +538,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -14,7 +14,6 @@
 #define IDB_OFF                         115
 #define IDB_ON                          119
 #define IDB_BITMAPOFF                   120
-#define IDD_ABOUT                       121
 #define IDD_SETTINGS                    124
 #define IDB_BITMAPON                    127
 #define IDC_ADDRESS                     1005
@@ -26,7 +25,6 @@
 #define IDC_UPINTENABLE                 1010
 #define IDC_PUSHBUTTON                  1011
 #define IDC_COLOR                       1013
-#define IDC_COLOR2                      1014
 #define IDC_LABEL                       1014
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008

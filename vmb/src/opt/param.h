@@ -54,5 +54,7 @@ extern void store_command(char *command);
 
 extern char version[];
 extern char howto[];
+extern char title[];
+extern int major_version, minor_version;
 
 #endif

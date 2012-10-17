@@ -221,6 +221,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\opt\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\opt\win32connect.h"
 				>
 			</File>
@@ -252,6 +256,10 @@
 			</File>
 			<File
 				RelativePath=".\win32.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\opt\win32about.rc"
 				>
 			</File>
 			<File

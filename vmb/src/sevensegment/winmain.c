@@ -18,7 +18,9 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
-
+int major_version=1, minor_version=0;
+char version[]="$Revision: 1.19 $ $Date: 2012-10-17 10:11:33 $";
+char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -185,14 +187,13 @@ BOOL InitInstance(HINSTANCE hInstance)
   WNDCLASSEX wcex;
 #define MAX_LOADSTRING 100		
   static TCHAR szClassName[MAX_LOADSTRING];
-  static TCHAR szTitle[MAX_LOADSTRING];
   r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
     vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
   }
-  r = LoadString(hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
+  r = LoadString(hInstance, IDS_TITLE, title, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
     vmb_debugi(VMB_DEBUG_FATAL,"Unable to load window title (%X)",r);
@@ -216,7 +217,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 */
 	if (!RegisterClassEx(&wcex)) return FALSE;
 
-    hMainWnd = CreateWindow(szClassName, szTitle ,WS_POPUP,
+    hMainWnd = CreateWindow(szClassName, title ,WS_POPUP,
                             xpos, ypos, WINLENGTH, WINHEIGHT,
 	                        NULL, NULL, hInstance, NULL);
 

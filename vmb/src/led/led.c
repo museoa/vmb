@@ -40,7 +40,7 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 #include "inspect.h"
-
+int major_version=1, minor_version=0;
 int nleds=8;
 char *label=NULL;
 int vertical=0;
@@ -52,8 +52,8 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.10 $ $Date: 2011-07-07 23:44:35 $";
-
+char version[]="$Revision: 1.11 $ $Date: 2012-10-17 10:11:33 $";
+char title[] = "VMB LED";
 char howto[] =
 "\n"
 "The program will contact the motherboard at host:port\n"

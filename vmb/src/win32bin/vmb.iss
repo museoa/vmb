@@ -13,6 +13,7 @@ DefaultDirName={pf}\vmb
 DefaultGroupName=vmb
 AllowNoIcons=yes
 ChangesAssociations=yes
+ChangesEnvironment=yes
 LicenseFile=C:\home\vmb\src\win32bin\license.txt
 WizardImageFile="C:\home\vmb\src\win32bin\lsetup.bmp"
 WizardImageBackColor=$127917
@@ -24,7 +25,8 @@ Name: "mmix"; Description: "MMIX Tools"; Types: full compact custom;
 
 [Tasks]
 ;Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
-Name: desktopicon; Description: "Create a &desktop icon for the README Application";
+Name: desktopicon; Description: "Create a &desktop icon for the README Application"
+Name: modifypath; Description: Add application directory to your environmental path
 
 [Files]
 Source: "C:\home\vmb\src\win32bin\Release\mother.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -34,14 +36,16 @@ Source: "C:\home\vmb\src\win32bin\Release\disk.exe"; DestDir: "{app}"; Flags: ig
 Source: "C:\home\vmb\src\win32bin\Release\flash.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\keyboard.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\led.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\Release\gmmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\ram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\rom.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\screen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixgdb.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmoimg.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
@@ -64,3 +68,16 @@ Root: HKCR; Subkey: ".vmb"; ValueType: string; ValueName: ""; ValueData: "vmb_au
 Root: HKCR; Subkey: "vmb_auto_file"; ValueType: string; ValueName: ""; ValueData: "vmb Configuration"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "vmb_auto_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\vmb.ico,0"
 Root: HKCR; Subkey: "vmb_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MOTHER.EXE"" -c ""%1"""
+
+[Code]
+const
+    ModPathName = 'modifypath';
+    ModPathType = 'system';
+
+function ModPathDir(): TArrayOfString;
+begin
+    setArrayLength(Result, 1)
+    Result[0] := ExpandConstant('{app}');
+end;
+#include "modpath.iss"
+

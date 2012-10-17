@@ -1,3 +1,9 @@
+
+int major_version=1, minor_version=0;
+char version[]="$Revision: 1.10 $ $Date: 2012-10-17 10:11:33 $";
+char title[]="VMB Button";
+char howto[]="The button device can be configured to send interrupts\n"
+             "on button up or button down events.";
 #ifdef WIN32
 
 #include <winsock2.h>

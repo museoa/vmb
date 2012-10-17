@@ -12,7 +12,6 @@
 #define IDB_ON_BLACK                    113
 #define IDB_OFF_WHITE                   114
 #define IDB_ON_WHITE                    115
-#define IDD_ABOUT                       121
 #define IDD_SETTINGS                    124
 #define IDC_ADDRESS                     1005
 #define IDC_INTERRUPT                   1006
@@ -23,19 +22,18 @@
 #define IDC_NLEDS                       1013
 #define IDC_COLOR5                      1014
 #define IDC_CBUTTON5                    1015
-#define IDC_COLOR4                      1016
-#define IDC_CBUTTON4                    1017
-#define IDC_COLOR3                      1018
-#define IDC_CBUTTON3                    1019
-#define IDC_COLOR2                      1020
-#define IDC_CBUTTON2                    1021
-#define IDC_COLOR1                      1022
-#define IDC_CBUTTON1                    1023
-#define IDC_COLOR0                      1024
-#define IDC_CBUTTON0                    1025
+#define IDC_COLOR4                      1017
+#define IDC_CBUTTON4                    1018
+#define IDC_COLOR3                      1019
+#define IDC_CBUTTON3                    1020
+#define IDC_COLOR2                      1021
+#define IDC_CBUTTON2                    1022
+#define IDC_COLOR1                      1023
+#define IDC_CBUTTON1                    1024
+#define IDC_COLOR0                      1025
+#define IDC_CBUTTON0                    1026
 #define IDC_SPINLEDS                    1027
 #define IDC_VERTICAL                    1028
-#define IDC_EDIT1                       1029
 #define IDC_LABEL                       1029
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
@@ -53,7 +51,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40019
-#define _APS_NEXT_CONTROL_VALUE         1030
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -19,7 +19,10 @@
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-char version[]="$Revision: 1.9 $ $Date: 2012-01-24 09:49:11 $";
+
+int major_version=1, minor_version=0;
+char version[]="$Revision: 1.10 $ $Date: 2012-10-17 10:11:33 $";
+char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
@@ -418,7 +421,9 @@ static void *read_thread(void *dummy)
 { do 
   { int size;
     unsigned char buf[0x100];
+#if 0
   start:
+#endif
     size = readtty(buf,0x100);
     if (size==0) 
       { vmb_debug(VMB_DEBUG_PROGRESS,"End of Input");

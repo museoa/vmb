@@ -71,9 +71,9 @@ device_info vmb = {0};
 #include "bus-arith.h"
 
 extern int vmb_power_flag;
-
-char version[] = "$Revision: 1.41 $ $Date: 2012-03-02 12:17:52 $";
-
+int major_version=1, minor_version=0;
+char version[] = "$Revision: 1.42 $ $Date: 2012-10-17 10:11:33 $";
+char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
   "The program first reads the configuration file, \"default.vmb\".\n"
@@ -829,7 +829,6 @@ void do_commands(void)
 #define MAX_LOADSTRING 100
 /* Global Variables: */
 TCHAR szClassName[MAX_LOADSTRING] = "VMB";
-TCHAR szTitle[MAX_LOADSTRING] = "mother";
 
 static int infoslot = -1;
 
@@ -934,32 +933,6 @@ InfoDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
 }
 
 
-INT_PTR CALLBACK 
-AboutDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
-{
-  switch (message)
-  {
-  case WM_INITDIALOG:
-    SetDlgItemText (hDlg, IDC_VERSION, version);
-    SetDlgItemText (hDlg, IDC_HOWTO, howto);
-    return TRUE;
-  case WM_SYSCOMMAND:
-    if (wparam == SC_CLOSE)
-    {
-      EndDialog (hDlg, TRUE);
-      return TRUE;
-    }
-    break;
-  case WM_COMMAND:
-    if (wparam == IDOK)
-    {
-      EndDialog (hDlg, TRUE);
-      return TRUE;
-    }
-    break;
-  }
-  return FALSE;
-}
 
 INT_PTR CALLBACK 
 OnOffDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
@@ -1100,7 +1073,7 @@ InitInstance (HINSTANCE hInstance)
   if (!RegisterClassEx (&wcex))
     return FALSE;
   GetObject (hBmp, sizeof (bm), &bm);
-  hMainWnd = CreateWindow (szClassName, szTitle, WS_POPUP,
+  hMainWnd = CreateWindow (szClassName, title, WS_POPUP,
 			   CW_USEDEFAULT,CW_USEDEFAULT , bm.bmWidth, bm.bmHeight,
 			   NULL, NULL, hInstance, NULL);
   if (hMainWnd)
@@ -1125,7 +1098,6 @@ WinMain (HINSTANCE hInstance,
   vmb_error_init_hook = win32_error_init;
 
   LoadString (hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
-  LoadString (hInstance, IDS_TITLE, szTitle, MAX_LOADSTRING);
   hMenu = LoadMenu (hInstance, MAKEINTRESOURCE (IDR_MENU));
   hBmp = (HBITMAP) LoadImage (hInstance, MAKEINTRESOURCE (IDB_BITMAP),
 			      IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
