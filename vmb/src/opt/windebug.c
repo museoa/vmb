@@ -2,7 +2,6 @@
 #include <commctrl.h>
 #include "vmb.h"
 #include "resource.h"
-#include "win32connect.h"
 #include "winopt.h"
 #include "inspect.h"
 

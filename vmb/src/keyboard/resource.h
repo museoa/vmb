@@ -15,7 +15,6 @@
 #define IDB_OFF                         115
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
-#define IDD_ABOUT                       121
 #define IDD_SETTINGS                    124
 #define IDB_BITMAPACTIVE                126
 #define IDC_ADDRESS                     1005

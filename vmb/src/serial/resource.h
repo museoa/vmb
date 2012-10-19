@@ -15,7 +15,6 @@
 #define IDB_OFF                         115
 #define IDB_ON                          119
 #define IDB_BITMAP2                     120
-#define IDD_ABOUT                       121
 #define IDD_CONNECT                     122
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
@@ -28,7 +27,6 @@
 #define IDC_RENABLE                     1008
 #define IDC_WENABLE                     1009
 #define IDC_BUFFERED                    1010
-#define IDC_ADDRESS2                    1011
 #define IDC_DEVICENAME                  1011
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008

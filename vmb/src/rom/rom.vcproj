@@ -241,6 +241,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\opt\win32about.rc"
+				>
+			</File>
+			<File
 				RelativePath="..\opt\win32connect.rc"
 				>
 			</File>

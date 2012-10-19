@@ -7,7 +7,6 @@
 #define IDR_MENU                        104
 #define IDR_ACCELERATOR                 106
 #define IDI_ICON                        107
-#define IDD_ABOUT                       121
 #define IDD_SETTINGS                    124
 #define IDC_ADDRESS                     1004
 #define IDC_ADDRESS_MOUSE               1005
