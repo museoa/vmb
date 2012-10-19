@@ -12,10 +12,10 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.28 $ $Date: 2012-10-17 10:11:33 $";
+char version[]="$Revision: 1.29 $ $Date: 2012-10-19 10:12:46 $";
 char title[] ="VMB Video";
 
-int major_version=1, minor_version=0;
+int major_version=1, minor_version=4;
 /*
  *     The Screen Stuff
  *

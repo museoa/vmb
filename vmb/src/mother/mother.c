@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern int terminate_flag;
+
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #include <winsock2.h>
@@ -33,7 +35,6 @@
 #include "resource.h"
 #include "winopt.h"
 
-extern int terminate_flag;
 
 typedef int socklen_t;
 
@@ -71,8 +72,8 @@ device_info vmb = {0};
 #include "bus-arith.h"
 
 extern int vmb_power_flag;
-int major_version=1, minor_version=0;
-char version[] = "$Revision: 1.42 $ $Date: 2012-10-17 10:11:33 $";
+int major_version=1, minor_version=4;
+char version[] = "$Revision: 1.43 $ $Date: 2012-10-19 10:12:46 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"

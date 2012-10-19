@@ -40,7 +40,7 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 #include "inspect.h"
-int major_version=1, minor_version=0;
+int major_version=1, minor_version=4;
 int nleds=8;
 char *label=NULL;
 int vertical=0;
@@ -52,7 +52,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.11 $ $Date: 2012-10-17 10:11:33 $";
+char version[]="$Revision: 1.12 $ $Date: 2012-10-19 10:12:46 $";
 char title[] = "VMB LED";
 char howto[] =
 "\n"

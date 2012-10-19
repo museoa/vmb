@@ -34,8 +34,8 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "inspect.h"
 
-int major_version=1, minor_version=0;
-char version[]="$Revision: 1.15 $ $Date: 2012-10-17 10:11:33 $";
+int major_version=1, minor_version=4;
+char version[]="$Revision: 1.16 $ $Date: 2012-10-19 10:12:46 $";
 char title[] ="VMB RAM";
 
 char howto[] =
