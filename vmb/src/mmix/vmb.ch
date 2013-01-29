@@ -298,26 +298,6 @@ clear_all_instruction_cache();
 @z
 
 @x
-case lop_fixo:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ tmp.h=(j<<24)+tet;
- }@+else if (zbyte==1) tmp.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ tmp.l=tet;
- mmo_load(tmp,cur_loc.h);
- mmo_load(incr(tmp,4),cur_loc.l);
- continue;
-@y
-case lop_fixo:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ tmp.h=(j<<24)+tet;
- }@+else if (zbyte==1) tmp.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ tmp.l=tet;
- if (!store_data(8,tmp,cur_loc))
-   panic("Unable to store mmo file to RAM");
- continue;
-@z
-
-@x
 case lop_file:@+if (file_info[ybyte].name) {
    if (zbyte) mmo_err;
    cur_file=ybyte;
