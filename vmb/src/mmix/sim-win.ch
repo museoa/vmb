@@ -28,9 +28,3 @@ preprocessor definitions to get rid of compiler warnings.
 #pragma warning(disable : 4996 4267 4146 4018 4244 4113)
 @z
 
-@x
- check_syntax:@+ if (*p!='\n') {
-@y
- if (*p!='\n') {
-@z
-

@@ -14,17 +14,5 @@
 #define ARGS(list) ()
 #endif
 
-#pragma warning(disable : 4146 4018 4244 )
-@z
-
-@x
- no_const_found: next_char=s;@+return -1;
-@y
-                 next_char=s;@+return -1;
-@z
-
-@x
- make_it_zero: exp=-99999;@+ goto packit;
-@y
-               exp=-99999;@+ goto packit;
+#pragma warning(disable : 4146 4018 4244 4267)
 @z
