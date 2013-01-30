@@ -355,12 +355,11 @@ case lop_fixo:@+if (zbyte==2) {
  mmo_load(tmp,cur_loc.h);
  mmo_load(incr(tmp,4),cur_loc.l);
  continue;
-case lop_fixr: delta=yzbytes; goto fixr;
+case lop_fixr: mmo_load(incr(cur_loc,-yzbytes<<2),yzbytes); continue;
 case lop_fixrx:j=yzbytes;@+if (j!=16 && j!=24) mmo_err;
- read_tet(); delta=tet;
- if (delta&0xfe000000) mmo_err;
-fixr: tmp=incr(cur_loc,-(delta>=0x1000000? (delta&0xffffff)-(1<<j): delta)<<2);
- mmo_load(tmp,delta);
+ read_tet();@+if (tet&0xfe000000) mmo_err;
+ delta=(tet>=0x1000000? (tet&0xffffff)-(1<<j): tet);
+ mmo_load(incr(cur_loc,-delta<<2),tet);
  continue;
 
 @ The space for file names isn't allocated until we are sure we need it.
@@ -410,7 +409,7 @@ ll=mem_find(aux);
 (ll-5)->tet=argc; /* and $\$0=|argc|$ */
 (ll-4)->tet=0x40000000;
 (ll-3)->tet=0x8; /* and $\$1=\.{Pool\_Segment}+8$ */
-G=zbyte;@+ L=0;
+G=zbyte;@+ L=0;@+ O=0;
 for (j=G+G;j<256+256;j++,ll++,aux.l+=4) read_tet(), ll->tet=tet;
 inst_ptr.h=(ll-2)->tet, inst_ptr.l=(ll-1)->tet; /* \.{Main} */
 (ll+2*12)->tet=G<<24;
@@ -543,8 +542,8 @@ void show_line()
   else if (shown_line==cur_line) return; /* already shown */
   if (cur_line>shown_line+gap+1 || cur_line<shown_line) {
     if (shown_line>0)
-      if (cur_line<shown_line) printf("--------\n"); /* indicate upward move */
-      else printf("     ...\n"); /* indicate the gap */
+    { if (cur_line<shown_line) printf("--------\n"); /* indicate upward move */
+      else printf("     ...\n"); @+}/* indicate the gap */
     print_line(cur_line);
   }@+else@+ for (k=shown_line+1;k<=cur_line;k++) print_line(k);
   shown_line=cur_line;
@@ -634,7 +633,7 @@ bool profile_started; /* have we printed at least one frequency count? */
 Unicode, we define a type \&{Char} for the source characters.
 
 @<Type...@>=
-typedef unsigned char Char; /* bytes that will become wydes some day */
+typedef char Char; /* bytes that will become wydes some day */
 @z
 
 @x
@@ -642,6 +641,9 @@ typedef unsigned char Char; /* bytes that will become wydes some day */
   else @<Fetch the next instruction@>;
   op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
+  op=SWYM;
+  zz=0;
+  f=0;
   if (resuming)
   { loc=incr(inst_ptr,-4), inst=g[rzz?rXX:rX].l;
     if (rzz==0)
@@ -913,14 +915,14 @@ case LDB: case LDBI: case LDBU: case LDBUI:@/
 case LDW: case LDWI: case LDWU: case LDWUI:@/
  i=48;@+j=(w.l&0x2)<<3; goto fin_ld;
 case LDT: case LDTI: case LDTU: case LDTUI:@/
- i=32;@+j=0;@+ goto fin_ld;
-case LDHT: case LDHTI: i=j=0;
+ i=32;@+j=0; goto fin_ld;
+case LDHT: case LDHTI:@/ i=j=0;
 fin_ld: ll=mem_find(w);@+test_load_bkpt(ll);
  x.h=ll->tet;
  x=shift_right(shift_left(x,j),i,op&0x2);
 check_ld:@+if (w.h&sign_bit) goto privileged_inst;
  goto store_x;
-case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:
+case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:@/
  w.l&=-8;@+ ll=mem_find(w);
  test_load_bkpt(ll);@+test_load_bkpt(ll+1);
  x.h=ll->tet;@+ x.l=(ll+1)->tet;
@@ -1106,7 +1108,7 @@ case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
 case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
-    if (xx<=11) goto illegal_inst; /* can't change rC, rN, rO, rS */
+    if (xx<=11 && xx!=8) goto illegal_inst; /* can't change rN, rO, rS */
     if (xx<=18) goto privileged_inst;
     if (xx==rA) @<Get ready to update rA@>@;
     else if (xx==rL) @<Set $L=z=\min(z,L)$@>@;
@@ -2207,7 +2209,7 @@ signal(SIGINT,catchint); /* now |catchint| will catch the first interrupt */
 void catchint @,@,@[ARGS((int))@];@+@t}\6{@>
 void catchint(n)
   int n;
-{
+{ if (n!=SIGINT) return;
   interrupt=true;
   signal(SIGINT,catchint); /* now |catchint| will catch the next interrupt */
 }
@@ -2267,10 +2269,10 @@ void catchint(n)
     printf("Eh? Sorry, I don't understand `%s'. (Type h for help)\n",
          command_buf);
     goto interact;
-  case 'h':@+ for (k=0;interactive_help[k][0];k++) printf(interactive_help[k]);
+  case 'h':@+ for (k=0;interactive_help[k][0];k++) printf("%s",interactive_help[k]);
     goto interact;
   }
- check_syntax:@+ if (*p!='\n') {
+  if (*p!='\n') {
    if (!*p) incomplete_str: printf("Syntax error: Incomplete command!\n");
    else {
      p[strlen(p)-1]='\0';
@@ -2289,9 +2291,10 @@ resume_simulation:;
       fclose(incl_file);
       incl_file=NULL;
     }@+else if (command_buf[0]!='\n' && command_buf[0]!='i' &&
-              command_buf[0]!='%')
-      if (command_buf[0]==' ') printf(command_buf);
-      else ready=true;
+              command_buf[0]!='%') {
+      if (command_buf[0]==' ') printf("%s",command_buf);@+
+      else ready=true;@+
+    }
   while (!ready) {
     printf("mmix> ");@+fflush(stdout);
 @.mmix>@>
@@ -2449,11 +2452,11 @@ if (k>=9 && k!=rI) {
     if (val.h!=0 || val.l>=0x40000) break;
     cur_round=(val.l>=0x10000? val.l>>16: ROUND_NEAR);
   }@+else if (k==rG) {
-    if (val.h!=0 || val.l>255 || val.l<L || val.l<32) break;
+    if (val.h!=0 || val.l>(unsigned int)255 || val.l<(unsigned int)L || val.l<32) break;
     for (j=val.l; j<G; j++) g[j]=zero_octa;
     G=val.l;
   }@+else if (k==rL) {
-    if (val.h==0 && val.l<L) L=val.l;
+    if (val.h==0 && val.l<(unsigned int)L) L=val.l;
     else break;
   }
 }

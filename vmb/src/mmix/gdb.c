@@ -123,13 +123,14 @@ static void NOT_SUPPORTED_msg(char *buffer)
   buffer[0]=0;
 }
 
+/* currently not used
 static void ERROR_msg(char *buffer, unsigned char n)
 { buffer[0]='E';
   buffer[1]= tohex((n>>4)&0x0F);
   buffer[2]= tohex(n&0x0F);
   buffer[3]=0;  
 }
-
+*/
 
 int gdb_signal =  TARGET_SIGNAL_TRAP;
 

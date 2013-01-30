@@ -69,8 +69,6 @@ octa zero_octa; /* |zero_octa.h=zero_octa.l=0| */
 octa neg_one={-1,-1}; /* |neg_one.h=neg_one.l=-1| */
 octa inf_octa={0x7ff00000,0}; /* floating point $+\infty$ */
 octa standard_NaN={0x7ff80000,0}; /* floating point NaN(.5) */
-octa aux; /* auxiliary output of a subroutine */
-bool overflow; /* set by certain subroutines for signed arithmetic */
 
 @ It's easy to add and subtract octabytes, if we aren't terribly
 worried about speed.
@@ -172,8 +170,8 @@ octa omult(y,z)
 }
 
 @ @<Glob...@>=
-extern octa aux; /* secondary output of subroutines with multiple outputs */
-extern bool overflow;
+octa aux; /* secondary output of subroutines with multiple outputs */
+bool overflow; /* set by certain subroutines for signed arithmetic */
 
 @ @<Unpack the mult...@>=
 u[3]=y.h>>16, u[2]=y.h&0xffff, u[1]= y.l>>16, u[0]=y.l&0xffff;
@@ -303,7 +301,7 @@ for (i=k=0; i<n; i++) {
 example, when dividing the number \Hex{7fff800100000000} by \Hex{800080020005}.
 
 @<If the result was negative, decrease $\hat q$ by 1@>=
-if (u[j+n]!=k) {
+if (u[j+n]!=(tetra)k) {
   qhat--;
   for (i=k=0; i<n; i++) {
     t=u[i+j]+v[i]+k;
@@ -330,7 +328,7 @@ octa signed_odiv(y,z)
   switch (sy+sz) {
  case 2+1: aux=ominus(zero_octa,aux);
   if (q.h==sign_bit) overflow=true;
- case 0+0: return q;
+ case 0+0: default: return q;
  case 2+0:@+ if (aux.h || aux.l) aux=ominus(zz,aux);
   goto negate_q;
  case 0+1:@+ if (aux.h || aux.l) aux=ominus(aux,zz);
@@ -373,13 +371,14 @@ octa oxor(y,z) /* compute $y\oplus z$ */
 for sideways addition'' in {\sl The Preparation of Programs
 for an Electronic Digital Computer\/} by Wilkes, Wheeler, and
 Gill, second edition (Reading, Mass.:\ Addison--Wesley, 1957),
-191--193. The efficient endgame used here was suggested by
-Peter Rossmanith and Stefan Schwoon.]
+191--193. Some of the tricks used here were suggested by
+Balbir Singh, Peter Rossmanith, and Stefan Schwoon.]
 @^Gillies, Donald Bruce@>
 @^Miller, Jeffrey Charles Percy@>
 @^Wilkes, Maurice Vincent@>
 @^Wheeler, David John@>
 @^Gill, Stanley@>
+@^Singh, Balbir@>
 @^Rossmanith, Peter@>
 @^Schwoon, Stefan@>
 
@@ -389,7 +388,7 @@ int count_bits(x)
   tetra x;
 {
   register int xx=x;
-  xx=(xx&0x55555555)+((xx>>1)&0x55555555);
+  xx=xx-((xx>>1)&0x55555555);
   xx=(xx&0x33333333)+((xx>>2)&0x33333333);
   xx=(xx+(xx>>4))&0x0f0f0f0f;
   xx=xx+(xx>>8);
@@ -473,7 +472,7 @@ Thus, for example, the floating binary number $+1.0=\Hex{3ff0000000000000}$
 is obtained when $f=2^{54}$, $e=\Hex{3fe}$, and |s='+'|.
 The raw exponent~$e$ is usually one less than
 the final exponent value; the leading bit of~$f$ is essentially added
-to the exponent. (This trick works nicely for denormal numbers, when
+to the exponent. (This trick works nicely for subnormal numbers, when
 $e<0$, or in cases where the value of $f$ is rounded upwards to $2^{55}$.)
 
 Exceptional events are noted by oring appropriate bits into
@@ -500,11 +499,11 @@ tiny, |X_BIT| if and only if the result is inexact.
 @d E_BIT (1<<18) /* external (dynamic) trap bit */
 
 @<Subr...@>=
-octa fpack @,@,@[ARGS((octa,int,char,int))@];@+@t}\6{@>
+octa fpack @,@,@[ARGS((octa,int,int,int))@];@+@t}\6{@>
 octa fpack(f,e,s,r)
   octa f; /* the normalized fraction part */
   int e; /* the raw exponent */
-  char s; /* the sign */
+  int s; /* the sign */
   int r; /* the rounding mode */
 {
   octa o;
@@ -548,11 +547,11 @@ return o;
 having the same conventions as |fpack|.
 
 @<Subr...@>=
-tetra sfpack @,@,@[ARGS((octa,int,char,int))@];@+@t}\6{@>
+tetra sfpack @,@,@[ARGS((octa,int,int,int))@];@+@t}\6{@>
 tetra sfpack(f,e,s,r)
   octa f; /* the fraction part */
   int e; /* the raw exponent */
-  char s; /* the sign */
+  int s; /* the sign */
   int r; /* the rounding mode */
 {
   register tetra o;
@@ -717,7 +716,7 @@ octa fmult(y,z)
   xs=ys+zs-'+'; /* will be |'-'| when the result is negative */
   switch (4*yt+zt) {
  @t\4@>@<The usual NaN cases@>;
- case 4*zro+zro: case 4*zro+num: case 4*num+zro: x=zero_octa;@+break;
+ default: case 4*zro+zro: case 4*zro+num: case 4*num+zro: x=zero_octa;@+break;
  case 4*num+inf: case 4*inf+num: case 4*inf+inf: x=inf_octa;@+break;
  case 4*zro+inf: case 4*inf+zro: x=standard_NaN;
   exceptions|=I_BIT;@+break;
@@ -763,7 +762,7 @@ octa fdivide(y,z)
  case 4*zro+inf: case 4*zro+num: case 4*num+inf: x=zero_octa;@+break;
  case 4*num+zro: exceptions|=Z_BIT;
  case 4*inf+num: case 4*inf+zro: x=inf_octa;@+break;
- case 4*zro+zro: case 4*inf+inf: x=standard_NaN;
+ default: case 4*zro+zro: case 4*inf+inf: x=standard_NaN;
   exceptions|=I_BIT;@+break;
  case 4*num+num: @<Divide nonzero numbers and |return|@>;
   }
@@ -810,7 +809,7 @@ octa fplus(y,z)
  case 4*inf+num: case 4*inf+zro: x=inf_octa;@+xs=ys;@+break;
  case 4*num+num:@+ if (y.h!=(z.h^0x80000000) || y.l!=z.l) 
    @<Add nonzero numbers and |return|@>;
- case 4*zro+zro: x=zero_octa;
+ default: case 4*zro+zro: x=zero_octa;
   xs=(ys==zs? ys: cur_round==ROUND_DOWN? '-': '+');@+break;
   }
   if (xs=='-') x.h|=sign_bit;
@@ -916,13 +915,13 @@ $y\sim z\ (\epsilon/2^d)$, if $d$~is the difference between the
 larger and smaller exponents of $y$ and~$z$.
 
 @<Compare two numbers with respect to epsilon and |return|@>=
-@<Undenormalize |y| and |z|, if they are denormal@>;
+@<Unsubnormalize |y| and |z|, if they are subnormal@>;
 if (ye<ze || (ye==ze && (yf.h<zf.h || (yf.h==zf.h && yf.l<zf.l))))
   @<Exchange |y| with |z|@>;
 if (ze==zero_exponent) ze=ye;
 d=ye-ze;
 if (!s) ee-=d;
-if (ee>=1023) return 1;
+if (ee>=1023) return 1; /* if $\epsilon\ge2$, $z\in N_\epsilon(y)$ */
 @<Compute the difference of fraction parts, |o|@>;
 if (!o.h && !o.l) return 1;
 if (ee<968) return 0; /* if $y\ne z$ and $\epsilon<2^{-54}$, $y\not\sim z$ */
@@ -930,13 +929,18 @@ if (ee>=1021) ef=shift_left(ef,ee-1021);
 else ef=shift_right(ef,1021-ee,1);
 return o.h<ef.h || (o.h==ef.h && o.l<=ef.l);
 
-@ @<Undenormalize |y| and |z|, if they are denormal@>=
-if (ye<0) yf=shift_left(y,2), ye=0;
-if (ze<0) zf=shift_left(z,2), ze=0;
+@ @<Unsubnormalize |y| and |z|, if they are subnormal@>=
+if (ye<0 && yt!=zro) yf=shift_left(y,2), ye=0;
+if (ze<0 && zt!=zro) zf=shift_left(z,2), ze=0;
 
-@ When $d>2$, the difference of fraction parts might not fit exactly
+@ At this point $y\sim z$ if and only if
+$$|yf|+(-1)^{[ys=zs]}|zf|/2^d\le 2^{ee-1021}|ef|=2^{55}\epsilon.$$
+We need to evaluate this relation without overstepping the bounds of
+our simulated 64-bit registers.
+
+When $d>2$, the difference of fraction parts might not fit exactly
 in an octabyte;
-in that case the numbers are not similar unless $\epsilon\ge3/8$,
+in that case the numbers are not similar unless $\epsilon>3/8$,
 and we replace the difference by the ceiling of the
 true result. When $\epsilon<1/8$, our program essentially replaces
 $2^{55}\epsilon$ by $\lfloor2^{55}\epsilon\rfloor$. These
@@ -952,7 +956,7 @@ if (d>54) o=zero_octa,oo=zf;
 else o=shift_right(zf,d,1),oo=shift_left(o,d);
 if (oo.h!=zf.h || oo.l!=zf.l) { /* truncated result, hence $d>2$ */
   if (ee<1020) return 0; /* difference is too large for similarity */
-  o=incr(o,ys==zs? -1: 1); /* adjust for ceiling */
+  o=incr(o,ys==zs? 0: 1); /* adjust for ceiling */
 }
 o=(ys==zs? ominus(yf,o): oplus(yf,o));
 
@@ -1018,7 +1022,7 @@ if (!f.h && !f.l) @<Handle the special case when the fraction part is zero@>@;
 else {
   g=incr(f,1);
   f=incr(f,-1);
-  if (!e) e=1; /* denormal */
+  if (!e) e=1; /* subnormal */
   else if (e==0x7ff) {
     printf("NaN");
     if (g.h==0x100000 && g.l==1) return; /* the ``standard'' NaN */
@@ -1291,7 +1295,7 @@ explicit exponent only if the alternative would take more than
 if (e>17 || e<(int)strlen(s)-17)
   printf("%c%s%se%d",s[0],(s[1]? ".": ""),s+1,e-1);
 else if (e<0) printf(".%0*d%s",-e,0,s);
-else if (strlen(s)>=e) printf("%.*s.%s",e,s,s+e);
+else if ((int)strlen(s)>=e) printf("%.*s.%s",e,s,s+e);
 else printf("%s%0*d.",s,e-(int)strlen(s),0);
 
 @*Floating point input conversion. Going the other way, we want to
@@ -1347,7 +1351,7 @@ int scan_const(s)
     @<Scan a number and |return|@>;
   if (NaN) @<Return the standard NaN@>;
   if (strncmp(p,"Inf",3)==0) @<Return infinity@>;
- no_const_found: next_char=s;@+return -1;
+  next_char=s;@+return -1;
 }
 
 @ @<Glob...@>=
@@ -1392,15 +1396,16 @@ a speedy almost-correct one, so we implement the most general case.
   for (q=buf0,dec_pt=(char*)0;isdigit(*p);p++) {
     val=oplus(val,shift_left(val,2)); /* multiply by 5 */
     val=incr(shift_left(val,1),*p-'0');
-    if (q>buf0 || *p!='0')
+    if (q>buf0 || *p!='0') {
        if (q<buf_max) *q++=*p;
-       else if (*(q-1)=='0') *(q-1)=*p;
+       else if (*(q-1)=='0') *(q-1)=*p;@+
+    }
   }
   if (NaN) *q++='1';
   if (*p=='.') @<Scan a fraction part@>;
   next_char=p;
-  if (*p=='e' && !NaN) @<Scan an exponent@>@;
-  else exp=0;
+  exp=0;
+  if (*p=='e' && !NaN) @<Scan an exponent@>;
   if (dec_pt) @<Return a floating point constant@>;
   if (sign=='-') val=ominus(zero_octa,val);
   return 0;
@@ -1429,7 +1434,7 @@ static char buf[785]="00000000"; /* where we put significant input digits */
 @ @<Local variables for |scan_const|@>=
 register char* dec_pt; /* position of decimal point in |buf| */
 register int exp; /* scanned exponent; later used for raw binary exponent */
-register int zeros; /* leading zeros removed after decimal point */
+register int zeros=0; /* leading zeros removed after decimal point */
 
 @ Here we don't advance |next_char| and force a decimal point until we
 know that a syntactically correct exponent exists.
@@ -1437,6 +1442,8 @@ know that a syntactically correct exponent exists.
 The code here will convert extra-large inputs like
 `\.{9e+9999999999999999}' into $\infty$ and extra-small inputs into zero.
 Strange inputs like `\.{-00.0e9999999}' must also be accommodated.
+(But we {\it don't\/} try to deliver precise answers when there are
+a billion or more leading zeros.)
 
 @<Scan an exponent@>=
 {@+register char exp_sign;
@@ -1444,7 +1451,7 @@ Strange inputs like `\.{-00.0e9999999}' must also be accommodated.
   if (*p=='+' || *p=='-') exp_sign=*p++;@+else exp_sign='+';
   if (isdigit(*p)) {
     for (exp=*p++ -'0';isdigit(*p);p++)
-      if (exp<1000) exp = 10*exp + *p - '0';
+      if (exp<100000000) exp = 10*exp + *p - '0';
     if (!dec_pt) dec_pt=q, zeros=0;
     if (exp_sign=='-') exp=-exp;
     next_char=p;
@@ -1471,7 +1478,7 @@ by $10^{9k}$, for $36\ge k\ge-120$.
 @<Move the digits from |buf| to |ff|@>=
 x=buf+341+zeros-dec_pt-exp;
 if (q==buf0 || x>=1413) {
- make_it_zero: exp=-99999;@+ goto packit;
+  exp=-99999;@+ goto packit;
 }
 if (x<0) {
  make_it_infinite: exp=99999;@+ goto packit;
@@ -1581,7 +1588,7 @@ int fcomp(y,z)
   switch (4*yt+zt) {
  case 4*nan+nan: case 4*zro+nan: case 4*num+nan: case 4*inf+nan:
  case 4*nan+zro: case 4*nan+num: case 4*nan+inf: return 2;
- case 4*zro+zro: return 0;
+ default: case 4*zro+zro: return 0;
  case 4*zro+num: case 4*num+zro: case 4*zro+inf: case 4*inf+zro:
  case 4*num+num: case 4*num+inf: case 4*inf+num: case 4*inf+inf:
   if (ys!=zs) x=1;
@@ -1613,7 +1620,7 @@ octa fintegerize(z,r)
   if (!r) r=cur_round;
   switch (zt) {
  case nan:@+if (!(z.h&0x80000)) {@+exceptions|=I_BIT;@+z.h|=0x80000;@+}
- case inf: case zro: return z;
+ case inf: case zro: default: return z;
  case num: @<Integerize and |return|@>;
   }
 }
@@ -1655,7 +1662,7 @@ octa fixit(z,r)
   if (!r) r=cur_round;
   switch (zt) {
  case nan: case inf: exceptions|=I_BIT;@+return z;
- case zro: return zero_octa;
+ case zro: default: return zero_octa;
  case num:@+if (funpack(fintegerize(z,r),&zf,&ze,&zs)==zro) return zero_octa;
    if (ze<=1076) o=shift_right(zf,1076-ze,1);
    else {
@@ -1726,7 +1733,7 @@ octa froot(z,r)
   else@+switch (zt) {
  case nan:@+ if (!(z.h&0x80000)) exceptions|=I_BIT, z.h|=0x80000;
   return z;
- case inf: case zro: x=z;@+break;
+ default: case inf: case zro: x=z;@+break;
  case num: @<Take the square root and |return|@>;
   }
   if (zs=='-') x.h|=sign_bit;
@@ -1785,7 +1792,7 @@ octa fremstep(y,z,delta)
   exceptions|=I_BIT;@+break;
  case 4*zro+num: case 4*zro+inf: case 4*num+inf: return y;
  case 4*num+num: @<Remainderize nonzero numbers and |return|@>;
- zero_out: x=zero_octa;
+ default: zero_out: x=zero_octa;
   }
   if (ys=='-') x.h|=sign_bit;
   return x;

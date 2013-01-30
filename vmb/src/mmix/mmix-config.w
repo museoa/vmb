@@ -107,10 +107,10 @@ must be $\ge1$.
 cycle; must be $\ge1$.
 
 \bull denin (default 1), extra cycles taken if a floating point input
-is denormal.
+is subnormal.
 
 \bull denout (default 1), extra cycles taken if a floating point result
-is denormal.
+is subnormal.
 
 \bull writeholdingtime (default 0), minimum number of cycles for data to
 remain in the write buffer.
@@ -286,8 +286,8 @@ number of cycles to be spent in each stage. For example, a specification like
 in two stages; it can start working on a second product after three cycles
 have gone by.
 
-If a floating point operation has a denormal input, \.{denin} is added to
-the time for the first stage. If a floating point operation has a denormal
+If a floating point operation has a subnormal input, \.{denin} is added to
+the time for the first stage. If a floating point operation has a subnormal
 result, \.{denout} is added to the time for the last stage.
 
 @ The fourth and final kind of specification defines a functional unit:
@@ -391,14 +391,16 @@ static void get_token() /* set |token| to the next token of the configuration fi
 }
 
 @ The |get_int| routine is called when we wish to input a decimal value.
-It returns $-1$ if the next token isn't a valid decimal integer.
+It returns $-1$ if the next token isn't a string of decimal digits.
 
 @<Sub...@>=
 static int get_int @,@,@[ARGS((void))@];@+@t}\6{@>
 static int get_int()
 {@+ int v;
+  char *p;
   get_token();
-  if (sscanf(token,"%d",&v)!=1) return -1;
+  for (p=token,v=0; *p>='0' && *p<='9'; p++) v=10*v+*p-'0';
+  if (*p) return -1;
   return v;
 }
 
@@ -747,10 +749,10 @@ for (j=0;j<=funit_count;j++) {
 }
 
 @ @<Build table of pipeline stages needed for each opcode@>=
-for (j=div;j<=max_pipe_op;j++) int_stages[j]=strlen(pipe_seq[j]);
+for (j=div;j<=max_pipe_op;j++) int_stages[j]=(int)strlen((char*)pipe_seq[j]);
 for (;j<=max_real_command;j++) int_stages[j]=1;
 for (j=mul0,n=0;j<=mul8;j++)
-  if (strlen(pipe_seq[j])>n) n=strlen(pipe_seq[j]);
+  if (strlen((char*)pipe_seq[j])>(unsigned int)n) n=(int)strlen((char*)pipe_seq[j]);
 int_stages[mul]=n;
 int_stages[ld]=int_stages[st]=int_stages[frem]=2;
 for (j=0;j<256;j++) stages[j]=int_stages[int_op[j]];
@@ -1000,7 +1002,7 @@ else { /* a branch prediction table is desired */
 l=(specnode*)calloc(lring_size,sizeof(specnode));
 if (!l) panic(errprint0("Can't allocate local registers"));
 j=bus_words;
-if (Icache && Icache->bb>j) j=Icache->bb;
+if (Icache && (Icache->bb>>3)>j) j=Icache->bb>>3;
 fetched=(octa*)calloc(j,sizeof(octa));
 if (!fetched) panic(errprint0("Can't allocate prefetch buffer"));
 dispatch_stat=(int*)calloc(dispatch_max+1,sizeof(int));

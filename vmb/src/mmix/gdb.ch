@@ -184,15 +184,14 @@ case lop_fixo:@+if (zbyte==2) {
  }@+else if (zbyte==1) tmp.h=ybyte<<24;
  else mmo_err;
  read_tet();@+ tmp.l=tet;
- if (!store_data(8,tmp,cur_loc))
-   panic("Unable to store mmo file to RAM");
+ mmo_load(tmp,cur_loc.h);
+ mmo_load(incr(tmp,4),cur_loc.l);
  continue;
-case lop_fixr: delta=yzbytes; goto fixr;
+case lop_fixr: mmo_load(incr(cur_loc,-yzbytes<<2),yzbytes); continue;
 case lop_fixrx:j=yzbytes;@+if (j!=16 && j!=24) mmo_err;
- read_tet(); delta=tet;
- if (delta&0xfe000000) mmo_err;
-fixr: tmp=incr(cur_loc,-(delta>=0x1000000? (delta&0xffffff)-(1<<j): delta)<<2);
- mmo_load(tmp,delta);
+ read_tet();@+if (tet&0xfe000000) mmo_err;
+ delta=(tet>=0x1000000? (tet&0xffffff)-(1<<j): tet);
+ mmo_load(incr(cur_loc,-delta<<2),tet);
  continue;
 
 @ The space for file names isn't allocated until we are sure we need it.
@@ -238,7 +237,7 @@ aux.h=0x60000000;
   x.h=0;@+x.l=2;@+aux.l=0x10;
   if (!store_data(8,x,aux)) /* this will ultimately set |rL=2| */
      panic("Unable to store mmo file to RAM");
-  G=zbyte;@+ L=0;
+  G=zbyte;@+ L=0;@+ O=0;
   aux.l=0x18;
   for (j=G;j<256;j++,aux.l+=8)
   { read_tet(); x.h=tet;
@@ -478,10 +477,10 @@ else fprintf(stderr,"Sorry, I can't fake stdin\n");
     printf("Eh? Sorry, I don't understand `%s'. (Type h for help)\n",
          command_buf);
     goto interact;
-  case 'h':@+ for (k=0;interactive_help[k][0];k++) printf(interactive_help[k]);
+  case 'h':@+ for (k=0;interactive_help[k][0];k++) printf("%s",interactive_help[k]);
     goto interact;
   }
- check_syntax:@+ if (*p!='\n') {
+  if (*p!='\n') {
    if (!*p) incomplete_str: printf("Syntax error: Incomplete command!\n");
    else {
      p[strlen(p)-1]='\0';
@@ -500,9 +499,10 @@ resume_simulation:;
       fclose(incl_file);
       incl_file=NULL;
     }@+else if (command_buf[0]!='\n' && command_buf[0]!='i' &&
-              command_buf[0]!='%')
-      if (command_buf[0]==' ') printf(command_buf);
-      else ready=true;
+              command_buf[0]!='%') {
+      if (command_buf[0]==' ') printf("%s",command_buf);@+
+      else ready=true;@+
+    }
   while (!ready) {
     printf("mmix> ");@+fflush(stdout);
 @.mmix>@>
@@ -659,11 +659,11 @@ if (k>=9 && k!=rI) {
     if (val.h!=0 || val.l>=0x40000) break;
     cur_round=(val.l>=0x10000? val.l>>16: ROUND_NEAR);
   }@+else if (k==rG) {
-    if (val.h!=0 || val.l>255 || val.l<L || val.l<32) break;
+    if (val.h!=0 || val.l>(unsigned int)255 || val.l<(unsigned int)L || val.l<32) break;
     for (j=val.l; j<G; j++) g[j]=zero_octa;
     G=val.l;
   }@+else if (k==rL) {
-    if (val.h==0 && val.l<L) L=val.l;
+    if (val.h==0 && val.l<(unsigned int)L) L=val.l;
     else break;
   }
 }

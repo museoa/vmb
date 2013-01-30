@@ -276,15 +276,15 @@ stand respectively for
 $(x\times y)\bmod2^{64}$ (multiplication), $\lfloor x/y\rfloor$ (division),
 $\lfloor2^{64}x/y\rfloor$ (fractional division), $x\bmod y$ (remainder),
 $(x\times2^y)\bmod2^{64}$ (left~shift), $\lfloor x/2^y\rfloor$
-(right shift), and $x\land y$ (bitwise and) on unsigned octabytes.
+(right shift), and $x\mathbin{\char`\&}y$ (bitwise and) on unsigned octabytes.
 Division is legal only if $y>0$; fractional division is
 legal only if $x<y$. None of the strong binary operations can be
 applied to register numbers.
 
 The weak binary operations \.{x+y}, \.{x-y}, \.{x\char'174 y}, and
 \.{x\^y} stand respectively for $(x+y)\bmod2^{64}$ (addition),
-$(x-y)\bmod2^{64}$ (subtraction),
-$x\lor y$ (bitwise or), and $x\oplus y$ (bitwise exclusive-or) on
+$(x-y)\bmod2^{64}$ (subtraction), $x\mathbin{\mkern1mu\vert\mkern1mu}y$
+(bitwise or), and $x\oplus y$ (bitwise exclusive-or) on
 unsigned octabytes. These operations can be applied to register
 numbers only in four contexts: $\<register>+\<pure>$, $\<pure>+\<register>$,
 $\<register>-\<pure>$
@@ -335,7 +335,7 @@ $$\vbox{\halign{$#$\hfil\cr
 \<expression list>\is\<expression>\mid\<expression list>\.,\<expression>\cr
 }}$$
 
-The opcode field either contains a symbolic \MMIX\ operation name (like
+The opcode field contains either a symbolic \MMIX\ operation name (like
 \.{ADD}), or an {\it alias operation}, or a {\it pseudo-operation}.
 Alias operations are alternate names for \MMIX\ operations whose standard
 names are inappropriate in certain contexts. 
@@ -969,8 +969,8 @@ extern octa oand @,@,@[ARGS((octa y,octa z))@];
   /* $y\land z$ */
 extern octa shift_left @,@,@[ARGS((octa y,int s))@];
   /* $y\LL s$, $0\le s\le64$ */
-extern octa shift_right @,@,@[ARGS((octa y,int s,int uns))@];
-  /* $y\GG s$, signed if |!uns| */
+extern octa shift_right @,@,@[ARGS((octa y,int s,int u))@];
+  /* $y\GG s$, signed if |!u| */
 extern octa omult @,@,@[ARGS((octa y,octa z))@];
   /* unsigned $(|aux|,x)=y\times z$ */
 extern octa odiv @,@,@[ARGS((octa x,octa y,octa z))@];
@@ -987,7 +987,7 @@ if (acc.h!=0xffffffff) panic("Type tetra is not implemented correctly");
 characters, but the present code limits itself to an 8-bit subset.
 @^Unicode@>
 The type \&{Char} is defined here in order to ease the later transition:
-At present, \&{Char} is the same as \&{unsigned} \&{char}, but
+At present, \&{Char} is the same as \&{char}, but
 \&{Char} can be changed to a 16-bit type in the Unicode version.
 
 Other changes will also be necessary when the transition to Unicode is made;
@@ -997,7 +997,7 @@ The switchable type name \&{Char} provides at least a first step
 towards a brighter future with Unicode.
 
 @<Type...@>=
-typedef unsigned char Char; /* bytes that will become wydes some day */
+typedef char Char; /* bytes that will become wydes some day */
 
 @ While we're talking about classic systems versus future systems, we
 might as well define the |ARGS| macro, which makes function prototypes
@@ -1040,7 +1040,7 @@ Char *err_buf; /* place where dynamic error messages are sprinted */
 if (!fgets(buffer,buf_size+1,src_file)) break;
 line_no++;
 line_listed=false;
-j=strlen(buffer);
+j=(int)strlen(buffer);
 if (buffer[j-1]=='\n') buffer[j-1]='\0'; /* remove the newline */
 else if ((j=fgetc(src_file))!=EOF)
   @<Flush the excess part of an overlong line@>;
@@ -1080,7 +1080,7 @@ as a comment by the assembler.
 @<Check for a line directive@>=
 {
   for (p=buffer+1;isspace(*p);p++);
-  for (j=*p++-'0';isdigit(*p);p++) j=10*j+*p-'0';
+  for (j=0;isdigit(*p);p++) j=10*j+*p-'0';
   for (;isspace(*p);p++);
   if (*p=='\"') {
     if (!filename[filename_count]) {
@@ -1089,11 +1089,17 @@ as a comment by the assembler.
         panic("Capacity exceeded: Out of filename memory");
 @.Capacity exceeded...@>
     }
-    for (p++,q=filename[filename_count];*p && *p!='\"';p++,q++) *q=*p;
+    for (p++,k=0;*p && *p!='\"' && k<FILENAME_MAX; p++,k++)
+      filename[filename_count][k]=*p;
+    if (k==FILENAME_MAX) panic("Capacity exceeded: File name too long");
     if (*p=='\"' && *(p-1)!='\"') { /* yes, it's a line directive */
-      *q='\0';
+      filename[filename_count][k]='\0';
       for (k=0;strcmp(filename[k],filename[filename_count])!=0;k++);
-      if (k==filename_count) filename_count++;
+      if (k==filename_count) {
+        if (filename_count==256)
+          panic("Capacity exceeded: More than 256 file names");
+        filename_count++;
+      }
       cur_file=k;
       line_no=j-1;
     }
@@ -1276,9 +1282,9 @@ void mmo_out() /* output the contents of |mmo_buf| */
 
 @ @<Sub...@>=
 void mmo_tetra @,@,@[ARGS((tetra))@];
-void mmo_byte @,@,@[ARGS((unsigned char))@];
-void mmo_lop @,@,@[ARGS((char,unsigned char,unsigned char))@];
-void mmo_lopp @,@,@[ARGS((char,unsigned short))@];
+void mmo_byte @,@,@[ARGS((unsigned int))@];
+void mmo_lop @,@,@[ARGS((int,unsigned int,unsigned int))@];
+void mmo_lopp @,@,@[ARGS((int,unsigned int))@];
 void mmo_tetra(t) /* output a tetrabyte */
   tetra t;
 {
@@ -1288,23 +1294,23 @@ void mmo_tetra(t) /* output a tetrabyte */
 }
 @#
 void mmo_byte(b)
-  unsigned char b;
+  unsigned int b;
 {
   mmo_buf[(mmo_ptr++)&3]=b;
   if (!(mmo_ptr&3)) mmo_out();
 }
 @#
 void mmo_lop(x,y,z) /* output a loader operation */
-  char x;
-  unsigned char y,z;
+  int x;
+  unsigned int y,z;
 {
   mmo_buf[0]=mm;@+ mmo_buf[1]=x;@+ mmo_buf[2]=y;@+ mmo_buf[3]=z;
   mmo_out();
 }
 @#
 void mmo_lopp(x,yz) /* output a loader operation with two-byte operand */
-  char x;
-  unsigned short yz;
+  int x;
+  unsigned int yz;
 {
   mmo_buf[0]=mm;@+ mmo_buf[1]=x;@+
   mmo_buf[2]=yz>>8;@+ mmo_buf[3]=yz&0xff;
@@ -1340,7 +1346,7 @@ line number in the output file agree with |cur_file| and |line_no|.
 void mmo_sync @,@,@[ARGS((void))@];@+@t}\6{@>
 void mmo_sync()
 {
-  register int j; register unsigned char *p;
+  register int j; register Char *p;
   if (cur_file!=mmo_cur_file) {
     if (filename_passed[cur_file]) mmo_lop(lop_file,cur_file,0);
     else {
@@ -1379,11 +1385,11 @@ of~|k|. The |x_bits| parameter tells which bytes, if any, are part of
 a future reference.
 
 @<Sub...@>=
-void assemble @,@,@[ARGS((char,tetra,unsigned char))@];@+@t}\6{@>
+void assemble @,@,@[ARGS((int,tetra,unsigned int))@];@+@t}\6{@>
 void assemble(k,dat,x_bits)
-  char k;
+  int k;
   tetra dat;
-  unsigned char x_bits;
+  unsigned int x_bits;
 {
   register int j,jj,l;
   if (spec_mode) l=spec_mode_loc;
@@ -1460,7 +1466,7 @@ a given string in its middle subtrie, inserting new nodes if necessary.
 The string ends with the first nonletter or nondigit; the location
 of the terminating character is stored in global variable~|terminator|. 
 
-@d isletter(c) (isalpha(c)||c=='_'||c==':'||c>126)
+@d isletter(c) (isalpha(c)||c=='_'||c==':'||(unsigned int)(c)>126)
 
 @<Sub...@>=
 trie_node *trie_search @,@,@[ARGS((trie_node*,Char*))@];
@@ -1470,10 +1476,10 @@ trie_node *trie_search(t,s)
   Char *s;
 {
   register trie_node *tt=t;
-  register Char *p=s;
+  register unsigned char *p=(unsigned char *)s;
   while (1) {
     if (!isletter(*p) && !isdigit(*p)) {
-      terminator=p;@+return tt;
+      terminator=(Char*)p;@+return tt;
     }
     if (tt->mid) {
       tt=tt->mid;
@@ -2209,7 +2215,7 @@ character in |sym_buf|.
     m+=8, x=t->sym->equiv.h-0x20000000; /* data segment */
   else x=t->sym->equiv.h;
   if (x) m+=4;@+ else x=t->sym->equiv.l;
-  for (j=1;j<4;j++) if (x<(1<<(8*j))) break;
+  for (j=1;j<4;j++) if (x<(unsigned int)(1<<(8*j))) break;
   m+=j;
 }
 
@@ -2448,7 +2454,7 @@ switch(*p++) {
  case '%': rt_op=mod;@+break;
  case '<': rt_op=shl;@+goto sh_check;
  case '>': rt_op=shr;
-  sh_check:@+if (*p++==*(p-1)) break;
+  sh_check: p++;@+if (*(p-1)==*(p-2)) break;
   derr("syntax error at `%c'",*(p-2));
 @.syntax error...@>
  case '&': rt_op=and;@+break;
@@ -2461,6 +2467,7 @@ switch(*p++) {
 
 @ @<Perform the top operation on |op_stack|@>=
 switch(op_stack[--op_ptr]) {
+ case outer_rp: case inner_rp: goto scan_close; /* should not happen */
  case inner_lp:@+if (rt_op==inner_rp) goto scan_close;
   err("*missing right parenthesis");@+break;
 @.missing right parenthesis@>
@@ -2557,7 +2564,7 @@ case shl: case shr: binary_check("compute a bitwise shift of");
  if (top_val.equiv.h || top_val.equiv.l>63) next_val.equiv=zero_octa;
  else if (op_stack[op_ptr]==shl)
    next_val.equiv=shift_left(next_val.equiv,top_val.equiv.l);
- else next_val.equiv=shift_right(next_val.equiv,top_val.equiv.l,true);
+ else next_val.equiv=shift_right(next_val.equiv,top_val.equiv.l,1);
  goto fin_bin;
 case and: binary_check("compute bitwise and of");
  next_val.equiv.h&=top_val.equiv.h, next_val.equiv.l&=top_val.equiv.l;
@@ -2704,6 +2711,7 @@ if its predefined value has already been used.
   sym_node *new_link=DEFINED;
   acc=cur_loc;
   if (opcode==IS) {
+    if (val_stack[0].status==undefined) err("the operand is undefined");
     cur_loc=val_stack[0].equiv;
     if (val_stack[0].status==reg_val) new_link=REGISTER;
   }@+else if (opcode==GREG) cur_loc.h=0, cur_loc.l=cur_greg, new_link=REGISTER;
@@ -2793,12 +2801,13 @@ else {
 }
 
 @ @<Make special listing to show the label equivalent@>=
-if (new_link==DEFINED) {
+{ if (new_link==DEFINED) {
   fprintf(listing_file,"(%08x%08x)",cur_loc.h,cur_loc.l);
   flush_listing_line(" ");
 }@+else {
   fprintf(listing_file,"($%03d)",cur_loc.l&0xff);
   flush_listing_line("             ");
+}
 }
 
 @ @<Do the operation@>=
@@ -2809,11 +2818,16 @@ case 1:@+if (!(op_bits&one_arg_bit))
     derr("opcode `%s' needs more than one operand",op_field);
 @.opcode...operand(s)@>
   @<Do a one-operand operation@>;
-case 2:@+if (!(op_bits&two_arg_bit))
+case 2:@+if (!(op_bits&two_arg_bit)) {
     if (op_bits&one_arg_bit)
       derr("opcode `%s' must not have two operands",op_field)@;
     else derr("opcode `%s' must have more than two operands",op_field);
+  @+}
+  if ((op_bits&(three_arg_bit+mem_bit))==three_arg_bit) goto make_two_three;
   @<Do a two-operand operation@>;
+make_two_three: val_stack[2]=val_stack[1], val_ptr=3;
+  val_stack[1].equiv=zero_octa, val_stack[1].link=NULL,
+    val_stack[1].status=pure; /* insert \.0 as the second operand */
 case 3:@+if (!(op_bits&three_arg_bit))
     derr("opcode `%s' must not have three operands",op_field);
   @<Do a three-operand operation@>;
@@ -2829,10 +2843,11 @@ for (j=0;j<val_ptr;j++) {
   k=1<<(opcode-BYTE);
   if ((val_stack[j].equiv.h && opcode<OCTA) ||@|
            (val_stack[j].equiv.l>0xffff && opcode<TETRA) ||@|
-           (val_stack[j].equiv.l>0xff && opcode<WYDE))
+           (val_stack[j].equiv.l>0xff && opcode<WYDE)) {
     if (k==1) err("*constant doesn't fit in one byte")@;
 @.constant doesn't fit...@>
     else derr("*constant doesn't fit in %d bytes",k);
+  @+}
   if (k<8) assemble(k,val_stack[j].equiv.l,0);
   else if (val_stack[j].status==undefined)
     assemble(4,0,0xf0), assemble(4,0,0xf0);
@@ -2994,6 +3009,7 @@ goto assemble_X;
 }
 
 @ @d SETH 0xe0
+@d SETL 0xe3
 @d ORH 0xe8
 @d ORL 0xeb
 
@@ -3006,7 +3022,7 @@ goto assemble_X;
      case 2: yz=o.l>>16;@+break; /* \.{SETML} or \.{ORML} */
      case 3: yz=o.l&0xffff;@+break; /* \.{SETL} or \.{ORL} */
      }
-    if (yz) {
+    if (yz || j==SETL) {
       assemble(4,(j<<24)+(255<<16)+yz,0);
       j |= ORH;
     }
@@ -3082,7 +3098,7 @@ switch(opcode) {
    cur_prefix=val_stack[0].link;@+goto bypass;
  case GREG:@+if (listing_file) @<Make listing for |GREG|@>;
    goto bypass;
- case LOCAL:@+if (val_stack[0].equiv.l>lreg) lreg=val_stack[0].equiv.l;
+ case LOCAL:@+if (val_stack[0].equiv.l>(unsigned int)lreg) lreg=val_stack[0].equiv.l;
    if (listing_file) {
      fprintf(listing_file,"($%03d)",val_stack[0].equiv.l);
      flush_listing_line("             ");
@@ -3101,7 +3117,7 @@ switch(opcode) {
 octa greg_val[256]; /* initial values of global registers */
 
 @ @<Make listing for |GREG|@>=
-if (val_stack[0].equiv.l || val_stack[0].equiv.h) {
+{if (val_stack[0].equiv.l || val_stack[0].equiv.h) {
   fprintf(listing_file,"($%03d=#%08x",cur_greg,val_stack[0].equiv.h);
   flush_listing_line("    ");
   fprintf(listing_file,"         %08x)",val_stack[0].equiv.l);
@@ -3109,6 +3125,7 @@ if (val_stack[0].equiv.l || val_stack[0].equiv.h) {
 }@+else {
   fprintf(listing_file,"($%03d)",cur_greg);
   flush_listing_line("             ");
+}
 }
 
 @* Running the program. On a \UNIX/-like system, the command
@@ -3178,7 +3195,7 @@ for (j=1;j<argc-1 && argv[j][0]=='-';j++) if (!argv[j][2]) {
   else if (argv[j][1]=='l') j++,strcpy(listing_name,argv[j]);
   else if (argv[j][1]=='b' && sscanf(argv[j+1],"%d",&buf_size)==1) j++;
   else break;
-}@+else if (argv[j][1]!='b' || sscanf(argv[j]+1,"%d",&buf_size)!=1) break;
+}@+else if (argv[j][1]!='b' || sscanf(argv[j]+2,"%d",&buf_size)!=1) break;
 if (j!=argc-1) {
   fprintf(stderr,"Usage: %s %s sourcefilename\n",
 @.Usage: ...@>
@@ -3192,7 +3209,7 @@ src_file=fopen(src_file_name,"r");
 if (!src_file) dpanic("Can't open the source file %s",src_file_name);
 @.Can't open...@>
 if (!obj_file_name[0]) {
-  j=strlen(src_file_name);
+  j=(int)strlen(src_file_name);
   if (src_file_name[j-1]=='s') {
     strcpy(obj_file_name,src_file_name);@+ obj_file_name[j-1]='o';
   } else sprintf(obj_file_name,"%s.mmo",src_file_name);

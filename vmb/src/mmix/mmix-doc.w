@@ -1119,7 +1119,7 @@ calls them simply floating point numbers because 64-bit quantities are
 the~norm.
 @^floating point arithmetic@>
 @^IEEE/ANSI Standard 754@>
-@^denormal numbers@>
+@^subnormal numbers@>
 @^normal numbers@>
 @^NaN@>
 @^overflow@>
@@ -1132,7 +1132,7 @@ the~norm.
 @^rounding modes@>
 
 A positive floating point number has 53 bits of precision and can range
-from approximately $10^{-308}$ to $10^{308}$. ``Denormal numbers''
+from approximately $10^{-308}$ to $10^{308}$. ``Subnormal numbers''
 between $10^{-324}$ and $10^{-308}$ can also be represented, but with fewer
 bits of precision.
 Floating point numbers can be
@@ -1191,7 +1191,7 @@ Each octabyte has the following
 significance:
 $$\vbox{\halign{\hfil$\pm#$,\quad if &#\hfil\cr
 0.0&$e=f=0$ (zero);\cr
-2^{-1022}f&$e=0$ and $f>0$ (denormal);\cr
+2^{-1022}f&$e=0$ and $f>0$ (subnormal);\cr
 2^{\mkern1mu e-1023}(1+f)&$0<e<2047$ (normal);\cr
 \infty&$e=2047$ and $f=0$ (infinite);\cr
 \NaN(f)&$e=2047$ and $0<f<1/2$ (signaling NaN);\cr
@@ -1225,7 +1225,7 @@ result is finite but needs an exponent greater than 2046.
 A floating underflow exception occurs if the rounded result needs an exponent
 less than~1 and either (i)~the unrounded result cannot be represented exactly
 @^rA@>
-as a denormal number or (ii)~the ``floating underflow trip'' is enabled in~rA\null.
+as a subnormal number or (ii)~the ``floating underflow trip'' is enabled in~rA\null.
 (Trips are discussed below.)
 NaNs are treated specially as follows: If either \$Y or~\$Z is a signaling NaN,
 an invalid exception occurs and the NaN is quieted by adding 1/2 to its
@@ -1252,7 +1252,7 @@ numbers in the interval have a known sign.
 
 Floating point underflow cannot occur unless the U-trip has been enabled,
 because any underflowing result of floating point
-addition can be represented exactly as a denormal number.
+addition can be represented exactly as a subnormal number.
 
 Silly but instructive exercise: Find all pairs of numbers $(\rY,\rZ)$ such
 that the commands \<FADD \$X,\$Y,\$Z and \<ADDU \$X,\$Y,\$Z both produce
@@ -1291,7 +1291,7 @@ The floating point quotient $\rY\?/\rZ$ is computed by
 the standard floating point conventions, and placed in \$X\null.
 @^standard floating point conventions@>
 A floating divide by zero exception occurs if the
-quotient is $(\hbox{normal or denormal})/(\pm0.0)$. An invalid exception occurs if
+quotient is $(\hbox{normal or subnormal})/(\pm0.0)$. An invalid exception occurs if
 the quotient is $(\pm0.0)/(\pm0.0)$ or $(\pm\infty)/(\pm\infty)$; in that case the
 result is $\pm\NaN(1/2)$. No exception occurs for the
 quotient $(\pm\infty)/(\pm0.0)$. If neither \$Y nor~\$Z is a NaN,
@@ -1317,7 +1317,7 @@ that case the result is $\NaN(1/2)$ with the sign of~\$Y\null.
 The floating point square root $\sqrt\rZ$ is computed by the
 standard floating point conventions, and placed in register~X\null.  An
 invalid exception occurs if \$Z is a negative number (either infinite, normal,
-or denormal); in that case the result is $-\NaN(1/2)$. No exception occurs
+or subnormal); in that case the result is $-\NaN(1/2)$. No exception occurs
 when taking the square root of $-0.0$ or $+\infty$. In all cases the sign of
 the result is the sign of~\$Z\null.
 
@@ -1419,7 +1419,8 @@ $$\vbox{\halign{&\tt#\hfil\ \cr
   &CSNN &\$0,\$3,0&\% set \$0=0 if \$3>=0\cr
   &OR  &\$0,\$2,\$0&\% attach sign of \$Z to \$0\cr
 1H\ &FADD &\$1,\$Z,\$0&\% \$1=\$Z+\$0\cr
-  &FSUB &\$X,\$1,\$0&\% \$X=\$1-\$0\cr}}$$
+  &FSUB &\$1,\$1,\$0&\% \$X=\$1-\$0\cr
+  &OR   &\$X,\$1,\$2&\% make sure minus zero isn't lost\cr}}$$
 This program handles most cases of interest by adding and subtracting
 $\pm2^{52}$ using floating point arithmetic.
 It would be incorrect to do this in all cases;
@@ -1436,7 +1437,7 @@ a {\it neighborhood\/}
 $$N_\epsilon(u)=\{x\,\mid\,\vert x-u\vert\le 2^{e-1022}\epsilon\};$$
 we also define $N_\epsilon(0)=\{0\}$,
 $N_\epsilon(u)=\{x\mid\vert x-u\vert\le2^{-1021}\epsilon\}$ if $u$ is
-denormal; $N_\epsilon(\pm\infty)=\{\pm\infty\}$ if $\epsilon<1$,
+subnormal; $N_\epsilon(\pm\infty)=\{\pm\infty\}$ if $\epsilon<1$,
 $N_\epsilon(\pm\infty)=\{$everything except $\mp\infty\}$ if $1\le\epsilon<2$,
 $N_\epsilon(\pm\infty)=\{$everything$\}$ if $\epsilon\ge2$. Then we write
 $$\vbox{\halign{$u#v\ (\epsilon)$, &#\hfil\cr
@@ -1480,10 +1481,10 @@ a signaling NaN.
 \smallskip\noindent
 Exercise: What floating point numbers does \.{FCMPE} regard
 as $\sim0.0$ with respect to
-$\epsilon=1/2$, when no exceptions arise? \ Answer: Zero, denormal
+$\epsilon=1/2$, when no exceptions arise? \ Answer: Zero, subnormal
 numbers, and normal numbers with $f=0$.
 (The numbers similar to zero with respect to~$\epsilon$ are zero,
-denormal numbers with $f\le2\epsilon$, normal numbers with $f\le2\epsilon-1$,
+subnormal numbers with $f\le2\epsilon$, normal numbers with $f\le2\epsilon-1$,
 and $\pm\infty$ if $\epsilon>=1$.)
 
 @ The IEEE standard also defines 32-bit floating point quantities, which
@@ -1495,7 +1496,7 @@ bit followed by an 8-bit exponent and a 23-bit fraction. After it has
 been loaded into one of\/ \MMIX's registers, its 52-bit fraction part
 will have 29 trailing zero bits, and its exponent~$e$ will be one of the
 256 values 0, $(01110000001)_2=897$, $(01110000010)_2=898$, \dots,
-$(10001111110)_2=1150$, or~2047, unless it was denormal; a denormal
+$(10001111110)_2=1150$, or~2047, unless it was subnormal; a subnormal
 short float loads into a normal number with $874\le e\le896$.
 
 \bull\<LDSF \$X,\$Y,\0 `load short float'.\>
@@ -1607,7 +1608,7 @@ commands.
 @^illegal instructions@>
 
 @* Subroutine linkage.
-\MMIX\ has a several special operations designed to facilitate the process of
+\MMIX\ has several special operations designed to facilitate the process of
 calling and implementing subroutines. The key notion is the idea of a
 hardware-supported {\it register stack}, which can coexist with a
 software-supported stack of variables that are not maintained in registers.
@@ -2092,8 +2093,8 @@ register\/}~rW\null.
 @^rX@>
 @^rY@>
 @^rZ@>
-The instruction in~rX may not be the same as the instruction in
-location $\rm rW-4$; for example, it may be an instruction that
+The instruction in~rX might not be the same as the instruction in
+location $\rm rW-4$; for example, it might be an instruction that
 branched or jumped to~rW\null. It might also be an instruction
 inserted internally by the \MMIX\ processor.
 (For example, the computer silently inserts an internal instruction
@@ -2220,12 +2221,18 @@ Such instructions cause a \.{TRAP} even though their opcode is something
 else like \.{FREM} or \.{FADD} or \.{DIV}. The trap handler can tell
 what instruction to emulate by looking at the opcode, which appears
 in~rXX\null. 
-In such cases the lefthand half of~rXX is set to \Hex{02000000}; the handler
+In such cases the left-hand half of~rXX is set to \Hex{02000000}; the handler
 emulating \.{FADD}, say, should compute the floating point sum of rYY and~rZZ
 and place the result in~rZZ\null. A~subsequent
 \.{RESUME}~\.1 will then place the value of~rZZ in the proper register.
 @^emulation@>
 @^forced traps@>
+
+When a forced trap occurs on a store instruction because of memory protection
+failure, the settings of rYY and rZZ are undefined. They do not necessarily
+correspond to the virtual address rY and octabyte to be stored rZ
+that are supplied to a trip handler after a tripped store instruction,
+because a forced trap aborts its instruction as soon as possible.
 
 Implementations of\/ \MMIX\ might also emulate the process of
 virtual-address-to-physical-address translation described below,
@@ -2304,7 +2311,7 @@ in~\$2.)
 @^counting trailing zeros@>
 
 If the interrupted instruction contributed 1s to any of the \.{rwxnkbsp} bits
-of~rQ, the corresponding bits are set to~1 also in~rX\null. A~dynamic trap
+of~rQ, the corresponding bits are set to~1 also in~rXX\null. A~dynamic trap
 handler might be able to use this information (although it should
 service higher-priority interrupts first if the right half
 of $\rm rQ\land rK$ is nonzero).
@@ -2376,7 +2383,7 @@ is, they set the `\.b' bit of~rQ) in the present version of\/ \MMIX.
 @^illegal instructions@>
 
 If the execution register rX is nonnegative, its leftmost byte controls
-the way its righthand half will be inserted into the program.
+the way its right-hand half will be inserted into the program.
 Let's call this byte the ``ropcode.'' A ropcode of~0 simply
 inserts the instruction into the execution stream; a ropcode of~1
 is similar, but it substitutes rY and rZ for the 
@@ -2435,7 +2442,7 @@ internal code numbers:
 $$\vbox{\halign{\hfil#,\quad&#;\hfil\cr
 rA&arithmetic status register [21]\cr
 rB&bootstrap register (trip) [0]\cr
-rC&cycle counter [8]\cr
+rC&continuation register [8]\cr
 rD&dividend register [1]\cr
 rE&epsilon register [2]\cr
 rF&failure location register [22]\cr
@@ -2470,16 +2477,12 @@ rZZ&Z operand (trap) [31]\cr}}$$
 In this list rG and rL are what we have been calling simply $G$ and $L$; \
 rC, rF, rI, rN, rO, rS, rU, and~rV have not been mentioned before.
 
-@ The {\it cycle counter\/}~rC advances by~1 on every ``clock pulse'' of the
-@^rC@>
-\MMIX\ processor. Thus if \MMIX\ is running at 500 MHz, the cycle
-counter increases every 2 nanoseconds. There is no need to worry about
-rC overflowing; even if it were to increase once every nanosecond,
-it wouldn't reach $2^{64}$ until more than 584.55 years have gone by.
-
-The {\it interval counter\/}~rI is similar, but it {\it decreases\/}
+@ The {\it interval counter\/}~rI decreases by~1
+ on every ``clock pulse'' of the
 @^rI@>
-by~1 on each cycle, and causes an {\it interval interrupt\/}
+\MMIX\ processor. Thus if \MMIX\ is running at 500 MHz, the interval
+counter decreases every 2 nanoseconds.
+It causes an {\it interval interrupt\/}
 when it reaches zero. Such interrupts can be extremely useful for
 ``continuous profiling'' as a means of studying
 the empirical running time of programs;
@@ -2487,8 +2490,8 @@ see Jennifer~M. Anderson, Lance~M. Berc, Jeffrey Dean, Sanjay Ghemawat,
 Monika~R. Henzinger, Shun-Tak~A. Leung, Richard~L. Sites, Mark~T. Vandevoorde,
 Carl~A. Waldspurger, and William~E. Weihl, {\sl ACM Transactions on Computer
 Systems\/ \bf15} (1997), 357--390.
-The interval interrupt is achieved by setting the leftmost bit of the
-``machine'' byte of~rQ equal to~1; this is the eighth-least-significant bit.
+The interval interrupt is achieved by setting the next-to-leftmost bit of the
+``machine'' byte of~rQ equal to~1; this is the seventh-least-significant bit.
 @^rQ@>
 @^continuous profiling@>
 @^performance monitoring@>
@@ -2525,7 +2528,7 @@ are exceptional: They are included in the usage count only if the leading bit
 of $u_c$ is~1.
 @^negative locations@>
 
-Incidentally, the 64-bit counters rC and rI can be implemented rather cheaply with
+Incidentally, the 64-bit counter rI can be implemented rather cheaply with
 only two levels of logic, using an old trick called ``carry-save addition''
 [see, for example, G.~Metze and J.~E. Robertson, {\sl Proc.\ International
 Conf.\ Information Processing\/} (Paris:\ 1959), 389--396]. One nice
@@ -2673,8 +2676,8 @@ Every special register is readable; \MMIX\ does not keep secrets from
 an inquisitive user. But of course only the operating system is allowed
 @^operating system@>
 to change registers like rK and~rQ (the interrupt mask and request
-registers). And not even the operating system is allowed to change~rC
-(the cycle counter) or rN~(the serial number) or the stack pointers
+registers). And not even the operating system is allowed to change
+rN~(the serial number) or the stack pointers
 rO~and~rS.
 
 \bull\<PUT X,\0 `put into special register';
@@ -2685,8 +2688,8 @@ the contents of register Z or to the unsigned byte~Z itself,
 if permissible. Some changes are, however, impermissible:
 Bits of rA that are always zero must remain zero; the leading seven bytes
 of rG and rL must remain zero, and rL must not exceed~rG;
-special registers 8--11 (namely rC, rN, rO, and~rS) must not change;
-special registers 12--18 (namely
+special registers 9--11 (namely rN, rO, and~rS) must not change;
+special registers 8 and 12--18 (namely rC,
 rI, rK, rQ, rT, rU, rV, and~rTT) can be changed only if the privilege
 bit of rK is zero;
 and certain bits of~rQ (depending on available hardware) might not
@@ -2877,8 +2880,8 @@ $$\phi_i(A)=2^s\,a+(A\bmod2^s)$$
 if $a$ is the address in the PTE for page $\lfloor A/2^s\rfloor$ of
 segment~$i$.
 
-(6) Suppose $\lfloor A/2^s\rfloor=(a_4a_3a_2a_1a_0)_{1024}$ in the
-radix-1024 number system. In the common case $a_4=a_3=a_2=a_1=0$, the
+(6) Suppose $\lfloor A/2^s\rfloor$ is equal to $(a_4a_3a_2a_1a_0)_{1024}$
+in the radix-1024 number system. In the common case $a_4=a_3=a_2=a_1=0$, the
 PTE is simply the octabyte ${\rm m}_8[2^{13}(r+b_i)+8a_0]$; this rule
 defines the mapping for the first 1024 pages. The next million or~so pages are
 accessed through an auxiliary {\it page table pointer}
@@ -2910,6 +2913,14 @@ essentially the virtual memory setup in the Alpha~21064 computers with
 {\mc DIGITAL~UNIX}$^{\rm\,TM}$.
 @^Alpha computers@>
 
+Several special cases have weird behavior, which probably isn't going to
+be useful. But I might as well mention them so that the flexibility
+of this scheme is clarified: If, for example, $b_1=2$, $b_2=b_3=1$, and
+$b_4=5$, then $r+1$ is used both for PTPs of segment~0 and PTEs of
+segment~2. And if $b_2=b_3<b_4$, then $r+b_2$ is used for the PTE of
+page~0 segments 2 and~3; page~1 of segment~2 is not allowed, but there
+is a page~1 in segment~3.
+
 I know these rules look extremely complicated, and I sincerely wish I could
 have found an alternative that would be both simple and efficient in practice.
 I tried various schemes based on hashing, but came to the conclusion that
@@ -2920,6 +2931,20 @@ the shortcut for small page numbers. I tried also to find formats for rV
 and the page tables that would match byte boundaries in a more friendly way,
 but the corresponding page sizes did not work well. Fortunately these grungy
 details are almost always completely hidden from ordinary users.
+
+Stack overflow presents a potential problem:
+@^Stack overflow@>
+If $\gamma$ increases to a virtual address on a new page for which there
+is no permission to write, the protection interrupt handler would have no stack
+space in which to work! Therefore \MMIX\ has a
+{\it continuation register\/}~rC,
+@^rC@>
+which contains the physical address of a ``continuation page.'' Pushed-down
+information is written to the continuation page until \MMIX\ comes to
+an instruction that is safely interruptible. Then a stack overflow
+interrupt occurs, and the operating system can restore order.
+The format of~rC is just like an ordinary PTE entry, except that
+the $n$ field is ignored.
 
 @ Of course \MMIX\ can't afford to perform a lengthy calculation of physical
 addresses every time it accesses memory. The machine therefore maintains a
@@ -2963,7 +2988,9 @@ the TC. Register~X is set to 0 if the key was not present
 in any translation cache, or to 1 if the key was present in the TC
 for instructions, or to 2 if the key was present in the TC for data,
 or to~3 if the key was present in both. This instruction is for the
-operating system only.
+operating system only. (Changes to the TC are not immediate; so \.{SYNC}
+and/or \.{SYNCD} ought to be done when appropriate, as discussed in
+{\mc MMIX-PIPE}.)
 
 @ We mentioned earlier that
 cheap versions of\/ \MMIX\ might calculate the physical addresses with
@@ -3009,6 +3036,7 @@ $$\vbox{\halign{&\tt#\hfil\ \cr
 &SETH  &mask,\#8000 \cr
 &ORL   &mask,\#1ff8&\% mask=(sign bit and n field)\cr 
 &ORH   &\$7,\#8000      &\% set sign bit for PTP validation below\cr
+&ANDNH &virt,\#e000     &\% zero out the segment number\cr
 &SRU    &\$0,virt,s     &\% \$0=a4a3a2a1a0 (page number of virt)\cr
 &ZSZ   &\$1,\$0,1       &\% \$1=[page number is zero]\cr
 &ADD    &limit,limit,\$1&\% increase limit if page number is zero\cr
@@ -3018,62 +3046,60 @@ The next part of the routine finds the ``digits'' of
 the page number $(a_4a_3a_2a_1a_0)_{1024}$, from right to left:
 $$
 \vcenter{\halign{&\tt#\hfil\ \cr
-&OR  &\$5,base,0\cr
+&CMP &\$5,base,limit\cr
 &SRU &\$1,\$0,10\cr
 &PBZ &\$1,1F\cr
 &AND &\$0,\$0,\$6\cr
-&INCL &base,\#2000\cr}}
-\qquad
+&INCL&base,\#2000\cr}}
 \vcenter{\halign{&\tt#\hfil\ \cr
-&OR  &\$5,base,0\cr
+&CMP &\$5,base,limit\cr
 &SRU &\$2,\$1,10\cr
 &PBZ &\$2,2F\cr
 &AND &\$1,\$1,\$6\cr
-&INCL &base,\#2000\cr}}
-\qquad
+&INCL&base,\#2000\cr}}
 \vcenter{\halign{&\tt#\hfil\ \cr
-&OR  &\$5,base,0\cr
+&CMP &\$5,base,limit\cr
 &SRU &\$3,\$2,10\cr
 &PBZ &\$3,3F\cr
 &AND &\$2,\$2,\$6\cr
-&INCL &base,\#2000\cr}}
-\qquad
+&INCL&base,\#2000\cr}}
 \vcenter{\halign{&\tt#\hfil\ \cr
-&OR  &\$5,base,0\cr
+&CMP &\$5,base,limit\cr
 &SRU &\$4,\$3,10\cr
 &PBZ &\$4,4F\cr
 &AND &\$3,\$3,\$6\cr
-&INCL &base,\#2000\cr}}
+&INCL&base,\#2000\cr}}
 $$
 Then the process cascades back through PTPs.
 $$
 \vcenter{\halign{&\tt#\hfil\ \cr
-&OR  &\$5,base,0\cr
+&CMP &\$5,base,limit\cr
+&BNN &\$5,Fail\cr
 &8ADDU&\$6,\$4,base\cr
 &LDO  &base,\$6,0\cr
 &XOR &\$6,base,\$7\cr
 &AND &\$6,\$6,mask\cr
 &BNZ &\$6,Fail\cr}}
-\quad
 \vcenter{\halign{&\tt#\hfil\ \cr
 &ANDNL&base,\#1fff\cr
-4H&8ADDU &\$6,\$3,base\cr
+4H&BNN &\$5,Fail\cr
+&8ADDU &\$6,\$3,base\cr
 &LDO  &base,\$6,0\cr
 &XOR &\$6,base,\$7\cr
 &AND &\$6,\$6,mask\cr
 &BNZ &\$6,Fail\cr}}
-\quad
 \vcenter{\halign{&\tt#\hfil\ \cr
 &ANDNL&base,\#1fff\cr
-3H&8ADDU &\$6,\$2,base\cr
+3H&BNN &\$5,Fail\cr
+&8ADDU &\$6,\$2,base\cr
 &LDO  &base,\$6,0\cr
 &XOR &\$6,base,\$7\cr
 &AND &\$6,\$6,mask\cr
 &BNZ &\$6,Fail\cr}}
-\quad
 \vcenter{\halign{&\tt#\hfil\ \cr
 &ANDNL&base,\#1fff\cr
-2H&8ADDU &\$6,\$1,base\cr
+2H&BNN &\$5,Fail\cr
+&8ADDU &\$6,\$1,base\cr
 &LDO  &base,\$6,0\cr
 &XOR &\$6,base,\$7\cr
 &AND &\$6,\$6,mask\cr
@@ -3085,14 +3111,13 @@ any translation with permission bits zero would have the same effect.
 $$\chardef\_=`\_
 \vcenter{\halign{&\tt#\hfil\ \cr
 &ANDNL &base,\#1fff &\% remove low 13 bits of PTP\cr
-1H &8ADDU &\$6,\$0,base \cr
+1H &BNN &\$5,Fail\cr
+&8ADDU &\$6,\$0,base \cr
 &LDO  &base,\$6,0  &\% base=PTE\cr
-&XOR &base,base,\$7\cr
-&ANDN&\$6,base,\#7\cr
+&XOR &\$6,base,\$7\cr
+&ANDN&\$6,\$6,\#7\cr
 &SLU &\$6,\$6,51\cr
-&BNZ &\$6,Fail &\% branch if n doesn't match\cr
-&CMP &\$6,\$5,limit \cr
-&BN  &\$6,Ready &\% did we run off the end of the page table?\cr
+&PBZ &\$6,Ready &\% branch if n matches\cr
 Fail&SETL &base,0 &\% errors lead to PTE of zero\cr
 Ready&PUT&rZZ,base\cr
 &LDO&\$255,IntMask &\% load the desired setting of rK\cr
@@ -3217,7 +3242,7 @@ need only $1\upsilon$.
 @.FREM@>
 The actual running time of floating point computations
 will vary depending on the operands; for example,
-the machine might need one extra $\upsilon$ for each denormal input
+the machine might need one extra $\upsilon$ for each subnormal input
 or output, and it might slow down greatly when trips are enabled.
 The \.{FREM} instruction might typically cost
 $(3+\delta)\upsilon$, where $\delta$ is the amount

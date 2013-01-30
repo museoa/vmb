@@ -125,6 +125,7 @@ required to treat them in greater generality.
 #include <stdlib.h>
 #include <math.h>
 #include "abstime.h"
+@h@#
 @<Header definitions@>@;
 @<Type definitions@>@;
 @<Global variables@>@;
@@ -236,7 +237,6 @@ void MMIX_run(cycs,breakpoint)
     }
     cycs--;
   }
- cease:;
 }
 
 @ @<Type...@>=
@@ -354,8 +354,8 @@ extern octa oandn @,@,@[ARGS((octa y,octa z))@];
   /* $y\land \bar z$ */
 extern octa shift_left @,@,@[ARGS((octa y,int s))@];
   /* $y\LL s$, $0\le s\le64$ */
-extern octa shift_right @,@,@[ARGS((octa y,int s,int uns))@];
-  /* $y\GG s$, signed if |!uns| */
+extern octa shift_right @,@,@[ARGS((octa y,int s,int u))@];
+  /* $y\GG s$, signed if |!u| */
 extern octa omult @,@,@[ARGS((octa y,octa z))@];
   /* unsigned $(|aux|,x)=y\times z$ */
 extern octa signed_omult @,@,@[ARGS((octa y,octa z))@];
@@ -742,9 +742,10 @@ typedef struct control_struct {
  bool ren_a; /* does |a| correspond to a rename register? */
  bool set_l; /* does |rl| correspond to a new value of rL? */
  bool interim; /* does this instruction need to be reissued on interrupt? */
+ bool stack_alert; /* is there potential for stack overflow? */
  unsigned int arith_exc; /* arithmetic exceptions for event bits of rA */
  unsigned int hist; /* history bits for use in branch prediction */
- int denin,denout; /* execution time penalties for denormal handling */
+ int denin,denout; /* execution time penalties for subnormal handling */
  octa cur_O,cur_S; /* speculative rO and rS before this instruction */
  unsigned int interrupt; /* does this instruction generate an interrupt? */
  void *ptr_a, *ptr_b, *ptr_c; /* generic pointers for miscellaneous use */
@@ -779,7 +780,7 @@ static void print_control_block(c)
   if (c->ren_a) {@+printf(" a=");@+print_specnode(c->a);@+}
   if (c->set_l) {@+printf(" rL=");@+print_specnode(c->rl);@+}
   if (c->interrupt) {@+printf(" int=");@+print_bits(c->interrupt);@+}
-  if (c->arith_exc) printf(" exc=");@+print_bits(c->arith_exc<<8);
+  if (c->arith_exc) {@+printf(" exc=");@+print_bits(c->arith_exc<<8);@+}
   default_go=incr(c->loc,4);
   if (c->go.o.l!=default_go.l || c->go.o.h!=default_go.h) {
     printf(" ->");@+print_octa(c->go.o);
@@ -1104,16 +1105,16 @@ internal_opcode internal_op[256]={@/
 @ While we're into boring lists, we might as well define all the
 special register numbers, together with an inverse table for
 use in diagnostic outputs. These codes have been designed so that
-special registers 0--7 are unencumbered, 8--11 can't be \.{PUT} by anybody,
-12--18 can't be \.{PUT} by the user. Pipeline delays might occur
+special registers 0--7 are unencumbered, 9--11 can't be \.{PUT} by anybody,
+8 and 12--18 can't be \.{PUT} by the user. Pipeline delays might occur
 when \.{GET} is applied to special registers 21--31 or when
-\.{PUT} is applied to special registers 15--20. The \.{SAVE} and
+\.{PUT} is applied to special registers 8 or 15--20. The \.{SAVE} and
 \.{UNSAVE} commands store and restore special registers 0--6 and 23--27.
 
 @<Header def...@>=
 #define rA 21 /* arithmetic status register */
 #define rB 0  /* bootstrap register (trip) */
-#define rC 8  /* cycle counter */
+#define rC 8  /* continuation register */
 #define rD 1  /* dividend register */
 #define rE 2  /* epsilon register */
 #define rF 22 /* failure location register */
@@ -1196,7 +1197,8 @@ Most of them are implementation-dependent, but a few are defined in general.
 #define PARITY_ERROR (1<<1) /* try to save the file systems */
 #define NONEXISTENT_MEMORY (1<<2) /* a memory address can't be used */
 #define REBOOT_SIGNAL (1<<4) /* it's time to start over */
-#define INTERVAL_TIMEOUT (1<<7) /* the timer register, rI, has reached zero */
+#define INTERVAL_TIMEOUT (1<<6) /* the timer register, rI, has reached zero */
+#define STACK_OVERFLOW (1<<7) /* data has been stored on the rC page */
 
 @* Dynamic speculation.
 Now that we understand some basic low-level structures,
@@ -1658,7 +1660,7 @@ tetra support[8]; /* big-endian bitmap for all opcodes supported */
 
 @<Determine the flags, |f|, and the internal opcode, |i|@>=
 if (!(support[op>>5]&(sign_bit>>(op&31)))) {
-  /* oops, this opcode isn't supported by any function unit */
+  /* oops, this opcode isn't supported by any functional unit */
   f=flags[TRAP], i=trap;
 }@+else f=flags[op], i=internal_op[op];
 if (i==trip && (head->loc.h&sign_bit)) f=0,i=noop;
@@ -1741,7 +1743,7 @@ unsigned char flags[256]={
 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, /* \.{ZSNN}, \dots\ */
 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, /* \.{LDB}, \dots\ */
 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, /* \.{LDT}, \dots\ */
-0x2a, 0x29, 0x2a, 0x29, 0x1a, 0x19, 0x2a, 0x29, /* \.{LDSF}, \dots\ */
+0x2a, 0x29, 0x2a, 0x29, 0x3a, 0x39, 0x2a, 0x29, /* \.{LDSF}, \dots\ */
 0x2a, 0x29, 0x0a, 0x09, 0x0a, 0x09, 0xaa, 0xa9, /* \.{LDVTS}, \dots\ */
 0x1a, 0x19, 0x1a, 0x19, 0x1a, 0x19, 0x1a, 0x19, /* \.{STB}, \dots\ */
 0x1a, 0x19, 0x1a, 0x19, 0x1a, 0x19, 0x1a, 0x19, /* \.{STT}, \dots\ */
@@ -1827,8 +1829,11 @@ Extern int lring_size; /* the number of on-chip local registers
 Extern int max_rename_regs, max_mem_slots; /* capacity of reorder buffer */
 Extern int rename_regs, mem_slots; /* currently unused capacity */
 
-@ @<Header def...@>=
-#define ticks @[g[rC].o@] /* the internal clock */
+@ Special register rC was the clock in the original definition of \MMIX.
+But now the clock is just an external variable, called |ticks|.
+
+@<External v...@>=
+Extern octa ticks; /* the internal clock */
 
 @ @<Glob...@>=
 int lring_mask; /* for calculations modulo |lring_size| */
@@ -1850,7 +1855,7 @@ fail in February of 2106.)
 
 @d VERSION 1 /* version of the \MMIX\ architecture that we support */
 @d SUBVERSION 0 /* secondary byte of version number */
-@d SUBSUBVERSION 0 /* further qualification to version number */
+@d SUBSUBVERSION 2 /* further qualification to version number */
 
 @<Initialize everything@>=
 rename_regs=max_rename_regs;
@@ -1876,7 +1881,7 @@ static void print_specnode_id(a)
   octa a;
 {
   if (a.h==sign_bit) {
-    if (a.l<32) printf(special_name[a.l]);
+    if (a.l<32) printf("%s",special_name[a.l]);
     else if (a.l<256) printf("g[%d]",a.l);
     else printf("l[%d]",a.l-256);
   }@+else if (a.h!=(tetra)-1) {
@@ -1949,7 +1954,7 @@ floating point rounding, are treated in the normal way.
 Extern octa cool_O,cool_S; /* values of rO, rS before the |cool| instruction */
 
 @ @<Glob...@>=
-int cool_L,cool_G; /* values of rL and rG before the |cool| instruction */
+unsigned int cool_L,cool_G; /* values of rL and rG before the |cool| instruction */
 unsigned int cool_hist,peek_hist; /* history bits for branch prediction */
 octa new_O,new_S; /* values of rO, rS after |cool| */
 
@@ -1974,7 +1979,7 @@ cool->interrupt=head->interrupt;
 cool->hist=peek_hist;
 cool->go.o=incr(cool->loc,4);
 cool->go.known=false, cool->go.addr.h=-1,cool->go.up=(specnode*)cool;
-cool->interim=false;
+cool->interim=cool->stack_alert=false;
 
 @ @<Dispatch an inst...@>=
 if (new_cool==hot) goto stall; /* reorder buffer is full */
@@ -2096,12 +2101,12 @@ case 3: cool->z.o.l=yz;@+break;
 @ @<Install register X...@>=
 {
   if (cool->xx>=cool_G) {
-    if (i!=pushgo && i!=pushj)
+    if (i!=pushgo && i!=pushj && i!=cswap)
       cool->ren_x=true,spec_install(&g[cool->xx],&cool->x);
-  }@+else if (cool->xx<cool_L)
-    cool->ren_x=true,
+  }@+else if (cool->xx<cool_L) {
+    if (i!=cswap) cool->ren_x=true,
       spec_install(&l[(cool_O.l+cool->xx)&lring_mask],&cool->x);
-  else { /* we need to increase L before issuing |head->inst| */
+  }@+else { /* we need to increase L before issuing |head->inst| */
  increase_L:@+ if (((cool_S.l-cool_O.l-cool_L-1)&lring_mask)==0)
       @<Insert an instruction to advance gamma@>@;
     else @<Insert an instruction to advance beta and L@>;
@@ -2109,10 +2114,10 @@ case 3: cool->z.o.l=yz;@+break;
 }
 
 @ @<Check for sufficient rename registers...@>=
-if (rename_regs<cool->ren_x+cool->ren_a) goto stall;
+if (rename_regs<(cool->ren_x?1:0)+(cool->ren_a?1:0)) goto stall;
 if (cool->mem_x)
-  if (mem_slots) mem_slots--;@+else goto stall;
-rename_regs-=cool->ren_x+cool->ren_a;
+{ if (mem_slots) mem_slots--;@+else goto stall; }
+rename_regs-=(cool->ren_x?1:0)+(cool->ren_a?1:0);
 
 @ The |incrl| instruction
 advances $\beta$ and~rL by~1 at a time when we know that $\beta\ne\gamma$,
@@ -2147,22 +2152,40 @@ from the local register ring to virtual memory location |cool_S<<3|.
   cool->mem_x=true, spec_install(&mem,&cool->x);
   op=STOU; /* this instruction needs to be handled by load/store unit */
   cool->interim=true;
+  cool->stack_alert=!(cool->y.o.h&sign_bit);
   goto dispatch_done;
 }
 
 @ The |decgamma| instruction decreases $\gamma$ and rS by loading an octabyte
 from virtual memory location |(cool_S-1)<<3| into the local register ring.
+The value of $\beta$ may need to be decreased too (by decreasing~rL).
 
 @<Insert an instruction to decrease gamma@>=
 {
-  cool->i=decgamma;
-  new_S=incr(cool_S,-1);
+  if (cool_O.l+cool_L==cool_S.l+lring_size) {
+      /* don't let $\gamma$ pass $\beta$ */
+    if (cool->i==pop && cool->xx==cool_L && cool_L>1) {
+      cool->i=or; /* we'll preserve the main result by moving it down */
+      head->inst-=0x10000; /* decrease X field of \.{POP} in fetch buffer */
+      op=OR;
+      cool->y=specval(&l[(cool_O.l+cool->xx-1)&lring_mask]);
+      spec_install(&l[(cool_O.l+cool->xx-2)&lring_mask],&cool->x);
+    }@+else { /* decrease rL by 1 */
+      spec_install(&g[rL],&cool->rl);
+      cool->rl.o.l=cool_L-1;
+      cool->set_l=true;
+    }
+  }
+  if (cool->i!=or) {
+    cool->i=decgamma;
+    new_S=incr(cool_S,-1);
+    cool->y.p=NULL, cool->y.o=shift_left(new_S,3);
+    spec_install(&l[new_S.l&lring_mask],&cool->x);
+    op=LDOU; /* this instruction needs to be handled by load/store unit */
+    cool->ptr_a=(void*)mem.up;
+  }
   cool->z=cool->b=zero_spec; cool->need_b=false;
-  cool->y.p=NULL, cool->y.o=shift_left(new_S,3);
-  cool->ren_x=true, spec_install(&l[new_S.l&lring_mask],&cool->x);
-  op=LDOU; /* this instruction needs to be handled by load/store unit */
-  cool->interim=true;
-  cool->ptr_a=(void*)mem.up;
+  cool->ren_x=cool->interim=true;
   goto dispatch_done;
 }
 
@@ -2195,7 +2218,7 @@ case pst:
  cool->mem_x=true, spec_install(&mem,&cool->x);@+ break;
 case ld: case ldunc: cool->ptr_a=(void *)mem.up;@+ break;
 
-@ When new data is \.{PUT} into special registers 15--20 (namely rK,
+@ When new data is \.{PUT} into special registers 8 or 15--20 (namely rC, rK,
 rQ, rU, rV, rG, or~rL) it can affect many things. Therefore we stop
 issuing further instructions until such \.{PUT}s are committed.
 Moreover, we will see later that such drastic \.{PUT}s defer execution until
@@ -2204,10 +2227,10 @@ they reach the hot seat.
 @<Special cases of instruction dispatch@>=
 case put:@+ if (cool->yy!=0 || cool->xx>=32) goto illegal_inst;
  if (cool->xx>=8) {
-   if (cool->xx<=11) goto illegal_inst;
+   if (cool->xx<=11 && cool->xx!=8) goto illegal_inst;
    if (cool->xx<=18 && !(cool->loc.h&sign_bit)) goto privileged_inst;
  }
- if (cool->xx>=15 && cool->xx<=20) freeze_dispatch=true;
+ if (cool->xx==8 || (cool->xx>=15 && cool->xx<=20)) freeze_dispatch=true;
  cool->ren_x=true, spec_install(&g[cool->xx],&cool->x);@+break;
 @#
 case get:@+ if (cool->yy || cool->zz>=32) goto illegal_inst;
@@ -2227,7 +2250,7 @@ insert an~|incrl| command.
 
 @<Special cases of instruction dispatch@>=
 case pushgo: inst_ptr.p=&cool->go;
-case pushj: {@+register int x=cool->xx;
+case pushj: {@+register unsigned int x=cool->xx;
   if (x>=cool_G) {
     if (((cool_S.l-cool_O.l-cool_L-1)&lring_mask)==0)
       @<Insert an instruction to advance gamma@>@;
@@ -2257,7 +2280,7 @@ case pop:@+if (cool->xx && cool_L>=cool->xx)
       cool->y=specval(&l[(cool_O.l+cool->xx-1)&lring_mask]);
 pop_unsave:@+if (cool_S.l==cool_O.l)
     @<Insert an instruction to decrease gamma@>;
-  {@+register tetra x; register int new_L;
+  {@+register tetra x; register unsigned int new_L;
     register specnode *p=l[(cool_O.l-1)&lring_mask].up;
     if (p->known) x=(p->o.l)&0xff;@+ else goto stall;
     if ((tetra)(cool_O.l-cool_S.l)<=x)
@@ -2476,6 +2499,7 @@ switch (data->i) {
   @<Cases to compute the results of register-to-register operation@>;
   @<Cases to compute the virtual address of a memory operation@>;
   @<Cases for stage 1 execution@>;
+  default: ;
 }
 @<Set things up so that the results become |known| when they should@>;
 
@@ -2649,7 +2673,10 @@ fields contain valid information that should become officially known.
 
 @<Finish execution of an operation@>=
 fin_ex:@+if (data->ren_x) data->x.known=true;
-else if (data->mem_x) data->x.known=true, data->x.addr.l&=-8;
+else if (data->mem_x) {
+  data->x.known=true;
+  if (!(data->x.addr.h&0xffff0000)) data->x.addr.l&=-8;
+}
 if (data->ren_a) data->a.known=true;
 if (data->loc.h&sign_bit)
   data->ra.o.l=0; /* no trips enabled for the operating system */
@@ -2701,6 +2728,13 @@ each clock cycle.
     else if (hot->i==put && hot->xx==rQ)
       hot->x.o.h |= new_Q.h, hot->x.o.l |= new_Q.l;
     if (hot->mem_x) @<Commit to memory if possible, otherwise |break|@>;
+    if (hot->stack_alert) stack_overflow=true;
+    else if (stack_overflow && !hot->interim) {
+      g[rQ].o.l|=STACK_OVERFLOW, new_Q.l|=STACK_OVERFLOW,stack_overflow=false;
+      if (verbose&issue_bit) {
+        printf(" setting rQ=");@+print_octa(g[rQ].o);@+printf("\n");
+      }
+    }
     if (verbose&issue_bit) {
       printf("Committing ");@+print_control_block(hot);@+printf("\n");
     }
@@ -2744,6 +2778,7 @@ have become~1 since the most recently committed \.{GET}.
 
 @<Glob...@>=
 octa new_Q; /* when rQ increases in any bit position, so should this */
+bool stack_overflow; /* stack overflow not yet reported */
 
 @ An instruction will not be committed immediately if it violates the basic
 security rule of \MMIX: An instruction in a nonnegative location
@@ -3066,7 +3101,8 @@ that has elapsed since their previous use.
 
 \smallskip\textindent{$\bullet$} ``Pseudo-LRU'' selection chooses the
 victim by a rough approximation to LRU that is simpler to implement
-in hardware. It requires a bit table $r_1\ldots r_a$. Whenever we use an item
+in hardware. It requires a bit table $r_1\ldots r_{2^a-1}$.
+Whenever we use an item
 with binary address $(i_1\ldots i_a)_2$ in the set, we adjust the
 bit table as follows:
 $$r_1\gets1-i_1,\quad r_{1i_1}\gets1-i_2,\quad\ldots,\quad
@@ -3360,7 +3396,7 @@ static cacheblock* choose_victim(s,aa,policy)
  case serial: l=s[0].rank;@+ s[0].rank=(l+1)&(aa-1);@+ return &s[l];
  case lru: for (p=s;p<s+aa;p++)
     if (p->rank==0) return p;
-  panic(confusion("lru victim")); /* what happened? nobody has rank zero */
+ default: panic(confusion("lru victim")); /* what happened? nobody has rank zero */
  case pseudo_lru: for (l=1,m=aa>>1; m; m>>=1) l=l+l+s[l].rank;
    return &s[l-aa];
   }
@@ -3597,6 +3633,8 @@ static cacheblock* alloc_slot(c,alf)
   register cacheset s;
   register cacheblock *p,*q;
   if (cache_search(c,alf)) return NULL;
+  if (c->flusher.next && c->outbuf.tag.h==alf.h &&
+        !((c->outbuf.tag.l^alf.l)&c->tagmask)) return NULL;
   s=cache_addr(c,alf); /* the set corresponding to |alf| */
   if (c->victim) p=choose_victim(c->victim,c->vv,c->vrepl);
   else p=choose_victim(s,c->aa,c->repl);
@@ -3662,11 +3700,14 @@ Extern chunknode *mem_hash; /* the simulated main memory */
 
 @ The separately compiled procedures |spec_read()| and |spec_write()| have the
 same calling conventions as the general procedures
-|mem_read()| and |mem_write()|.
+|mem_read()| and |mem_write()|, but with an additional |size| parameter,
+which specifies that |1<<size| bytes should be read or written.
 
 @<Sub...@>=
-extern octa spec_read @,@,@[ARGS((octa addr))@]; /* for memory mapped I/O */
-extern void spec_write @,@,@[ARGS((octa addr,octa val))@]; /* likewise */
+extern octa spec_read @,@,@[ARGS((octa addr,int size))@];
+ /* for memory mapped I/O */
+extern void spec_write @,@,@[ARGS((octa addr,octa val,int size))@];
+ /* likewise */
 
 @ If the program tries to read from a chunk that hasn't been allocated,
 the value zero is returned, optionally with a comment to the user.
@@ -3688,7 +3729,6 @@ octa mem_read(addr)
 {
   register tetra off,key;
   register int h;
-  if (addr.h>=(1<<16)) return spec_read(addr);
   off=(addr.l&0xffff)>>3;
   key=(addr.l&0xffff0000)+addr.h;
   for (h=key%hash_prime;mem_hash[h].tag!=key;h--) {
@@ -3716,7 +3756,6 @@ void mem_write(addr,val)
 {
   register tetra off,key;
   register int h;
-  if (addr.h>=(1<<16)) {@+spec_write(addr,val);@+return;@+}
   off=(addr.l&0xffff)>>3;
   key=(addr.l&0xffff0000)+addr.h;
   for (h=key%hash_prime;mem_hash[h].tag!=key;h--) {
@@ -3891,7 +3930,7 @@ coroutine; the I-cache or D-cache may also invoke a |fill_from_mem| coroutine,
 if there is no S-cache. When such a coroutine is invoked, it holds
 |mem_lock|, and its caller has gone to sleep.
 A physical memory address is given in |data->z.o|,
-and |data->ptr_a| specifies either |Icache| or |Dcache|.
+and |data->ptr_a| specifies either |Scache|, |Icache|, or |Dcache|.
 Furthermore, |data->ptr_b| specifies a block within that
 cache, determined by the |alloc_slot| routine. The coroutine
 simulates reading the contents of the specified memory location,
@@ -3899,7 +3938,7 @@ places the result in the |x.o| field of its caller's control block,
 and wakes up the caller. It proceeds to fill the cache's |inbuf| and,
 ultimately, the specified cache block, before waking the caller again.
 
-Let |c=data->ptr_b|. The caller is then |c->fill_lock|, if this variable is
+Let |c=data->ptr_a|. The caller is then |c->fill_lock|, if this variable is
 nonnull. However, the caller might not wish to be awoken or to receive
 the data (for example, if it has been aborted). In such cases |c->fill_lock|
 will be~|NULL|; the filling action continues without the wakeup calls.
@@ -3970,12 +4009,13 @@ case fill_from_S: {@+register cache *c=(cache *)data->ptr_a;
     }
   case 3: @<Copy data from |p| into |c->inbuf|@>;
     data->state=4;@+wait(Scache->access_time);
-  case 4:@+ if (c->lock) wait(1);
+  case 4:@+Scache->lock=NULL; /* we had been holding that lock */
+    data->state=5;
+  case 5:@+if (c->lock) wait(1);
     set_lock(self,c->lock);
-    Scache->lock=NULL; /* we had been holding that lock */
     load_cache(c,(cacheblock*)data->ptr_b);
-    data->state=5;@+ wait(c->copy_in_time);
-  case 5:@+if (cc) awaken(cc,1); /* second wakeup call */
+    data->state=6;@+ wait(c->copy_in_time);
+  case 6:@+if (cc) awaken(cc,1); /* second wakeup call */
     goto terminate;
   }
 }
@@ -4268,9 +4308,10 @@ kept unpacked in several global variables |page_r|, |page_s|, etc., for
 convenience. Whenever rV changes, we recompute all these variables.
 
 @<Glob...@>=
-int page_n; /* the 10-bit |n| field of rV, times 8 */
+unsigned int page_n; /* the 10-bit |n| field of rV, times 8 */
 int page_r; /* the 27-bit |r| field of rV */
 int page_s; /* the 8-bit |s| field of rV */
+int page_f; /* the 3-bit |f| field of rV */
 int page_b[5]; /* the 4-bit |b| fields of rV; |page_b[0]=0| */
 octa page_mask; /* the least significant |s| bits */
 bool page_bad=true; /* does rV violate the rules? */
@@ -4278,7 +4319,7 @@ bool page_bad=true; /* does rV violate the rules? */
 @ @<Update the \\{page} variables@>=
 {@+octa rv;
   rv=data->z.o;
-  page_bad=(rv.l&7? true: false);
+  page_f=rv.l&7, page_bad=(page_f>1);
   page_n=rv.l&0x1ff8;
   rv=shift_right(rv,13,1);
   page_r=rv.l&0x7ffffff;
@@ -4306,7 +4347,7 @@ static octa phys_addr @,@,@[ARGS((octa,octa))@];
 static octa phys_addr(virt,trans)
   octa virt,trans;
 {@+octa t;
-  t=trans;@+ t.l &= -8; /* zero out the protection bits */
+  t=oandn(trans,page_mask); /* zero out the |ynp| fields of a PTE */
   return oplus(t,oand(virt,page_mask));
 }
 
@@ -4365,6 +4406,8 @@ protection code~$p=p_rp_wp_x$; its page address field is scaled by~$2^s$. It
 is entirely zero, including the protection bits, if there was a
 page table failure.
 
+The |z| field of the caller receives this translation.
+
 @<Compute the new entry for |c->inbuf| and give the caller a sneak preview@>=
 c->inbuf.tag=trans_key(data->y.o);
 c->inbuf.data[0]=data->b.o;
@@ -4387,6 +4430,7 @@ typedef struct{
   octa addr; /* its physical address */
   tetra stamp; /* when last committed (mod $2^{32}$) */
   internal_opcode i; /* is this write special? */
+  int size; /* parameter for |spec_write| */
 } write_node;
 
 @ We represent the buffer in the usual way as a circular list, with elements
@@ -4512,6 +4556,11 @@ or vice versa, we believe the most recent hint.
 @<Commit to memory...@>=
 {@+register write_node *q=write_tail;
   if (hot->interrupt&(F_BIT+0xff)) goto done_with_write;
+  if (hot->x.addr.h&0xffff0000) {
+    if (hot->op>=STB && hot->op<STSF) q->size=(hot->op&0xf)>>2;
+    else if (hot->op>=STSF && hot->op<STCO) q->size=2;
+    else q->size=3;
+  }
   if (hot->i!=sync) for (;;) {
     if (q==write_head) break;
     if (q==wbuf_top) q=wbuf_bot;@+ else q++;
@@ -4547,10 +4596,10 @@ case write_from_wbuf:
   case 0:@+ if (self->lockloc) *(self->lockloc)=NULL,self->lockloc=NULL;
     if (write_head==write_tail) wait(1); /* write buffer is empty */
     if (write_head->i==sync) @<Ignore the item in |write_head|@>;
-    if (ticks.l-write_head->stamp<holding_time && !speed_lock)
+    if (write_head->addr.h&0xffff0000) goto mem_direct;
+    if ((int)(ticks.l-write_head->stamp)<holding_time && !speed_lock)
       wait(1); /* data too raw */
-    if (!Dcache || (write_head->addr.h&0xffff0000)) goto mem_direct;
-          /* not cached */
+    if (!Dcache) goto mem_direct; /* not cached */
     if (Dcache->lock || (j=get_reader(Dcache)<0)) wait(1); /* D-cache busy */
     startup(&Dcache->reader[j],Dcache->access_time);
     @<Write the data into the D-cache and set |state=4|,
@@ -4588,7 +4637,9 @@ if (mem_lock) wait(1);
 set_lock(self,wbuf_lock);
 set_lock(&mem_locker,mem_lock); /* a coroutine of type |vanish| */
 startup(&mem_locker,mem_addr_time+mem_write_time);
-mem_write(write_head->addr,write_head->o);
+if (write_head->addr.h&0xffff0000)
+  spec_write(write_head->addr,write_head->o,write_head->size);
+else mem_write(write_head->addr,write_head->o);
 data->state=5;@+ wait(mem_addr_time+mem_write_time);
 
 @ A subtlety needs to be mentioned here: While we're trying to
@@ -4689,7 +4740,7 @@ case ld_st_launch:@+if ((self+1)->next)
   if (data->y.o.h&sign_bit)
     @<Do load/store stage~1 with known physical address@>;
   if (page_bad) {
-    if (data->i==st || (data->i<preld && data->i>syncid))
+    if (data->i<preld || data->i==st || data->i==pst)
        data->interrupt|=PRW_BITS;
     goto fin_ex;
   }
@@ -4745,8 +4796,8 @@ experience a spurious miss.
 
 @<Do a simultaneous lookup in the D-cache@>=
 {@+octa *m;
-  @<Update DT-cache usage and check the protection bits@>;
-  data->z.o=phys_addr(data->y.o,p->data[0]);
+  p=use_and_fix(DTcache,p), data->z.o=p->data[0];
+  @<Check the protection bits and get the physical address@>;
   m=write_search(data,data->z.o);
   if (m==DUNNO) data->state=DT_hit;
   else if (m) data->x.o=*m, data->state=ld_ready;
@@ -4771,21 +4822,26 @@ four positions right from the interrupt codes |PR_BIT|, |PW_BIT|, |PX_BIT|.
 If the data is protected, we abort the load/store operation immediately;
 this protects the privacy of other users.
 
-@<Update DT-cache usage and check the protection bits@>=
-p=use_and_fix(DTcache,p);
+@<Check the protection bits and get the physical address@>=
+if (data->stack_alert) {
+  if (data->z.o.l&(PW_BIT>>PROT_OFFSET)) data->stack_alert=false;
+  else data->z.o=g[rC].o; /* use the continuation page for stack overflow */
+}
 j=PRW_BITS;
-if (((p->data[0].l<<PROT_OFFSET)&j)!=j) {
+if (((data->z.o.l<<PROT_OFFSET)&j)!=(unsigned int)j) {
   if (data->i==syncd || data->i==syncid) goto sync_check;
   if (data->i!=preld && data->i!=prest)
-    data->interrupt|=j&~(p->data[0].l<<PROT_OFFSET);
+    data->interrupt|=j&~(data->z.o.l<<PROT_OFFSET);
+  data->stack_alert=false;
   goto fin_ex;
 }
+data->z.o=phys_addr(data->y.o,data->z.o);
 
 @ @<Do load/store stage 1 without D-cache lookup@>=
 {@+octa *m;
   if (p) {
-    @<Update DT-cache usage and check the protection bits@>;
-    data->z.o=phys_addr(data->y.o,p->data[0]);
+    p=use_and_fix(DTcache,p), data->z.o=p->data[0];
+    @<Check the protection bits and get the physical address@>;
     if (data->i>=st && data->i<=syncid) data->state=st_ready;
     else {
       m=write_search(data,data->z.o);
@@ -4804,17 +4860,35 @@ if (((p->data[0].l<<PROT_OFFSET)&j)!=j) {
     goto fin_ex;
   }
   data->z.o=data->y.o;@+ data->z.o.h -= sign_bit;
-  if (data->i>=st && data->i<=syncid) {
+  if (data->z.o.h&0xffff0000) {
+    switch (data->i) {
+  case ldvts: case preld: case prest: case prego: case syncd: case syncid:
+      goto fin_ex;
+  case ld: case ldunc:@+if (mem_lock) wait(1);
+    if (data->op<LDSF) i=(data->op&0xf)>>2;
+    else if (data->op<CSWAP) i=2;
+    else i=3;
+    data->x.o=spec_read(data->z.o,i);
+    goto make_ld_ready;
+  case pst: if ((data->op^CSWAP)<=1) {
+     data->x.o=spec_read(data->z.o,3);@+goto make_ld_ready;
+    }
+    data->x.o=zero_octa;
+  case st: data->state=st_ready;@+pass_after(1);@+goto passit;
+  default: ;
+    }
+  }@+else if (data->i>=st && data->i<=syncid) {
     data->state=st_ready;@+pass_after(1);@+goto passit;
   }
   m=write_search(data,data->z.o);
   if (m) {
     if (m==DUNNO) data->state=DT_hit;
     else data->x.o=*m, data->state=ld_ready;
-  }@+ else if ((data->z.o.h&0xffff0000) || !Dcache) {
+    pass_after(1);@+goto passit;
+  }@+ else if (!Dcache) {
     if (mem_lock) wait(1);
-    set_lock(&mem_locker,mem_lock);
     data->x.o=mem_read(data->z.o);
+make_ld_ready: set_lock(&mem_locker,mem_lock);
     data->state=ld_ready;
     startup(&mem_locker,mem_addr_time+mem_read_time);
     pass_after(mem_addr_time+mem_read_time);@+ goto passit;
@@ -4852,16 +4926,16 @@ square_one: data->state=DT_retry;
    startup(&DTcache->reader[j],DTcache->access_time);
    p=cache_search(DTcache,trans_key(data->y.o));
    if (p) {
-     @<Update DT-cache usage and check the protection bits@>;
-     data->z.o=phys_addr(data->y.o,p->data[0]);
+     p=use_and_fix(DTcache,p), data->z.o=p->data[0];
+     @<Check the protection bits and get the physical address@>;
      if (data->i>=st && data->i<=syncid) data->state=st_ready;
      else data->state=DT_hit;
    }@+ else data->state=DT_miss;
    wait(DTcache->access_time);
  case DT_miss:@+if (DTcache->filler.next)
-     if (data->i==preld || data->i==prest) goto fin_ex;@+ else goto square_one;
-   if (no_hardware_PT)
-     if (data->i==preld || data->i==prest) goto fin_ex;@+else goto emulate_virt;
+   { if (data->i==preld || data->i==prest) goto fin_ex;@+ else goto square_one;@+}
+   if (no_hardware_PT || page_f)
+   { if (data->i==preld || data->i==prest) goto fin_ex;@+else goto emulate_virt;@+}
    p=alloc_slot(DTcache,trans_key(data->y.o));
    if (!p) goto square_one;
    data->ptr_b=DTcache->filler_ctl.ptr_b=(void *)p;
@@ -4871,13 +4945,7 @@ square_one: data->state=DT_retry;
    data->state=got_DT;
    if (data->i==preld || data->i==prest) goto fin_ex;@+else sleep;
  case got_DT: release_lock(self,DTcache->fill_lock);
-   j=PRW_BITS;
-   if (((data->z.o.l<<PROT_OFFSET)&j)!=j) {
-     if (data->i==syncd || data->i==syncid) goto sync_check;
-     data->interrupt |= j&~(data->z.o.l<<PROT_OFFSET);
-     goto fin_ex;
-   }
-   data->z.o=phys_addr(data->y.o,data->z.o);
+   @<Check the protection bits and get the physical address@>;
    if (data->i>=st && data->i<=syncid) goto finish_store;
     /* otherwise we fall through to |ld_retry| below */
 
@@ -4936,7 +5004,7 @@ the S-cache or from memory.
 @<Check for |prest| with a fully spanned cache block@>=
 if (data->i==prest &&@|
    (data->xx>=Dcache->bb || ((data->y.o.l&(Dcache->bb-1))==0)) &&@|
-   ((data->y.o.l+(data->xx&(Dcache->bb-1))+1)^data->y.o.l)>=Dcache->bb)
+   ((data->y.o.l+(data->xx&(Dcache->bb-1))+1)^data->y.o.l)>=(unsigned int)Dcache->bb)
   goto prest_span;
 
 @ @<Special cases for states in later stages@>=
@@ -5011,8 +5079,9 @@ case st_ready:@+ switch (data->i) {
  case st: case pst: @<Finish a store command@>;
  case syncd: data->b.o.l=(Dcache? Dcache->bb: 8192);@+goto do_syncd;
  case syncid: data->b.o.l=(Icache? Icache->bb: 8192);
-   if (Dcache && Dcache->bb<data->b.o.l) data->b.o.l=Dcache->bb;
+   if (Dcache && (unsigned int)Dcache->bb<data->b.o.l) data->b.o.l=Dcache->bb;
    goto do_syncid;
+ default: ;
 }
 
 @ Store instructions have an extra complication, because some of them need
@@ -5205,7 +5274,7 @@ if (!(p->data[0].l&(PX_BIT>>PROT_OFFSET))) goto bad_fetch;
 
 @<Copy the data from block~|q| to |fetched|@>=
 if (data->i!=prego) {
-  for (j=0;j<Icache->bb;j++) fetched[j]=q->data[j];
+  for (j=0;j<Icache->bb>>3;j++) fetched[j]=q->data[j];
   fetch_lo=(inst_ptr.o.l&(Icache->bb-1))>>3;
   fetch_hi=Icache->bb>>3;
 }
@@ -5256,11 +5325,12 @@ if (data->i!=prego) {
 
 @ @<Other cases for the fetch coroutine@>=
  case IT_miss:@+if (ITcache->filler.next)
-     if (data->i==prego) goto fin_ex;@+else wait(1);
-   if (no_hardware_PT) @<Insert dummy instruction for page table emulation@>;
+   { if (data->i==prego) goto fin_ex;@+else wait(1);@+}
+   if (no_hardware_PT || page_f)
+     @<Insert dummy instruction for page table emulation@>;
    p=alloc_slot(ITcache,trans_key(data->y.o));
    if (!p) /* hey, it was present after all */
-     if (data->i==prego) goto fin_ex;@+else goto new_fetch;
+   { if (data->i==prego) goto fin_ex;@+else goto new_fetch;@+}
    data->ptr_b=ITcache->filler_ctl.ptr_b=(void *)p;
    ITcache->filler_ctl.y.o=data->y.o;
    set_lock(self,ITcache->fill_lock);
@@ -5419,6 +5489,8 @@ might have already been deissued.
   @<Restart the fetch coroutine@>;
   cool_hist=data->hist;
   for (i=j&data->ra.o.l,m=16;!(i&D_BIT);i<<=1,m+=16);
+  data->arith_exc |= (j & ~(0x10000 >> (m >> 4))) >> 8;
+      /* trips taken are not logged as events */
   data->go.o.h=0, data->go.o.l=m;
   inst_ptr.o=data->go.o, inst_ptr.p=NULL;
   data->interrupt |= H_BIT;
@@ -5667,7 +5739,7 @@ case resume:@+ if (cool!=old_hot) goto stall;
 @ Here we set |cool->i=resum|, since we want to issue another instruction
 after the \.{RESUME} itself.
 
-The restrictions on inserted instructions are designed to insure that
+The restrictions on inserted instructions are designed to ensure that
 those instructions will be the very next ones issued. (If, for example,
 an |incgamma| instruction were necessary, it might cause a page fault
 and we'd lose the operand values for |RESUME_SET| or |RESUME_CONT|.)
@@ -5687,7 +5759,7 @@ the \.{SWYM} altogether.
   resuming=2;
  case RESUME_CONT: resuming+=1+cool->zz;
   if (((cool->b.o.l>>24)&0xfa)!=0xb8) { /* not |syncd| or |syncid| */
-    m=cool->b.o.l>>28;
+    unsigned int m=cool->b.o.l>>28;
     if ((1<<m)&0x8f30) goto bad_resume;
     m=(cool->b.o.l>>16)&0xff;
     if (m>=cool_L && m<cool_G) goto bad_resume;
@@ -5759,7 +5831,8 @@ already present.)
 
 @<Cases for stage 1 execution@>=
 case noop:@+if (data->interrupt&F_BIT) goto emulate_virt;
-case jmp: case pushj: case incrl: case unsave: goto fin_ex;
+case incrl: case unsave: goto fin_ex;
+case jmp: case pushj: data->go.o=data->z.o; goto fin_ex;
 case sav:@+if (!(data->mem_x)) goto fin_ex;
 case incgamma: case save: data->i=st; goto switch1;
 case decgamma: case unsav: data->i=ld; goto switch1;
@@ -5771,8 +5844,10 @@ implicit outputs of many instructions.
 The same applies to rK, since it is changed by \.{TRAP} and
 by emulated instructions.
 
+Likewise, rQ must not be prematurely gotten.
+
 @<Cases for stage 1...@>=
-case get:@+ if (data->zz>=21 || data->zz==rK) {
+case get:@+ if (data->zz>=21 || data->zz==rK || data->zz==rQ) {
    if (data!=old_hot) wait(1);
    data->z.o=g[data->zz].o;
  }
@@ -5784,7 +5859,7 @@ This program does not restrict the 1~bits that might be
 drastic implications.
 
 @<Cases for stage 1...@>=
-case put:@+if (data->xx>=15 && data->xx<=20) {
+case put:@+if (data->xx==8 || (data->xx>=15 && data->xx<=20)) {
    if (data!=old_hot) wait(1);
    switch (data->xx) {
   case rV: @<Update the \\{page} variables@>;@+break;
@@ -5798,7 +5873,7 @@ case put:@+if (data->xx>=15 && data->xx<=20) {
   case rG: @<Update rG@>;@+break;
    }
  }@+else if (data->xx==rA && (data->z.o.h!=0 || data->z.o.l>=0x40000))
-   data->interrupt |= B_BIT;
+   data->interrupt |= B_BIT, data->z.o.h=0, data->z.o.l&=0x3ffff;
  data->x.o=data->z.o;@+goto fin_ex;
 
 @ When rG decreases, we assume that up to |commit_max| marginal registers can
@@ -5808,7 +5883,7 @@ seat, and holding |dispatch_lock|.)
 @<Update rG@>=
 if (data->z.o.h!=0 || data->z.o.l>=256 ||
       data->z.o.l<g[rL].o.l || data->z.o.l<32)
-  data->interrupt |= B_BIT;
+  data->interrupt |= B_BIT, data->z.o=g[rG].o;
 else if (data->z.o.l<g[rG].o.l) {
     data->interim=true; /* potentially interruptible */
     for (j=0;j<commit_max;j++) {
@@ -6049,21 +6124,21 @@ case cset:@+if (register_truth(data->y.o,data->op))
 {\mc MMIX-ARITH}, which record anomalous events in the global
 variable |exceptions|. But we consider the operation trivial if an
 input is infinite or NaN; and we may need to increase the execution
-time when denormals are present.
+time when subnormals are present.
 
 @d ROUND_OFF 1
 @d ROUND_UP 2
 @d ROUND_DOWN 3
 @d ROUND_NEAR 4
-@d is_denormal(x) ((x.h&0x7ff00000)==0 && ((x.h&0xfffff) || x.l))
+@d is_subnormal(x) ((x.h&0x7ff00000)==0 && ((x.h&0xfffff) || x.l))
 @d is_trivial(x) ((x.h&0x7ff00000)==0x7ff00000)
 @d set_round cur_round=(data->ra.o.l<0x10000? ROUND_NEAR: data->ra.o.l>>16)
 
 @<Cases to compute the results of reg...@>=
 case fadd: set_round;@+data->x.o=fplus(data->y.o,data->z.o);
- fin_bflot:@+ if (is_denormal(data->y.o)) data->denin=denin_penalty;
- fin_uflot:@+ if (is_denormal(data->x.o)) data->denout=denout_penalty;
- fin_flot:@+ if (is_denormal(data->z.o)) data->denin=denin_penalty;
+ fin_bflot:@+ if (is_subnormal(data->y.o)) data->denin=denin_penalty;
+ fin_uflot:@+ if (is_subnormal(data->x.o)) data->denout=denout_penalty;
+ fin_flot:@+ if (is_subnormal(data->z.o)) data->denin=denin_penalty;
    data->interrupt|=exceptions;
    if (is_trivial(data->y.o) || is_trivial(data->z.o)) goto fin_ex;
    if (data->i==fsqrt && (data->z.o.h&sign_bit)) goto fin_ex;
@@ -6095,12 +6170,13 @@ case fsqrt: case fint: case fix: case flot:@+ if (cool->y.o.l>4)
 @ @<Cases to compute the results of reg...@>=
 case feps: j=fepscomp(data->y.o,data->z.o,data->b.o,data->op!=FEQLE);
   if (j==2) data->i=fcmp;
-  else if (is_denormal(data->y.o) || is_denormal(data->z.o))
+  else if (is_subnormal(data->y.o) || is_subnormal(data->z.o))
     data->denin=denin_penalty;
   switch (data->op) {
  case FUNE:@+ if (j==2) goto cmp_pos;@+ else goto cmp_zero;
  case FEQLE: goto cmp_fin;
  case FCMPE:@+ if (j) goto cmp_zero_or_invalid;
+ default: ;
   }
 case fcmp: j=fcomp(data->y.o,data->z.o);
   if (j<0) goto cmp_neg;
@@ -6121,12 +6197,13 @@ because it can be interrupted when it's in the hot seat.
 @<Cases to compute the results of reg...@>=
 case frem:@+if(is_trivial(data->y.o) || is_trivial(data->z.o))
     {
-      data->x.o=fremstep(data->y.o,data->z.o,2500);@+ goto fin_ex;
+      data->x.o=fremstep(data->y.o,data->z.o,2500);
+      data->interrupt |= exceptions;@+ goto fin_ex;
     }
   if ((self+1)->next) wait(1);
   data->interim=true;
   j=1;
-  if (is_denormal(data->y.o)||is_denormal(data->z.o)) j+=denin_penalty;
+  if (is_subnormal(data->y.o)||is_subnormal(data->z.o)) j+=denin_penalty;
   pass_after(j);
   goto passit;
 
@@ -6142,7 +6219,7 @@ if (data->i==frem) {
     data->state=3;
     data->interim=false;
     data->interrupt |= exceptions;
-    if (is_denormal(data->x.o)) j+=denout_penalty;
+    if (is_subnormal(data->x.o)) j+=denout_penalty;
   }
   wait(j);
 }
@@ -6358,7 +6435,7 @@ case 33:@+ if (data!=old_hot) wait(1);
  @<Wait till write buffer is empty@>;
  if (((data->b.o.l-1)&~data->y.o.l)<data->xx) data->interim=true;
  if (!Dcache)
-   if (data->i==syncd) goto fin_ex;@+ else goto next_sync;
+ { if (data->i==syncd) goto fin_ex;@+ else goto next_sync;@+}
  @<Use |cleanup| on the cache blocks for |data->z.o|, if any@>;
  data->state=34;
 case 34:@+if (!clean_co.next) goto next_sync;
@@ -6484,7 +6561,7 @@ if (!zz) halted=true;
 else if (zz==1) {
   octa trap_loc;
   trap_loc=incr(g[rWW].o,-4);
-  if (!(trap_loc.h || trap_loc.l>=0x90))
+  if (!(trap_loc.h || trap_loc.l>=0xf0))
     print_trip_warning(trap_loc.l>>4,incr(g[rW].o,-4));
 }
 
@@ -6530,14 +6607,20 @@ octa magic_read(addr)
   for (q=write_tail;;) {
     if (q==write_head) break;
     if (q==wbuf_top) q=wbuf_bot;@+ else q++;
-    if (q->addr.l==addr.l && q->addr.h==addr.h) return q->o;
+    if ((q->addr.l&-8)==(addr.l&-8) && q->addr.h==addr.h) return q->o;
   }
   if (Dcache) {
     p=cache_search(Dcache,addr);
     if (p) return p->data[(addr.l&(Dcache->bb-1))>>3];
+    if (((Dcache->outbuf.tag.l^addr.l)&-Dcache->bb)==0 &&
+          Dcache->outbuf.tag.h==addr.h)
+      return Dcache->outbuf.data[(addr.l&(Dcache->bb-1))>>3];
     if (Scache) {
       p=cache_search(Scache,addr);
       if (p) return p->data[(addr.l&(Scache->bb-1))>>3];
+      if (((Scache->outbuf.tag.l^addr.l)&-Scache->bb)==0 &&
+            Scache->outbuf.tag.h==addr.h)
+        return Scache->outbuf.data[(addr.l&(Scache->bb-1))>>3];
     }
   }
   return mem_read(addr);
@@ -6557,24 +6640,24 @@ void magic_write(addr,val)
   for (q=write_tail;;) {
     if (q==write_head) break;
     if (q==wbuf_top) q=wbuf_bot;@+ else q++;
-    if (q->addr.l==addr.l && q->addr.h==addr.h) q->o=val;
+    if ((q->addr.l&-8)==(addr.l&-8) && q->addr.h==addr.h) q->o=val;
   }
   if (Dcache) {
     p=cache_search(Dcache,addr);
     if (p) p->data[(addr.l&(Dcache->bb-1))>>3]=val;
-    if (((Dcache->inbuf.tag.l^addr.l)&Dcache->tagmask)==0 &&
+    if (((Dcache->inbuf.tag.l^addr.l)&-Dcache->bb)==0 &&
           Dcache->inbuf.tag.h==addr.h)
       Dcache->inbuf.data[(addr.l&(Dcache->bb-1))>>3]=val;
-    if (((Dcache->outbuf.tag.l^addr.l)&Dcache->tagmask)==0 &&
+    if (((Dcache->outbuf.tag.l^addr.l)&-Dcache->bb)==0 &&
           Dcache->outbuf.tag.h==addr.h)
       Dcache->outbuf.data[(addr.l&(Dcache->bb-1))>>3]=val;
     if (Scache) {
       p=cache_search(Scache,addr);
       if (p) p->data[(addr.l&(Scache->bb-1))>>3]=val;
-      if (((Scache->inbuf.tag.l^addr.l)&Scache->tagmask)==0 &&
+      if (((Scache->inbuf.tag.l^addr.l)&-Scache->bb)==0 &&
             Scache->inbuf.tag.h==addr.h)
         Scache->inbuf.data[(addr.l&(Scache->bb-1))>>3]=val;
-      if (((Scache->outbuf.tag.l^addr.l)&Scache->tagmask)==0 &&
+      if (((Scache->outbuf.tag.l^addr.l)&-Scache->bb)==0 &&
             Scache->outbuf.tag.h==addr.h)
         Scache->outbuf.data[(addr.l&(Scache->bb-1))>>3]=val;
     }
