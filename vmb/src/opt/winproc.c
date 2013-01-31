@@ -66,7 +66,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	  if (!vmb.connected)
 	  { if (DialogBox(hInst,MAKEINTRESOURCE(IDD_CONNECT),hWnd,ConnectDialogProc))
 	  	{  vmb_connect(&vmb,host,port);
-	       vmb_register(&vmb,HI32(vmb_address), LO32(vmb_address),vmb_size,0,0,defined);
+	       vmb_register(&vmb,HI32(vmb_address), LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
    	       SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 		}
 	  }

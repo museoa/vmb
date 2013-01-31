@@ -72,8 +72,8 @@ device_info vmb = {0};
 #include "bus-arith.h"
 
 extern int vmb_power_flag;
-int major_version=1, minor_version=4;
-char version[] = "$Revision: 1.43 $ $Date: 2012-10-19 10:12:46 $";
+int major_version=1, minor_version=5;
+char version[] = "$Revision: 1.44 $ $Date: 2013-01-31 15:41:02 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -108,6 +108,7 @@ static struct
   int fd;			/* File Descriptor */
 
   unsigned char *name;
+  unsigned int major_version, minor_version;
   unsigned char from_addr[8];	/* Address from */
   unsigned char to_addr[8];	/* Address to */
   unsigned int hi_mask, low_mask;	/* Enabled for interrupts */
@@ -472,22 +473,28 @@ interpret_message (int source_slot)
       break;
     
     case (ID_REGISTER):
+	{ int i;
       memmove (slot[source_slot].from_addr, &mpayload[0], 8);
       memmove (slot[source_slot].to_addr, &mpayload[8], 8);
       slot[source_slot].hi_mask = chartoint (&mpayload[16]);
       slot[source_slot].low_mask = chartoint (&mpayload[20]);
       if (msize > 2)
-      {
-	int n;
-	n = (int)strlen((char *)mpayload + 24) + 1;
-	slot[source_slot].name = malloc (n);
-	if (slot[source_slot].name == NULL)
-	  vmb_error(__LINE__,"Out of memory");
-	else
-	  strcpy ((char *)slot[source_slot].name, (char *)mpayload + 24);
+      {	int n;
+	    n = (int)strlen((char *)mpayload + 24) + 1;
+		i=(n+7)/8; /* number of octas used by name */
+	    slot[source_slot].name = malloc (n);
+	    if (slot[source_slot].name == NULL)
+	      vmb_error(__LINE__,"Out of memory");
+	    else
+	      strncpy ((char *)slot[source_slot].name, (char *)mpayload + 24,n);
       }
+	  if (msize > 2+i)
+	  { slot[source_slot].major_version = chartoint (&mpayload[24+i*8]);
+	    slot[source_slot].minor_version = chartoint (&mpayload[24+i*8+4]);
+	  }
+	}
       if (powerflag)
-	power_on (source_slot);
+	    power_on (source_slot);
       break;
     default:
       break;
@@ -843,7 +850,10 @@ display_slot (HWND hDlg, int i)
     int size;
     infoslot = i;
     if (slot[i].name != NULL)
-      SetDlgItemText (hDlg, IDC_SLOTNAME, slot[i].name);
+	{ char nv[100];
+	  _snprintf(nv,100-1,"%s %d.%d",slot[i].name,slot[i].major_version,slot[i].minor_version);
+      SetDlgItemText (hDlg, IDC_SLOTNAME, nv);
+	}
     else
       SetDlgItemText (hDlg, IDC_SLOTNAME, "Unnamed");
     chartohex (slot[i].from_addr, hex, 8);
@@ -880,13 +890,17 @@ InfoDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
   case WM_INITDIALOG:
     {
       TCITEM tie;
-      char label[10];
+#define TAB_MAX 32
+      char label[TAB_MAX];
       int i;
       tie.mask = TCIF_TEXT;
       tie.iImage = -1;
       for (i = 0; i < max_slot; i++)
       {
-	sprintf (label, "Slot %d", i);
+    if (slot[i].name==NULL)
+		_snprintf (label,TAB_MAX-1,"%d: ", i);
+	else
+		_snprintf (label,TAB_MAX-1,"%d: %s", i,slot[i].name);
 	tie.pszText = label;
 	TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_SLOTS), i, &tie);
       }
@@ -898,10 +912,10 @@ InfoDialogProc (HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam)
       return TRUE;
     }
   case WM_NOTIFY:
-    /*  if (HIWORD(wparam)==TCN_SELCHANGE) */
-    {
+    { NMHDR *p = (NMHDR *)lparam;
       int i = TabCtrl_GetCurSel (GetDlgItem (hDlg, IDC_SLOTS));
-      display_slot (hDlg, i);
+	  if (p->code==TCN_SELCHANGE)
+        display_slot (hDlg, i);
     }
     break;
   case WM_SYSCOMMAND:

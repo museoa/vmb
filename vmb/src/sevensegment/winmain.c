@@ -18,8 +18,8 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
-int major_version=1, minor_version=4;
-char version[]="$Revision: 1.20 $ $Date: 2012-10-19 10:12:46 $";
+int major_version=1, minor_version=5;
+char version[]="$Revision: 1.21 $ $Date: 2013-01-31 15:41:03 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -193,12 +193,6 @@ BOOL InitInstance(HINSTANCE hInstance)
     vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
   }
-  r = LoadString(hInstance, IDS_TITLE, title, MAX_LOADSTRING);
-  if (r==0)
-  { r = GetLastError();
-    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load window title (%X)",r);
-  }
- 
     hInst = hInstance; 
    	ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX); 
@@ -249,7 +243,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	UpdateWindow(hMainWnd);
 
 	vmb_connect(&vmb,host,port);
-	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 	while (GetMessage(&msg, NULL, 0, 0)) 
       if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 

@@ -1990,7 +1990,7 @@ int main(argc,argv)
   @<Local registers@>;
   @<Process the command line@>;
 #endif
-
+  g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
   if (bushost==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(bushost,busport,"MMIX CPU");
  

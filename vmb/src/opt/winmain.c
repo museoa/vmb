@@ -101,7 +101,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	UpdateWindow(hMainWnd);
 	vmb_begin();
  	vmb_connect(&vmb,host,port);
-	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined);
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
 	if (vmb_verbose_flag) vmb_debug_mask=0; 
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));

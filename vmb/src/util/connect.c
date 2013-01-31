@@ -166,7 +166,8 @@ int bus_register(int *socket,
                 unsigned char address[8],
                 unsigned char limit[8],
                 unsigned int hi_mask, unsigned int low_mask,
-				char *name)
+				char *name,
+				int major_version, int minor_version)
 { unsigned char size;
   unsigned char msg[MAXMESSAGE] = {0};
   if (socket<0)
@@ -186,12 +187,17 @@ int bus_register(int *socket,
 
   { int n;
 
-    n = (int)strlen(name);
-    if ((n/8+1)> 255-3)
+    n = (int)strlen(name)+1;
+    if ((3+(n+7)/8)> 255)
        n = (255-4)*8;
 
-    strncpy((char *)(msg+24),name,n*8);
-    size += n/8+1;
+    strncpy((char *)(msg+24),name,n);
+    size += (n+7)/8;
+  }
+  if (size<255 && major_version>0 && minor_version>=0)
+  {   inttochar(major_version, &msg[8*(size+1)]);
+      inttochar(minor_version, &msg[8*(size+1)+4]);
+	  size++;
   }
   /* send bus register message */
   return send_msg(socket, TYPE_BUS|TYPE_PAYLOAD, size, 0, ID_REGISTER, 0, 0, msg);

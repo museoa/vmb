@@ -20,8 +20,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-int major_version=1, minor_version=4;
-char version[]="$Revision: 1.11 $ $Date: 2012-10-19 10:12:46 $";
+int major_version=1, minor_version=5;
+char version[]="$Revision: 1.12 $ $Date: 2013-01-31 15:41:03 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
@@ -806,7 +806,7 @@ int main(int argc, char *argv[])
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
-               0, 0, vmb_program_name);
+               0, 0, vmb_program_name,major_version,minor_version);
 #if 0
   while (vmb.connected)
   { fd_set except_set;

@@ -693,7 +693,8 @@ void vmb_connect(device_info *vmb, char *host, int port)
 void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int address_lo,
 		  unsigned int size,
                   unsigned int lo_mask, unsigned int hi_mask,
-                  char *name)
+                  char *name,
+				  int major_version, int minor_version)
 /* call after initialize to register with the  virtual bus 
    must be called before any of the other funcions
 */
@@ -705,7 +706,7 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
    add_offset(vmb->address,size,limit);
    vmb->lo_mask = lo_mask;
    vmb->hi_mask = hi_mask;
-   r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name);
+   r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name,major_version,minor_version);
 #ifdef WIN32
    if (r<0)
    { TIMEVAL tv;
@@ -714,7 +715,7 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
 	 tv.tv_usec= 10000;
 	 select(0,NULL,NULL,NULL,&tv);
 	 /* wait and try again */
-	 r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name);
+	 r = bus_register(&(vmb->fd),vmb->address,limit,lo_mask,hi_mask,name,major_version,minor_version);
    }
 #endif
    if (r<0)

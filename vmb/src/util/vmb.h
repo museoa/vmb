@@ -132,7 +132,7 @@ extern void vmb_connect(device_info *vmb, char *host, int port);
 extern void vmb_register(device_info *vmb,unsigned int adress_hi, unsigned int address_lo,
                          unsigned int size,
                          unsigned int lo_mask, unsigned int hi_mask,
-                         char *name);
+                         char *name, int major_version, int minor_version);
 extern void vmb_wait_for_disconnect(device_info *vmb);
 extern void vmb_disconnect(device_info *vmb);
 extern int vmb_get_interrupt(device_info *vmb, unsigned int *hi, unsigned int *lo);

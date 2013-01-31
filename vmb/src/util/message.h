@@ -144,7 +144,8 @@ extern  int bus_connect(char *hostname,int port);
 /* returns the socket or -1 on error */
 extern  int bus_register(int *socket,
                 unsigned char address[8],unsigned char limit[8],
-			unsigned int hi_mask, unsigned int low_mask, char *name);
+			unsigned int hi_mask, unsigned int low_mask,
+			char *name, int major_version, int minor_version);
 extern  int bus_unregister(int socket);
 extern int bus_disconnect(int *socket);
 

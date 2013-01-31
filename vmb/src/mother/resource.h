@@ -37,6 +37,7 @@
 #define IDC_SLOTSIZE                    1013
 #define IDC_SLOTCLOSE                   1014
 #define IDC_SLOTMASK                    1015
+#define IDC_SLOTNAME2                   1017
 #define IDC_SLOTRESET                   1018
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
