@@ -19,7 +19,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.21 $ $Date: 2013-01-31 15:41:03 $";
+char version[]="$Revision: 1.22 $ $Date: 2013-07-03 16:43:46 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -40,6 +40,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
+		inspector[0].address=vmb_address;
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -273,27 +274,27 @@ unsigned char *seg_get_payload(unsigned int offset,int size)
 
 void seg_put_payload(unsigned int offset,int size, unsigned char *payload)
 { memmove(segmentbits+offset,payload,size);
-  mem_update(0,offset,size);
+  mem_update(offset,size);
   update_bits();
 }
 
 void seg_poweron(void)
 { memset(segmentbits,0xFF,8);
-  mem_update(0,0,8);
+  mem_update(0,8);
   update_bits();
 }
 
 
 void seg_poweroff(void)
 { memset(segmentbits,0x80,8);
-  mem_update(0,0,8);
+  mem_update(0,8);
   update_bits();
 }
 
 void seg_disconnected(void)
 /* this function is called when the reading thread disconnects from the virtual bus. */
 { memset(segmentbits,0x02,8);
-  mem_update(0,0,8);
+  mem_update(0,8);
   update_bits();
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
@@ -301,7 +302,7 @@ void seg_disconnected(void)
 
 void seg_reset(void)
 { memset(segmentbits,0xFF,8);
-  mem_update(0,0,8);
+  mem_update(0,8);
   inspector[0].address=vmb_address;
   update_bits();
 }
@@ -331,5 +332,5 @@ void init_device(device_info *vmb)
   vmb->put_payload=seg_put_payload;
   vmb->get_payload=seg_get_payload;
   inspector[0].address=vmb_address;
-  mem_update(0,0,vmb_size);
+  mem_update(0,vmb_size);
 }

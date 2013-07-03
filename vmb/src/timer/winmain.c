@@ -8,6 +8,7 @@
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
+#include "inspect.h"
 #include "timer.h"
 #pragma warning(disable : 4996)
 
@@ -93,6 +94,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
+        inspector[1].address=vmb_address;
 		interrupt = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
       if (wparam == IDOK || wparam == IDCANCEL)

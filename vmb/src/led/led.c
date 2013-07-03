@@ -52,7 +52,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.13 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.14 $ $Date: 2013-07-03 16:43:46 $";
 char title[] = "VMB LED";
 char howto[] =
 "\n"
@@ -75,13 +75,13 @@ void led_put_payload(unsigned int offset,int size, unsigned char *payload)
 { led = payload[0];
   vmb_debugi(VMB_DEBUG_INFO, "LED SET: %2X",led);
   update_display();
-  mem_update(0,0,1);
+  mem_update(0,1);
 }
 
 void led_poweroff(void)
 { led=0;
   update_display();
-  mem_update(0,0,1);
+  mem_update(0,1);
   vmb_debug(VMB_DEBUG_INFO, "POWER OFF");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_OFF,0,0);
@@ -91,7 +91,7 @@ void led_poweroff(void)
 void led_poweron(void)
 { led=0;
   update_display();
-  mem_update(0,0,1);
+  mem_update(0,1);
   vmb_debug(VMB_DEBUG_INFO, "POWER ON");
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
@@ -100,7 +100,7 @@ void led_poweron(void)
 
 void led_reset(void)
 { led=0;
-  mem_update(0,0,1);
+  mem_update(0,1);
   update_display();
   vmb_debug(VMB_DEBUG_INFO, "RESET");
 #ifdef WIN32
@@ -135,5 +135,5 @@ void init_device(device_info *vmb)
    vmb->get_payload=led_get_payload;
    vmb->put_payload=led_put_payload;
    inspector[0].address=vmb_address;
-   mem_update(0,0,1);
+   mem_update(0,1);
 }

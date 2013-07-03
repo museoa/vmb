@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "param.h"
 #include "option.h"
+#include "inspect.h"
 #include "winopt.h"
 
 
@@ -39,6 +40,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
 	    vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
         GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
 	    set_option(&filename,tmp_option);
 		open_file();

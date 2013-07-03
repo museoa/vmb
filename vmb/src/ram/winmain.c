@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "winopt.h"
 #include "param.h"
+#include "inspect.h"
 #include "option.h"
 
 
@@ -28,6 +29,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
 		vmb_size=GetDlgItemInt(hDlg,IDC_RAMSIZE,NULL,FALSE);
       }
       if (wparam == IDOK || wparam == IDCANCEL)

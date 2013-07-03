@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.30 $ $Date: 2013-01-31 15:41:03 $";
+char version[]="$Revision: 1.31 $ $Date: 2013-07-03 16:43:47 $";
 char title[] ="VMB Video Ram";
 
 int major_version=1, minor_version=5;
@@ -126,7 +126,7 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
   rect.right=(int)((maxx+1)*zoom);
   InvalidateRect(hMainWnd,&rect,FALSE);
   LeaveCriticalSection (&bitmap_section);
-  mem_update(0,offset,size);
+  mem_update_i(0,offset,size);
 }
 
 void screen_poweron(void)
@@ -139,7 +139,7 @@ void screen_poweron(void)
   rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,NULL,FALSE);
   LeaveCriticalSection (&bitmap_section);
-  mem_update(0,0,vmb_size);
+  mem_update_i(0,0,vmb_size);
 }
 
 
@@ -153,7 +153,7 @@ void screen_poweroff(void)
   rc = FillRect(hCanvas,&rect,hbr);
   InvalidateRect(hMainWnd,NULL,FALSE);
   LeaveCriticalSection (&bitmap_section);
-  mem_update(0,0,vmb_size);
+  mem_update_i(0,0,vmb_size);
 }
 
 
@@ -169,7 +169,7 @@ void screen_disconnected(void)
     rc = FillRect(hCanvas,&rect,hbr);
     InvalidateRect(hMainWnd,NULL,FALSE);
     LeaveCriticalSection (&bitmap_section);
-	mem_update(0,0,vmb_size);
+	mem_update_i(0,0,vmb_size);
   }
   PostMessage(hMainWnd,WM_VMB_DISCONNECT,0,0); /* the disconnect button */
 }
@@ -263,7 +263,7 @@ static unsigned char mouse_mem[2*8];
 
 void mouse_poweron(void)
 { memset(mouse_mem,0,sizeof(mouse_mem));
-  mem_update(1,0,0x10);
+  mem_update_i(1,0,0x10);
 }
 
 unsigned char *mouse_get_payload(unsigned int offset,int size)
@@ -307,7 +307,7 @@ void mouse_set_position(WPARAM wParam, LPARAM lParam, int event)
 		vmb_raise_interrupt(&vmb_mouse, interrupt);
 		vmb_debugi(VMB_DEBUG_PROGRESS,"Mouse Event %X",event);
 	}
-  mem_update(1,0,0x10);
+  mem_update_i(1,0,0x10);
 }
 
 static int read_mouse(unsigned int offset, int size, unsigned char *buf)
@@ -577,7 +577,7 @@ void init_gpu_memory(void)
   SET_SCREEN_W(width);	
   SET_SCREEN_H(height);
 
-  mem_update(2,0,GPU_MEM_SIZE);
+  mem_update_i(2,0,GPU_MEM_SIZE);
 }
 void gpu_poweron(void)
 { init_gpu_memory();
@@ -591,7 +591,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
   y=x=w=h=dw=dh=0;
   memmove(gpu_mem+offset,payload, size);
   if (offset>0 || GPU_COMMAND == GPU_NOP) 
-  {	mem_update(2,offset,size);
+  {	mem_update_i(2,offset,size);
 	return;
   }
   EnterCriticalSection (&bitmap_section);
@@ -684,12 +684,12 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 	case GPU_BLT_IN:
 		LeaveCriticalSection (&bitmap_section);
 		PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
-		mem_update(2,offset,size);
+		mem_update_i(2,offset,size);
 		return;
 	case GPU_BLT_OUT:
 		LeaveCriticalSection (&bitmap_section);
 	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
-		mem_update(2,offset,size);
+		mem_update_i(2,offset,size);
         return;
   }
 
@@ -706,8 +706,8 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
   }
   LeaveCriticalSection (&bitmap_section);  
   if (w>0 && h>0)
-    mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
-  mem_update(2,offset,size);
+    mem_update_i(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
+  mem_update_i(2,offset,size);
 }
 
 
@@ -817,6 +817,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    int newwidth, newheight;
 	    GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
+		inspector[0].address=vmb_address;
 		newframeheight=GetDlgItemInt(hDlg,IDC_FRAMEHEIGHT,FALSE,FALSE);
 		newframewidth=GetDlgItemInt(hDlg,IDC_FRAMEWIDTH,FALSE,FALSE);
 		newheight=GetDlgItemInt(hDlg,IDC_HEIGHT,FALSE,FALSE);
@@ -910,6 +911,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			EnterCriticalSection (&bitmap_section);
             for (n=0;n<da.size;n=n+4)
 			{ put_one_pixel(x+i,y+k,da.data+n);
+			  if (!(*(da.data+n)|*(da.data+n+1)|*(da.data+n+2)|*(da.data+n+3)))
+				  i= i+k&0x80000000;
 			  i++;
 			  if (i >= w)
 			  { i=0; k++;
@@ -930,7 +933,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           InvalidateRect(hMainWnd,&rect,FALSE);
           LeaveCriticalSection (&bitmap_section);
 		  if (w>0 && h>0)
-            mem_update(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
+            mem_update_i(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
 		  return 0;
 		}
 	case WM_VMB_OTHER+1: /* called for GPU_BLT_OUT */

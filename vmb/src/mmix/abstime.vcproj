@@ -90,7 +90,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Generate abstime.h"
-				CommandLine="abstime.exe &gt; abstime.h"
+				CommandLine="Debug\abstime.exe &gt; abstime.h"
 			/>
 		</Configuration>
 		<Configuration
@@ -169,7 +169,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Generate abstime.h"
-				CommandLine="abstime.exe &gt; abstime.h"
+				CommandLine="Release\abstime.exe &gt; abstime.h"
 			/>
 		</Configuration>
 	</Configurations>

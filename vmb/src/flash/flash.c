@@ -44,7 +44,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.20 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.21 $ $Date: 2013-07-03 16:43:46 $";
 
 char howto[] =
 "\n"
@@ -96,7 +96,7 @@ void open_file(void)
   }
   inspector[0].address=vmb_address;
   inspector[0].size=vmb_size;
-  mem_update(0,0,vmb_size);
+  mem_update(0,vmb_size);
   vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 }
 
@@ -138,13 +138,13 @@ unsigned char *flash_get_payload(unsigned int offset,int size)
 void flash_put_payload(unsigned int offset,int size, unsigned char *payload)
 {    memmove(flash+offset,payload,size);
      image_changed = 1;
-	 mem_update(0,offset,size);
+	 mem_update(offset,size);
 }
 
 
 void flash_poweron(void)
 { open_file();
-  mem_update(0,0,vmb_size);
+  mem_update(0,vmb_size);
   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
   #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);

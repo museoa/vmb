@@ -6,9 +6,12 @@ extern HWND hMemory;
 extern INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
-extern void adjust_memory_tab(void);
+/* call this to switch to inspector i */
+extern void adjust_memory_tab(int i);
 /* call this function to tell the memory inspector that an update is due */
-extern void mem_update(int inspector, unsigned int offset, int size);
+extern void mem_update(unsigned int offset, int size);
+/* call this function to tell a specific memory inspector i that an update is due */
+extern void mem_update_i(int i, unsigned int offset, int size);
 
 #else
 /* make it a no-op */
@@ -41,4 +44,3 @@ struct inspector_def {
 };
 
 extern struct inspector_def inspector[];
-extern int insp;

@@ -45,7 +45,7 @@ void display_char(char c);
 int major_version=1, minor_version=5;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.24 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.25 $ $Date: 2013-07-03 16:43:46 $";
 
 char howto[] =
 "\n"
@@ -104,7 +104,7 @@ unsigned char *kb_get_payload(unsigned int offset,int size)
         vmb_raise_interrupt(&vmb,interrupt);
         vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");  
 	  }
-	  mem_update(0,0,8);
+	  mem_update(0,8);
 	}
     return payload+offset;
 }
@@ -141,7 +141,7 @@ void process_input_file(char *filename)
   data[EXTENSION] = 0;
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
-  mem_update(0,0,8);
+  mem_update(0,8);
   vmb_raise_interrupt(&vmb,interrupt);
   vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
 }
@@ -160,7 +160,7 @@ void process_input(unsigned char c, unsigned char extended)
     data[EXTENSION]=extended;
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
-	mem_update(0,0,8);
+	mem_update(0,8);
     vmb_raise_interrupt(&vmb,interrupt);
     vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
   }
@@ -232,7 +232,7 @@ void kbd_poweron(void)
 /* this function is called when the virtual power is turned on */
 { /* do nothing */
 	memset(data,0,8);
-	mem_update(0,0,8);
+	mem_update(0,8);
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
@@ -241,7 +241,7 @@ void kbd_reset(void)
 /* this function is called when the virtual power is turned on */
 { /* do nothing */
 	memset(data,0,8);
-	mem_update(0,0,8);
+	mem_update(0,8);
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_RESET,0,0);
 #endif

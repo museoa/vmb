@@ -43,7 +43,7 @@ extern device_info vmb;
 char title[] ="VMB Screen";
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.15 $ $Date: 2013-01-31 15:41:03 $";
+char version[]="$Revision: 1.16 $ $Date: 2013-07-03 16:43:46 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -111,13 +111,13 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
     if (data[COUNT]<0xFF) data[COUNT]++;
     else data[ERROR]=0x80;
     data[DATA] = payload[7-offset];
-    mem_update(0,0,8);
+    mem_update(0,8);
     vmb_debugi(VMB_DEBUG_INFO, "(%02X)",data[DATA]);
     display_char(data[DATA]);
     memset(data,0,8);
     if (! disable_interrupt)
       vmb_raise_interrupt(&vmb,interrupt);
-    mem_update(0,0,8);
+    mem_update(0,8);
 }
 
 struct register_def screen_regs[] = {

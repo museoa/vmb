@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "winopt.h"
 #include "param.h"
+#include "inspect.h"
 #include "option.h"
 
 extern char *label;
@@ -313,6 +314,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
 	    nleds = GetDlgItemInt(hDlg,IDC_NLEDS,NULL,FALSE);
 	    if (nleds>8) nleds=8;
 	    if (nleds<1) nleds=1;

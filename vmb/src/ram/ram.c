@@ -35,7 +35,7 @@ extern HWND hMainWnd;
 #include "inspect.h"
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.17 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.18 $ $Date: 2013-07-03 16:43:46 $";
 char title[] ="VMB RAM";
 
 char howto[] =
@@ -139,7 +139,7 @@ static int ram_write(unsigned int offset,int size,unsigned char *payload)
   n = ram_write_mid(i,offset,size,payload);
   if (n<size && i+1 < ROOTSIZE)
     n = n + ram_write_mid(i+1,0,size-n,payload+n);
-  mem_update(0,offset, size);
+  mem_update(offset, size);
   return n;
 }
 
@@ -168,7 +168,7 @@ static void ram_clean(void)
     }
    inspector[0].address=vmb_address;
    inspector[0].size=vmb_size;
-   mem_update(0,0, vmb_size);
+   mem_update(0, vmb_size);
 }
 
 /* Interface to the virtual motherboard */

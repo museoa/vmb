@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "winopt.h"
 #include "param.h"
+#include "inspect.h"
 #include "option.h"
 
 
@@ -41,6 +42,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
 	    vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
 		winterrupt  = GetDlgItemInt(hDlg,IDC_WINTERRUPT,NULL,FALSE);
 		rinterrupt  = GetDlgItemInt(hDlg,IDC_RINTERRUPT,NULL,FALSE);
 		wdisable=!IsDlgButtonChecked(hDlg,IDC_WENABLE);

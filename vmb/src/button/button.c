@@ -1,6 +1,6 @@
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.12 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.13 $ $Date: 2013-07-03 16:43:45 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";
@@ -14,6 +14,7 @@ char howto[]="The button device can be configured to send interrupts\n"
 #include "resource.h"
 #include "winopt.h"
 #include "param.h"
+#include "inspect.h"
 #include "option.h"
 
 HBITMAP hOn, hOff, hOnTemplate, hOffTemplate;
@@ -132,6 +133,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option);
+		inspector[0].address=vmb_address;
 		GetDlgItemText(hDlg,IDC_LABEL,tmp_option,MAXTMPOPTION);
 		set_option(&label,tmp_option);
 		interrupt =GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);

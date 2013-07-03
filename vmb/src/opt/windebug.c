@@ -180,13 +180,10 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { int i = TabCtrl_GetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG));
 	    ShowWindow(GetDlgItem(hDlg,IDC_DEBUG),i==0?SW_SHOW:SW_HIDE);
         ShowWindow(hFilter,i==1?SW_SHOW:SW_HIDE);
+		ShowWindow(hMemory,i>1?SW_SHOW:SW_HIDE); 
 	    if (i==1) show_filter();
-        ShowWindow(hMemory,i>1?SW_SHOW:SW_HIDE); 
-		if (i>1) {
-			insp=i-2;
-			adjust_memory_tab();
-		}
-		else insp=0;
+		else if (i>1)
+			adjust_memory_tab(i-2);
       }
 	}
     break;

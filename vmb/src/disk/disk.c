@@ -31,7 +31,7 @@ extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.27 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.28 $ $Date: 2013-07-03 16:43:45 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -238,7 +238,7 @@ void set_diskCtrl(unsigned int value)
   if (start)
     vmb_debug(VMB_DEBUG_INFO, "Action triggered");
   SET_DISK_CTRL(diskCtrl);
-  mem_update(0,DISK_CTRL_OFFSET,4);
+  mem_update(DISK_CTRL_OFFSET,4);
 }
 
 
@@ -364,7 +364,7 @@ static void register_to_mem(void)
    { SET_DISK_DMA_ADDR(i,diskDma[i].address);
      SET_DISK_DMA_SIZE(i,diskDma[i].size);
    }
-   mem_update(0,0,DISK_MEM);
+   mem_update(0,DISK_MEM);
 }
 
 static void mem_to_register(int offset, int size)
@@ -447,7 +447,7 @@ static void diskBussy(void)
   vmb_debug(VMB_DEBUG_INFO, "Disk is Bussy");
   diskStatus = (diskStatus| DISK_BUSY) & ~DISK_ERR;
   SET_DISK_STAT(diskStatus);
-  mem_update(0,0,4);
+  mem_update(0,4);
 }
 
 
@@ -460,7 +460,7 @@ static void diskDone(void)
   vmb_debug(VMB_DEBUG_INFO, "Disk is Idle");
   diskStatus=(diskStatus & ~DISK_BUSY);
   SET_DISK_STAT(diskStatus);
-  mem_update(0,0,4);
+  mem_update(0,4);
   if (diskCtrl & DISK_IEN) {
     vmb_raise_interrupt(&vmb,interrupt);
     vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
@@ -484,7 +484,7 @@ static int diskPosition(void)
       vmb_error(__LINE__,"cannot position to sector in disk image");
       diskStatus = diskStatus | DISK_ERR;
 	  SET_DISK_STAT(diskStatus);
-      mem_update(0,0,4);
+      mem_update(0,4);
       return 0;
     }
 }
@@ -531,7 +531,7 @@ static void diskRead(void)
             diskSct=diskSct+d;
 	        SET_DISK_CNT(diskCnt);
 	        SET_DISK_SCT(diskSct);
-	        mem_update(0,0x10,0x10);
+	        mem_update(0x10,0x10);
 		  }
 	    }
 	  }
@@ -585,7 +585,7 @@ static void diskWrite(void)
             diskSct=diskSct+d;
 	        SET_DISK_CNT(diskCnt);
 	        SET_DISK_SCT(diskSct);
-	        mem_update(0,0x10,0x10);
+	        mem_update(0x10,0x10);
 		  }
 	    }
 	  }
@@ -615,7 +615,7 @@ void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
    register_to_mem();
    memmove(mem+offset,payload,size);
    mem_to_register(offset,size);
-   mem_update(0,offset,size);
+   mem_update(offset,size);
 }
 
 

@@ -44,7 +44,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.17 $ $Date: 2013-01-31 15:41:02 $";
+char version[]="$Revision: 1.18 $ $Date: 2013-07-03 16:43:46 $";
 
 char howto[] =
 "\n"
@@ -178,7 +178,7 @@ void open_file(void)
 	}
 	inspector[0].address=vmb_address;
 	inspector[0].size=vmb_size;
-	mem_update(0,0,vmb_size);
+	mem_update(0,vmb_size);
 	vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 }
 
@@ -195,7 +195,7 @@ unsigned char *rom_get_payload(unsigned int offset,int size)
 
 void rom_poweron(void)
 {  open_file();
-   mem_update(0,0,vmb_size);
+   mem_update(0,vmb_size);
 #ifdef WIN32
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif

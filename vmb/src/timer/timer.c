@@ -206,7 +206,7 @@ void timer_signal()
   }
   else
     timer_start();
-  mem_update(0,0x00,TIMER_MEM);
+  mem_update(0,TIMER_MEM);
 }
 
 
@@ -214,7 +214,7 @@ void timer_signal()
 int major_version=1, minor_version=5;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.12 $ $Date: 2013-01-31 15:41:03 $";
+char version[]="$Revision: 1.13 $ $Date: 2013-07-03 16:43:46 $";
 
 char howto[] =
 "\n"
@@ -253,7 +253,7 @@ unsigned char *timer_get_payload(unsigned int offset,int size)
    { int d = offset<0x10?0x10-offset:0;
      vmb_debugx(VMB_DEBUG_INFO,"extended information: %s",tmem+offset+d,size-d);
    }
-   mem_update(0,0x00,0x10);
+   mem_update(0,TIMER_MEM);
    return tmem+offset;
 }
 
@@ -309,7 +309,7 @@ void timer_put_payload(unsigned int offset,int size, unsigned char *payload)
         timer_start();
       }
     }
-	mem_update(0,0,TIMER_MEM);
+	mem_update(0,TIMER_MEM);
   }
 }
 
@@ -319,8 +319,8 @@ static void clear_timer(void)
   SETTI(ti);
   SETT0(t0);
   SETDT(dt);
-  mem_update(0,0x10,TIMER_MEM);
   update_display();
+  mem_update(0,TIMER_MEM);
 }
 void timer_poweroff(void)
 /* this function is called when the virtual power is turned off */
@@ -397,5 +397,6 @@ void init_device(device_info *vmb)
   vmb->put_payload=timer_put_payload;
   vmb->get_payload=timer_get_payload;
   inspector[0].address=vmb_address;
+  inspector[1].address=vmb_address;
 }
 

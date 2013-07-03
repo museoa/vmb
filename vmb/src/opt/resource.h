@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32about.rc
+// Used by win32dedit.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1
@@ -23,6 +23,7 @@
 #define IDD_DEBUG                       123
 #define IDD_SETTINGS                    124
 #define IDD_CONFIGURATION               125
+#define IDD_DATAEDIT                    126
 #define AFX_IDC_PRINT_DOCNAME           201
 #define AFX_IDC_PRINT_PRINTERNAME       202
 #define AFX_IDC_PRINT_PORTNAME          203
@@ -62,6 +63,24 @@
 #define IDC_CHUNK                       1024
 #define IDC_HOWTO                       1024
 #define IDC_CONFIGURATION               1025
+#define IDC_NAME                        1025
+#define IDC_EDITBYTE0                   1026
+#define IDC_EDITBYTE1                   1027
+#define IDC_EDITBYTE2                   1028
+#define IDC_EDITBYTE3                   1029
+#define IDC_EDITBYTE4                   1030
+#define IDC_EDITBYTE5                   1031
+#define IDC_EDITBYTE6                   1032
+#define IDC_EDITBYTE7                   1033
+#define IDC_EDITWYDE0                   1034
+#define IDC_EDITWYDE1                   1035
+#define IDC_EDITWYDE2                   1036
+#define IDC_EDITWYDE3                   1037
+#define IDC_EDITTETRA0                  1038
+#define IDC_EDITTETRA1                  1039
+#define IDC_EDITOCTA0                   1040
+#define IDC_LOAD                        1041
+#define IDC_STORE                       1042
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -538,7 +557,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1025
+#define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
