@@ -155,6 +155,8 @@ void refresh_display()
    layout_change=FALSE;
 }
 
+void set_edit_rect(void);
+
 static int adjust_mem_display(void)
 /* 0 if no update needed, else return 1 */
 { int ret=0;
@@ -167,6 +169,7 @@ static int adjust_mem_display(void)
     old_size=mem_size;
   }
   if (inspector[insp].get_mem) inspector[insp].get_mem(mem_base,mem_size,mem_buf);
+  set_edit_rect();
   refresh_display();
   return ret;
 }
@@ -219,7 +222,6 @@ int chunk_len(enum mem_fmt f, enum chunk_fmt c)
   return column_digits;
 }
 
-void set_edit_rect(void);
 
 static void resize_memory_dialog(void)
 { int sbw;
@@ -251,7 +253,6 @@ static void resize_memory_dialog(void)
   line_range = columns*chunk_size;
   layout_change=TRUE;
   adjust_mem_display();
-  set_edit_rect();
 }
 
 
@@ -535,10 +536,11 @@ void set_edit_rect(void)
 	edit_rect.left=address_width;
 	edit_width=column_width;
   }
-  edit_rect.top=top_width-separator_height/2+edit_line*line_height;
-  edit_rect.bottom=edit_rect.top+line_height;
-  edit_rect.left+=separator_width/2+(line_offset/chunk_size)*edit_width;
-  edit_rect.right=edit_rect.left+edit_width;
+  edit_rect.top=top_width+edit_line*line_height;
+  edit_rect.bottom=edit_rect.top+line_height-separator_height;
+  edit_rect.left+=separator_width+(line_offset/chunk_size)*edit_width;
+  edit_rect.right=edit_rect.left+edit_width-separator_width;
+  InflateRect(&edit_rect,separator_height,separator_height);
 }
 
 void  set_edit_offset(int x, int y)
@@ -636,9 +638,12 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       display_data(hdc);
 	  if (!IsRectEmpty(&edit_rect))
 	  { HBRUSH hb = SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-	    HPEN hp= SelectObject(hdc, GetStockObject(BLACK_PEN));
+	    LOGPEN lp = {PS_SOLID,{separator_height,0},RGB(0,0,0)};
+	    HPEN hpnew =  CreatePen(PS_SOLID|PS_INSIDEFRAME,separator_height,RGB(0,0,0)); //CreatePenIndirect(&lp);
+		HPEN hpold = SelectObject(hdc,hpnew);
 		Rectangle(hdc,edit_rect.left,edit_rect.top,edit_rect.right,edit_rect.bottom);
-		SelectObject(hdc, hp);
+		SelectObject(hdc, hpold);
+		DeleteObject(hpnew);
         SelectObject(hdc, hb);
 	  }
       EndPaint (hDlg, &ps);
@@ -941,7 +946,7 @@ void set_edit_region(HWND hDlg, int offset, enum chunk_fmt chunk, char *name)
   de->offset=offset;
   de->size=1<<chunk;
   set_edit_chunk(de,chunk);
-  memmove(de->mem,mem_buf+offset,de->size);
+  memmove(de->mem,mem_buf-mem_base+offset,de->size);
   get_edit_mem(de);
   set_edit_name(de);
 }
