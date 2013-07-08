@@ -21,7 +21,7 @@
 */
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.12 $ $Date: 2013-01-31 15:41:03 $";
+char version[]="$Revision: 1.13 $ $Date: 2013-07-08 12:05:25 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
@@ -48,6 +48,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 #include "error.h"
 #include "bus-arith.h"
+#include "inspect.h"
 #include "param.h"
 #include "option.h"
 
@@ -575,6 +576,7 @@ void serial_put_payload(unsigned int offset,int size, unsigned char *payload)
       vmb_debugi(VMB_DEBUG_NOTIFY,"unable to write charcter 0x%02X",WDD);
     }
   }
+    mem_update(0,SERIAL_MEM);
 }
 
 
@@ -755,6 +757,31 @@ void serial_init(void)
   serial_null();
 }
    
+int serial_reg_read(unsigned int offset, int size, unsigned char *buf)
+{ if (offset>SERIAL_MEM) return 0;
+  if (offset+size>SERIAL_MEM) size =SERIAL_MEM-offset;
+  memmove(buf,smem+offset,size);
+  return size;
+}
+struct register_def serial_regs[7] = {
+	/* name no offset size chunk format */
+	{"ErrorIn"  ,0,0,1,byte_chunk,hex_format},
+	{"CountIn"  ,1,3,1,byte_chunk,unsigned_format},
+    {"DataIn"   ,2,7,1,byte_chunk,ascii_format},
+    {"ErrorOut" ,3,8,1,byte_chunk,hex_format},
+    {"CountOut" ,4,11,1,byte_chunk,unsigned_format},
+    {"DataOut"  ,5,15,1,byte_chunk,ascii_format},
+	{0}};
+
+
+struct inspector_def inspector[2] = {
+    /* name size get_mem address num_regs regs */
+	{"Registers",SERIAL_MEM,serial_reg_read,serial_get_payload,serial_put_payload,0,0,-1,0,6,serial_regs},
+	{0}
+};
+
+
+
 void init_device(device_info *vmb)
 { vmb_debug(VMB_DEBUG_PROGRESS,"Serial initializing");
   serial_init();

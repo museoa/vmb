@@ -44,7 +44,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.21 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.22 $ $Date: 2013-07-08 12:05:24 $";
 
 char howto[] =
 "\n"
@@ -190,7 +190,7 @@ static int flash_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,flash_read,0,0,NULL},
+	{"Memory",0,flash_read,flash_get_payload,flash_put_payload,0,0,-1,0,0,NULL},
 	{0}
 };
 

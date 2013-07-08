@@ -52,7 +52,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.14 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.15 $ $Date: 2013-07-08 12:05:24 $";
 char title[] = "VMB LED";
 char howto[] =
 "\n"
@@ -115,7 +115,7 @@ static int led_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Mem",1,led_read,0,0,NULL},
+	{"Mem",1,led_read,led_get_payload,led_put_payload,0,0,-1,0,0,NULL},
 	{0}
 };
 

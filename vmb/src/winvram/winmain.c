@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.31 $ $Date: 2013-07-03 16:43:47 $";
+char version[]="$Revision: 1.32 $ $Date: 2013-07-08 12:05:25 $";
 char title[] ="VMB Video Ram";
 
 int major_version=1, minor_version=5;
@@ -84,27 +84,28 @@ static void get_one_pixel(int x, int y, unsigned char color[4])
 void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 { RECT rect;
   int i = 0;
+  int pos=offset,remaining=size;
   int minx=framewidth-1,miny=frameheight-1,maxx=0,maxy=0;
   EnterCriticalSection (&bitmap_section);
-  while (size >= 4)
+  while (remaining >= 4)
   { int x, y;
-    y = (offset/4) / framewidth;
-	x = (offset/4) % framewidth;
+    y = (pos/4) / framewidth;
+	x = (pos/4) % framewidth;
 	if (x>maxx)maxx=x;
 	if (y>maxy)maxy=y;
 	if (x<minx)minx=x;
 	if (y<miny)miny=y;
 	put_one_pixel(x,y,payload+i);
 	i = i+4;
-	offset = offset+4;
-	size = size-4;
+	pos = pos+4;
+	remaining = remaining-4;
   }
-  if (size > 0)
+  if (remaining > 0)
   { int x, y;
     unsigned char r,g,b;
     COLORREF c;
-    y = (offset/4) / framewidth;
-	x = (offset/4) % framewidth;
+    y = (pos/4) / framewidth;
+	x = (pos/4) % framewidth;
 	if (x>maxx)maxx=x;
 	if (y>maxy)maxy=y;
 	if (x<minx)minx=x;
@@ -234,9 +235,16 @@ void init_screen(device_info *vmb)
       SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
 	}
 	inspector[0].name="Video RAM";
-	inspector[0].get_mem=read_screen;
 	inspector[0].size=vmb_size;
+	inspector[0].get_mem=read_screen;
+	inspector[0].load=screen_get_payload;
+	inspector[0].store=screen_put_payload;
+    inspector[0].format=hex_format;
+	inspector[0].chunk=tetra_chunk;
+	inspector[0].de_offset=-1;
 	inspector[0].address=vmb_address;
+	inspector[0].num_regs=0;
+	inspector[0].regs=NULL;
 }
 
 
@@ -333,8 +341,13 @@ void init_mouse(void)
 	vmb_mouse.reset = mouse_poweron;
 	vmb_mouse.terminate = NULL;
 	inspector[1].name = "Mouse";
-	inspector[1].get_mem=read_mouse;
 	inspector[1].size=0x10;
+	inspector[1].get_mem=read_mouse;
+	inspector[1].load=mouse_get_payload;
+	inspector[1].store=NULL;
+	inspector[1].format=unsigned_format;
+	inspector[1].chunk=wyde_chunk;
+	inspector[1].de_offset=-1;
 	inspector[1].address=0;
 	inspector[1].num_regs= 6;
 	inspector[1].regs =mouse_regs;
@@ -745,8 +758,13 @@ void init_gpu(void)
 	vmb_gpu.terminate = NULL;
     memset(gpu_mem,0,sizeof(gpu_mem));
     inspector[2].name = "GPU";
-    inspector[2].get_mem=read_gpu;
     inspector[2].size=GPU_MEM_SIZE;
+	inspector[2].get_mem=read_gpu;
+	inspector[2].load=gpu_get_payload;
+	inspector[2].store=gpu_put_payload;
+	inspector[2].format=hex_format;
+	inspector[2].chunk=byte_chunk;
+	inspector[2].de_offset=-1;
     inspector[2].address=0;
     inspector[2].num_regs= GPU_REGS;
     inspector[2].regs =gpu_regs;

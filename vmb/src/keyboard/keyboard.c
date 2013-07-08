@@ -45,7 +45,7 @@ void display_char(char c);
 int major_version=1, minor_version=5;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.25 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.26 $ $Date: 2013-07-08 12:05:24 $";
 
 char howto[] =
 "\n"
@@ -224,7 +224,7 @@ int kbd_reg_read(unsigned int offset, int size, unsigned char *buf)
 }
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",5*8,kbd_reg_read,0,4,kbd_regs},
+	{"Registers",5*8,kbd_reg_read,kb_get_payload,NULL,0,0,-1,0,4,kbd_regs},
 	{0}
 };
 

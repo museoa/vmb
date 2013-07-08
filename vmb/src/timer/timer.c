@@ -85,7 +85,7 @@ see help.html
 #define TIMER_REGS	14
 struct register_def timer_regs[TIMER_REGS+1] = {
 	/* name no offset size chunk format */
-	{"Year"             ,0,0x00,1,wyde_chunk,unsigned_format},
+	{"Year"             ,0,0x00,2,wyde_chunk,unsigned_format},
 	{"Month"            ,1,0x02,1,byte_chunk,unsigned_format},
     {"Day"              ,2,0x03,1,byte_chunk,unsigned_format},
     {"Day per Year"     ,3,0x04,2,wyde_chunk,unsigned_format},
@@ -214,7 +214,7 @@ void timer_signal()
 int major_version=1, minor_version=5;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.13 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.14 $ $Date: 2013-07-08 12:05:25 $";
 
 char howto[] =
 "\n"
@@ -374,9 +374,9 @@ static int timer_mem_read(unsigned int offset, int size, unsigned char *buf)
 
 
 struct inspector_def inspector[3] = {
-    /* name size get_mem address num_regs regs */
-	{"Memory",TIMER_MEM,timer_mem_read,0,0,NULL},
-	{"Registers",TIMER_MEM,timer_mem_read,0,TIMER_REGS,timer_regs},
+    /* name size get_mem load store de_offset format chunk address num_regs regs */
+	{"Memory",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,0,0,NULL},
+	{"Registers",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,0,TIMER_REGS,timer_regs},
 	{0}
 };
 

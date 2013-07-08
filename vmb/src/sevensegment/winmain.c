@@ -19,7 +19,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.22 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.23 $ $Date: 2013-07-08 12:05:25 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -229,6 +229,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 {
 	HACCEL hAccelTable;
     MSG msg;
+    vmb_message_hook = win32_message;
+	vmb_debug_hook = win32_debug;
+	vmb_error_init_hook = win32_error_init;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));
 
@@ -242,17 +245,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);
-
+    vmb_begin();
 	vmb_connect(&vmb,host,port);
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
+	if (vmb_verbose_flag) vmb_debug_mask=0; 
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 	while (GetMessage(&msg, NULL, 0, 0)) 
-      if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
+      if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)&&
+		  !do_subwindow_msg(&msg) 
+		 )
 	  { TranslateMessage(&msg);
 	    DispatchMessage(&msg);
 	  }
 	vmb_disconnect(&vmb);
     set_pos_key(hMainWnd,defined);
+    vmb_end();
     return (int)msg.wParam;
 }
 
@@ -315,7 +324,7 @@ static int seven_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",8,seven_read,0,0,NULL},
+	{"Memory",8,seven_read,seg_get_payload,seg_put_payload,0,0,-1,0,0,NULL},
 	{0}
 };
 

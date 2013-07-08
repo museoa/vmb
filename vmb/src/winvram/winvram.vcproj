@@ -232,6 +232,10 @@
 				RelativePath="..\opt\win32connect.rc"
 				>
 			</File>
+			<File
+				RelativePath="..\opt\win32dedit.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

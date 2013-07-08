@@ -44,7 +44,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.18 $ $Date: 2013-07-03 16:43:46 $";
+char version[]="$Revision: 1.19 $ $Date: 2013-07-08 12:05:25 $";
 
 char howto[] =
 "\n"
@@ -211,7 +211,7 @@ static int rom_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,rom_read,0,0,NULL},
+	{"Memory",0,rom_read,rom_get_payload, NULL,0,0,-1,0,0,NULL},
 	{0}
 };
 

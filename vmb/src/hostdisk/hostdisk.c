@@ -28,8 +28,10 @@ extern HBITMAP hbussy;
 #include "inspect.h"
 
 extern device_info vmb;
+int major_version=1, minor_version=0;
+char title[] ="VMB Host Disk";
 
-char version[]="$Revision: 1.9 $ $Date: 2011-10-11 15:47:51 $";
+char version[]="$Revision: 1.10 $ $Date: 2013-07-08 12:05:24 $";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";
@@ -197,7 +199,7 @@ void set_diskCtrl(unsigned int value)
   if (start)
     vmb_debug(VMB_DEBUG_INFO, "Action triggered");
   SET_DISK_CTRL(diskCtrl);
-  mem_update(0,DISK_CTRL_OFFSET,4);
+  mem_update(DISK_CTRL_OFFSET,4);
 }
 
 
@@ -445,7 +447,7 @@ static void register_to_mem(void)
    { SET_DISK_DMA_ADDR(i,diskDma[i].address);
      SET_DISK_DMA_SIZE(i,diskDma[i].size);
    }
-   mem_update(0,0,DISK_MEM);
+   mem_update(0,DISK_MEM);
 }
 
 static void mem_to_register(int offset, int size)
@@ -517,7 +519,7 @@ static void diskBussy(void)
   vmb_debug(VMB_DEBUG_INFO, "Disk is Bussy");
   diskStatus = (diskStatus| DISK_BUSY) & ~DISK_ERR;
   SET_DISK_STAT(diskStatus);
-  mem_update(0,0,4);
+  mem_update(0,4);
 }
 
 
@@ -530,7 +532,7 @@ static void diskDone(void)
   vmb_debug(VMB_DEBUG_INFO, "Disk is Idle");
   diskStatus=(diskStatus & ~DISK_BUSY);
   SET_DISK_STAT(diskStatus);
-  mem_update(0,0,4);
+  mem_update(0,4);
   if (diskCtrl & DISK_IEN) {
     vmb_raise_interrupt(&vmb,interrupt);
     vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
@@ -653,7 +655,7 @@ void disk_put_payload(unsigned int offset, int size, unsigned char *payload)
    register_to_mem();
    memmove(mem+offset,payload,size);
    mem_to_register(offset,size);
-   mem_update(0,offset,size);
+   mem_update(offset,size);
 }
 
 
@@ -697,7 +699,7 @@ void disk_terminate(void)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",DISK_MEM,disk_reg_read,0,NUM_REGS,disk_regs},
+	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,0,0,-1,0,NUM_REGS,disk_regs},
 	{0}
 };
 
