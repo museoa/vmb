@@ -61,6 +61,7 @@ extern void vmb_debugm(int level, unsigned char mtype,unsigned char msize,
 extern void (*vmb_message_hook)(char *msg);
 extern void (*vmb_debug_hook)(char *msg);
 extern void (*vmb_error_init_hook)(int i);
+extern void (*vmb_exit_hook)(int i);
 
 
 /* two functions to switch on and off debugging */

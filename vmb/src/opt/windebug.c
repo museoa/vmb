@@ -10,6 +10,7 @@ void win32_message(char *msg)
 	MessageBox(NULL,msg,"Message",MB_OK);
 }
 
+static HWND hMemory=NULL;
 HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
 HWND hFilter=NULL; 
 
@@ -136,18 +137,19 @@ INT_PTR CALLBACK FilterProc(HWND hDlg,UINT uMsg,WPARAM wparam,LPARAM lParam)
 return FALSE;
 }
 	
+static int cur_insp=-1;
 
 INT_PTR CALLBACK   
 DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { static int minw, minh;
   switch ( message )
   { case WM_INITDIALOG :
+  	hDebug=hDlg;
   	InitializeCriticalSection (&msg_section);
-	hMemory=CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hDlg,MemoryDialogProc);
+	hMemory=CreateMemoryDialog(hInst,hDlg);
 	register_subwindow(hMemory);
 	hFilter=CreateDialog(hInst,MAKEINTRESOURCE(IDD_FILTER),hDlg,FilterProc);
     register_subwindow(hFilter);
-	hDebug=hDlg;
 	register_subwindow(hDebug);
 	{ TCITEM tie;
 	  RECT rect;
@@ -183,7 +185,9 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		ShowWindow(hMemory,i>1?SW_SHOW:SW_HIDE); 
 	    if (i==1) show_filter();
 		else if (i>1)
-			adjust_memory_tab(i-2);
+		{ cur_insp=i-2;
+		  SetInspector(hMemory, &inspector[cur_insp]);
+		}
       }
 	}
     break;
@@ -239,4 +243,13 @@ void win32_error_init(int on)
       SendMessage(hDebug,WM_SYSCOMMAND,SC_CLOSE,0);
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
   }
+}
+
+void mem_update(unsigned int offset, int size)
+{ MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
+}
+
+void mem_update_i(int i, unsigned int offset, int size)
+{ if (i!=cur_insp) return;
+  MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
 }

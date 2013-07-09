@@ -18,7 +18,7 @@ typedef struct dataedit
    enum chunk_fmt chunk;
 } dataedit;
 
-dataedit *new_dataedit(void)
+static dataedit *new_dataedit(void)
 { dataedit *de;
   de = (dataedit*)malloc(sizeof(dataedit));
   if (de == NULL)
@@ -27,65 +27,36 @@ dataedit *new_dataedit(void)
   return de;
 }
 
-void show_edit_mem(dataedit *de);
-void put_edit_mem(dataedit *de);
-
-static void show_edit_windows(dataedit *de)
-{ HWND h = de->hWnd;
-  enum chunk_fmt chunk=de->chunk;
-  int size=de->size;
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE0),chunk==byte_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE1),chunk==byte_chunk&&size>1?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE2),chunk==byte_chunk&&size>2?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE3),chunk==byte_chunk&&size>3?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE4),chunk==byte_chunk&&size>4?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE5),chunk==byte_chunk&&size>5?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE6),chunk==byte_chunk&&size>6?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE7),chunk==byte_chunk&&size>7?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE0),chunk==wyde_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE1),chunk==wyde_chunk&&size>2?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE2),chunk==wyde_chunk&&size>4?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE3),chunk==wyde_chunk&&size>6?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITTETRA0),chunk==tetra_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITTETRA1),chunk==tetra_chunk&&size>4?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITOCTA0),chunk==octa_chunk&&size>0?SW_SHOW:SW_HIDE);
+static void show_item(dataedit *de,int IDC,int offset)
+{ char str[22]; 
+  if (offset>=de->size) return;
+  chunk_to_str(str, de->mem+offset,de->format,1<<de->chunk,0);
+  SetDlgItemText(de->hWnd,IDC,str);
+  SendMessage(GetDlgItem(de->hWnd,IDC),EM_SETMODIFY,0,0); 
 }
 
-set_edit_format(dataedit *de, enum mem_fmt format)
-{ 
-  if (format==ascii_format && de->chunk!=byte_chunk) format++;
-  if (format>last_format) format=hex_format;
-  if (format==float_format && de->size<4) format=hex_format;
-  if (format==float_format && de->chunk<tetra_chunk) format=hex_format;
-  if (format==float_format && de->chunk==octa_chunk) format=double_format;
-  if (format==double_format && de->size<8) format=hex_format;
-  if (format==double_format && de->chunk<octa_chunk) format=hex_format;
-  put_edit_mem(de);
-  de->format=format;
-  show_edit_mem(de);
-  show_edit_windows(de);
-  SetDlgItemText(de->hWnd, IDC_FORMAT, format_names[format]);
+static void show_edit_mem(dataedit *de)
+{ if (de->chunk==byte_chunk)
+  {	show_item(de,IDC_EDITBYTE0,0);
+    show_item(de,IDC_EDITBYTE1,1);
+    show_item(de,IDC_EDITBYTE2,2);
+    show_item(de,IDC_EDITBYTE3,3);
+    show_item(de,IDC_EDITBYTE4,4);
+    show_item(de,IDC_EDITBYTE5,5);
+    show_item(de,IDC_EDITBYTE6,6);
+    show_item(de,IDC_EDITBYTE7,7);
+  } else if (de->chunk==wyde_chunk)
+  {	show_item(de,IDC_EDITWYDE0,0);
+    show_item(de,IDC_EDITWYDE1,2);
+    show_item(de,IDC_EDITWYDE2,4);
+    show_item(de,IDC_EDITWYDE3,6);
+ } else if (de->chunk==tetra_chunk)
+  {	show_item(de,IDC_EDITTETRA0,0);
+    show_item(de,IDC_EDITTETRA1,4);
+  } else if (de->chunk==octa_chunk)
+    show_item(de,IDC_EDITOCTA0,0);
 }
-set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
-{ if (chunk>last_chunk) chunk=byte_chunk;
-  if (1<<chunk>de->size) chunk=byte_chunk;
-  if (de->format==ascii_format)
-   chunk=byte_chunk;
-  else if (de->format==float_format)
-   chunk=tetra_chunk;
-  else if (de->format==double_format)
-   chunk=octa_chunk;
-  put_edit_mem(de);
-  de->chunk=chunk;
-  show_edit_mem(de);
-  show_edit_windows(de);
-  SetDlgItemText(de->hWnd, IDC_CHUNK, chunk_names[chunk]);
-}
-
-uint64_t str_to_u64(char *str)
+static uint64_t str_to_u64(char *str)
 { uint64_t u=0;
   while (isspace(*str)) str++;
   while (*str!=0 && isdigit(*str))
@@ -95,7 +66,7 @@ uint64_t str_to_u64(char *str)
   return u;
 }
 
-uint64_t hex_to_u64(char *str)
+static uint64_t hex_to_u64(char *str)
 { uint64_t u=0;
   while (isspace(*str)) str++;
   while (*str!=0)
@@ -111,6 +82,8 @@ uint64_t hex_to_u64(char *str)
   }
   return u;
 }
+
+
 
 
 static void str_to_chunk(char *str, unsigned char *buf, enum mem_fmt fmt, int chunk_size)
@@ -139,35 +112,6 @@ static void str_to_chunk(char *str, unsigned char *buf, enum mem_fmt fmt, int ch
   }
 }
 
-static void show_item(dataedit *de,int IDC,int offset)
-{ char str[22]; 
-  if (offset>=de->size) return;
-  chunk_to_str(str, de->mem+offset,de->format,1<<de->chunk,0);
-  SetDlgItemText(de->hWnd,IDC,str);
-  SendMessage(GetDlgItem(de->hWnd,IDC),EM_SETMODIFY,0,0); 
-}
-
-void show_edit_mem(dataedit *de)
-{ if (de->chunk==byte_chunk)
-  {	show_item(de,IDC_EDITBYTE0,0);
-    show_item(de,IDC_EDITBYTE1,1);
-    show_item(de,IDC_EDITBYTE2,2);
-    show_item(de,IDC_EDITBYTE3,3);
-    show_item(de,IDC_EDITBYTE4,4);
-    show_item(de,IDC_EDITBYTE5,5);
-    show_item(de,IDC_EDITBYTE6,6);
-    show_item(de,IDC_EDITBYTE7,7);
-  } else if (de->chunk==wyde_chunk)
-  {	show_item(de,IDC_EDITWYDE0,0);
-    show_item(de,IDC_EDITWYDE1,2);
-    show_item(de,IDC_EDITWYDE2,4);
-    show_item(de,IDC_EDITWYDE3,6);
- } else if (de->chunk==tetra_chunk)
-  {	show_item(de,IDC_EDITTETRA0,0);
-    show_item(de,IDC_EDITTETRA1,4);
-  } else if (de->chunk==octa_chunk)
-    show_item(de,IDC_EDITOCTA0,0);
-}
 
 static void put_item(dataedit *de, int IDC, int offset, int size)
 { char str[22]; 
@@ -177,7 +121,7 @@ static void put_item(dataedit *de, int IDC, int offset, int size)
   }
 }
 
-void put_edit_mem(dataedit *de)
+static void put_edit_mem(dataedit *de)
 { if (de->chunk==byte_chunk)
   {	put_item(de,IDC_EDITBYTE0,0,1);
 	put_item(de,IDC_EDITBYTE1,1,1);
@@ -201,8 +145,67 @@ void put_edit_mem(dataedit *de)
   else if (de->chunk==octa_chunk)
 	put_item(de,IDC_EDITOCTA0,0,8);
 }
+static void show_edit_windows(dataedit *de)
+{ HWND h = de->hWnd;
+  enum chunk_fmt chunk=de->chunk;
+  int size=de->size;
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE0),chunk==byte_chunk&&size>0?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE1),chunk==byte_chunk&&size>1?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE2),chunk==byte_chunk&&size>2?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE3),chunk==byte_chunk&&size>3?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE4),chunk==byte_chunk&&size>4?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE5),chunk==byte_chunk&&size>5?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE6),chunk==byte_chunk&&size>6?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITBYTE7),chunk==byte_chunk&&size>7?SW_SHOW:SW_HIDE);
+
+  ShowWindow(GetDlgItem(h,IDC_EDITWYDE0),chunk==wyde_chunk&&size>0?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITWYDE1),chunk==wyde_chunk&&size>2?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITWYDE2),chunk==wyde_chunk&&size>4?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITWYDE3),chunk==wyde_chunk&&size>6?SW_SHOW:SW_HIDE);
+
+  ShowWindow(GetDlgItem(h,IDC_EDITTETRA0),chunk==tetra_chunk&&size>0?SW_SHOW:SW_HIDE);
+  ShowWindow(GetDlgItem(h,IDC_EDITTETRA1),chunk==tetra_chunk&&size>4?SW_SHOW:SW_HIDE);
+
+  ShowWindow(GetDlgItem(h,IDC_EDITOCTA0),chunk==octa_chunk&&size>0?SW_SHOW:SW_HIDE);
+}
+
+static set_edit_format(dataedit *de, enum mem_fmt format)
+{ 
+  if (format==ascii_format && de->chunk!=byte_chunk) format++;
+  if (format>last_format) format=hex_format;
+  if (format==float_format && de->size<4) format=hex_format;
+  if (format==float_format && de->chunk<tetra_chunk) format=hex_format;
+  if (format==float_format && de->chunk==octa_chunk) format=double_format;
+  if (format==double_format && de->size<8) format=hex_format;
+  if (format==double_format && de->chunk<octa_chunk) format=hex_format;
+  put_edit_mem(de);
+  de->format=format;
+  show_edit_mem(de);
+  show_edit_windows(de);
+  SetDlgItemText(de->hWnd, IDC_FORMAT, format_names[format]);
+}
+static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
+{ if (chunk>last_chunk) chunk=byte_chunk;
+  if (1<<chunk>de->size) chunk=byte_chunk;
+  if (de->format==ascii_format)
+   chunk=byte_chunk;
+  else if (de->format==float_format)
+   chunk=tetra_chunk;
+  else if (de->format==double_format)
+   chunk=octa_chunk;
+  put_edit_mem(de);
+  de->chunk=chunk;
+  show_edit_mem(de);
+  show_edit_windows(de);
+  SetDlgItemText(de->hWnd, IDC_CHUNK, chunk_names[chunk]);
+}
+
+
+
+
+
 	
-void show_edit_name(dataedit *de)
+static void show_edit_name(dataedit *de)
 { if (de->insp==NULL)
 	SetDlgItemText(de->hWnd,IDC_NAME,"Disconnected");
   else if (de->name!=NULL)
@@ -214,8 +217,10 @@ void show_edit_name(dataedit *de)
   }
 }
 
+/* the API for the data editor */
 
 void de_update(HWND hDlg)
+/* call after changes to the inspector or to the data */
 { 
   dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
   if (de->insp==NULL || de->insp->de_offset<0)
@@ -236,6 +241,7 @@ void de_update(HWND hDlg)
   }
   else
   {	de->name=NULL;
+  	de->address=de->insp->address;
     de->size=1<<de->insp->chunk;
   	set_edit_format(de, de->insp->format);
     set_edit_chunk(de, de->insp->chunk);
@@ -248,15 +254,19 @@ void de_update(HWND hDlg)
 }
 
 void de_connect(HWND hDlg, inspector_def *insp)
+/* call to associate a new inspector with the editor.
+   call with NULL to disconnect the current editor */
 { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
   if (de==NULL) return;
+  if (de->insp==insp) return;
   if (de->insp!=NULL) de_disconnect(de->insp);
   de->insp=insp;
   if (insp==NULL) de->size=0;
-  de_update(hDlg);
 }
 
 void de_save(HWND hDlg)
+/* call to save the content of the editor back to to memory.
+   This is the same as pressing the store button */
 { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
   if (de->insp!=NULL && de->insp->store !=NULL)
   { put_edit_mem(de);
@@ -264,7 +274,7 @@ void de_save(HWND hDlg)
   }
 }
 
-INT_PTR CALLBACK   
+static INT_PTR CALLBACK   
 DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { switch ( message )
   { case WM_INITDIALOG :
@@ -320,5 +330,6 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 HWND CreateDataEdit(HINSTANCE hInst, HWND hWnd)
+/* call this to create an data editor child window. */
 { return CreateDialog(hInst,MAKEINTRESOURCE(IDD_DATAEDIT),hWnd,DataEditDialogProc);
 }

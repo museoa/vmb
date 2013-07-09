@@ -32,6 +32,7 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "param.h"
 #include "option.h"
+#include "winopt.h"
 #include "inspect.h"
 #include "timer.h"
 
@@ -214,7 +215,7 @@ void timer_signal()
 int major_version=1, minor_version=5;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.14 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.15 $ $Date: 2013-07-09 13:22:11 $";
 
 char howto[] =
 "\n"
@@ -374,9 +375,9 @@ static int timer_mem_read(unsigned int offset, int size, unsigned char *buf)
 
 
 struct inspector_def inspector[3] = {
-    /* name size get_mem load store de_offset format chunk address num_regs regs */
-	{"Memory",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,0,0,NULL},
-	{"Registers",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,0,TIMER_REGS,timer_regs},
+    /* name size get_mem load store  format chunk de_offset sb_rng num_regs regs address*/
+	{"Memory",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,8},
+	{"Registers",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,8,TIMER_REGS,timer_regs},
 	{0}
 };
 

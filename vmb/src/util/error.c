@@ -43,6 +43,7 @@ char *vmb_program_name = "Unknown";
 void (*vmb_message_hook)(char *msg) = NULL;
 void (*vmb_debug_hook)(char *msg) = NULL;
 void (*vmb_error_init_hook)(int i) =NULL;
+void (*vmb_exit_hook)(int i) = NULL;
 
 
 void vmb_debug_on(void)
@@ -67,11 +68,17 @@ void vmb_message(char *message)
 
 void vmb_fatal_error(int line, char *message)
 {   vmb_error(line, message);
-    exit(1);
+    if (vmb_exit_hook!=NULL) 
+      vmb_exit_hook(1);
+	else 
+	  exit(1);
 }
 void vmb_fatal_errori(int line, char *message, int code)
 {   vmb_errori(line, message,code);
-    exit(1);
+    if (vmb_exit_hook!=NULL) 
+      vmb_exit_hook(1);
+	else 
+	  exit(1);
 }
 
 

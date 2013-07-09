@@ -11,171 +11,160 @@
 #include "float.h"
 #include "inspect.h"
 #include "dedit.h"
+#include "winde.h"
 
 
-HWND hMemory=NULL; 
-static int insp=0;
-static uint64_t goto_addr=0x0;
 
-static unsigned char *mem_buf=NULL;
-static unsigned int line_range;
 
-char *format_names[]={"Hex","Dec","-Dec","Ascii","Float","Double"};
+char *format_names[]={"Hex","Unsigned","Signed","Ascii","Float","Double"};
 
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 
 
-/* scrolbar management */
-static unsigned int sb_base=0; /* offset at base of scrollbar */
-static int sb_cur = 0; /* line corresponding to start of page */
-static int sb_rng = 8; /* number of lines covered by scrollbar */
-static int lines; /* lines per page */
-static unsigned int mem_base=0, mem_size=0; /* page currently displayed */
-/* for register displays sb_base is always zero */
-
-
-static void sb_range(void)
-/* determine and set scrollbar range as virtual number of lines */
+static void sb_range(HWND hMemory, inspector_def *insp)
+/* determine and set scrollbar range as virtual number of insp->lines */
 { SCROLLINFO si;
+  unsigned int mem_size; 
+
   /* determine range */
-  if (inspector[insp].size==0)
-  { mem_base=0;
+  if (insp->size==0)
+  { insp->mem_base=0;
 	mem_size = 0;
-	sb_base=0;
-	sb_cur=0;
-	sb_rng=0;
+	insp->sb_base=0;
+	insp->sb_cur=0;
+	insp->sb_rng=0;
   }
-  else if (inspector[insp].num_regs>0)
-  { sb_rng = inspector[insp].num_regs-1;
-    sb_base =0;
-	if (sb_cur>sb_rng-(lines-1)) sb_cur=sb_rng-(lines-1);
-	if (sb_cur<0) sb_cur=0;
-    mem_base = inspector[insp].regs[sb_cur].offset;
-	mem_size = inspector[insp].size -mem_base;
+  else if (insp->num_regs>0)
+  { insp->sb_rng = insp->num_regs-1;
+    insp->sb_base =0;
+	if (insp->sb_cur>insp->sb_rng-(insp->lines-1)) insp->sb_cur=insp->sb_rng-(insp->lines-1);
+	if (insp->sb_cur<0) insp->sb_cur=0;
+    insp->mem_base = insp->regs[insp->sb_cur].offset;
+	mem_size = insp->size -insp->mem_base;
   }
   else 
   { unsigned int page_range;
-    page_range= lines*line_range;
-    if (page_range*10<inspector[insp].size)
-      sb_rng = page_range*10/line_range-1;
-    else if (page_range<inspector[insp].size)
-      sb_rng = (inspector[insp].size+line_range-1)/line_range-1;
+    page_range= insp->lines*insp->line_range;
+    if (page_range*10<insp->size)
+      insp->sb_rng = page_range*10/insp->line_range-1;
+    else if (page_range<insp->size)
+      insp->sb_rng = (insp->size+insp->line_range-1)/insp->line_range-1;
     else
-      sb_rng = (page_range+line_range-1)/line_range-1;
+      insp->sb_rng = (page_range+insp->line_range-1)/insp->line_range-1;
     /* determine address of first line */
-	if (sb_cur<0)
-	{ if (sb_base > -sb_cur*line_range)
-	  { sb_base = sb_base +sb_cur*line_range;
-	    sb_cur=0;
+	if (insp->sb_cur<0)
+	{ if (insp->sb_base > -insp->sb_cur*insp->line_range)
+	  { insp->sb_base = insp->sb_base +insp->sb_cur*insp->line_range;
+	    insp->sb_cur=0;
 	  } 
 	  else
-	  { sb_base = 0;
-	    sb_cur=0;
+	  { insp->sb_base = 0;
+	    insp->sb_cur=0;
 	  } 
 	}
-    else if (sb_cur>sb_rng-(lines-1))
-	{ int d = sb_cur-sb_rng+(lines-1);
-	  if (sb_base+d*line_range + sb_rng*line_range<inspector[insp].size)
-	    sb_base = sb_base + d*line_range;
-	  else if (inspector[insp].size> sb_rng*line_range)
-		sb_base=inspector[insp].size- sb_rng*line_range;
+    else if (insp->sb_cur>insp->sb_rng-(insp->lines-1))
+	{ int d = insp->sb_cur-insp->sb_rng+(insp->lines-1);
+	  if (insp->sb_base+d*insp->line_range + insp->sb_rng*insp->line_range<insp->size)
+	    insp->sb_base = insp->sb_base + d*insp->line_range;
+	  else if (insp->size> insp->sb_rng*insp->line_range)
+		insp->sb_base=insp->size- insp->sb_rng*insp->line_range;
 	  else
-	    sb_base=0;
-	  sb_cur=sb_rng-(lines-1);
+	    insp->sb_base=0;
+	  insp->sb_cur=insp->sb_rng-(insp->lines-1);
 	}
-    mem_base=sb_base+sb_cur*line_range;
+    insp->mem_base=insp->sb_base+insp->sb_cur*insp->line_range;
 	mem_size = page_range;
-	if (mem_size > inspector[insp].size -mem_base)
-	  mem_size = inspector[insp].size -mem_base;
+	if (mem_size > insp->size -insp->mem_base)
+	{ mem_size = insp->size -insp->mem_base;
+      InvalidateRect(hMemory,NULL,TRUE);
+	}
   }
 
+  if (mem_size>insp->mem_size)
+  { insp->mem_buf=realloc(insp->mem_buf,mem_size);
+    if (insp->mem_buf==NULL)
+		vmb_fatal_error(__LINE__,"Out of memory");
+  }
+  insp->mem_size=mem_size;
   si.cbSize=sizeof(si);
   si.fMask=SIF_PAGE|SIF_POS|SIF_RANGE;
   si.nMin=0;
-  si.nMax=sb_rng;
-  si.nPage=lines;
-  si.nPos=sb_cur;
+  si.nMax=insp->sb_rng;
+  si.nPage=insp->lines;
+  si.nPos=insp->sb_cur;
   SetScrollInfo(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
 }
-static int adjust_mem_display(void);
 
-static void sb_move(WPARAM wparam)
+static int adjust_mem_display(HWND hMemory,inspector_def *insp);
+
+static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 { switch (LOWORD(wparam)) 
 	  { case SB_LINEUP:
-	      sb_cur--; /* we catch a negative value in sb_range */
+	      insp->sb_cur--; /* we catch a negative value in sb_range */
 		  break;
         case SB_LINEDOWN: 
-	      sb_cur++; /* we catch a too big value in sb_range */
+	      insp->sb_cur++; /* we catch a too big value in sb_range */
 		  break;
 		case SB_PAGEUP:
-		  sb_cur=sb_cur-lines;
+		  insp->sb_cur=insp->sb_cur-insp->lines;
 		  break;
         case SB_PAGEDOWN: 
-		  sb_cur=sb_cur+lines;
+		  insp->sb_cur=insp->sb_cur+insp->lines;
 		  break;
 		case SB_TOP:
-		  sb_cur=0;
+		  insp->sb_cur=0;
 		  break;
         case SB_BOTTOM: 
-		  sb_cur=sb_rng-lines-1;
+		  insp->sb_cur=insp->sb_rng-insp->lines-1;
 		  break;
 		case SB_THUMBTRACK: /* HIWORD(wparam) is 0 to sb_range */
-		   sb_cur = HIWORD(wparam);
+		   insp->sb_cur = HIWORD(wparam);
           break;
 		default:
 		case SB_ENDSCROLL:
 		case SB_THUMBPOSITION:
 		  return;
 	  }
-	   adjust_mem_display();
+	   adjust_mem_display(hMemory,insp);
 }
 
 
-static void adjust_goto_addr(void)
-{ if (goto_addr<inspector[insp].address)
-    { goto_addr=inspector[insp].address;
+static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto_addr)
+{ if (goto_addr<insp->address)
+    { goto_addr=insp->address;
     }
-    else if (goto_addr>=inspector[insp].address+inspector[insp].size)
-    { goto_addr=inspector[insp].address+(inspector[insp].size-1);
+    else if (goto_addr>=insp->address+insp->size)
+    { goto_addr=insp->address+(insp->size-1);
     }
     uint64tohex(goto_addr,tmp_option);
     SetDlgItemText(hMemory,IDC_GOTO,tmp_option);
+	return goto_addr;
 }
 
 
 
-static RECT mem_rect;
-static BOOL layout_change=TRUE;
 
 
-void refresh_display()
-{  if (inspector[insp].num_regs>0) layout_change=TRUE;
-   InvalidateRect(hMemory,&mem_rect,layout_change);
-   layout_change=FALSE;
-}
+  
 
 void set_edit_rect(inspector_def *insp);
 
-static int adjust_mem_display(void)
+static int adjust_mem_display(HWND hMemory,inspector_def *insp)
 /* 0 if no update needed, else return 1 */
 { int ret=0;
-  static unsigned int old_size=0;
-  sb_range();
-  if (mem_size>old_size)
-  { mem_buf=realloc(mem_buf,mem_size);
-    if (mem_buf==NULL)
-		vmb_fatal_error(__LINE__,"Out of memory");
-    old_size=mem_size;
-  }
-  if (inspector[insp].get_mem) inspector[insp].get_mem(mem_base,mem_size,mem_buf);
-  set_edit_rect(&inspector[insp]);
-  refresh_display();
+  sb_range(hMemory, insp);
+  if (insp->get_mem) 
+	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
+  else if (insp->mem_size>0 && insp->mem_buf!=NULL)
+    memset(insp->mem_buf,0,insp->mem_size);
+  set_edit_rect(insp);
+  InvalidateRect(hMemory,NULL,insp->num_regs>0);
   return ret;
 }
 
 
 
-static int mem_lines, mem_cols;
+static int mem_cols;
 static int mem_width=0, mem_height=0;
 static int line_height, digit_width, address_width, separator_width, separator_height, top_width; 
 
@@ -222,7 +211,7 @@ int chunk_len(enum mem_fmt f, enum chunk_fmt c)
 }
 
 
-static void resize_memory_dialog(void)
+static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
 { int sbw;
   RECT sbRect;
 
@@ -231,15 +220,10 @@ static void resize_memory_dialog(void)
   MoveWindow(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),
 	         mem_width-sbw,top_width,sbw,mem_height-top_width,TRUE);
 
-  mem_rect.top=top_width-separator_height;
-  mem_rect.bottom=mem_height;
-  mem_rect.left=0;
-  mem_rect.right=mem_width-sbw;
-
-  lines = (mem_height-top_width)/line_height;
-  chunk_size=1<<inspector[insp].chunk;
+  insp->lines = (mem_height-top_width)/line_height;
+  chunk_size=1<<insp->chunk;
   
-  column_digits=chunk_len(inspector[insp].format,inspector[insp].chunk);
+  column_digits=chunk_len(insp->format,insp->chunk);
 
   column_width=column_digits*digit_width+separator_width;
   columns = (mem_width-sbw-address_width-separator_width)/column_width;
@@ -249,9 +233,9 @@ static void resize_memory_dialog(void)
 	if (column_digits*digit_width>column_width)
       column_digits=column_width/digit_width;
   }
-  line_range = columns*chunk_size;
-  layout_change=TRUE;
-  adjust_mem_display();
+  insp->line_range = columns*chunk_size;
+  InvalidateRect(hMemory,NULL,TRUE);
+  adjust_mem_display(hMemory,insp);
 }
 
 
@@ -262,62 +246,60 @@ static void resize_memory_dialog(void)
 
 #define COLD RGB(0xFD,0xFD,0xFF)
 #define HOT RGB(0xFF,0xA0,0xA0)
-static unsigned char* old_mem=NULL;
-static unsigned int old_size=0, old_base=0;
 
-void update_old_mem(void)
-{ if (old_size<mem_size)
-  { old_mem = realloc(old_mem,mem_size);
-    if (old_mem==NULL)
+void update_old_mem(inspector_def *insp)
+{ if (insp->old_size<insp->mem_size)
+  { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
+    if (insp->old_mem==NULL)
 		vmb_fatal_error(__LINE__,"Out of memory");
   }
-   /* newly displayed memory contents is cold, (copy from mem_buf)
+   /* newly displayed memory contents is cold, (copy from insp->mem_buf)
       only previously displayed content that has changed is hot */
-   if (old_base<mem_base)
+   if (insp->old_base<insp->mem_base)
    { /* move overlap of old and new down*/
-      unsigned int dist = mem_base-old_base; 
-      if (old_size>dist)
-	  { int ovlap = old_size-dist;
-	    memmove(old_mem, old_mem+dist,ovlap);
-	    memmove(old_mem+ovlap,mem_buf+ovlap,mem_size-ovlap);
+      unsigned int dist = insp->mem_base-insp->old_base; 
+      if (insp->old_size>dist)
+	  { int ovlap = insp->old_size-dist;
+	    memmove(insp->old_mem, insp->old_mem+dist,ovlap);
+	    memmove(insp->old_mem+ovlap,insp->mem_buf+ovlap,insp->mem_size-ovlap);
 	  }
 	  else
-	    memmove(old_mem,mem_buf,mem_size);
+	    memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
    }
-   else if (old_base>mem_base)
+   else if (insp->old_base>insp->mem_base)
    { /* move overlap of old and new up*/
-      unsigned int dist = old_base-mem_base; 
-      if (old_size>dist)
-	  { int ovlap = old_size-dist;
-	    memmove(old_mem+dist, old_mem,ovlap);
-	    memmove(old_mem,mem_buf,dist);
-		if (mem_size>old_size)
-	      memmove(old_mem+old_size,mem_buf+old_size,mem_size-old_size);
+      unsigned int dist = insp->old_base-insp->mem_base; 
+      if (insp->old_size>dist)
+	  { int ovlap = insp->old_size-dist;
+	    memmove(insp->old_mem+dist, insp->old_mem,ovlap);
+	    memmove(insp->old_mem,insp->mem_buf,dist);
+		if (insp->mem_size>insp->old_size)
+	      memmove(insp->old_mem+insp->old_size,insp->mem_buf+insp->old_size,insp->mem_size-insp->old_size);
 	  }
 	  else
-	    memmove(old_mem,mem_buf,mem_size);
+	    memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
    }
-   else if (mem_size>old_size)
-	 memmove(old_mem+old_size,mem_buf+old_size,mem_size-old_size);
-   old_base=mem_base;
-   old_size=mem_size;
+   else if (insp->mem_size>insp->old_size)
+	 memmove(insp->old_mem+insp->old_size,insp->mem_buf+insp->old_size,insp->mem_size-insp->old_size);
+   insp->old_base=insp->mem_base;
+   insp->old_size=insp->mem_size;
 }
 
-static void refresh_old_mem(void)
-{ if (old_size<mem_size)
-  { old_mem = realloc(old_mem,mem_size);
-    if (old_mem==NULL)
+static void refresh_old_mem(inspector_def *insp)
+{ if (insp->old_size<insp->mem_size)
+  { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
+    if (insp->old_mem==NULL)
 		vmb_fatal_error(__LINE__,"Out of memory");
   }
-  memmove(old_mem,mem_buf,mem_size);
-  old_base=mem_base;
-  old_size=mem_size;
+  memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
+  insp->old_base=insp->mem_base;
+  insp->old_size=insp->mem_size;
 }
 
-static int different(int offset, int size)
+static int different(inspector_def *insp,int offset, int size)
 { int i;
   for (i=0;i<size;i++)
-  { if (old_mem[offset+i]!=mem_buf[offset+i]) return 1;
+  { if (insp->old_mem[offset+i]!=insp->mem_buf[offset+i]) return 1;
   }
   return 0;
 }
@@ -377,17 +359,17 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 }
 
 
-void display_registers(HDC hdc)
+void display_registers(inspector_def *insp,HDC hdc)
 { 
   int i,k, nr;
   char str[22]; /* big enough for the largest 8Byte integer */
   RECT rect;
-  nr = inspector[insp].num_regs;
-  if (nr>lines) nr=lines;
+  nr = insp->num_regs;
+  if (nr>insp->lines) nr=insp->lines;
   for (i=0;i<nr;i++)
    { int y, chunk_size, x;
      struct register_def *r;
-	 r = &inspector[insp].regs[sb_cur+i];
+	 r = &insp->regs[insp->sb_cur+i];
      y=top_width+i*line_height;
      x=address_width*3/4;
      SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
@@ -404,8 +386,8 @@ void display_registers(HDC hdc)
 	 x = x+separator_width;
 	 for (k=0;k*chunk_size < r->size;k++)
 	 { int l = chunk_len(r->format,r->chunk);
-	   chunk_to_str(str, mem_buf+r->offset+k*chunk_size-mem_base, r->format,chunk_size,l);
-       if (different(r->offset+k*chunk_size-mem_base,chunk_size))
+	   chunk_to_str(str, insp->mem_buf+r->offset+k*chunk_size-insp->mem_base, r->format,chunk_size,l);
+       if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
 	     SetBkColor(hdc,HOT);
 	   else
 	     SetBkColor(hdc,COLD);
@@ -420,34 +402,34 @@ void display_registers(HDC hdc)
 	 }
    } 
 }
-void display_address(HDC hdc)
+void display_address(inspector_def *insp,HDC hdc)
 { int i; 
-  uint64_t addr=inspector[insp].address+mem_base;
+  uint64_t addr=insp->address+insp->mem_base;
   char str[22]; /* big enough for the largest 8Byte integer */
   
   SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
   SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
-  for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
-  { uint64tohex(addr+i*line_range,str);
+  for (i=0;i<insp->lines && (unsigned int)(i*insp->line_range)<insp->mem_size;i++)
+  { uint64tohex(addr+i*insp->line_range,str);
     str[18]=':';
 	TextOut(hdc,0,top_width+i*line_height,str,19);
   }
 }
 
-void display_memory(HDC hdc)
+void display_memory(inspector_def *insp,HDC hdc)
 { 
   int i,k;
   char str[22]; /* big enough for the largest 8Byte integer */
   RECT r;
 
-  for (i=0;i<lines && (unsigned int)(i*line_range)<mem_size;i++)
+  for (i=0;i<insp->lines && (unsigned int)(i*insp->line_range)<insp->mem_size;i++)
    { int y;
      y=top_width+i*line_height;
 	 for (k=0;k<columns;k++)
 	 { int x,l;
-	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= mem_size)
-	   { l=chunk_to_str(str, mem_buf+(i*columns+k)*chunk_size, inspector[insp].format,chunk_size, column_digits);
-         if (different((i*columns+k)*chunk_size,chunk_size))
+	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= insp->mem_size)
+	   { l=chunk_to_str(str, insp->mem_buf+(i*columns+k)*chunk_size, insp->format,chunk_size, column_digits);
+         if (different(insp,(i*columns+k)*chunk_size,chunk_size))
 	       SetBkColor(hdc,HOT);
 	     else
 	       SetBkColor(hdc,COLD);
@@ -471,19 +453,19 @@ void display_memory(HDC hdc)
 }
 
 
-void display_data(HDC hdc)
-{ if (inspector[insp].num_regs>0)
-  { update_old_mem();
-    display_registers(hdc);
+void display_data(inspector_def *insp,HDC hdc)
+{ if (insp->num_regs>0)
+  { update_old_mem(insp);
+    display_registers(insp,hdc);
   }
   else
-  { display_address(hdc);
-    update_old_mem();
-    display_memory(hdc);
+  { display_address(insp,hdc);
+    update_old_mem(insp);
+    display_memory(insp,hdc);
   }
 }
 
-RECT edit_rect={0,0,0,0};
+
 
 void set_edit_rect(struct inspector_def *insp)
 /* determine the edit rectangle from the edit_offset. */
@@ -491,62 +473,55 @@ void set_edit_rect(struct inspector_def *insp)
   int line_offset;
   int edit_line;
   int edit_width;
-  SetRectEmpty(&edit_rect);
+  SetRectEmpty(&insp->edit_rect);
   if (insp->de_offset<0) return;
   if (insp->num_regs>0)
   { 
-    edit_line=insp->de_offset-sb_cur;
-	edit_rect.left=address_width*3/4;
+    edit_line=insp->de_offset-insp->sb_cur;
+	insp->edit_rect.left=address_width*3/4;
 	line_offset=0;
 	edit_width=chunk_len(insp->regs[insp->de_offset].format,
 		                 insp->regs[insp->de_offset].chunk)*digit_width+separator_width;
   }
   else {
-	page_offset= insp->de_offset-mem_base;
-    if (page_offset<0 || page_offset>=(int)mem_size) return;
-    edit_line= page_offset/line_range;
-    line_offset= page_offset-edit_line*line_range;
-	edit_rect.left=address_width;
+	page_offset= insp->de_offset-insp->mem_base;
+    if (page_offset<0 || page_offset>=(int)insp->mem_size) return;
+    edit_line= page_offset/insp->line_range;
+    line_offset= page_offset-edit_line*insp->line_range;
+	insp->edit_rect.left=address_width;
 	edit_width=column_width;
   }
-  edit_rect.top=top_width+edit_line*line_height;
-  edit_rect.bottom=edit_rect.top+line_height-separator_height;
-  edit_rect.left+=separator_width+(line_offset/chunk_size)*edit_width;
-  edit_rect.right=edit_rect.left+edit_width-separator_width;
-  InflateRect(&edit_rect,separator_height,separator_height);
+  insp->edit_rect.top=top_width+edit_line*line_height;
+  insp->edit_rect.bottom=insp->edit_rect.top+line_height-separator_height;
+  insp->edit_rect.left+=separator_width+(line_offset/chunk_size)*edit_width;
+  insp->edit_rect.right=insp->edit_rect.left+edit_width-separator_width;
+  InflateRect(&insp->edit_rect,separator_height,separator_height);
 }
 
-void  set_edit_offset(int x, int y)
+void  set_edit_offset(inspector_def *insp,int x, int y)
 /* determine edit_offset from the position */
 { int i = (y-top_width)/line_height;
-  inspector[insp].de_offset=-1;
-  if (i<0 || i >= lines) return;
-  if (inspector[insp].num_regs>0)
-  { if(i+sb_cur>=inspector[insp].num_regs) return;
-      inspector[insp].de_offset=i+sb_cur;
+  insp->de_offset=-1;
+  if (i<0 || i >= insp->lines) return;
+  if (insp->num_regs>0)
+  { if(i+insp->sb_cur>=insp->num_regs) return;
+      insp->de_offset=i+insp->sb_cur;
   }
   else
-  { unsigned int offset = mem_base+i*line_range;
+  { unsigned int offset = insp->mem_base+i*insp->line_range;
 	if (x<=address_width) return;
     offset+=chunk_size*((x-address_width)/column_width);
-	if (offset>=inspector[insp].size) return;
-    inspector[insp].de_offset=offset;
+	if (offset>=insp->size) return;
+    insp->de_offset=offset;
   }
 }
 
-
-HWND CreateDataEdit(HINSTANCE hInst,HWND hDlg);
-
-HWND hDataEdit = NULL;
-ATOM hDataEditClass=0;
-ATOM RegisterDataEditClass(HINSTANCE hInst);
-
-void adjust_memory_tab(int i)
+void SetInspector(HWND hMemory, inspector_def * insp)
 /* 0 if no update needed, else return 1 */
-{ int ret=0;
-  insp = i;
-  if (inspector[insp].num_regs==0)
-  { adjust_goto_addr();
+{ SetWindowLongPtr(hMemory,DWLP_USER,(LONG)(LONG_PTR)insp);
+  resize_memory_dialog(hMemory,insp);
+  if (insp->num_regs==0)
+  { adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
 	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_SHOW);
 	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_SHOW);
   }
@@ -554,92 +529,96 @@ void adjust_memory_tab(int i)
   { ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_HIDE);
   	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_HIDE);
   }
-  if (hDataEdit!=NULL) de_connect(hDataEdit,&inspector[insp]);
-  resize_memory_dialog();
+  SetDlgItemText(hMemory,IDC_FORMAT,format_names[insp->format]);
+  SetDlgItemText(hMemory,IDC_CHUNK,chunk_names[insp->chunk]);
 }
-INT_PTR CALLBACK   
+
+static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { switch ( message )
   { case WM_INITDIALOG :
-	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[inspector[insp].format]);
-	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[inspector[insp].chunk]);
+//	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[insp->format]);
+//	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[insp->chunk]);
 	  SetFocus(GetDlgItem(hDlg,IDOK));
 	  get_font_metrics(hDlg);
-      if (hDataEditClass==0) hDataEditClass=RegisterDataEditClass(hInst);
-      /*SendMessage(hDlg,DM_SETDEFID,(WPARAM)IDOK,0); */
+	  hDataEditInstance=hInst;
+	  hDataEditParent=hDlg;
 	  return FALSE;
 	case WM_DESTROY:
-	  if (hDataEdit!=NULL) de_connect(hDataEdit,NULL);
+		DestroyDataEdit(0);
 	  return FALSE;
 	case WM_LBUTTONDBLCLK:
-      if (hDataEdit==NULL)
-	  { HWND h;
-	  	RECT rect;
-	    GetWindowRect(hDebug,&rect);
-        h = CreateWindow("DATAEDITCLASS","Data Editor", WS_OVERLAPPED|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,
-			rect.left,rect.bottom+1,CW_USEDEFAULT,CW_USEDEFAULT,
-		  hDlg,NULL,hInst,0);
-	  }
-      set_edit_offset(LOWORD(lparam),HIWORD(lparam));
-	  InvalidateRect(hDlg,&edit_rect,TRUE);
-	  set_edit_rect(&inspector[insp]);
-	  InvalidateRect(hDlg,&edit_rect,FALSE);
-	  de_update(hDataEdit);
-      return FALSE;
+	{ HWND hde;
+	  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+      set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
+	  InvalidateRect(hDlg,&insp->edit_rect,TRUE);
+	  set_edit_rect(insp);
+	  InvalidateRect(hDlg,&insp->edit_rect,FALSE);
+	  hde=GetDataEdit(0);
+	  de_connect(hde,insp);
+	  de_update(hde);
+	}
+    return FALSE;
 	case WM_COMMAND: 
 	  if (wparam ==IDOK)
 	  {  /* User has hit the ENTER key.*/
+		 inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		 if (GetFocus()==GetDlgItem(hDlg,IDC_GOTO))
-        { GetDlgItemText(hDlg,IDC_GOTO,tmp_option,MAXTMPOPTION);
+        { uint64_t goto_addr;
+          GetDlgItemText(hDlg,IDC_GOTO,tmp_option,MAXTMPOPTION);
     	  goto_addr = strtouint64(tmp_option);
-		  adjust_goto_addr();
-		  sb_base = (unsigned int)(goto_addr-inspector[insp].address);
-		  sb_cur = 0;
-		  adjust_mem_display();
+		  goto_addr=adjust_goto_addr(hDlg,insp,goto_addr);
+		  insp->sb_base = (unsigned int)(goto_addr-insp->address);
+		  insp->sb_cur = 0;
+		  adjust_mem_display(hDlg,insp);
 		 }
 	  }
 	  else if (HIWORD(wparam) == BN_CLICKED) 
-	  { if ((HWND)lparam==GetDlgItem(hDlg,IDC_FORMAT))
-	    { inspector[insp].format++; if (inspector[insp].format>last_format) inspector[insp].format=0;
-		  SetDlgItemText(hDlg, IDC_FORMAT, format_names[inspector[insp].format]);
-		  if (inspector[insp].format==float_format)
-		  { inspector[insp].chunk=tetra_chunk;
-            SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[inspector[insp].chunk]);
+	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+		if ((HWND)lparam==GetDlgItem(hDlg,IDC_FORMAT))
+	    { insp->format++; if (insp->format>last_format) insp->format=0;
+		  SetDlgItemText(hDlg, IDC_FORMAT, format_names[insp->format]);
+		  if (insp->format==float_format)
+		  { insp->chunk=tetra_chunk;
+            SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
 		  } 
-		  else if (inspector[insp].format==double_format)
-		  { inspector[insp].chunk=octa_chunk;
-            SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[inspector[insp].chunk]);
+		  else if (insp->format==double_format)
+		  { insp->chunk=octa_chunk;
+            SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
 		  } 
-     	  resize_memory_dialog();
+     	  resize_memory_dialog(hDlg,insp);
 	    } 
 	    else if ((HWND)lparam==GetDlgItem(hDlg,IDC_CHUNK))
-	    { if (inspector[insp].format==float_format)
-		    inspector[insp].chunk=tetra_chunk;
-		  else if (inspector[insp].format==double_format)
-		    inspector[insp].chunk=octa_chunk;
+	    { if (insp->format==float_format)
+		    insp->chunk=tetra_chunk;
+		  else if (insp->format==double_format)
+		    insp->chunk=octa_chunk;
 		  else
-		    inspector[insp].chunk++; 
-		  if (inspector[insp].chunk>last_chunk) inspector[insp].chunk=0;
-		  SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[inspector[insp].chunk]);
-     	  resize_memory_dialog();
+		    insp->chunk++; 
+		  if (insp->chunk>last_chunk) insp->chunk=0;
+		  SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
+     	  resize_memory_dialog(hDlg,insp);
 	    }
 	  }
 	  return FALSE;
 	case WM_VSCROLL: 
-       sb_move(wparam);
+	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+        sb_move(hDlg,insp,wparam);
+	  }
        return TRUE; 
     case SBM_SETRANGE:
 		return TRUE;
 	case WM_PAINT:
-    { PAINTSTRUCT ps;
+    { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+	  PAINTSTRUCT ps;
 	  HDC hdc = BeginPaint (hDlg, &ps);
-      display_data(hdc);
-	  if (!IsRectEmpty(&edit_rect))
+      display_data(insp,hdc);
+	  if (!IsRectEmpty(&insp->edit_rect))
 	  { HBRUSH hb = SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
 	    LOGPEN lp = {PS_SOLID,{separator_height,0},RGB(0,0,0)};
 	    HPEN hpnew =  CreatePen(PS_SOLID|PS_INSIDEFRAME,separator_height,RGB(0,0,0)); //CreatePenIndirect(&lp);
 		HPEN hpold = SelectObject(hdc,hpnew);
-		Rectangle(hdc,edit_rect.left,edit_rect.top,edit_rect.right,edit_rect.bottom);
+		Rectangle(hdc,insp->edit_rect.left,insp->edit_rect.top,insp->edit_rect.right,insp->edit_rect.bottom);
 		SelectObject(hdc, hpold);
 		DeleteObject(hpnew);
         SelectObject(hdc, hb);
@@ -648,85 +627,45 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  return TRUE;
     }    
 	case WM_SIZE:
+    {   inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		mem_width=LOWORD(lparam);
 		mem_height=HIWORD(lparam);
-		resize_memory_dialog();
+		if (insp!=NULL) resize_memory_dialog(hDlg,insp);
+	}
 	  break;
   }
   return FALSE;
 }
 
+HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
+{ return CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hParent,MemoryDialogProc);
+}
 
 
-void mem_update(unsigned int offset, int size)
+void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size)
 { if (hMemory==NULL) return;
-  if (inspector[insp].num_regs==0) adjust_goto_addr();
-  if (offset>=mem_base+mem_size || offset+size<=mem_base) 
+  if (insp->num_regs==0) adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
+  if (offset>=insp->mem_base+insp->mem_size || offset+size<=insp->mem_base) 
     return;
   else
   { unsigned int from, to;
-    refresh_old_mem();
-    if (offset<mem_base) from=mem_base; else from=offset;
-	if (offset+size<mem_base+mem_size) to = offset+size; else to = mem_base+mem_size;
-	if (inspector[insp].get_mem) inspector[insp].get_mem(from, to-from, mem_buf+(from-mem_base));
-	refresh_display();
+    refresh_old_mem(insp);
+    if (offset<insp->mem_base) from=insp->mem_base; else from=offset;
+	if (offset+size<insp->mem_base+insp->mem_size) to = offset+size; else to = insp->mem_base+insp->mem_size;
+	if (insp->get_mem) insp->get_mem(from, to-from, insp->mem_buf+(from-insp->mem_base));
+    InvalidateRect(hMemory,NULL,insp->num_regs>0);
   }
 }
 
-void mem_update_i(int i, unsigned int offset, int size)
-{ if (i!=insp) return;
-  mem_update(offset, size);
-}
+
 
 void de_disconnect(inspector_def *insp)
 /* called if a dataedit window disconects from the inspector */
 { insp->de_offset=-1;
   set_edit_rect(insp);
-  refresh_display();
+//  refresh_display(hMemory, insp);
 }
 
-
-
-LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{ switch ( message )
-  { case WM_CREATE :
-    { RECT rect;
-	  hDataEdit = CreateDataEdit(hInst,hWnd);
-      GetWindowRect(hDataEdit,&rect);
-	  AdjustWindowRect(&rect,WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,FALSE);
-	  SetWindowPos(hWnd,HWND_TOP,0,0,rect.right-rect.left,rect.bottom-rect.top,
-		  SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
-	  SendMessage(hDataEdit,DE_CONNECT,0,(LPARAM)&inspector[insp]);
-      UpdateWindow(hWnd);
-	}
-  	 return 0;
-	case WM_CLOSE:
-	  DestroyWindow(hDataEdit);
-	  hDataEdit=NULL;
-	  DestroyWindow(hWnd);
-	  return 0;
- }
-  return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-ATOM RegisterDataEditClass(HINSTANCE hInst)
-{ WNDCLASSEX wcex;
-  ZeroMemory(&wcex, sizeof(wcex));
-	wcex.cbSize = sizeof(WNDCLASSEX); 
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= (WNDPROC)DataEditProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInst;
-	wcex.hIcon			= NULL;
-	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= NULL; /*(HBRUSH)(COLOR_WINDOW+1);*/
-	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName = "DATAEDITCLASS";
-	wcex.hIconSm		= NULL;
-
-	return RegisterClassEx(&wcex);
-}
 
 
 
