@@ -1,0 +1,174 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU MENUEX 
+BEGIN
+    POPUP "&File",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&New",                        ID_FILE_NEW,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Open",                       ID_FILE_OPEN,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Close",                      ID_FILE_CLOSE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT40051,MFT_STRING,MFS_GRAYED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Exit",                       ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "Edit",                           65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "Undo\tCtrl+Z",                ID_EDIT_UNDO,MFT_STRING,MFS_ENABLED
+        MENUITEM "Redo\tCtrl+Y",                ID_EDIT_REDO,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Cut\tCtrl+X",                 ID_EDIT_CUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY,MFT_STRING,MFS_ENABLED
+        MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Delete\tDel",                 ID_EDIT_DELETE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Select All\tCtrl+A",          ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Find",                        ID_EDIT_FIND,MFT_STRING,MFS_GRAYED
+        MENUITEM "Replace",                     ID_EDIT_REPLACE,MFT_STRING,MFS_GRAYED
+    END
+    POPUP "&View",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        POPUP "&Registers",                     65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "&Local",                      ID_REGISTERS_LOCAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Global",                     ID_REGISTERS_GLOBAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Special",                    ID_REGISTERS_SPECIAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Stack",                      ID_REGISTERS_STACK,MFT_STRING,MFS_ENABLED
+        END
+        POPUP "&Memory",                        65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "&Text Segment",               ID_MEM_TEXTSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Data Segment",                ID_MEM_DATASEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Pool Segment",                ID_MEM_POOLSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Stack Segment",               ID_MEM_STACKSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Negative Segment",            ID_MEM_NEGATIVESEGMENT,MFT_STRING,MFS_ENABLED
+        END
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
+        MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Show White Space",            ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&Special Registers ...",      ID_OPTIONS_SPECIALS,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Windows ...",                ID_OPTIONS_WINDOWS,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
+    BEGIN
+        MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS 
+BEGIN
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
+    VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_FILE_NEW            ICON                    "Icons\\document-new-7.ico"
+IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoom-out-3.ico"
+IDI_FILE_OPEN           ICON                    "Icons\\document-open-7.ico"
+IDI_FILE_SAVE           ICON                    "Icons\\document-save-5.ico"
+IDI_EDIT_COPY           ICON                    "Icons\\edit-copy-8.ico"
+IDI_EDIT_CUT            ICON                    "Icons\\edit-cut-7.ico"
+IDI_EDIT_PASTE          ICON                    "Icons\\edit-paste-6.ico"
+IDI_EDIT_REDO           ICON                    "Icons\\edit-redo-4.ico"
+IDI_EDIT_UNDO           ICON                    "Icons\\edit-undo-4.ico"
+IDI_HELP                ICON                    "Icons\\help-3.ico"
+IDI_MMIX_DEBUG          ICON                    "Icons\\system-run-3.ico"
+IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoom-in-3.ico"
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

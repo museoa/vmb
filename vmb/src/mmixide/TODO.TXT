@@ -1,0 +1,16 @@
+
+Stepping, Continue
+
+Editing Registers
+
+Buttons
+
+Options
+   Editor
+   Debugger
+   
+VMB Debug
+
+Correct zoom of markers and line numbers
+
+Profiling support
