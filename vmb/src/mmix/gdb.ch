@@ -330,9 +330,9 @@ break_inst: breakpoint=tracing=true;
 @z
 
 @x
-  init_mmix_bus(bushost,busport,"MMIX CPU");
+  init_mmix_bus(host,port,"MMIX CPU");
 @y
-  init_mmix_bus(bushost,busport,"MMIX CPU");
+  init_mmix_bus(host,port,"MMIX CPU");
   if (interacting && gdb_init(gdbport)) 
   { breakpoint = true;
     gdb_signal=TARGET_SIGNAL_TRAP;

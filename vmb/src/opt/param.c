@@ -46,9 +46,9 @@ char *programhelpfile = NULL;
 #endif
 
 char *host=NULL;
-char *filename=NULL;
+char *vmb_filename=NULL;
 int port = 9002;
-int interrupt = 16;
+int interrupt_no = 16;
 int disable_interrupt = 0;
 int xpos=0, ypos=0; /* Window position */
 int minimized = 0;  /* start the window minimized */
@@ -87,6 +87,16 @@ void do_argument(int pos, char * arg)
   vmb_debug(VMB_DEBUG_ERROR, "too many arguments"); 
 }
 
+
+int do_define(char *arg)
+{ 
+ if (arg==NULL || arg[0]=='-')
+    return 0;
+ set_option(&defined,arg);
+ { char *p=defined; while (*p) { *p=tolower(*p); p++; }}
+ vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
+ return 1;
+}
 
 int mk_argv(char *argv[MAXARG],char *command, int unquote)
 /* splits command into arguments, knows how to handle strings.

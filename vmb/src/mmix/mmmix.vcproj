@@ -24,8 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix.c&#x0D;&#x0A;"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,8 +105,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix.c&#x0D;&#x0A;"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -192,12 +192,64 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmix-config.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-config.w mmix-config.c"
+						CommandLine="ctangle mmix-config.w mmix-config.c"
+						Outputs="mmix-config.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-config.w mmix-config.c"
+						CommandLine="ctangle mmix-config.w mmix-config.c"
+						Outputs="mmix-config.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\mmix-io.c"
+				>
+			</File>
+			<File
+				RelativePath=".\mmix-io.w"
 				>
 			</File>
 			<File
 				RelativePath=".\mmix-mem.c"
 				>
+			</File>
+			<File
+				RelativePath=".\mmix-mem.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-mem.w mmix-mem.c"
+						CommandLine="ctangle mmix-mem.w mmix-mem.c"
+						Outputs="mmix-mem.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-mem.w mmix-mem.c"
+						CommandLine="ctangle mmix-mem.w mmix-mem.c"
+						Outputs="mmix-mem.c"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mmix-pipe.c"
@@ -206,10 +258,52 @@
 			<File
 				RelativePath=".\mmix-pipe.w"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="ctangle mmix-pipe.w mmix-pipe.c"
+						Outputs="mmix-pipe.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="ctangle mmix-pipe.w mmix-pipe.c"
+						Outputs="mmix-pipe.c"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mmmix.c"
 				>
+			</File>
+			<File
+				RelativePath=".\mmmix.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmmix.w mmmix.c"
+						CommandLine="ctangle mmmix.w mmmix.c"
+						Outputs="mmmix.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmmix.w mmmix.c"
+						CommandLine="ctangle mmmix.w mmmix.c"
+						Outputs="mmmix.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter

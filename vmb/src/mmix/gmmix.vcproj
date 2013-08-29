@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\util"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -178,6 +178,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
+			RelativePathToProject="..\util\vmbwin.vcproj"
 		/>
 	</References>
 	<Files>
@@ -240,8 +241,9 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tangle"
-						CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						AdditionalDependencies="arith-win.ch"
 						Outputs="mmix-arith.c"
 					/>
 				</FileConfiguration>
@@ -250,8 +252,9 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tangle"
-						CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						AdditionalDependencies="arith-win.ch"
 						Outputs="mmix-arith.c"
 					/>
 				</FileConfiguration>

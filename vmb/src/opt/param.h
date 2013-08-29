@@ -36,15 +36,16 @@ extern int minimized;
 
 extern uint64_t vmb_address;
 extern unsigned int vmb_size;
-extern int interrupt;
+extern int interrupt_no;
 extern int disable_interrupt;
-extern char *filename;
+extern char *vmb_filename;
 
 #define MAXARG 256
 extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 
 #ifdef WIN32
 extern void param_init(void);
+extern char *programhelpfile;
 #else
 extern void param_init(int argc, char *argv[]);
 #endif

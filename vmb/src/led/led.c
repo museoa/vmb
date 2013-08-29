@@ -36,6 +36,7 @@ extern HWND hMainWnd;
 #include <sys/stat.h>
 
 #include "bus-arith.h"
+#include "winopt.h"
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
@@ -52,7 +53,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.15 $ $Date: 2013-07-08 12:05:24 $";
+char version[]="$Revision: 1.16 $ $Date: 2013-08-29 09:40:33 $";
 char title[] = "VMB LED";
 char howto[] =
 "\n"
@@ -115,7 +116,7 @@ static int led_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Mem",1,led_read,led_get_payload,led_put_payload,0,0,-1,0,0,NULL},
+	{"Mem",1,led_read,led_get_payload,led_put_payload,0,0,-1,8,0,NULL},
 	{0}
 };
 

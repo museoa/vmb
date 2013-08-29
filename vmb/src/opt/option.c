@@ -42,7 +42,7 @@
 #define DIRSTR  ("/")
 #endif
 #include "vmb.h"
-#include "param.h"
+// include "param.h"
 #include "option.h"
 
 
@@ -759,15 +759,7 @@ static void do_program(char * arg)
   vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
 }
 
-static int do_define(char *arg)
-{ 
- if (arg==NULL || arg[0]=='-')
-    return 0;
- set_option(&defined,arg);
- { char *p=defined; while (*p) { *p=tolower(*p); p++; }}
- vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
- return 1;
-}
+
 
 #if 0
 static 

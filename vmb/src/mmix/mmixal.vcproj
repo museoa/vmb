@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -101,6 +102,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -181,8 +184,64 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmix-arith.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						AdditionalDependencies="mmix-arith.w;arith-win.ch"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						AdditionalDependencies="mmix-arith.w;arith-win.ch"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mmixal-win.ch"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixal.c"
 				>
+			</File>
+			<File
+				RelativePath=".\mmixal.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmixal.w mmixal-win.ch mmixal.c"
+						CommandLine="ctangle mmixal.w mmixal-win.ch mmixal.c"
+						AdditionalDependencies="mmixal.w;mmixal-win.ch"
+						Outputs="mmixal.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmixal.w mmixal-win.ch mmixal.c"
+						CommandLine="ctangle mmixal.w mmixal-win.ch mmixal.c"
+						AdditionalDependencies="mmixal.w;mmixal-win.ch"
+						Outputs="mmixal.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -197,54 +256,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\mmix-arith.w"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
-					Outputs="mmix-arith.c"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
-					Outputs="mmix-arith.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\mmixal.w"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmixal.w mmixal.c&#x0D;&#x0A;"
-					Outputs="mmixal.c"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmixal.w mmixal.c&#x0D;&#x0A;"
-					Outputs="mmixal.c"
-				/>
-			</FileConfiguration>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

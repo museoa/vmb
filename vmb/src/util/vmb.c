@@ -176,7 +176,7 @@ static unsigned int pending_first=0; /* points to the first pending read */
 static unsigned int pending_last=0; /* points past the last pending read */
 
 #ifdef WIN32
-HANDLE hnot_full_pending;
+HANDLE hnot_full_pending=NULL;
 #else
 static pthread_mutex_t pending_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t pending_cond = PTHREAD_COND_INITIALIZER;
@@ -268,7 +268,7 @@ static data_address *dequeue_read_request(unsigned int address_hi, unsigned int 
 }
 
 #ifdef WIN32
-HANDLE hvalid;
+HANDLE hvalid=NULL;
 CRITICAL_SECTION   valid_section;
 #else
 static pthread_mutex_t valid_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -640,9 +640,12 @@ void vmb_disconnect(device_info *vmb)
 void vmb_begin(void)
 {  
 #ifdef WIN32
-   hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
-   hvalid =CreateEvent(NULL,FALSE,FALSE,NULL);
-   InitializeCriticalSection (&valid_section);
+   if (hnot_full_pending==NULL)
+     hnot_full_pending = CreateEvent(NULL,FALSE,FALSE,NULL);
+   if (hvalid==NULL)
+   { hvalid =CreateEvent(NULL,FALSE,FALSE,NULL);
+     InitializeCriticalSection (&valid_section);
+   }
 #else
 #endif
 }
@@ -651,9 +654,12 @@ void vmb_begin(void)
 void vmb_end(void)
 {  
 #ifdef WIN32
-   CloseHandle(hnot_full_pending); hnot_full_pending=NULL;
-   CloseHandle(hvalid); hvalid=NULL;
-   DeleteCriticalSection(&valid_section);
+   if (hnot_full_pending!=NULL)
+   { CloseHandle(hnot_full_pending); hnot_full_pending=NULL; }
+   if (hvalid!=NULL)
+   { CloseHandle(hvalid); hvalid=NULL;
+     DeleteCriticalSection(&valid_section);
+   }
 #else
 #endif
 }

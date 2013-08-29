@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=vmb
-AppVerName=vmb version 1.5, Virtual Hardware for the Real World
+AppVerName=vmb version 1.6alpha, Virtual Hardware for the Real World
 AppVersion=1.0
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
@@ -43,6 +43,7 @@ Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; F
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixide.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixgdb.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
@@ -68,6 +69,10 @@ Root: HKCR; Subkey: ".vmb"; ValueType: string; ValueName: ""; ValueData: "vmb_au
 Root: HKCR; Subkey: "vmb_auto_file"; ValueType: string; ValueName: ""; ValueData: "vmb Configuration"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "vmb_auto_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\vmb.ico,0"
 Root: HKCR; Subkey: "vmb_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MOTHER.EXE"" -c ""%1"""
+
+Root: HKCR; Subkey: ".mms"; ValueType: string; ValueName: ""; ValueData: "mms_auto_file"; Flags: uninsdeletevalue
+Root: HKCR; Subkey: "mms_auto_file"; ValueType: string; ValueName: ""; ValueData: "MMIX source"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "mms_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MMIXIDE.EXE"" ""%1"""
 
 [Code]
 const

@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="ctangle abstime.w abstime.c"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -90,7 +90,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Generate abstime.h"
-				CommandLine="Debug\abstime.exe &gt; abstime.h"
+				CommandLine="$(OutDir)\abstime.exe &gt; abstime.h"
 			/>
 		</Configuration>
 		<Configuration
@@ -103,8 +103,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build abstime.c"
-				CommandLine="ctangle abstime.w abstime.c"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -188,6 +187,28 @@
 			<File
 				RelativePath=".\abstime.w"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle abstime.w abstime.c"
+						CommandLine="ctangle abstime.w abstime.c"
+						AdditionalDependencies=""
+						Outputs="abstime.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle abstime.w abstime.c"
+						CommandLine="ctangle abstime.w abstime.c"
+						AdditionalDependencies=""
+						Outputs="abstime.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -195,6 +216,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\abstime.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

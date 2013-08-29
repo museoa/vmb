@@ -93,9 +93,10 @@ static void str_to_chunk(char *str, unsigned char *buf, enum mem_fmt fmt, int ch
 { uint64_t u;
          
   if (fmt==float_format)
-	u=f32_from_f64(f64_from_str(str));
-  else if (fmt==double_format)
-    u=f64_from_str(str);
+  { u=f64_from_str(str);
+    if (chunk_size<8)
+	  u=f32_from_f64(u);
+  }
   else if (fmt==signed_format)
 	u= (uint64_t)_atoi64(str);
   else if (fmt==unsigned_format)
@@ -172,12 +173,9 @@ static void show_edit_windows(dataedit *de)
 static set_edit_format(dataedit *de, enum mem_fmt format)
 { 
   if (format==ascii_format && de->chunk!=byte_chunk) format++;
-  if (format>last_format) format=hex_format;
+  if (format>last_format) format=0;
   if (format==float_format && de->size<4) format=hex_format;
   if (format==float_format && de->chunk<tetra_chunk) format=hex_format;
-  if (format==float_format && de->chunk==octa_chunk) format=double_format;
-  if (format==double_format && de->size<8) format=hex_format;
-  if (format==double_format && de->chunk<octa_chunk) format=hex_format;
   put_edit_mem(de);
   de->format=format;
   show_edit_mem(de);
@@ -189,9 +187,9 @@ static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
   if (1<<chunk>de->size) chunk=byte_chunk;
   if (de->format==ascii_format)
    chunk=byte_chunk;
-  else if (de->format==float_format)
+  else if (de->format==float_format && de->size<8)
    chunk=tetra_chunk;
-  else if (de->format==double_format)
+  else if (de->format==float_format)
    chunk=octa_chunk;
   put_edit_mem(de);
   de->chunk=chunk;
@@ -231,7 +229,7 @@ void de_update(HWND hDlg)
 	de->size=0;
 	de->address=0;
   }
-  else if (de->insp->num_regs>0)
+  else if (de->insp->regs!=NULL)
   {	struct register_def *r = &(de->insp->regs[de->insp->de_offset]);
 	de->name=r->name;
   	de->size=r->size;
@@ -320,10 +318,10 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		   set_edit_chunk(de,de->chunk+1);
 	  }
 	  return FALSE;
-//	case WM_CLOSE:
-//	  DestroyWindow(hDlg);
-//	  hDataEdit=NULL;
-//	  return FALSE;
+	case WM_SIZE:
+		InvalidateRect(hDlg,NULL,TRUE);
+		return FALSE;
+
  }
   return FALSE;
 }

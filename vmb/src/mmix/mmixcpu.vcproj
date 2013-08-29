@@ -24,8 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build mmix-vmb.c "
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -42,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,8 +105,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build mmix-vmb.c "
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -123,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\util"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -194,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\arith-win.ch"
+				>
+			</File>
+			<File
 				RelativePath=".\breaks.c"
 				>
 			</File>
@@ -202,12 +204,90 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmix-arith.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
+						AdditionalDependencies="arith-win.ch"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
+						AdditionalDependencies="arith-win.ch"
+						Outputs="mmix-arith.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\mmix-bus.c"
 				>
 			</File>
 			<File
+				RelativePath=".\mmix-sim.w"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						AdditionalDependencies="vmb.ch"
+						Outputs="mmix-vmb.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
+						AdditionalDependencies="mmix-sim.w;vmb.ch"
+						Outputs="mmix-vmb.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\mmix-vmb.c"
 				>
+			</File>
+			<File
+				RelativePath=".\vmb.ch"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						AdditionalDependencies="mmix-sim.w"
+						Outputs="mmix-vmb.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						AdditionalDependencies="mmix-sim.w"
+						Outputs="mmix-vmb.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -216,11 +296,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\address.h"
+				RelativePath="..\vmbmmixlib\address.h"
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-internals.h"
+				RelativePath="..\vmbmmixlib\breaks.h"
+				>
+			</File>
+			<File
+				RelativePath="..\vmbmmixlib\buffers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\vmbmmixlib\mmix-bus.h"
+				>
+			</File>
+			<File
+				RelativePath="..\vmbmmixlib\mmix-internals.h"
+				>
+			</File>
+			<File
+				RelativePath="..\vmbmmixlib\signals.h"
 				>
 			</File>
 		</Filter>
@@ -230,86 +326,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\abstime.w"
-			>
-		</File>
-		<File
-			RelativePath=".\mmix-arith.w"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
-					Outputs="mmix-arith.c"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-arith mmix-arith.c&#x0D;&#x0A;"
-					Outputs="mmix-arith.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\mmix-sim.w"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
-					AdditionalDependencies="vmb.ch"
-					Outputs="mmix-vmb.c"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
-					AdditionalDependencies="vmb.ch"
-					Outputs="mmix-vmb.c"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\vmb.ch"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
-					AdditionalDependencies="mmix-sim.w"
-					Outputs="mmix-vmb.c"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Tangle"
-					CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
-					AdditionalDependencies="mmix-sim.w"
-					Outputs="mmix-vmb.c"
-				/>
-			</FileConfiguration>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -165,7 +165,6 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i+2, &tie);
 		i++;
 	  }
-
 	  TabCtrl_SetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG), 0);
 	  ShowWindow(GetDlgItem(hDlg,IDC_DEBUG),SW_SHOW);
 	  GetWindowRect(hDlg,&rect);

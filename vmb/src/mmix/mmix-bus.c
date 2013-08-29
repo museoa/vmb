@@ -230,7 +230,7 @@ static void mmix_buserror(unsigned char type, unsigned char a[8])
 }
 
 
-static void vmb_atexit(void)
+void vmb_atexit(void)
 { vmb_disconnect(&vmb);
   vmb_end();
 }

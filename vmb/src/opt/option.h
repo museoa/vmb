@@ -136,6 +136,11 @@ extern void do_argument(int pos, char *arg);
    it id found in the variable "defined".
    All the other arguments for pos=2,3,... argc passed to this function
 */
+extern int do_define(char *arg);
+/* a function called on the very first agument unless this first argument starts with '-' 
+   it is typically used to define an alternative program name for use in configuartion file
+   conditionals.
+*/
 
 /* the option description */
 

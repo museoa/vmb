@@ -3,9 +3,9 @@
 #define INSPECT_H
 
 
-enum mem_fmt {hex_format=0, unsigned_format=1, signed_format=2, ascii_format=3, float_format=4, double_format=5,last_format=5 };
+enum mem_fmt {hex_format=0, ascii_format=1, unsigned_format=2, signed_format=3,  float_format=4, last_format=4, user_format=5 };
 
-enum chunk_fmt {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, last_chunk=3 };
+enum chunk_fmt {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, last_chunk=3, user_chunk=4 };
 
 extern char *format_names[];
 
@@ -17,12 +17,12 @@ extern int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 /* list registers strictly in order of increasing offsets */
 struct register_def
 { char *name;
-  int nr;
   int offset;
   int size;
   enum chunk_fmt chunk;
   enum mem_fmt  format;
 };
+typedef struct register_def register_def;
 
 struct inspector_def {
 	char *name;
@@ -37,12 +37,19 @@ struct inspector_def {
 	int num_regs;      /* 0 if memory */
 	struct register_def *regs; /* NULL if memory */
 	/* the rest can be initialized with zero */
+	int max_regname;   /*maximum number of characters in register names */
 	uint64_t address;  /* used for memory only */
 	RECT edit_rect;
+	HWND hWnd; /* the window where the edit rectangle is displayed */
     unsigned int sb_base; /* offset at base of scrollbar */
     int sb_cur; /* line corresponding to start of page */
     int lines; /* lines per page */
 	unsigned int line_range; /* number byte per line */
+	int width;  /* width in pixel */
+	int height; /* height in pixel */
+    int columns; 
+	int column_width; /* column width in pixel */
+	int column_digits; /* number of output characters per column */
     unsigned int mem_base;
 	unsigned int mem_size; /* page currently displayed */
     unsigned char *mem_buf; /* memory buffer */
@@ -56,6 +63,8 @@ typedef struct inspector_def inspector_def;
 extern struct inspector_def inspector[];
 #ifdef WIN32
 
+extern void update_max_regnames(inspector_def *insp);
+/* call this if you change the register names dynamically */
 
 extern HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent);
 
@@ -66,7 +75,7 @@ void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, i
 
 #else
 /* make it a no-op */
-#define mem_update(inspector, offset, size)
+#define mem_update(offset, size)
 
 #endif
 

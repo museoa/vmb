@@ -62,7 +62,7 @@
 /* all buffers should fit in the free queue */
 #define NUMBUF (QUEUESIZE-1) 
 
-static char buffer[NUMBUF][PBUFSIZ];
+
 static queue free_buffers;
 static queue cmd_buffers;
 
@@ -81,6 +81,7 @@ void put_cmd_buffer(char *buffer)
 
 static void buffers_init(void)
 { int i;
+  static char buffer[NUMBUF][PBUFSIZ];
   init_queue(&free_buffers);
   init_queue(&cmd_buffers);
   for (i=0;i<NUMBUF;i++)

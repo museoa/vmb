@@ -32,10 +32,11 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "vmb.h"
 #include "param.h"
+#include "winopt.h"
 #include "inspect.h"
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.19 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.20 $ $Date: 2013-08-29 09:40:34 $";
 char title[] ="VMB RAM";
 
 char howto[] =
@@ -207,7 +208,7 @@ void ram_reset(void)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,ram_read,ram_get_payload,ram_put_payload,0,0,-1, 0,0,NULL},
+	{"Memory",0,ram_read,ram_get_payload,ram_put_payload,0,0,-1, 8,0,NULL},
 	{0}
 };
 

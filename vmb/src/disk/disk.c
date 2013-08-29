@@ -31,7 +31,7 @@ extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.29 $ $Date: 2013-07-08 12:05:24 $";
+char version[]="$Revision: 1.30 $ $Date: 2013-08-29 09:40:33 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -659,7 +659,7 @@ void disk_terminate(void)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,hex_format,octa_chunk,-1,0,NUM_REGS,disk_regs},
+	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,hex_format,octa_chunk,-1,8,NUM_REGS,disk_regs},
 	{0}
 };
 

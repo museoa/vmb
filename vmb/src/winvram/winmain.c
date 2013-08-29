@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.32 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.33 $ $Date: 2013-08-29 09:40:34 $";
 char title[] ="VMB Video Ram";
 
 int major_version=1, minor_version=5;
@@ -242,6 +242,7 @@ void init_screen(device_info *vmb)
     inspector[0].format=hex_format;
 	inspector[0].chunk=tetra_chunk;
 	inspector[0].de_offset=-1;
+	inspector[0].sb_rng=8;
 	inspector[0].address=vmb_address;
 	inspector[0].num_regs=0;
 	inspector[0].regs=NULL;
@@ -349,6 +350,7 @@ void init_mouse(void)
 	inspector[1].chunk=wyde_chunk;
 	inspector[1].de_offset=-1;
 	inspector[1].address=0;
+	inspector[1].sb_rng=8;
 	inspector[1].num_regs= 6;
 	inspector[1].regs =mouse_regs;
 }
@@ -766,6 +768,7 @@ void init_gpu(void)
 	inspector[2].chunk=byte_chunk;
 	inspector[2].de_offset=-1;
     inspector[2].address=0;
+	inspector[2].sb_rng=8;
     inspector[2].num_regs= GPU_REGS;
     inspector[2].regs =gpu_regs;
 }

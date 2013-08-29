@@ -39,12 +39,13 @@ extern HWND hMainWnd;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#include "winopt.h"
 #include "inspect.h"
 
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.19 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.20 $ $Date: 2013-08-29 09:40:34 $";
 
 char howto[] =
 "\n"
@@ -211,7 +212,7 @@ static int rom_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,rom_read,rom_get_payload, NULL,0,0,-1,0,0,NULL},
+	{"Memory",0,rom_read,rom_get_payload, NULL,0,0,-1,8,0,NULL},
 	{0}
 };
 

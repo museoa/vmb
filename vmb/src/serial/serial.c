@@ -21,7 +21,7 @@
 */
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.13 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.14 $ $Date: 2013-08-29 09:40:34 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
@@ -48,6 +48,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 #include "error.h"
 #include "bus-arith.h"
+#include "winopt.h"
 #include "inspect.h"
 #include "param.h"
 #include "option.h"
@@ -776,7 +777,7 @@ struct register_def serial_regs[7] = {
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",SERIAL_MEM,serial_reg_read,serial_get_payload,serial_put_payload,0,0,-1,0,6,serial_regs},
+	{"Registers",SERIAL_MEM,serial_reg_read,serial_get_payload,serial_put_payload,0,0,-1,8,6,serial_regs},
 	{0}
 };
 

@@ -9,8 +9,10 @@ void set_pos_key(HWND hWnd,char *name)
   WINDOWPLACEMENT wndpl;
   wndpl.length=sizeof(WINDOWPLACEMENT);
   if(!GetWindowPlacement(hWnd,&wndpl))
-			return;
-
+  { DWORD e = GetLastError();
+      vmb_errori(__LINE__,"could not get window placement",e);
+	  return;
+  }
   xpos = wndpl.rcNormalPosition.left;   // horizontal position 
   ypos = wndpl.rcNormalPosition.top;   // vertical position 
   r = RegOpenKeyEx(HKEY_CURRENT_USER,"Software",0,KEY_ALL_ACCESS,&s);

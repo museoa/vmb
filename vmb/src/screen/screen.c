@@ -36,6 +36,7 @@ extern void setfont(void);
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#include "winopt.h"
 #include "inspect.h"
 
 static void display_char(char c);
@@ -43,7 +44,7 @@ extern device_info vmb;
 char title[] ="VMB Screen";
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.17 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.18 $ $Date: 2013-08-29 09:40:34 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -136,7 +137,7 @@ int screen_reg_read(unsigned int offset, int size, unsigned char *buf)
 }
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",5*8,screen_reg_read,screen_get_payload,screen_put_payload,0,0,-1,0,4,screen_regs},
+	{"Registers",5*8,screen_reg_read,screen_get_payload,screen_put_payload,0,0,-1,8,4,screen_regs},
 	{0}
 };
 
