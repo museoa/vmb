@@ -32,141 +32,19 @@ If the option is omited altogether, localhost is contacted at port 9002.
 @z
 
 @x
-@* Simulated memory. Chunks of simulated memory, 2048 bytes each,
-are kept in a tree structure organized as a {\it treap},
-following ideas of Vuillemin, Aragon, and Seidel
-@^Vuillemin, Jean Etienne@>
-@^Aragon, Cecilia Rodriguez@>
-@^Seidel, Raimund@>
-[{\sl Communications of the ACM\/ \bf23} (1980), 229--239;
-{\sl IEEE Symp.\ on Foundations of Computer Science\/ \bf30} (1989), 540--546].
-Each node of the treap has two keys: One, called |loc|, is the
-base address of 512 simulated tetrabytes; it follows the conventions
-of an ordinary binary search tree, with all locations in the left subtree
-less than the |loc| of a node and all locations in the right subtree
-greater than that~|loc|. The other, called |stamp|, can be thought of as the
-time the node was inserted into the tree; all subnodes of a given node
-have a larger~|stamp|. By assigning time stamps at random, we maintain
-a tree structure that almost always is fairly well balanced.
-
-Each simulated tetrabyte has an associated frequency count and
-source file reference.
-
-@<Type...@>=
-typedef struct {
-  tetra tet; /* the tetrabyte of simulated memory */
-  tetra freq; /* the number of times it was obeyed as an instruction */
-  unsigned char bkpt; /* breakpoint information for this tetrabyte */
-  unsigned char file_no; /* source file number, if known */
-  unsigned short line_no; /* source line number, if known */
-} mem_tetra;
-@#
-typedef struct mem_node_struct {
-  octa loc; /* location of the first of 512 simulated tetrabytes */
-  tetra stamp; /* time stamp for treap balancing */
-  struct mem_node_struct *left, *right; /* pointers to subtrees */
-  mem_tetra dat[512]; /* the chunk of simulated tetrabytes */
-} mem_node;
-
-@ The |stamp| value is actually only pseudorandom, based on the
-idea of Fibonacci hashing [see {\sl Sorting and Searching}, Section~6.4].
-This is good enough for our purposes, and it guarantees that
-no two stamps will be identical.
-
-@<Sub...@>=
-mem_node* new_mem @,@,@[ARGS((void))@];@+@t}\6{@>
-mem_node* new_mem()
-{
-  register mem_node *p;
-  p=(mem_node*)calloc(1,sizeof(mem_node));
-  if (!p) panic("Can't allocate any more memory");
-@.Can't allocate...@>
-  p->stamp=priority;
-  priority+=0x9e3779b9; /* $\lfloor2^{32}(\phi-1)\rfloor$ */
-  return p;
-}
-
-@ Initially we start with a chunk for the pool segment, since
-the simulator will be putting command-line information there before
-it runs the program.
-
-@<Initialize...@>=
-mem_root=new_mem();
-mem_root->loc.h=0x40000000;
-last_mem=mem_root;
+#ifdef __STDC__
+#define ARGS(list) list
+#else
+#define ARGS(list) ()
+#endif
+@y
+#ifdef __STDC__
+#define ARGS(list) list
+#else
+#define ARGS(list) ()
+#endif
 
 @ @<Glob...@>=
-tetra priority=314159265; /* pseudorandom time stamp counter */
-mem_node *mem_root; /* root of the treap */
-mem_node *last_mem; /* the memory node most recently read or written */
-octa sclock; /* simulated clock */
-
-@ The |mem_find| routine finds a given tetrabyte in the simulated
-memory, inserting a new node into the treap if necessary.
-
-@<Sub...@>=
-mem_tetra* mem_find @,@,@[ARGS((octa))@];@+@t}\6{@>
-mem_tetra* mem_find(addr)
-  octa addr;
-{
-  octa key;
-  register int offset;
-  register mem_node *p=last_mem;
-  key.h=addr.h;
-  key.l=addr.l&0xfffff800;
-  offset=addr.l&0x7fc;
-  if (p->loc.l!=key.l || p->loc.h!=key.h)
-    @<Search for |key| in the treap,
-        setting |last_mem| and |p| to its location@>;
-  return &p->dat[offset>>2];
-}
-
-@ @<Search for |key| in the treap...@>=
-{@+register mem_node **q;
-  for (p=mem_root; p; ) {
-    if (key.l==p->loc.l && key.h==p->loc.h) goto found;
-    if ((key.l<p->loc.l && key.h<=p->loc.h) || key.h<p->loc.h) p=p->left;
-    else p=p->right;
-  }
-  for (p=mem_root,q=&mem_root; p && p->stamp<priority; p=*q) {
-    if ((key.l<p->loc.l && key.h<=p->loc.h) || key.h<p->loc.h) q=&p->left;
-    else q=&p->right;
-  }
-  *q=new_mem();
-  (*q)->loc=key;
-  @<Fix up the subtrees of |*q|@>;
-  p=*q;
-found: last_mem=p;
-}
-
-@ At this point we want to split the binary search tree |p| into two
-parts based on the given |key|, forming the left and right subtrees
-of the new node~|q|. The effect will be as if |key| had been inserted
-before all of |p|'s nodes.
-
-@<Fix up the subtrees of |*q|@>=
-{
-  register mem_node **l=&(*q)->left,**r=&(*q)->right;
-  while (p) {
-    if ((key.l<p->loc.l && key.h<=p->loc.h) || key.h<p->loc.h)
-      *r=p, r=&p->left, p=*r;
-    else *l=p, l=&p->right, p=*l;
-  }
-  *l=*r=NULL;
-}
-@y
-@* Simulated memory.
-We now read memory using some external simulator.
-We provide |extern| functions defined in a separate file.
-The functions we use are partly concerned with virtual
-to physical address translation and contained in the
-file address.h and address.c
-and with access to the virtual bus contained in
-mmix-bus.h and mmix-bus.c.
-At a later point the interface
-should be included here as a literate program.
-
-@<Type...@>=
 #include <time.h>
 #include "address.h"
 #include "mmix-bus.h"
@@ -176,8 +54,6 @@ should be included here as a literate program.
 #include "mmixlib.h"
 #endif
 
-@ @<Glob...@>=
-octa sclock; /* simulated clock */
 device_info vmb = {0};
 #ifdef MMIXLIB
 int mmix_status = MMIX_OFF;
@@ -185,29 +61,41 @@ int mmix_status = MMIX_OFF;
 @z
 
 @x
-@* Loading an object file. To get the user's program into memory,
-we read in an \MMIX\ object, using modifications of the routines
-in the utility program \.{MMOtype}. Complete details of \.{mmo}
-format appear in the program for {\mc MMIXAL}; a reader
-who hopes to understand this section ought to at least skim
-that documentation.
-Here we need to define only the basic constants used for interpretation.
+@d panic(m) {@+fprintf(stderr,"Panic: %s!\n",m);@+exit(-2);@+}
+@y
+@d panic(m) {@+vmb_fatal_error(__LINE__,m);@+}
+@z
 
+@x
+Each simulated tetrabyte has an associated frequency count and
+source file reference.
+@y
+Each simulated tetrabyte has an associated frequency count and
+source file reference.
+
+We now read memory using some external simulator.
+We provide |extern| functions defined in a separate file.
+The functions we use are partly concerned with virtual
+to physical address translation and contained in the
+file address.h and address.c
+and with access to the virtual bus contained in
+mmix-bus.h and mmix-bus.c.
+At a later point the interface
+should be included here as a literate program.
+@z
+
+@x
+  tetra tet; /* the tetrabyte of simulated memory */
+@y
+@z
+
+@x
 @d mm 0x98 /* the escape code of \.{mmo} format */
-@d lop_quote 0x0 /* the quotation lopcode */
-@d lop_loc 0x1 /* the location lopcode */
-@d lop_skip 0x2 /* the skip lopcode */
-@d lop_fixo 0x3 /* the octabyte-fix lopcode */
-@d lop_fixr 0x4 /* the relative-fix lopcode */
-@d lop_fixrx 0x5 /* extended relative-fix lopcode */
-@d lop_file 0x6 /* the file name lopcode */
-@d lop_line 0x7 /* the file position lopcode */
-@d lop_spec 0x8 /* the special hook lopcode */
-@d lop_pre 0x9 /* the preamble lopcode */
-@d lop_post 0xa /* the postamble lopcode */
-@d lop_stab 0xb /* the symbol table lopcode */
-@d lop_end 0xc /* the end-it-all lopcode */
+@y
+@d mmo_esc 0x98 /* the escape code of \.{mmo} format */
+@z
 
+@x
 @ We do not load the symbol table. (A more ambitious simulator could
 implement \.{MMIXAL}-style expressions for interactive debugging,
 but such enhancements are left to the interested reader.)
@@ -228,99 +116,49 @@ if (!mmo_file) {
   }
   free(alt_name);
 }
-byte_count=0;
+@y
+@z
 
-@ @<Glob...@>=
-FILE *mmo_file; /* the input file */
-int postamble; /* have we encountered |lop_post|? */
-int byte_count; /* index of the next-to-be-read byte */
-byte buf[4]; /* the most recently read bytes */
-int yzbytes; /* the two least significant bytes */
-int delta; /* difference for relative fixup */
-tetra tet; /* |buf| bytes packed big-endianwise */
-
-@ The tetrabytes of an \.{mmo} file are stored in
-friendly big-endian fashion, but this program is supposed to work also
-on computers that are little-endian. Therefore we read four successive bytes
-and pack them into a tetrabyte, instead of reading a single tetrabyte.
-
+@x
 @d mmo_err {
      fprintf(stderr,"Bad object file! (Try running MMOtype.)\n");
 @.Bad object file@>
      exit(-4);
    }
+@y
+@d mmo_err {panic("Bad object file! (Try running MMOtype.)");}
+@z
 
-@<Sub...@>=
-void read_tet @,@,@[ARGS((void))@];@+@t}\6{@>
-void read_tet()
-{
-  if (fread(buf,1,4,mmo_file)!=4) mmo_err;
-  yzbytes=(buf[2]<<8)+buf[3];
-  tet=(((buf[0]<<8)+buf[1])<<16)+yzbytes;
-}
-
-@ @<Sub...@>=
-byte read_byte @,@,@[ARGS((void))@];@+@t}\6{@>
-byte read_byte()
-{
-  register byte b;
-  if (!byte_count) read_tet();
-  b=buf[byte_count];
-  byte_count=(byte_count+1)&3;
-  return b;
-}
-
-@ @<Load the preamble@>=
-read_tet(); /* read the first tetrabyte of input */
+@x
 if (buf[0]!=mm || buf[1]!=lop_pre) mmo_err;
-if (ybyte!=1) mmo_err;
-if (zbyte==0) obj_time=0xffffffff;
-else {
-  j=zbyte-1;
-  read_tet();@+ obj_time=tet; /* file creation time */
-  for (;j>0;j--) read_tet();
-}
+@y
+if (buf[0]!=mmo_esc || buf[1]!=lop_pre) mmo_err;
+@z
 
-@ @<Load the next item@>=
-{
-  read_tet();
+@x
  loop:@+if (buf[0]==mm) switch (buf[1]) {
-   case lop_quote:@+if (yzbytes!=1) mmo_err;
-    read_tet();@+break;
-   @t\4@>@<Cases for lopcodes in the main loop@>@;
-   case lop_post: postamble=1;
-     if (ybyte || zbyte<32) mmo_err;
-     continue;
-   default: mmo_err;
-  }
-  @<Load |tet| as a normal item@>;
-}
+@y
+ loop:@+if (buf[0]==mmo_esc) switch (buf[1]) {
+@z
 
-@ In a normal situation, the newly read tetrabyte is simply supposed
-to be loaded into the current location. We load not only the current
-location but also the current file position, if |cur_line| is nonzero
-and |cur_loc| belongs to segment~0.
-
+@x
 @d mmo_load(loc,val) ll=mem_find(loc), ll->tet^=val
-
-@<Load |tet| as a normal item@>=
-{
-  mmo_load(cur_loc,tet);
-  if (cur_line) {
-    ll->file_no=cur_file;
-    ll->line_no=cur_line;
-    cur_line++;
-  }
-  cur_loc=incr(cur_loc,4);@+ cur_loc.l &=-4;
+@y
+@<Sub...@>=
+#define mmo_load(loc, val)                  \
+{ octa x;                                   \
+  ll=mem_find(loc);                         \
+  load_data(4,&x,loc,0);                    \
+  x.l = x.l^val;                            \
+  if (!store_data(4,x,loc))                 \
+  panic("Unable to store mmo file to RAM"); \
 }
 
-@ @<Glob...@>=
-octa cur_loc; /* the current location */
-int cur_file=-1; /* the most recently selected file number */
-int cur_line; /* the current position in |cur_file|, if nonzero */
-octa tmp; /* an octabyte of temporary interest */
-tetra obj_time; /* when the object file was created */
+@ This function is used here:
 
+@z
+
+@x
 @ @<Initialize...@>=
 cur_loc.h=cur_loc.l=0;
 cur_file=-1;
@@ -330,83 +168,67 @@ do @<Load the next item@>@;@+while (!postamble);
 @<Load the postamble@>;
 fclose(mmo_file);
 cur_line=0;
+@y
+@ @<Load object file@>=
+cur_loc.h=cur_loc.l=0;
+cur_file=-1;
+cur_line=0;
+postamble=0;
+@<Load the preamble@>;
+do @<Load the next item@>@;@+while (!postamble);
+@<Load the postamble@>;
+fclose(mmo_file);
+write_all_data_cache();
+clear_all_instruction_cache();
+}
+@z
 
-@ We have already implemented |lop_quote|, which
-falls through to the normal case after reading an extra tetrabyte.
-Now let's consider the other lopcodes in turn.
-
-@d ybyte buf[2] /* the next-to-least significant byte */
-@d zbyte buf[3] /* the least significant byte */
-
-@<Cases for lopcodes...@>=
-case lop_loc:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ cur_loc.h=(j<<24)+tet;
- }@+else if (zbyte==1) cur_loc.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ cur_loc.l=tet;
- continue;
-case lop_skip: cur_loc=incr(cur_loc,yzbytes);@+continue;
-
-@ Fixups load information out of order, when future references have
-been resolved. The current file name and line number are not considered
-relevant.
-
-@<Cases for lopcodes...@>=
-case lop_fixo:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ tmp.h=(j<<24)+tet;
- }@+else if (zbyte==1) tmp.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ tmp.l=tet;
- mmo_load(tmp,cur_loc.h);
- mmo_load(incr(tmp,4),cur_loc.l);
- continue;
-case lop_fixr: mmo_load(incr(cur_loc,-yzbytes<<2),yzbytes); continue;
-case lop_fixrx:j=yzbytes;@+if (j!=16 && j!=24) mmo_err;
- read_tet();@+if (tet&0xfe000000) mmo_err;
- delta=(tet>=0x1000000? (tet&0xffffff)-(1<<j): tet);
- mmo_load(incr(cur_loc,-delta<<2),tet);
- continue;
-
-@ The space for file names isn't allocated until we are sure we need it.
-
-@<Cases for lopcodes...@>=
+@x
 case lop_file:@+if (file_info[ybyte].name) {
    if (zbyte) mmo_err;
    cur_file=ybyte;
  }@+else {
    if (!zbyte) mmo_err;
-   file_info[ybyte].name=(char*)calloc(4*zbyte+1,1);
-   if (!file_info[ybyte].name) {
-     fprintf(stderr,"No room to store the file name!\n");@+exit(-5);
-@.No room...@>
-   }
+@y
+case lop_file:@+if (!zbyte) {
    cur_file=ybyte;
-   for (j=zbyte,p=file_info[ybyte].name; j>0; j--,p+=4) {
-     read_tet();
-     *p=buf[0];@+*(p+1)=buf[1];@+*(p+2)=buf[2];@+*(p+3)=buf[3];
+ }@+else {
+   if (file_info[ybyte].name)
+   { free(file_info[ybyte].name);
+     file_info[ybyte].name=NULL;
    }
- }
- cur_line=0;@+continue;
-case lop_line:@+if (cur_file<0) mmo_err;
- cur_line=yzbytes;@+continue;
+@z
 
-@ Special bytes are ignored (at least for now).
+@x
+     fprintf(stderr,"No room to store the file name!\n");@+exit(-5);
+@y
+	 panic("No room to store the file name!\n");
+@z
 
-@<Cases for lopcodes...@>=
-case lop_spec:@+ while(1) {
-   read_tet();
+@x
    if (buf[0]==mm) {
-     if (buf[1]!=lop_quote || yzbytes!=1) goto loop; /* end of special data */
-     read_tet();
-   }
- }
+@y
+   if (buf[0]==mmo_esc) {
+@z
 
+@x
 @ Since a chunk of memory holds 512 tetrabytes, the |ll| pointer in the
 following loop stays in the same chunk (namely, the first chunk
 of segment~3, also known as \.{Stack\_Segment}).
 @:Stack_Segment}\.{Stack\_Segment@>
 @:Pool_Segment}\.{Pool\_Segment@>
+@y
+@ We load the postamble into the beginning
+of segment~3, also known as \.{Stack\_Segment}).
+@:Stack_Segment}\.{Stack\_Segment@>
+@:Pool_Segment}\.{Pool\_Segment@>
+The stack segment is set up to be used with an unsave instruction.
+On the stack, we have, the local registers (argc and argv) and the value of rL, then the global
+registers and the special registers rB, rD, rE, rH, rJ, rM, rR, rP, rW, rX, rY, and rZ,
+followed by rG and rA packed into eight byte.
+@z
 
+@x
 @<Load the postamble@>=
 aux.h=0x60000000;@+ aux.l=0x18;
 ll=mem_find(aux);
@@ -420,30 +242,42 @@ inst_ptr.h=(ll-2)->tet, inst_ptr.l=(ll-1)->tet; /* \.{Main} */
 (ll+2*12)->tet=G<<24;
 g[255]=incr(aux,12*8); /* we will |UNSAVE| from here, to get going */
 @y
+@<Load the postamble@>=
+aux.h=0x60000000;
+{ octa x;
+  x.h=0;@+x.l=argc;@+aux.l=0x00;
+  if (!store_data(8,x,aux)) /* and $\$0=|argc|$ */
+     panic("Unable to store mmo file to RAM");
+  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;
+  if (!store_data(8,x,aux)) /* and $\$1=\.{Pool\_Segment}+8$ */
+     panic("Unable to store mmo file to RAM");
+  x.h=0;@+x.l=2;@+aux.l=0x10;
+  if (!store_data(8,x,aux)) /* this will ultimately set |rL=2| */
+     panic("Unable to store mmo file to RAM");
+  G=zbyte;@+ L=0;@+ O=0;
+  aux.l=0x18;
+  for (j=G;j<256;j++,aux.l+=8)
+  { read_tet(); x.h=tet;
+    read_tet(), x.l=tet;
+    if (!store_data(8,x,aux))
+       panic("Unable to store mmo file to RAM");
+  }
+  g[rWW] = x;  /* last octa stored is address of \.{Main} */
+//  if (interacting) set_break(x,exec_bit);
+  g[rXX].h = 0; g[rXX].l = 0xFB0000FF; /* |UNSAVE| \$255 */
+  g[rBB]=aux=incr(aux,12*8); /* we can |UNSAVE| from here, to get going */
+  x.h=G<<24; x.l=0 /* rA */;
+  if (!store_data(8,x,aux))
+     panic("Unable to store mmo file to RAM");
+}
 @z
 
 @x
-@* Loading and printing source lines.
-The loaded program generally contains cross references to the lines
-of symbolic source files, so that the context of each instruction
-can be understood. The following sections of this program
-make such information available when it is desired.
-
-Source file data is kept in a \&{file\_node} structure:
-
-@<Type...@>=
-typedef struct {
-  char *name; /* name of source file */
-  int line_count; /* number of lines in the file */
   long *map; /* pointer to map of file positions */
-} file_node;
+@y
+@z
 
-@ In partial preparation for the day when source files are in
-Unicode, we define a type \&{Char} for the source characters.
-
-@<Type...@>=
-typedef char Char; /* bytes that will become wydes some day */
-
+@x
 @ @<Glob...@>=
 file_node file_info[256]; /* data about each source file */
 int buf_size; /* size of buffer for source lines */
@@ -580,71 +414,41 @@ bool profile_showing_source; /* |showing_source| within final frequencies */
   shown_line=0;
   if (!file_info[cur_file].map) make_map();
 }
+@y
+@ @<Glob...@>=
+file_node file_info[256]; /* data about each source file */
+int gap; /* minimum gap between consecutively listed source lines */
+int profile_gap; /* the |gap| when printing final frequencies */
+@z
 
+@x
 @ Here is a simple application of |show_line|. It is a recursive routine that
-prints the frequency counts of all instructions that occur in a
-given subtree of the simulated memory and that were executed at least once.
-The subtree is traversed in symmetric order; therefore the frequencies
-appear in increasing order of the instruction locations.
+@y
+@ Next is a recursive routine that
+@z
 
-@<Sub...@>=
-void print_freqs @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
-void print_freqs(p)
-  mem_node *p;
-{
-  register int j;
-  octa cur_loc;
-  if (p->left) print_freqs(p->left);
-  for (j=0;j<512;j++) if (p->dat[j].freq)
-    @<Print frequency data for location |p->loc+4*j|@>;
-  if (p->right) print_freqs(p->right);
-}
-
-@ An ellipsis (\.{...}) is printed between frequency data for nonconsecutive
-instructions, unless source line information intervenes.
-
-@<Print frequency data...@>=
-{
-  cur_loc=incr(p->loc,4*j);
+@x
   if (showing_source && p->dat[j].line_no) {
     cur_file=p->dat[j].file_no, cur_line=p->dat[j].line_no;
     line_shown=false;
     show_line();
     if (line_shown) goto loc_implied;
   }
-  if (cur_loc.l!=implied_loc.l || cur_loc.h!=implied_loc.h)
-    if (profile_started) printf("         0.        ...\n");
+@y
+@z
+
+@x
  loc_implied: printf("%10d. %08x%08x: %08x (%s)\n",
       p->dat[j].freq, cur_loc.h, cur_loc.l, p->dat[j].tet,
       info[p->dat[j].tet>>24].name);
-  implied_loc=incr(cur_loc,4);@+ profile_started=true;
-}
-
-@ @<Glob...@>=
-octa implied_loc; /* location following the last shown frequency data */
-bool profile_started; /* have we printed at least one frequency count? */
-
-@ @<Print all the frequency counts@>=
-{
-  printf("\nProgram profile:\n");
-  shown_file=cur_file=-1;@+ shown_line=cur_line=0;
-  gap=profile_gap;
-  showing_source=profile_showing_source;
-  implied_loc=neg_one;
-  print_freqs(mem_root);
-}
 @y
-@ In partial preparation for the day when source files are in
-Unicode, we define a type \&{Char} for the source characters.
-
-@<Type...@>=
-typedef char Char; /* bytes that will become wydes some day */
+      printf("%10d. %08x%08x\n",
+      p->dat[j].freq, cur_loc.h, cur_loc.l);
 @z
 
 @x
   if (resuming) loc=incr(inst_ptr,-4), inst=g[rX].l;
   else @<Fetch the next instruction@>;
-  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @y
   op=SWYM;
   zz=0;
@@ -660,7 +464,6 @@ typedef char Char; /* bytes that will become wydes some day */
     }
   }
   else @<Fetch the next instruction@>;
-  op=inst>>24;@+xx=(inst>>16)&0xff;@+yy=(inst>>8)&0xff;@+zz=inst&0xff;
 @z
 
 @x
@@ -688,14 +491,14 @@ bool interacting; /* are we in interactive mode? */
 bool interacting; /* are we in interactive mode? */
 bool show_operating_system = false; /* do we show negative addresses */
 static bool interact_after_resume = false;
+#ifdef MMIXLIB
+extern int port; /* on which port to connect to the bus */
+extern char *host; /* on which host to connect to the bus */
+#else
 char localhost[]="localhost";
 int port=9002; /* on which port to connect to the bus */
 char *host=localhost; /* on which host to connect to the bus */
-@z
-
-@x
-register mem_tetra *ll; /* current place in the simulated memory */
-@y
+#endif
 @z
 
 @x
@@ -747,7 +550,7 @@ register mem_tetra *ll; /* current place in the simulated memory */
 register int G,L,O; /* accessible copies of key registers */
 @y
 @ @<Glob...@>=
-int G=1,L=0,O=0; /* accessible copies of key registers */
+int G=255,L=0,O=0; /* accessible copies of key registers */
 @z
 
 @x
@@ -786,6 +589,7 @@ clear_all_instruction_vtc();
 clear_all_data_cache();
 clear_all_instruction_cache();
 memset(g,0,sizeof(g));
+L=O=S=0;
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
 g[rN].l=ABSTIME; /* see comment and warning above */
 g[rT].h=0x80000000;g[rT].l=0x00000000;
@@ -803,9 +607,6 @@ cur_round=ROUND_NEAR;
 @z
 
 @x
-@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) breakpoint=tracing=true
-
-@<Sub...@>=
 void stack_store @,@,@[ARGS((void))@];@+@t}\6{@>
 void stack_store()
 {
@@ -821,41 +622,15 @@ void stack_store()
   }
   g[rS]=incr(g[rS],8),  S++;
 }
-
-@ The |stack_load| routine is essentially the inverse of |stack_store|.
-
-@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) breakpoint=tracing=true
-
-@<Sub...@>=
-void stack_load @,@,@[ARGS((void))@];@+@t}\6{@>
-void stack_load()
-{
-  register mem_tetra *ll;
-  register int k;
-  S--, g[rS]=incr(g[rS],-8);
-  ll=mem_find(g[rS]);
-  k=S&lring_mask;
-  l[k].h=ll->tet;@+test_load_bkpt(ll);
-  l[k].l=(ll+1)->tet;@+test_load_bkpt(ll+1);
-  if (stack_tracing) {
-    tracing=true;
-    if (cur_line) show_line();
-    printf("             rS-=8, l[%d]=M8[#%08x%08x]=#%08x%08x\n",
-              k,g[rS].h,g[rS].l,l[k].h,l[k].l);
-  }
-}
 @y
-@d do_store_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
-@d test_store_bkpt(a) if (get_break(a)&write_bit) do_store_bkpt;
-
-@<Sub...@>=
 void stack_store @,@,@[ARGS((octa))@];@+@t}\6{@>
 void stack_store(x)
   octa x;
 { unsigned int pw_bit, new_pw_bit;
+  mem_tetra *ll;
   pw_bit=g[rQ].h&PW_BIT;
   new_pw_bit=new_Q.h&PW_BIT;
-  if(!store_data(8,x,g[rS]))
+  if(!store_data(8,x,g[rS])) /* implementing the rC register */
   {   /* set CP_BIT */
       g[rQ].l |= CP_BIT;
       new_Q.l |= CP_BIT;
@@ -876,7 +651,9 @@ void stack_store(x)
          store_data(8,x,address);
       }
   }
-  test_store_bkpt(g[rS]);
+  ll=mem_find(g[rS]);
+  test_store_bkpt(ll);
+  test_store_bkpt(ll+1);
   if (stack_tracing) {
     tracing=true;
     printf("             M8[#%08x%08x]=#%08x%08x, rS+=8\n",
@@ -884,26 +661,19 @@ void stack_store(x)
   }
   g[rS]=incr(g[rS],8),  S++;
 }
+@z
 
-@ The |stack_load| routine is essentially the inverse of |stack_store|.
+@x
+  l[k].h=ll->tet;@+test_load_bkpt(ll);
+  l[k].l=(ll+1)->tet;@+test_load_bkpt(ll+1);
+@y
+  test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+  load_data(8,&l[k],g[rS],0);
+@z
 
-@d do_load_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
-@d test_load_bkpt(a) if (get_break(a)&read_bit) do_load_bkpt;
-
-@<Sub...@>=
-void stack_load @,@,@[ARGS((void))@];@+@t}\6{@>
-void stack_load()
-{
-  register int k;
-  S--, g[rS]=incr(g[rS],-8);
-  k=S&lring_mask;
-  load_data(8,&l[k],g[rS],0);@+test_load_bkpt(g[rS]);
-  if (stack_tracing) {
-    tracing=true;
-    printf("             rS-=8, l[%d]=M8[#%08x%08x]=#%08x%08x\n",
-              k,g[rS].h,g[rS].l,l[k].h,l[k].l);
-  }
-}
+@x
+    if (cur_line) show_line();
+@y
 @z
 
 @x
@@ -915,71 +685,16 @@ void stack_load()
 @z
 
 @x
-case LDB: case LDBI: case LDBU: case LDBUI:@/
- i=56;@+j=(w.l&0x3)<<3; goto fin_ld;
-case LDW: case LDWI: case LDWU: case LDWUI:@/
- i=48;@+j=(w.l&0x2)<<3; goto fin_ld;
-case LDT: case LDTI: case LDTU: case LDTUI:@/
- i=32;@+j=0; goto fin_ld;
-case LDHT: case LDHTI:@/ i=j=0;
 fin_ld: ll=mem_find(w);@+test_load_bkpt(ll);
  x.h=ll->tet;
  x=shift_right(shift_left(x,j),i,op&0x2);
 check_ld:@+if (w.h&sign_bit) goto privileged_inst;
- goto store_x;
-case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:@/
- w.l&=-8;@+ ll=mem_find(w);
- test_load_bkpt(ll);@+test_load_bkpt(ll+1);
- x.h=ll->tet;@+ x.l=(ll+1)->tet;
- goto check_ld;
-case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
- x=load_sf(ll->tet);@+ goto check_ld;
 @y
-case LDB: case LDBI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(1,&x,w,1)) goto page_fault;
- goto check_ld;
-case LDBU: case LDBUI:@/
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(1,&x,w,0)) goto page_fault;
- goto check_ld;
-case LDW: case LDWI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(2,&x,w,1)) goto page_fault;
- goto check_ld;
-case LDWU: case LDWUI:@/
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(2,&x,w,0)) goto page_fault;
- goto check_ld;
-case LDT: case LDTI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(4,&x,w,1)) goto page_fault;
- goto check_ld;
-case LDTU: case LDTUI:@/
+fin_ld: ll=mem_find(w);@+test_load_bkpt(ll);
  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!load_data(4,&x,w,0)) goto page_fault;
- goto check_ld;
-case LDHT: case LDHTI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(4,&x,w,0)) goto page_fault;
- x.h=x.l;
- x.l = 0;
- goto check_ld;
-case LDO: case LDOI:
-case LDOU: case LDOUI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(8,&x,w,0)) goto page_fault;
- goto check_ld;
-case LDUNC: case LDUNCI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data_uncached(8,&x,w,0)) goto page_fault;
- goto check_ld;
-case LDSF: case LDSFI:
- if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
- if (!load_data(4,&x,w,0)) goto page_fault;
- x=load_sf(x.l);
-check_ld:
- test_load_bkpt(w);
+ x=shift_right(shift_left(x,j+32),i,op&0x2);
+check_ld:@+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  goto store_x;
 page_fault:
  if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0)
@@ -994,7 +709,33 @@ inst_page_fault:
 @z
 
 @x
-@ @<Cases for ind...@>=
+case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:@/
+ w.l&=-8;@+ ll=mem_find(w);
+ test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+ x.h=ll->tet;@+ x.l=(ll+1)->tet;
+ goto check_ld;
+case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
+ x=load_sf(ll->tet);@+ goto check_ld;
+@y
+case LDO: case LDOI: case LDOU: case LDOUI:
+ w.l&=-8;@+ ll=mem_find(w);
+ test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
+ if (!load_data(8,&x,w,0)) goto page_fault;
+ goto check_ld;
+case LDUNC: case LDUNCI:
+ w.l&=-8;@+ ll=mem_find(w);
+ test_load_bkpt(ll);@+test_load_bkpt(ll+1);
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
+ if (!load_data_uncached(8,&x,w,0)) goto page_fault;
+ goto check_ld;
+case LDSF: case LDSFI: ll=mem_find(w);@+test_load_bkpt(ll);
+ if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
+ if (!load_data(4,&x,w,0)) goto page_fault;
+ x=load_sf(x.l);@+ goto check_ld;
+@z
+
+@x
 case STB: case STBI: case STBU: case STBUI:@/
  i=56;@+j=(w.l&0x3)<<3; goto fin_pst;
 case STW: case STWI: case STWU: case STWUI:@/
@@ -1024,7 +765,6 @@ case STO: case STOI: case STOU: case STOUI: case STUNC: case STUNCI:
 check_st:@+if (w.h&sign_bit) goto privileged_inst;
  break;
 @y
-@ @<Cases for ind...@>=
 case STB: case STBI: case STBU: case STBUI:@/
  i=56;@+j=1; goto fin_pst;
 case STW: case STWI: case STWU: case STWUI:@/
@@ -1038,7 +778,8 @@ fin_pst:
  }
 fin_st:@+  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!store_data(j,b,w)) goto page_fault;
- test_store_bkpt(w);
+ ll=mem_find(w); test_store_bkpt(ll);
+ if(j>4) test_store_bkpt(ll+1);
  break;
 case STSF: case STSFI:
  b.l = store_sf(b);@+exc=exceptions;
@@ -1050,22 +791,17 @@ case STHT: case STHTI:
   goto fin_st;
 case STCO: case STCOI: b.h=0; b.l=xx;
 case STO: case STOI: case STOU: case STOUI:
- j = 8;
+ j = 8;w.l&=-8;
  goto fin_st;
 case STUNC: case STUNCI:
- j = 8;
+ j = 8;w.l&=-8;
  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto translation_bypassed_inst;
  if (!store_data_uncached(j,b,w)) goto page_fault;
- test_store_bkpt(w);
+ ll=mem_find(w); test_store_bkpt(ll);test_store_bkpt(ll+1);
  break;
 @z
 
 @x
-@ The |CSWAP| operation has elements of both loading and storing.
-We shuffle some of
-the operands around so that they will appear correctly in the trace output.
-
-@<Cases for ind...@>=
 case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
  test_load_bkpt(ll);@+test_load_bkpt(ll+1);
  a=g[rP];
@@ -1079,21 +815,14 @@ case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
    g[rP]=b;
    strcpy(rhs,"rP=%#b");
  }
- goto check_ld;
 @y
-@ The |CSWAP| operation has elements of both loading and storing.
-We shuffle some of
-the operands around so that they will appear correctly in the trace output.
-
-The locking of the bus still needs to be implemented!
-
-@<Cases for ind...@>=
-case CSWAP: case CSWAPI:
+case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
+ test_load_bkpt(ll);@+test_load_bkpt(ll+1);
  if ((w.h&sign_bit) && !(loc.h&sign_bit)) goto  translation_bypassed_inst;
  if (!load_data(8,&a,w,0)) goto page_fault;
  if (g[rP].h==a.h && g[rP].l==a.l) {
    x.h=0, x.l=1;
-   test_store_bkpt(w);
+   test_store_bkpt(ll);@+test_store_bkpt(ll+1);
    if (!store_data(8,b,w)) goto page_fault;
    strcpy(rhs,"M8[%#w]=%#b");
  }@+else {
@@ -1103,7 +832,6 @@ case CSWAP: case CSWAPI:
    x.h=0, x.l=0;
    strcpy(rhs,"rP=%#b");
  }
- goto check_ld;
 @z
 
 @x
@@ -1238,7 +966,8 @@ if (stack_tracing) {
 @y
 @ @<Load |g[k]| from the register stack@>=
 g[rS]=incr(g[rS],-8);
-test_load_bkpt(g[rS]);
+ll=mem_find(g[rS]);
+test_load_bkpt(ll);@+test_load_bkpt(ll+1);
 if (k==rZ+1)
 { if (!load_data(8,&a,g[rS],0)) { w=g[rS]; goto page_fault; }
   x.l=G=g[rG].l=a.h>>24;
@@ -1361,7 +1090,6 @@ case SWYM:
      x.h=0, x.l=xx;
      tracing=interacting;
      breakpoint=true;
-     gdb_signal=yz;
      interrupt=false;
      @<Set |b| from register X@>;
      n=mmgetchars((unsigned char *)buf,256,b,0);
@@ -1389,7 +1117,6 @@ g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
  goto break_inst;
 security_inst: strcpy(lhs,"!insecure");
 break_inst: breakpoint=tracing=true;
-  gdb_signal=TARGET_SIGNAL_ILL;
  if (!interacting && !interact_after_break) halted=true;
 break;
 @z
@@ -1531,7 +1258,26 @@ int mmgetchars(buf,size,addr,stop)
   }
   return size;
 }
+@y
+int mmgetchars(buf,size,addr,stop)
+  unsigned char *buf;
+  int size;
+  octa addr;
+  int stop;
+{
+  register unsigned char *p;
+  register int m;
+  octa x;
+  octa a;
+  for (p=buf,m=0,a=addr; m<size;) {
+    if ((a.l&0x7) || m+8>size) @<Read and store one byte; |return| if done@>@;
+    else @<Read and store eight bytes; |return| if done@>@;
+  }
+  return size;
+}
+@z
 
+@x
 @ @<Read and store one byte...@>=
 {
   *p=(x>>(8*((~a.l)&0x3)))&0xff;
@@ -1554,62 +1300,7 @@ int mmgetchars(buf,size,addr,stop)
   if (!*(p+3) && stop==0) return m+3;
   p+=4,m+=4,a=incr(a,4);
 }
-
-@ The subroutine |mmputchars(buf,size,addr)| puts |size| characters
-into the simulated memory starting at address |addr|.
-
-@<Sub...@>=
-void mmputchars @,@,@[ARGS((unsigned char*,int,octa))@];@+@t}\6{@>
-void mmputchars(buf,size,addr)
-  unsigned char *buf;
-  int size;
-  octa addr;
-{
-  register unsigned char *p;
-  register int m;
-  register mem_tetra *ll;
-  octa a;
-  for (p=buf,m=0,a=addr; m<size;) {
-    ll=mem_find(a);@+test_store_bkpt(ll);
-    if ((a.l&0x3) || m>size-4) @<Load and write one byte@>@;
-    else @<Load and write four bytes@>;
-  }
-}
-
-@ @<Load and write one byte@>=
-{
-  register int s=8*((~a.l)&0x3);
-  ll->tet^=(((ll->tet>>s)^*p)&0xff)<<s;
-  p++,m++,a=incr(a,1);
-}
-
-@ @<Load and write four bytes@>=
-{
-  ll->tet=(*p<<24)+(*(p+1)<<16)+(*(p+2)<<8)+*(p+3);
-  p+=4,m+=4,a=incr(a,4);
-}
 @y
-int mmgetchars(buf,size,addr,stop)
-  unsigned char *buf;
-  int size;
-  octa addr;
-  int stop;
-{
-  register unsigned char *p;
-  register int m;
-  octa x;
-  octa a;
-  if (addr.h==0xFFFFFFFF || !valid_address(addr) ) /* gdb goes over segment boundaries */
-  { memset(buf,0,size);
-    return size;
-  }
-  for (p=buf,m=0,a=addr; m<size;) {
-    if ((a.l&0x7) || m+8>size) @<Read and store one byte; |return| if done@>@;
-    else @<Read and store eight bytes; |return| if done@>@;
-  }
-  return size;
-}
-
 @ @<Read and store one byte...@>=
 { load_data(1,&x,a,0);
     *p=x.l&0xff;
@@ -1641,7 +1332,30 @@ int mmgetchars(buf,size,addr,stop)
   if (!*(p+3) && stop==0) return m+3;
   p+=4,m+=4,a=incr(a,4);
 }
+@z
 
+@x
+@ The subroutine |mmputchars(buf,size,addr)| puts |size| characters
+into the simulated memory starting at address |addr|.
+
+@<Sub...@>=
+void mmputchars @,@,@[ARGS((unsigned char*,int,octa))@];@+@t}\6{@>
+void mmputchars(buf,size,addr)
+  unsigned char *buf;
+  int size;
+  octa addr;
+{
+  register unsigned char *p;
+  register int m;
+  register mem_tetra *ll;
+  octa a;
+  for (p=buf,m=0,a=addr; m<size;) {
+    ll=mem_find(a);@+test_store_bkpt(ll);
+    if ((a.l&0x3) || m>size-4) @<Load and write one byte@>@;
+    else @<Load and write four bytes@>;
+  }
+}
+@y
 @ The subroutine |mmputchars(buf,size,addr)| puts |size| characters
 into the simulated memory starting at address |addr|.
 
@@ -1656,15 +1370,27 @@ void mmputchars(buf,size,addr)
   register int m;
   octa x;
   octa a;
-  if (addr.h==0xFFFFFFFF || !valid_address(addr) ) /* gdb goes over segment boundaries */
-    return;
   for (p=buf,m=0,a=addr; m<size;) {
-    test_store_bkpt(a);
     if ((a.l&0x7) || m+8>size) @<Load and write one byte@>@;
     else @<Load and write eight bytes@>;
   }
 }
+@z
 
+@x
+@ @<Load and write one byte@>=
+{
+  register int s=8*((~a.l)&0x3);
+  ll->tet^=(((ll->tet>>s)^*p)&0xff)<<s;
+  p++,m++,a=incr(a,1);
+}
+
+@ @<Load and write four bytes@>=
+{
+  ll->tet=(*p<<24)+(*(p+1)<<16)+(*(p+2)<<8)+*(p+3);
+  p+=4,m+=4,a=incr(a,4);
+}
+@y
 @ @<Load and write one byte@>=
 {
   x.l=*p;
@@ -1708,7 +1434,6 @@ if (!resuming)
   if (!vmb.connected)  goto end_simulation;
   if (!vmb.power || vmb.reset_flag)
   { breakpoint=true;
-    gdb_signal=TARGET_SIGNAL_PWR;
     vmb.reset_flag=0;
     goto boot;
   }
@@ -1814,7 +1539,6 @@ else if ( rzz == 1)
   @<Check for security violation@>
   if (interact_after_resume)
   { breakpoint = true;
-    gdb_signal=TARGET_SIGNAL_TRAP;
     interact_after_resume = false;
   }
 }
@@ -1943,13 +1667,6 @@ if (tracing && (!(loc.h&0x80000000) || show_operating_system)) {
 @z
 
 @x
-  ll=mem_find(loc);
-  printf("%10d. %08x%08x: %08x (%s) ",ll->freq,loc.h,loc.l,inst,info[op].name);
-@y
-  printf("%08x%08x: %08x (%s) ",loc.h,loc.l,inst,info[op].name);
-@z
-
-@x
 @<Print a stream-of-consciousness description of the instruction@>=
 if (lhs[0]=='!') printf("%s instruction!\n",lhs+1); /* privileged or illegal */
 @y
@@ -2022,13 +1739,16 @@ int main(argc,argv)
   boot_argc = argc;
   if (vmb.power)
     vmb_raise_reset(&vmb);
+  @<Initialize everything@>;
 
 boot:
 
   argc = boot_argc;
   cur_arg = boot_cur_arg;
-  @<Initialize everything@>;
-
+  @<Boot the machine@>;
+#ifdef MMIXLIB
+  mmix_status=MMIX_OFF;
+#endif
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
@@ -2036,22 +1756,29 @@ boot:
   }
   fprintf(stderr,"ON\n");
 #ifdef MMIXLIB
-mmix_status=MMIX_RUNNING;
+  mmix_status=MMIX_RUNNING;
 #endif
-
   @<Load object file@>;
   @<Load the command line arguments@>;
   g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
-
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else if (!(inst_ptr.h&sign_bit) || show_operating_system ||
           (inst_ptr.h==0x80000000 && inst_ptr.l==0))
     { breakpoint=false;
-      if (interacting)
+      if (interacting) {
+#ifdef MMIXLIB
+        mmix_status=MMIX_STOPPED;
+        mmix_stopped(loc);
+#endif
         @<Interact with the user@>;
+      }
     }
     if (halted) break;
+#ifdef MMIXLIB
+        mmix_status=MMIX_RUNNING;
+#endif
+
     do @<Perform one instruction@>@;
     while ((!interrupt && !breakpoint) || resuming);
     if (interact_after_break)
@@ -2062,6 +1789,7 @@ mmix_status=MMIX_RUNNING;
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(true);
 #ifdef MMIXLIB
+  mmix_status=MMIX_HALTED;
   return g[255].l;
 #else
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
@@ -2081,7 +1809,6 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
  case 'L':@+if (!*(arg+1)) profile_gap=3;
   else if (sscanf(arg+1,"%d",&profile_gap)!=1) profile_gap=0;
   profile_showing_source=true;
- case 'P': profiling=true;@+return;
 @y
 @z
 
@@ -2089,7 +1816,8 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
   gap=10, showing_source=true;
   profile_gap=10, profile_showing_source=true, profiling=true;
 @y
-  profiling=true;
+  gap=10;
+  profile_gap=10, profiling=true;
 @z
 
 @x
@@ -2126,11 +1854,21 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
 @z
 
 @x
+    exit(-1);
+@y
+#ifdef MMIXLIB
+    mmix_exit(-1);
+#else
+	exit(-1);
+#endif
+@z
+
+@x
 bool interrupt; /* has the user interrupted the simulation recently? */
 bool profiling; /* should we print the profile at the end? */
 @y
-static bool interrupt=0; /* has the user interrupted the simulation recently? */
-static bool profiling=0; /* should we print the profile at the end? */
+bool interrupt=0; /* has the user interrupted the simulation recently? */
+bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
@@ -2198,8 +1936,13 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
     printf("Ctrl-C received\n");
   }
   else
-  { printf("Closing down console\n");
+  { printf("Closing MMIX\n");
+#ifdef MMIXLIB
+    vmb_cancel_wait_for_event(&vmb);
+    halted=1;
+#else
     FreeConsole();
+#endif
   }
   return TRUE;
 }
@@ -2248,82 +1991,12 @@ void catchint(n)
 @z
 
 @x
-@ @<Cases that set and clear tracing and breakpoints@>=
-case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
- halted=false;@+break;
-case 't': case 'u': k=*p;
- val=scan_hex(p+1,cur_seg);@+ p=next_char;
- if (val.h<0x20000000) {
-   ll=mem_find(val);
-   if (k=='t') ll->bkpt |= trace_bit;
-   else ll->bkpt &=~trace_bit;
- }
- break;
-case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
-   if (*p=='r') k|=read_bit;
-   else if (*p=='w') k|=write_bit;
-   else if (*p=='x') k|=exec_bit;
- val=scan_hex(p,cur_seg);@+ p=next_char;
- if (!(val.h&sign_bit)) {
-   ll=mem_find(val);
-   ll->bkpt=(ll->bkpt&-8)|k;
- }
- break;
-@y
-@ @<Type...@>=
-extern unsigned char get_break(octa a);
-extern void set_break(octa a, unsigned char b);
-extern void show_breaks(void);
-
-@ @<Cases that set and clear tracing and breakpoints@>=
-case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
- halted=false;@+break;
-case 't': case 'u': k=*p;
- val=scan_hex(p+1,cur_seg);@+ p=next_char;
- if (val.h<0x20000000) {
-   if (k=='t') set_break(val,get_break(val)|trace_bit);
-   else set_break(val,get_break(val)&~trace_bit);
- }
- break;
-case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
-   if (*p=='r') k|=read_bit;
-   else if (*p=='w') k|=write_bit;
-   else if (*p=='x') k|=exec_bit;
- val=scan_hex(p,cur_seg);@+ p=next_char;
- set_break(val,k);
- break;
-@z
-
-@x
 case 'B': show_breaks(mem_root);
 @y
 case 'N': cur_seg.h=0x80000000;@+goto passit;
-case 'B': show_breaks();@+goto passit;
+case 'B': show_breaks(mem_root);@+goto passit;
 case 'O': show_operating_system=true;@+goto passit;
 case 'o': show_operating_system=false;@+goto passit;
-@z
-
-@x
-@ @<Sub...@>=
-void show_breaks @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
-void show_breaks(p)
-  mem_node *p;
-{
-  register int j;
-  octa cur_loc;
-  if (p->left) show_breaks(p->left);
-  for (j=0;j<512;j++) if (p->dat[j].bkpt) {
-    cur_loc=incr(p->loc,4*j);
-    printf("  %08x%08x %c%c%c%c\n",cur_loc.h,cur_loc.l,@|
-             p->dat[j].bkpt&trace_bit? 't': '-',
-             p->dat[j].bkpt&read_bit? 'r': '-',
-             p->dat[j].bkpt&write_bit? 'w': '-',
-             p->dat[j].bkpt&exec_bit? 'x': '-');
-  }
-  if (p->right) show_breaks(p->right);
-}
-
-@y
 @z
 
 @x

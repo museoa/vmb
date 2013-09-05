@@ -20,8 +20,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-      SetDlgItemText(hDlg,IDC_FILE,filename);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+      SetDlgItemText(hDlg,IDC_FILE,vmb_filename);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -35,8 +35,8 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         vmb_address = strtouint64(tmp_option);
 		inspector[0].address=vmb_address;
         GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
-	    set_option(&filename,tmp_option);
-		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+	    set_option(&vmb_filename,tmp_option);
+		interrupt_no  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 
 	  { OPENFILENAME ofn;       /* common dialog box structure */

@@ -45,7 +45,7 @@ void display_char(char c);
 int major_version=1, minor_version=5;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.27 $ $Date: 2013-08-29 09:40:33 $";
+char version[]="$Revision: 1.28 $ $Date: 2013-09-05 06:50:56 $";
 
 char howto[] =
 "\n"
@@ -101,7 +101,7 @@ unsigned char *kb_get_payload(unsigned int offset,int size)
 	  { data[DATA] = input_buffer[input_buffer_first++];
 	    data[EXTENSION] = 0;
         data[COUNT] = 1;
-        vmb_raise_interrupt(&vmb,interrupt);
+        vmb_raise_interrupt(&vmb,interrupt_no);
         vmb_debug(VMB_DEBUG_INFO, "Raised interrupt");  
 	  }
 	  mem_update(0,8);
@@ -142,8 +142,8 @@ void process_input_file(char *filename)
   if (data[COUNT]<0xFF) data[COUNT]++;
   if (data[COUNT]>1) data[ERROR] = 0x80;
   mem_update(0,8);
-  vmb_raise_interrupt(&vmb,interrupt);
-  vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
+  vmb_raise_interrupt(&vmb,interrupt_no);
+  vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt_no);
 }
 
 void process_input(unsigned char c, unsigned char extended) 
@@ -161,8 +161,8 @@ void process_input(unsigned char c, unsigned char extended)
     if (data[COUNT]<0xFF) data[COUNT]++;
     if (data[COUNT]>1) data[ERROR] = 0x80;
 	mem_update(0,8);
-    vmb_raise_interrupt(&vmb,interrupt);
-    vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt);
+    vmb_raise_interrupt(&vmb,interrupt_no);
+    vmb_debugi(VMB_DEBUG_PROGRESS, "Raised interrupt %d", interrupt_no);
   }
   else
   { vmb_debug(VMB_DEBUG_NOTIFY, "No power, character ignored");
@@ -210,10 +210,10 @@ static void prepare_input(void)
 
 struct register_def kbd_regs[] = {
 	/* name no offset size chunk format */
-	{"Error" ,0,ERROR,1,byte_chunk,hex_format},
-	{"Count" ,1,COUNT,1,byte_chunk,unsigned_format},
-    {"Char"  ,2,DATA,1,byte_chunk,ascii_format},
-    {"Char"  ,3,DATA,1,byte_chunk,hex_format},
+	{"Error" ,ERROR,1,byte_chunk,hex_format},
+	{"Count" ,COUNT,1,byte_chunk,unsigned_format},
+    {"Char"  ,DATA,1,byte_chunk,ascii_format},
+    {"Char"  ,DATA,1,byte_chunk,hex_format},
 	{0}};
 
 int kbd_reg_read(unsigned int offset, int size, unsigned char *buf)

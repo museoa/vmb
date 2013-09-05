@@ -134,18 +134,19 @@ if (full_mmo_name!=NULL && full_mmo_name[0]!=0)
 if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 { mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
-  register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
-  if (!alt_name) panic("Can't allocate file name buffer");
+    register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
+    if (!alt_name) panic("Can't allocate file name buffer");
 @.Can't allocate...@>
-  sprintf(alt_name,"%s.mmo",mmo_file_name);
-  mmo_file=fopen(alt_name,"rb");
-  if (!mmo_file) {
-    fprintf(stderr,"Can't open the object file %s or %s!\n",
+    sprintf(alt_name,"%s.mmo",mmo_file_name);
+    mmo_file=fopen(alt_name,"rb");
+    if (!mmo_file) {
+      fprintf(stderr,"Can't open the object file %s or %s!\n",
 @.Can't open...@>
                mmo_file_name,alt_name);
-  mmix_exit(-3);
+      exit(-3);
+    }
+    free(alt_name);
   }
-  free(alt_name);
 #endif
 @z
 
@@ -1834,11 +1835,9 @@ boot:
 #ifdef MMIXLIB
   mmix_status=MMIX_RUNNING;
 #endif  
-
   @<Load object file@>;
   @<Load the command line arguments@>;
   g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
-
   while (1) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else if (!(inst_ptr.h&sign_bit) || show_operating_system || 
@@ -1938,7 +1937,11 @@ we need to replace all exits.
 @x
     exit(-1);
 @y
+#ifdef MMIXLIB
     mmix_exit(-1);
+#else
+	exit(-1);
+#endif    
 @z    
 
 @x

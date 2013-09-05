@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmixdata.c"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixrun.c"
 				>
 			</File>

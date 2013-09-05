@@ -7,265 +7,51 @@
 
 
 @x
-@* Loading an object file. To get the user's program into memory,
-we read in an \MMIX\ object, using modifications of the routines
-in the utility program \.{MMOtype}. Complete details of \.{mmo}
-format appear in the program for {\mc MMIXAL}; a reader
-who hopes to understand this section ought to at least skim
-that documentation.
-Here we need to define only the basic constants used for interpretation.
-
-@d mmo_esc 0x98 /* the escape code of \.{mmo} format */
-@d lop_quote 0x0 /* the quotation lopcode */
-@d lop_loc 0x1 /* the location lopcode */
-@d lop_skip 0x2 /* the skip lopcode */
-@d lop_fixo 0x3 /* the octabyte-fix lopcode */
-@d lop_fixr 0x4 /* the relative-fix lopcode */
-@d lop_fixrx 0x5 /* extended relative-fix lopcode */
-@d lop_file 0x6 /* the file name lopcode */
-@d lop_line 0x7 /* the file position lopcode */
-@d lop_spec 0x8 /* the special hook lopcode */
-@d lop_pre 0x9 /* the preamble lopcode */
-@d lop_post 0xa /* the postamble lopcode */
-@d lop_stab 0xb /* the symbol table lopcode */
-@d lop_end 0xc /* the end-it-all lopcode */
-
 @ We do not load the symbol table. (A more ambitious simulator could
 implement \.{MMIXAL}-style expressions for interactive debugging,
 but such enhancements are left to the interested reader.)
 
 @<Load object file@>=
+#ifdef MMIXLIB
+if (full_mmo_name!=NULL && full_mmo_name[0]!=0)
+{ mmo_file=fopen(full_mmo_name,"rb");
+  if (!mmo_file) {panic("Can't open mmo file");}
+#else
 if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 { mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
-  register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
-  if (!alt_name) panic("Can't allocate file name buffer");
+    register char *alt_name=(char*)calloc(strlen(mmo_file_name)+5,sizeof(char));
+    if (!alt_name) panic("Can't allocate file name buffer");
 @.Can't allocate...@>
-  sprintf(alt_name,"%s.mmo",mmo_file_name);
-  mmo_file=fopen(alt_name,"rb");
-  if (!mmo_file) {
-    fprintf(stderr,"Can't open the object file %s or %s!\n",
+    sprintf(alt_name,"%s.mmo",mmo_file_name);
+    mmo_file=fopen(alt_name,"rb");
+    if (!mmo_file) {
+      fprintf(stderr,"Can't open the object file %s or %s!\n",
 @.Can't open...@>
                mmo_file_name,alt_name);
-    exit(-3);
+      exit(-3);
+    }
+    free(alt_name);
   }
-  free(alt_name);
-}
-byte_count=0;
+#endif
+@y
+@z
 
-@ @<Glob...@>=
-FILE *mmo_file; /* the input file */
-int postamble; /* have we encountered |lop_post|? */
-int byte_count; /* index of the next-to-be-read byte */
-byte buf[4]; /* the most recently read bytes */
-int yzbytes; /* the two least significant bytes */
-int delta; /* difference for relative fixup */
-tetra tet; /* |buf| bytes packed big-endianwise */
 
-@ The tetrabytes of an \.{mmo} file are stored in
-friendly big-endian fashion, but this program is supposed to work also
-on computers that are little-endian. Therefore we read four successive bytes
-and pack them into a tetrabyte, instead of reading a single tetrabyte.
 
-@d mmo_err {
-     fprintf(stderr,"Bad object file! (Try running MMOtype.)\n");
-@.Bad object file@>
-     exit(-4);
-   }
-
-@<Sub...@>=
-void read_tet @,@,@[ARGS((void))@];@+@t}\6{@>
-void read_tet()
-{
-  if (fread(buf,1,4,mmo_file)!=4) mmo_err;
-  yzbytes=(buf[2]<<8)+buf[3];
-  tet=(((buf[0]<<8)+buf[1])<<16)+yzbytes;
-}
-
-@ @<Sub...@>=
-byte read_byte @,@,@[ARGS((void))@];@+@t}\6{@>
-byte read_byte()
-{
-  register byte b;
-  if (!byte_count) read_tet();
-  b=buf[byte_count];
-  byte_count=(byte_count+1)&3;
-  return b;
-}
-
-@ @<Load the preamble@>=
-read_tet(); /* read the first tetrabyte of input */
-if (buf[0]!=mmo_esc || buf[1]!=lop_pre) mmo_err;
-if (ybyte!=1) mmo_err;
-if (zbyte==0) obj_time=0xffffffff;
-else {
-  j=zbyte-1;
-  read_tet();@+ obj_time=tet; /* file creation time */
-  for (;j>0;j--) read_tet();
-}
-
-@ @<Load the next item@>=
-{
-  read_tet();
- loop:@+if (buf[0]==mmo_esc) switch (buf[1]) {
-   case lop_quote:@+if (yzbytes!=1) mmo_err;
-    read_tet();@+break;
-   @t\4@>@<Cases for lopcodes in the main loop@>@;
-   case lop_post: postamble=1;
-     if (ybyte || zbyte<32) mmo_err;
-     continue;
-   default: mmo_err;
-  }
-  @<Load |tet| as a normal item@>;
-}
-
-@ In a normal situation, the newly read tetrabyte is simply supposed
-to be loaded into the current location.
-
-@<Sub...@>=
-void mmo_load @,@,@[ARGS((octa,tetra))@];@+@t}\6{@>
-void mmo_load (loc, val)
-  octa loc;
-  tetra val;
-{
-	octa x;
-        load_data(4,&x,loc,0);
-        x.h = 0;
-        x.l = x.l^val;
-	if (!store_data(4,x,loc))
-          panic("Unable to store mmo file to RAM");
-}
-
-@ @<Load |tet| as a normal item@>=
-{
-  mmo_load(cur_loc,tet);
-  cur_loc=incr(cur_loc,4);@+ cur_loc.l &=-4;
-}
-
-@ @<Glob...@>=
-octa cur_loc; /* the current location */
-octa tmp; /* an octabyte of temporary interest */
-tetra obj_time; /* when the object file was created */
-
-@ @<Load object file@>=
-cur_loc.h=cur_loc.l=0;
-postamble=0;
-@<Load the preamble@>;
-do @<Load the next item@>@;@+while (!postamble);
-@<Load the postamble@>;
-fclose(mmo_file);
-write_all_data_cache();
-clear_all_instruction_cache();
-}
-
-@ We have already implemented |lop_quote|, which
-falls through to the normal case after reading an extra tetrabyte.
-Now let's consider the other lopcodes in turn.
-
-@d ybyte buf[2] /* the next-to-least significant byte */
-@d zbyte buf[3] /* the least significant byte */
-
-@<Cases for lopcodes...@>=
-case lop_loc:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ cur_loc.h=(j<<24)+tet;
- }@+else if (zbyte==1) cur_loc.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ cur_loc.l=tet;
- continue;
-case lop_skip: cur_loc=incr(cur_loc,yzbytes);@+continue;
-
-@ Fixups load information out of order, when future references have
-been resolved. The current file name and line number are not considered
-relevant.
-
-@<Cases for lopcodes...@>=
-case lop_fixo:@+if (zbyte==2) {
-   j=ybyte;@+ read_tet();@+ tmp.h=(j<<24)+tet;
- }@+else if (zbyte==1) tmp.h=ybyte<<24;
- else mmo_err;
- read_tet();@+ tmp.l=tet;
- mmo_load(tmp,cur_loc.h);
- mmo_load(incr(tmp,4),cur_loc.l);
- continue;
-case lop_fixr: mmo_load(incr(cur_loc,-yzbytes<<2),yzbytes); continue;
-case lop_fixrx:j=yzbytes;@+if (j!=16 && j!=24) mmo_err;
- read_tet();@+if (tet&0xfe000000) mmo_err;
- delta=(tet>=0x1000000? (tet&0xffffff)-(1<<j): tet);
- mmo_load(incr(cur_loc,-delta<<2),tet);
- continue;
-
-@ The space for file names isn't allocated until we are sure we need it.
-
-@<Cases for lopcodes...@>=
-case lop_file:
-   for (j=zbyte; j>0; j--) {/* skip file name */
-     read_tet();
-   }
- continue;
-case lop_line:
- continue;
-
-@ Special bytes are ignored (at least for now).
-
-@<Cases for lopcodes...@>=
-case lop_spec:@+ while(1) {
-   read_tet();
-   if (buf[0]==mmo_esc) {
-     if (buf[1]!=lop_quote || yzbytes!=1) goto loop; /* end of special data */
-     read_tet();
-   }
- }
-
-@ We load the postamble into the beginning
-of segment~3, also known as \.{Stack\_Segment}).
-@:Stack_Segment}\.{Stack\_Segment@>
-@:Pool_Segment}\.{Pool\_Segment@>
-The stack segment is set up to be used with an unsave instruction.
-On the stack, we have, the local registers (argc and argv) and the value of rL, then the global
-registers and the special registers rB, rD, rE, rH, rJ, rM, rR, rP, rW, rX, rY, and rZ,
-followed by rG and rA packed into eight byte.
-
-@<Load the postamble@>=
-aux.h=0x60000000;
-{ octa x;
-  x.h=0;@+x.l=argc;@+aux.l=0x00;
-  if (!store_data(8,x,aux)) /* and $\$0=|argc|$ */
-     panic("Unable to store mmo file to RAM");
-  x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;
-  if (!store_data(8,x,aux)) /* and $\$1=\.{Pool\_Segment}+8$ */
-     panic("Unable to store mmo file to RAM");
-  x.h=0;@+x.l=2;@+aux.l=0x10;
-  if (!store_data(8,x,aux)) /* this will ultimately set |rL=2| */
-     panic("Unable to store mmo file to RAM");
-  G=zbyte;@+ L=0;@+ O=0;
-  aux.l=0x18;
-  for (j=G;j<256;j++,aux.l+=8)
-  { read_tet(); x.h=tet;
-    read_tet(), x.l=tet;
-    if (!store_data(8,x,aux))
-       panic("Unable to store mmo file to RAM");
-  }
-  g[rWW] = x;  /* last octa stored is address of \.{Main} */
-  if (interacting) set_break(x,exec_bit);
-  g[rXX].h = 0; g[rXX].l = 0xFB0000FF; /* |UNSAVE| \$255 */
-  g[rBB]=aux=incr(aux,12*8); /* we can |UNSAVE| from here, to get going */
-  x.h=G<<24; x.l=0 /* rA */;
-  if (!store_data(8,x,aux))
-     panic("Unable to store mmo file to RAM");
-}
+@x
+  ll=mem_find(loc);
+  cur_file=ll->file_no;
+  cur_line=ll->line_no;
+  ll->freq++;
 @y
 @z
 
 @x
-  { unsigned char b;
-    b = get_break(loc);
-    if (b&exec_bit) breakpoint=true;
-    tracing=breakpoint||(b&trace_bit);
-  }
+  if (ll->bkpt&exec_bit) breakpoint=true;
+  tracing=breakpoint||(ll->bkpt&trace_bit)||(ll->freq<=trace_threshold);
 @y
 @z
-
-
 
 @x
 @d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true

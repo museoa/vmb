@@ -45,7 +45,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.23 $ $Date: 2013-08-29 09:40:33 $";
+char version[]="$Revision: 1.24 $ $Date: 2013-09-05 06:50:56 $";
 
 char howto[] =
 "\n"
@@ -67,14 +67,14 @@ void open_file(void)
   int file_size;
   struct stat fs;
   f=NULL;
-  if (filename==NULL || strcmp(filename,"") == 0)
+  if (vmb_filename==NULL || strcmp(vmb_filename,"") == 0)
     vmb_error(__LINE__,"No filename for image file given");
   else
-  { f = vmb_fopen(filename,"rb");
+  { f = vmb_fopen(vmb_filename,"rb");
 	if (f==NULL) 
-		vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to open image file", filename);
+		vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to open image file", vmb_filename);
 	else
-	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
+	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",vmb_filename);
 	  if (fstat(fileno(f),&fs)<0) 
 	    vmb_error(__LINE__,"Unable to get file size");
 	  else
@@ -107,7 +107,7 @@ void write_file(void)
   int i;
   if (!image_changed) return;
   vmb_debug(VMB_DEBUG_PROGRESS, "writing image file...");
-  if (filename==NULL|| filename[0]== 0)
+  if (vmb_filename==NULL|| vmb_filename[0]== 0)
   { vmb_error(__LINE__,"No filename");
     return;
   }
@@ -115,7 +115,7 @@ void write_file(void)
   {  vmb_error(__LINE__,"No flash memory");
      return;
   }
-  f = fopen(filename,"wb");
+  f = fopen(vmb_filename,"wb");
   if (f==NULL) 
   { vmb_error(__LINE__,"Unable to open file");
     return;

@@ -44,7 +44,7 @@ extern device_info vmb;
 char title[] ="VMB Screen";
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.18 $ $Date: 2013-08-29 09:40:34 $";
+char version[]="$Revision: 1.19 $ $Date: 2013-09-05 06:50:57 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -117,16 +117,16 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
     display_char(data[DATA]);
     memset(data,0,8);
     if (! disable_interrupt)
-      vmb_raise_interrupt(&vmb,interrupt);
+      vmb_raise_interrupt(&vmb,interrupt_no);
     mem_update(0,8);
 }
 
 struct register_def screen_regs[] = {
 	/* name no offset size chunk format */
-	{"Error" ,0,ERROR,1,byte_chunk,hex_format},
-	{"Count" ,1,COUNT,1,byte_chunk,unsigned_format},
-    {"Char"  ,2,DATA,1,byte_chunk,ascii_format},
-    {"Char"  ,3,DATA,1,byte_chunk,hex_format},
+	{"Error" ,ERROR,1,byte_chunk,hex_format},
+	{"Count" ,COUNT,1,byte_chunk,unsigned_format},
+    {"Char"  ,DATA,1,byte_chunk,ascii_format},
+    {"Char"  ,DATA,1,byte_chunk,hex_format},
 	{0}};
 
 int screen_reg_read(unsigned int offset, int size, unsigned char *buf)
@@ -145,7 +145,7 @@ struct inspector_def inspector[2] = {
 void init_device(device_info *vmb)
 { vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
   vmb_debugi(VMB_DEBUG_INFO, "address lo: %x",LO32(vmb_address));
-  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt);
+  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt_no);
   vmb_size = 8;
 #ifndef WIN32
    setvbuf(stdout,NULL,_IONBF,0); /* make ouput unbuffered */

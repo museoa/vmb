@@ -1,3 +1,5 @@
+/* the variables in this file are used for the MMIX lexer of scintilla */
+
 
 char mmix_special_registers[] ="rB rD rE rH rJ rM rR rBB rC rN rO rS rI rT rTT rK rQ rU rV rG rL rA rF rP rW rX rY rZ rWW rXX rYY rZZ";
 

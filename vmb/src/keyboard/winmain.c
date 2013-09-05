@@ -20,7 +20,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
 	  uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -33,7 +33,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
 	    vmb_address = strtouint64(tmp_option);
 		inspector[0].address=vmb_address;
-		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		interrupt_no  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);
@@ -72,12 +72,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  return 0;
     case WM_VMB_ON: /* Power On */
 	  DragAcceptFiles(hWnd,TRUE);
-	  	  if (filename!=NULL)
-	    process_input_file(filename);
+	  	  if (vmb_filename!=NULL)
+	    process_input_file(vmb_filename);
       break;
 	case WM_VMB_RESET:
-	  if (filename!=NULL)
-	    process_input_file(filename);
+	  if (vmb_filename!=NULL)
+	    process_input_file(vmb_filename);
       break;
    return 0;
     case WM_VMB_OFF: /* Power Off */

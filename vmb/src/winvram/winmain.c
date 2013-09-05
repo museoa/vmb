@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.33 $ $Date: 2013-08-29 09:40:34 $";
+char version[]="$Revision: 1.34 $ $Date: 2013-09-05 06:50:57 $";
 char title[] ="VMB Video Ram";
 
 int major_version=1, minor_version=5;
@@ -313,7 +313,7 @@ void mouse_set_position(WPARAM wParam, LPARAM lParam, int event)
 		mouse_mem[5] = mouse_mem[13];
 		mouse_mem[6] = mouse_mem[14];
 		mouse_mem[7] = mouse_mem[15];
-		vmb_raise_interrupt(&vmb_mouse, interrupt);
+		vmb_raise_interrupt(&vmb_mouse, interrupt_no);
 		vmb_debugi(VMB_DEBUG_PROGRESS,"Mouse Event %X",event);
 	}
   mem_update_i(1,0,0x10);
@@ -327,12 +327,12 @@ static int read_mouse(unsigned int offset, int size, unsigned char *buf)
 }
 
 struct register_def mouse_regs[] = {
-	{"Buttons",0,0,2,wyde_chunk,hex_format},
-	{"Events",1,2,2,wyde_chunk,hex_format},
-    {"X",2,4,2,wyde_chunk,unsigned_format},
-    {"Y",3,6,2,wyde_chunk,unsigned_format},
-    {"Current X",4,0xC,2,wyde_chunk,unsigned_format},
-    {"Current Y",5,0xE,2,wyde_chunk,unsigned_format},
+	{"Buttons",  0,2,wyde_chunk,hex_format},
+	{"Events",   2,2,wyde_chunk,hex_format},
+    {"X",        4,2,wyde_chunk,unsigned_format},
+    {"Y",        6,2,wyde_chunk,unsigned_format},
+    {"Current X",0xC,2,wyde_chunk,unsigned_format},
+    {"Current Y",0xE,2,wyde_chunk,unsigned_format},
 	{0}};
 
 void init_mouse(void)
@@ -366,25 +366,25 @@ extern int gpu_interrupt;
 #define GPU_REGS 19
 static struct register_def gpu_regs[GPU_REGS+1] = {
 	/* name, nr,offset,size, chunk,format */
-	{"Command",         0,0x00,1,byte_chunk,unsigned_format},
-	{"Aux Command",     1,0x01,3,byte_chunk,hex_format},
-    {"Secondary X",     2,0x04,2,wyde_chunk,unsigned_format},
-    {"Secondary Y",     3,0x06,2,wyde_chunk,unsigned_format},
-    {"Width",           4,0x08,2,wyde_chunk,unsigned_format},
-    {"Height",          5,0x0a,2,wyde_chunk,unsigned_format},
-    {"X",               6,0x0c,2,wyde_chunk,unsigned_format},
-    {"Y",               7,0x0e,2,wyde_chunk,unsigned_format},
-    {"BLT Adress",      8,0x10,8,octa_chunk,hex_format},
-    {"Text Backgrnd",   9,0x18,4,tetra_chunk,hex_format},
-    {"Text Color",     10,0x1c,4,tetra_chunk,hex_format},
-    {"Fill Color",     11,0x20,4,tetra_chunk,hex_format},
-    {"Line Color",     12,0x24,4,tetra_chunk,hex_format},
-    {"Text Width",     13,0x28,2,wyde_chunk,unsigned_format},
-    {"Text Height",    14,0x2a,2,wyde_chunk,unsigned_format},
-    {"Frame Width",    15,0x30,2,wyde_chunk,unsigned_format},
-    {"Frame Height",   16,0x32,2,wyde_chunk,unsigned_format},
-    {"Screen Width",   17,0x34,2,wyde_chunk,unsigned_format},
-    {"Screen Height",  18,0x36,2,wyde_chunk,unsigned_format},
+	{"Command",        0x00,1,byte_chunk,unsigned_format},
+	{"Aux Command",    0x01,3,byte_chunk,hex_format},
+    {"Secondary X",    0x04,2,wyde_chunk,unsigned_format},
+    {"Secondary Y",    0x06,2,wyde_chunk,unsigned_format},
+    {"Width",          0x08,2,wyde_chunk,unsigned_format},
+    {"Height",         0x0a,2,wyde_chunk,unsigned_format},
+    {"X",              0x0c,2,wyde_chunk,unsigned_format},
+    {"Y",              0x0e,2,wyde_chunk,unsigned_format},
+    {"BLT Adress",     0x10,8,octa_chunk,hex_format},
+    {"Text Backgrnd",  0x18,4,tetra_chunk,hex_format},
+    {"Text Color",     0x1c,4,tetra_chunk,hex_format},
+    {"Fill Color",     0x20,4,tetra_chunk,hex_format},
+    {"Line Color",     0x24,4,tetra_chunk,hex_format},
+    {"Text Width",     0x28,2,wyde_chunk,unsigned_format},
+    {"Text Height",    0x2a,2,wyde_chunk,unsigned_format},
+    {"Frame Width",    0x30,2,wyde_chunk,unsigned_format},
+    {"Frame Height",   0x32,2,wyde_chunk,unsigned_format},
+    {"Screen Width",   0x34,2,wyde_chunk,unsigned_format},
+    {"Screen Height",  0x36,2,wyde_chunk,unsigned_format},
 	{0}};
 
 /*
@@ -818,7 +818,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 	  uint64tohex(vmb_mouse_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS_MOUSE,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
 	  CheckDlgButton(hDlg,IDC_MOUSEMOVE,move_interrupt?BST_CHECKED:BST_UNCHECKED);
 
       uint64tohex(vmb_gpu_address,tmp_option);
@@ -864,7 +864,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 	    GetDlgItemText(hDlg,IDC_ADDRESS_MOUSE,tmp_option,MAXTMPOPTION);
         vmb_mouse_address = strtouint64(tmp_option); 
-		interrupt=GetDlgItemInt(hDlg,IDC_INTERRUPT,FALSE,FALSE);
+		interrupt_no=GetDlgItemInt(hDlg,IDC_INTERRUPT,FALSE,FALSE);
 		move_interrupt = (IsDlgButtonChecked(hDlg,IDC_MOUSEMOVE)==BST_CHECKED);
 
 	    GetDlgItemText(hDlg,IDC_ADDRESS_GPU,tmp_option,MAXTMPOPTION);
@@ -932,8 +932,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			EnterCriticalSection (&bitmap_section);
             for (n=0;n<da.size;n=n+4)
 			{ put_one_pixel(x+i,y+k,da.data+n);
+#if 0
+			  /* not shure what these two lines should accomplish */
 			  if (!(*(da.data+n)|*(da.data+n+1)|*(da.data+n+2)|*(da.data+n+3)))
 				  i= i+k&0x80000000;
+#endif
 			  i++;
 			  if (i >= w)
 			  { i=0; k++;

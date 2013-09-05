@@ -1,6 +1,6 @@
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.13 $ $Date: 2013-07-03 16:43:45 $";
+char version[]="$Revision: 1.14 $ $Date: 2013-09-05 06:50:56 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";
@@ -115,7 +115,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
 	  SetDlgItemInt(hDlg,IDC_UPINTERRUPT,upinterrupt,FALSE);
 	  SetDlgItemInt(hDlg,IDC_COLOR,color,FALSE);
 	  SetDlgItemText(hDlg,IDC_LABEL,label?label:"");
@@ -136,7 +136,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		inspector[0].address=vmb_address;
 		GetDlgItemText(hDlg,IDC_LABEL,tmp_option,MAXTMPOPTION);
 		set_option(&label,tmp_option);
-		interrupt =GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		interrupt_no =GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
 		upinterrupt =GetDlgItemInt(hDlg,IDC_UPINTERRUPT,NULL,FALSE);
 		color =GetDlgItemInt(hDlg,IDC_COLOR,NULL,FALSE);
 	    color_bitmaps(color,label);
@@ -246,7 +246,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    pushstate = 1;
 	    vmb_debug(VMB_DEBUG_PROGRESS,"Button DOWN");
 	    if (enable_interrupts&1)
-    	  vmb_raise_interrupt(&vmb, interrupt);
+    	  vmb_raise_interrupt(&vmb, interrupt_no);
 	  }
 	  InvalidateRect(hWnd,NULL,FALSE);
 	  return 0;

@@ -31,7 +31,7 @@ extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.30 $ $Date: 2013-08-29 09:40:33 $";
+char version[]="$Revision: 1.31 $ $Date: 2013-09-05 06:50:56 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -92,43 +92,43 @@ char howto[] =
 
 struct register_def disk_regs[] = {
 	/* name no offset size chunk format */
-	{"Status"   , 0,0x00,4,tetra_chunk,hex_format},
-	{"Control"  , 1,0x04,4,tetra_chunk,hex_format},
-    {"Capacity" , 2,0x08,8,octa_chunk,unsigned_format},
-    {"Sector"   , 3,0x10,8,octa_chunk,unsigned_format},
-	{"Count"    , 4,0x18,8,octa_chunk,unsigned_format},
-    {"DMA0 Addr", 5,0x20,8,octa_chunk,hex_format},
-    {"DMA0 Size", 6,0x28,8,octa_chunk,unsigned_format},
-    {"DMA1 Addr", 7,0x30,8,octa_chunk,hex_format},
-    {"DMA1 Size", 8,0x38,8,octa_chunk,unsigned_format},
-    {"DMA2 Addr", 9,0x40,8,octa_chunk,hex_format},
-    {"DMA2 Size",10,0x48,8,octa_chunk,unsigned_format},
-    {"DMA3 Addr",11,0x50,8,octa_chunk,hex_format},
-    {"DMA3 Size",12,0x58,8,octa_chunk,unsigned_format},
-    {"DMA4 Addr",13,0x60,8,octa_chunk,hex_format},
-    {"DMA4 Size",14,0x68,8,octa_chunk,unsigned_format},
-    {"DMA5 Addr",15,0x70,8,octa_chunk,hex_format},
-    {"DMA5 Size",16,0x78,8,octa_chunk,unsigned_format},
-    {"DMA6 Addr",17,0x80,8,octa_chunk,hex_format},
-    {"DMA6 Size",18,0x88,8,octa_chunk,unsigned_format},
-    {"DMA7 Addr",19,0x90,8,octa_chunk,hex_format},
-    {"DMA7 Size",20,0x98,8,octa_chunk,unsigned_format},
-    {"DMA8 Addr",21,0xa0,8,octa_chunk,hex_format},
-    {"DMA8 Size",22,0xa8,8,octa_chunk,unsigned_format},
-    {"DMA9 Addr",23,0xb0,8,octa_chunk,hex_format},
-    {"DMA9 Size",24,0xb8,8,octa_chunk,unsigned_format},
-    {"DMAa Addr",25,0xc0,8,octa_chunk,hex_format},
-    {"DMAa Size",26,0xc8,8,octa_chunk,unsigned_format},
-    {"DMAb Addr",27,0xd0,8,octa_chunk,hex_format},
-    {"DMAb Size",28,0xd8,8,octa_chunk,unsigned_format},
-    {"DMAc Addr",29,0xe0,8,octa_chunk,hex_format},
-    {"DMAc Size",30,0xe8,8,octa_chunk,unsigned_format},
-    {"DMAd Addr",31,0xf0,8,octa_chunk,hex_format},
-    {"DMAd Size",32,0xf8,8,octa_chunk,unsigned_format},
-    {"DMAe Addr",33,0x100,8,octa_chunk,hex_format},
-    {"DMAe Size",34,0x108,8,octa_chunk,unsigned_format},
-    {"DMAf Addr",35,0x110,8,octa_chunk,hex_format},
-    {"DMAf Size",36,0x118,8,octa_chunk,unsigned_format},
+	{"Status"   ,0x00,4,tetra_chunk,hex_format},
+	{"Control"  ,0x04,4,tetra_chunk,hex_format},
+    {"Capacity" ,0x08,8,octa_chunk,unsigned_format},
+    {"Sector"   ,0x10,8,octa_chunk,unsigned_format},
+	{"Count"    ,0x18,8,octa_chunk,unsigned_format},
+    {"DMA0 Addr",0x20,8,octa_chunk,hex_format},
+    {"DMA0 Size",0x28,8,octa_chunk,unsigned_format},
+    {"DMA1 Addr",0x30,8,octa_chunk,hex_format},
+    {"DMA1 Size",0x38,8,octa_chunk,unsigned_format},
+    {"DMA2 Addr",0x40,8,octa_chunk,hex_format},
+    {"DMA2 Size",0x48,8,octa_chunk,unsigned_format},
+    {"DMA3 Addr",0x50,8,octa_chunk,hex_format},
+    {"DMA3 Size",0x58,8,octa_chunk,unsigned_format},
+    {"DMA4 Addr",0x60,8,octa_chunk,hex_format},
+    {"DMA4 Size",0x68,8,octa_chunk,unsigned_format},
+    {"DMA5 Addr",0x70,8,octa_chunk,hex_format},
+    {"DMA5 Size",0x78,8,octa_chunk,unsigned_format},
+    {"DMA6 Addr",0x80,8,octa_chunk,hex_format},
+    {"DMA6 Size",0x88,8,octa_chunk,unsigned_format},
+    {"DMA7 Addr",0x90,8,octa_chunk,hex_format},
+    {"DMA7 Size",0x98,8,octa_chunk,unsigned_format},
+    {"DMA8 Addr",0xa0,8,octa_chunk,hex_format},
+    {"DMA8 Size",0xa8,8,octa_chunk,unsigned_format},
+    {"DMA9 Addr",0xb0,8,octa_chunk,hex_format},
+    {"DMA9 Size",0xb8,8,octa_chunk,unsigned_format},
+    {"DMAa Addr",0xc0,8,octa_chunk,hex_format},
+    {"DMAa Size",0xc8,8,octa_chunk,unsigned_format},
+    {"DMAb Addr",0xd0,8,octa_chunk,hex_format},
+    {"DMAb Size",0xd8,8,octa_chunk,unsigned_format},
+    {"DMAc Addr",0xe0,8,octa_chunk,hex_format},
+    {"DMAc Size",0xe8,8,octa_chunk,unsigned_format},
+    {"DMAd Addr",0xf0,8,octa_chunk,hex_format},
+    {"DMAd Size",0xf8,8,octa_chunk,unsigned_format},
+    {"DMAe Addr",0x100,8,octa_chunk,hex_format},
+    {"DMAe Size",0x108,8,octa_chunk,unsigned_format},
+    {"DMAf Addr",0x110,8,octa_chunk,hex_format},
+    {"DMAf Size",0x118,8,octa_chunk,unsigned_format},
 	{0}};
 
 #define NUM_REGS 36
@@ -406,9 +406,9 @@ static void diskInit(void) {
   diskCap = 0;
   diskReset();
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
-  if (filename != NULL) {
+  if (vmb_filename != NULL) {
     /* try to install disk */
-    diskImage = vmb_fopen(filename, "r+b");
+    diskImage = vmb_fopen(vmb_filename, "r+b");
     if (diskImage == NULL)
       vmb_error(__LINE__,"cannot open disk image");
     else
@@ -462,7 +462,7 @@ static void diskDone(void)
   SET_DISK_STAT(diskStatus);
   mem_update(0,4);
   if (diskCtrl & DISK_IEN) {
-    vmb_raise_interrupt(&vmb,interrupt);
+    vmb_raise_interrupt(&vmb,interrupt_no);
     vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
   }
 }

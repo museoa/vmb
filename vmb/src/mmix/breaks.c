@@ -79,7 +79,7 @@ void set_break(octa a, unsigned char b)
   table[i] = newnode(a,b,table[i]);
 }
 
-void show_breaks(void)
+void show_breaks(mem_node *p)
 { int i;
   for (i=0;i<HSIZE;i++)
   { node *n = table[i];

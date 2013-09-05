@@ -75,7 +75,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
 	  if (hCustomfont!=0)
 		  CheckDlgButton(hDlg,IDC_CUSTOM_FONT,BST_CHECKED);
 	  else if (fontheight <= FONT_SMALL )
@@ -96,7 +96,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { GetDlgItemText(hDlg,IDC_ADDRESS,tmp_option,MAXTMPOPTION);
         vmb_address = strtouint64(tmp_option); 
 		inspector[0].address=vmb_address;
-		interrupt  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		interrupt_no  = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
 		if (IsDlgButtonChecked(hDlg,IDC_CUSTOM_FONT))
 			choosefont();
 		else if (IsDlgButtonChecked(hDlg,IDC_SMALL_FONT)) fontheight=FONT_SMALL,setfont();

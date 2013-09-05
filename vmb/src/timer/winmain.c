@@ -82,7 +82,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt,FALSE);
+	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -96,7 +96,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         vmb_address = strtouint64(tmp_option);
 		inspector[0].address=vmb_address;
         inspector[1].address=vmb_address;
-		interrupt = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
+		interrupt_no = GetDlgItemInt(hDlg,IDC_INTERRUPT,NULL,FALSE);
       }
       if (wparam == IDOK || wparam == IDCANCEL)
       { EndDialog(hDlg, TRUE);

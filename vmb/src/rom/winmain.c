@@ -22,7 +22,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       uint64tohex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
-      SetDlgItemText(hDlg,IDC_FILE,filename);
+      SetDlgItemText(hDlg,IDC_FILE,vmb_filename);
       return TRUE;
    case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -36,7 +36,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         vmb_address = strtouint64(tmp_option);
 		inspector[0].address=vmb_address;
         GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
-	    set_option(&filename,tmp_option);
+	    set_option(&vmb_filename,tmp_option);
 		open_file();
       }
 	  else if (HIWORD(wparam) == BN_CLICKED  && LOWORD(wparam) == IDC_BROWSE) 

@@ -21,7 +21,7 @@
 */
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.14 $ $Date: 2013-08-29 09:40:34 $";
+char version[]="$Revision: 1.15 $ $Date: 2013-09-05 06:50:57 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
@@ -766,12 +766,12 @@ int serial_reg_read(unsigned int offset, int size, unsigned char *buf)
 }
 struct register_def serial_regs[7] = {
 	/* name no offset size chunk format */
-	{"ErrorIn"  ,0,0,1,byte_chunk,hex_format},
-	{"CountIn"  ,1,3,1,byte_chunk,unsigned_format},
-    {"DataIn"   ,2,7,1,byte_chunk,ascii_format},
-    {"ErrorOut" ,3,8,1,byte_chunk,hex_format},
-    {"CountOut" ,4,11,1,byte_chunk,unsigned_format},
-    {"DataOut"  ,5,15,1,byte_chunk,ascii_format},
+	{"ErrorIn"  ,0,1,byte_chunk,hex_format},
+	{"CountIn"  ,3,1,byte_chunk,unsigned_format},
+    {"DataIn"   ,7,1,byte_chunk,ascii_format},
+    {"ErrorOut" ,8,1,byte_chunk,hex_format},
+    {"CountOut" ,11,1,byte_chunk,unsigned_format},
+    {"DataOut"  ,15,1,byte_chunk,ascii_format},
 	{0}};
 
 

@@ -211,8 +211,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tie"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
 						AdditionalDependencies="vmb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -222,8 +222,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tie"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
 						AdditionalDependencies="vmb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -275,8 +275,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tangle mmix-sim with vmb and gdb"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c&#x0D;&#x0A;"
+						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch &amp;&amp; ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
 						AdditionalDependencies="vmb.ch gdb.ch"
 						Outputs="mmix-gdb.c"
 					/>
@@ -294,8 +294,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tie"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
 						AdditionalDependencies="gdb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -305,8 +305,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Tie"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
+						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
 						AdditionalDependencies="gdb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>

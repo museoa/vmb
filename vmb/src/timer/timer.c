@@ -86,20 +86,20 @@ see help.html
 #define TIMER_REGS	14
 struct register_def timer_regs[TIMER_REGS+1] = {
 	/* name no offset size chunk format */
-	{"Year"             ,0,0x00,2,wyde_chunk,unsigned_format},
-	{"Month"            ,1,0x02,1,byte_chunk,unsigned_format},
-    {"Day"              ,2,0x03,1,byte_chunk,unsigned_format},
-    {"Day per Year"     ,3,0x04,2,wyde_chunk,unsigned_format},
-    {"DST"              ,4,0x06,1,byte_chunk,unsigned_format},
-    {"Weekday"          ,5,0x07,1,byte_chunk,unsigned_format},
-    {"Hour"             ,6,0x09,1,byte_chunk,unsigned_format},
-    {"Minute"           ,7,0x0A,1,byte_chunk,unsigned_format},
-    {"Second"           ,8,0x0B,1,byte_chunk,unsigned_format},
-    {"Milliseconds"     ,9,0x0C,4,tetra_chunk,unsigned_format},
-    {"t"                ,10,0x10,4,tetra_chunk,unsigned_format},
-    {"ti"               ,11,0x14,4,tetra_chunk,unsigned_format},
-    {"t0"               ,12,0x18,4,tetra_chunk,unsigned_format},
-    {"dt"               ,13,0x1C,4,tetra_chunk,unsigned_format},
+	{"Year"             ,0x00,2,wyde_chunk,unsigned_format},
+	{"Month"            ,0x02,1,byte_chunk,unsigned_format},
+    {"Day"              ,0x03,1,byte_chunk,unsigned_format},
+    {"Day per Year"     ,0x04,2,wyde_chunk,unsigned_format},
+    {"DST"              ,0x06,1,byte_chunk,unsigned_format},
+    {"Weekday"          ,0x07,1,byte_chunk,unsigned_format},
+    {"Hour"             ,0x09,1,byte_chunk,unsigned_format},
+    {"Minute"           ,0x0A,1,byte_chunk,unsigned_format},
+    {"Second"           ,0x0B,1,byte_chunk,unsigned_format},
+    {"Milliseconds"     ,0x0C,4,tetra_chunk,unsigned_format},
+    {"t"                ,0x10,4,tetra_chunk,unsigned_format},
+    {"ti"               ,0x14,4,tetra_chunk,unsigned_format},
+    {"t0"               ,0x18,4,tetra_chunk,unsigned_format},
+    {"dt"               ,0x1C,4,tetra_chunk,unsigned_format},
 	{0}};
 
 unsigned int tt=0, ti=0, t0=0, dt=0; /* copies of tmem fields */
@@ -193,8 +193,8 @@ unsigned int timer_get_now(void)
 void timer_signal()
 /* raise the timer interrupt after the timer has expired */
 { advance_time(expire_time);
-  vmb_raise_interrupt(&vmb,interrupt);
-  vmb_debugi(VMB_DEBUG_PROGRESS,"Timer expired sending interrupt %d",interrupt);
+  vmb_raise_interrupt(&vmb,interrupt_no);
+  vmb_debugi(VMB_DEBUG_PROGRESS,"Timer expired sending interrupt %d",interrupt_no);
   debug_last_time();
   t0 = t0+dt;
   dt = ti;
@@ -215,7 +215,7 @@ void timer_signal()
 int major_version=1, minor_version=5;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.15 $ $Date: 2013-07-09 13:22:11 $";
+char version[]="$Revision: 1.16 $ $Date: 2013-09-05 06:50:57 $";
 
 char howto[] =
 "\n"

@@ -45,7 +45,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.20 $ $Date: 2013-08-29 09:40:34 $";
+char version[]="$Revision: 1.21 $ $Date: 2013-09-05 06:50:57 $";
 
 char howto[] =
 "\n"
@@ -143,14 +143,14 @@ void open_file(void)
     f = NULL;
 	vmb_size=0;
 
-    if (filename==NULL || strcmp(filename,"") == 0)
+    if (vmb_filename==NULL || strcmp(vmb_filename,"") == 0)
 	 vmb_error(__LINE__,"No filename for image file given");
 	else
-	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",filename);
-      if ((f = vmb_fopen(filename, "rb")) == NULL)
-        vmb_error2(__LINE__,"Unable to open image file",filename);
+	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",vmb_filename);
+      if ((f = vmb_fopen(vmb_filename, "rb")) == NULL)
+        vmb_error2(__LINE__,"Unable to open image file",vmb_filename);
 	  else
-	  { c = strrchr(filename,'.');
+	  { c = strrchr(vmb_filename,'.');
 		if(strcmp(c,".umps") == 0)
 		{
 			readUMPSFile(f);

@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,7 +105,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -196,10 +196,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\breaks.c"
-				>
-			</File>
-			<File
 				RelativePath=".\mmix-arith.c"
 				>
 			</File>
@@ -223,7 +219,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
 						AdditionalDependencies="arith-win.ch"
 						Outputs="mmix-arith.c"
 					/>
@@ -253,8 +249,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
-						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
-						AdditionalDependencies="mmix-sim.w;vmb.ch"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						AdditionalDependencies="vmb.ch"
 						Outputs="mmix-vmb.c"
 					/>
 				</FileConfiguration>
@@ -265,6 +261,7 @@
 			</File>
 			<File
 				RelativePath=".\vmb.ch"
+				FileType="5"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -297,10 +294,6 @@
 			>
 			<File
 				RelativePath="..\vmbmmixlib\address.h"
-				>
-			</File>
-			<File
-				RelativePath="..\vmbmmixlib\breaks.h"
 				>
 			</File>
 			<File
