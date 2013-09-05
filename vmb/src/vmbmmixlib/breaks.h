@@ -30,7 +30,4 @@ extern unsigned char get_break(octa a);
 extern void set_break(octa a, unsigned char b);
 /* sets the break information for a to b. */
 
-extern void show_breaks(mem_node *p);
-/* display the breakpoints */
-
 #endif

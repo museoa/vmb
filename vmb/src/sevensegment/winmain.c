@@ -19,7 +19,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.23 $ $Date: 2013-07-08 12:05:25 $";
+char version[]="$Revision: 1.24 $ $Date: 2013-09-05 08:50:40 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -260,7 +260,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	    DispatchMessage(&msg);
 	  }
 	vmb_disconnect(&vmb);
-    set_pos_key(hMainWnd,defined);
     vmb_end();
     return (int)msg.wParam;
 }

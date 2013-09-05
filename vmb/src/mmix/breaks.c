@@ -27,71 +27,13 @@
 #include "address.h"
 #include "breaks.h"
 
-#define HSIZE 211
-
-typedef struct node {
-  struct node *next;
-  octa a;
-  unsigned int b;
-}  node;
-
-static node *table[HSIZE] = {0};
-
-#define hvalue(a) ((a.h + a.l)%HSIZE)
-#define panic(x) {fprintf(stderr,"%s (%d) ERROR: %s\n",__FILE__,__LINE__,x);exit(1);}
-
-static node *newnode( octa a, unsigned char b, node *next)
-{ node *n;
-  n = (node *)malloc(sizeof(*n));
-  if (n==NULL) panic("Out of memory"); 
-  n->a = a;
-  n->b = b;
-  n->next=next;
-  return n;
-}
-
 unsigned char get_break(octa a)
-{ node *n = table[hvalue(a)];
-  while (n!=NULL)
-    if (a.h==n->a.h && a.l==n->a.l)
-      return n->b;
-    else
-      n=n->next;   
-  return 0 ;
+{ mem_tetra *ll=mem_find(a);
+  return ll->bkpt;
 }
+
 
 void set_break(octa a, unsigned char b)
-{ int i = hvalue(a); 
-  node **p = table+i;
-  while (*p!=NULL)
-    if (a.h==(*p)->a.h && a.l==(*p)->a.l)
-    { if (b==0)
-      { node *n=*p;
-        *p=(*p)->next;
-        free(n);
-      }
-      else
-        (*p)->b = b;
-      return;
-    }
-    else
-      p=&((*p)->next);   
-  table[i] = newnode(a,b,table[i]);
+{ mem_tetra *ll=mem_find(a);
+  ll->bkpt=b;
 }
-
-void show_breaks(mem_node *p)
-{ int i;
-  for (i=0;i<HSIZE;i++)
-  { node *n = table[i];
-    while (n!=NULL) 
-    {
-      printf("  %08x%08x %c%c%c%c\n",n->a.h,n->a.l,
-             n->b&trace_bit? 't': '-',
-             n->b&read_bit? 'r': '-',
-             n->b&write_bit? 'w': '-',
-             n->b&exec_bit? 'x': '-');
-      n=n->next;
-    }
-  }
-}
-

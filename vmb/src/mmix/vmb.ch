@@ -79,7 +79,8 @@ We now read memory using some external simulator.
 We provide |extern| functions defined in a separate file.
 The functions we use are partly concerned with virtual
 to physical address translation and contained in the
-file address.h and address.c 
+file address.h and address.c;
+with access to a cache, contained in cache.h and cache.c;
 and with access to the virtual bus contained in
 mmix-bus.h and mmix-bus.c. 
 At a later point the interface 
@@ -1910,8 +1911,8 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
 @x
  case 'b':@+if (sscanf(arg+1,"%d",&buf_size)!=1) buf_size=0;@+return;
 @y
- case 'B': 
 #ifndef MMIXLIB 
+ case 'B': 
   { char *p;
     p = strchr(arg+1,':');
     if (p==NULL)
@@ -1926,8 +1927,8 @@ if (!*cur_arg) scan_option("?",true); /* exit with usage note */
       host[p-arg-1]=0;
     }
   }
-#endif
   return; 
+ #endif
  case 'O': show_operating_system=true;@+return;
  case 'o': show_operating_system=false;@+return;
 @z
@@ -2073,7 +2074,21 @@ void catchint(n)
     load_data(8,&aux,cur_disp_addr,0);
 @z
 
+We allow tracing in the Textsegement and in the negative Segment.
 
+@x
+ if (val.h<0x20000000) {
+@y
+ if (val.h<0x20000000|| val.h>=0x80000000) {
+@z
+
+We allow breakpoints at all addresses.
+
+@x
+ if (!(val.h&sign_bit)) {
+@y
+ {
+@z
 
 @x
 case 'B': show_breaks(mem_root);

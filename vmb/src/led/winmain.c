@@ -477,7 +477,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	    DispatchMessage(&msg);
 	  }
 	vmb_disconnect(&vmb);
-    set_pos_key(hMainWnd,defined);
 	vmb_end();
 	return (int)msg.wParam;
 }

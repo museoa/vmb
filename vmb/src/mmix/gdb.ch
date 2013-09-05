@@ -54,17 +54,17 @@ if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 @z
 
 @x
-@d test_store_bkpt(a) if (get_break(a)&write_bit) breakpoint=tracing=true
+@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) breakpoint=tracing=true
 @y
 @d do_store_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
-@d test_store_bkpt(a) if (get_break(a)&write_bit) do_store_bkpt;
+@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) do_store_bkpt
 @z
 
 @x
-@d test_load_bkpt(a) if (get_break(a)&read_bit) breakpoint=tracing=true
+@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) breakpoint=tracing=true
 @y
 @d do_load_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
-@d test_load_bkpt(a) if (get_break(a)&read_bit) do_load_bkpt;
+@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) do_load_bkpt
 @z
 
 
@@ -499,11 +499,6 @@ void print_string(o)
   if (state==0) printf("0");
   else if (state>1) printf("\"");
 }
-
-@ @<Type...@>=
-extern unsigned char get_break(octa a);
-extern void set_break(octa a, unsigned char b);
-extern void show_breaks(void);
 @y
 @z
 
@@ -514,8 +509,9 @@ case '@@': inst_ptr=scan_hex(p+1,cur_seg);@+ p=next_char;
 case 't': case 'u': k=*p;
  val=scan_hex(p+1,cur_seg);@+ p=next_char;
  if (val.h<0x20000000) {
-   if (k=='t') set_break(val,get_break(val)|trace_bit);
-   else set_break(val,get_break(val)&~trace_bit);
+   ll=mem_find(val);
+   if (k=='t') ll->bkpt |= trace_bit;
+   else ll->bkpt &=~trace_bit;
  }
  break;
 case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
@@ -523,14 +519,17 @@ case 'b':@+ for (k=0,p++; !isxdigit(*p); p++)
    else if (*p=='w') k|=write_bit;
    else if (*p=='x') k|=exec_bit;
  val=scan_hex(p,cur_seg);@+ p=next_char;
- set_break(val,k);
+ if (!(val.h&sign_bit)) {
+   ll=mem_find(val);
+   ll->bkpt=(ll->bkpt&-8)|k;
+ }
  break;
 case 'T': cur_seg.h=0;@+goto passit;
 case 'D': cur_seg.h=0x20000000;@+goto passit;
 case 'P': cur_seg.h=0x40000000;@+goto passit;
 case 'S': cur_seg.h=0x60000000;@+goto passit;
 case 'N': cur_seg.h=0x80000000;@+goto passit;
-case 'B': show_breaks();@+goto passit;
+case 'B': show_breaks(mem_root);@+goto passit;
 case 'O': show_operating_system=true;@+goto passit;
 case 'o': show_operating_system=false;@+goto passit;
 passit: p++;@+break;

@@ -73,7 +73,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=5;
-char version[] = "$Revision: 1.44 $ $Date: 2013-01-31 15:41:02 $";
+char version[] = "$Revision: 1.45 $ $Date: 2013-09-05 08:50:39 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -1156,7 +1156,6 @@ WinMain (HINSTANCE hInstance,
         DispatchMessage (&msg);
       }
   shutdown_server ();
-  set_pos_key(hMainWnd,defined);
   WSACleanup ();
   return (int)msg.wParam;
 }

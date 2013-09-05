@@ -212,7 +212,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -223,7 +223,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -242,7 +242,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
 						AdditionalDependencies="arith-win.ch"
 						Outputs="mmix-arith.c"
 					/>
@@ -253,7 +253,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
+						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
 						AdditionalDependencies="arith-win.ch"
 						Outputs="mmix-arith.c"
 					/>
@@ -276,7 +276,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch &amp;&amp; ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;ctangle mmix-sim.w vmb-gdb.ch mmix-gdb.c&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch gdb.ch"
 						Outputs="mmix-gdb.c"
 					/>
@@ -295,7 +295,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
 						AdditionalDependencies="gdb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -306,7 +306,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
-						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch"
+						CommandLine="ctie -c vmb-gdb.ch mmix-sim.w vmb.ch gdb.ch&#x0D;&#x0A;"
 						AdditionalDependencies="gdb.ch; mmix-sim.w"
 						Outputs="vmb-gdb.ch"
 					/>
@@ -335,7 +335,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-internals.h"
+				RelativePath="..\vmbmmixlib\mmix-internals.h"
 				>
 			</File>
 			<File

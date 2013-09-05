@@ -105,7 +105,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Build C files"
+				Description="Build C files mmix-sim.c mmix-aroth.c mmix-io.c"
 				CommandLine="ctangle mmix-sim.w sim-win.ch mmix-sim.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmix-io.w mmix-io.c&#x0D;&#x0A;"
 			/>
 			<Tool
