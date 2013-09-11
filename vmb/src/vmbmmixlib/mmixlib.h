@@ -33,3 +33,4 @@ extern int mmix_status;
 extern void mmix_stopped(octa loc);
 extern char full_mmo_name[];
 extern void set_mmix_status(int status);
+extern int mmix_lib_init(void);

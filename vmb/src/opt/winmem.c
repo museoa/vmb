@@ -21,12 +21,13 @@ char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 
 
-static void sb_range(HWND hMemory, inspector_def *insp)
+static void sb_range(inspector_def *insp)
 /* determine and set scrollbar range as virtual number of insp->lines */
 { SCROLLINFO si;
   unsigned int mem_size; 
 
   /* determine range */
+  if (insp->hWnd==NULL) return;
   if (insp->size==0)
   { insp->mem_base=0;
 	mem_size = 0;
@@ -77,7 +78,7 @@ static void sb_range(HWND hMemory, inspector_def *insp)
 	mem_size = page_range;
 	if (mem_size > insp->size -insp->mem_base)
 	{ mem_size = insp->size -insp->mem_base;
-      InvalidateRect(hMemory,NULL,TRUE);
+      InvalidateRect(insp->hWnd,NULL,TRUE);
 	}
   }
 
@@ -93,10 +94,10 @@ static void sb_range(HWND hMemory, inspector_def *insp)
   si.nMax=insp->sb_rng;
   si.nPage=insp->lines;
   si.nPos=insp->sb_cur;
-  SetScrollInfo(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
+  SetScrollInfo(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
 }
 
-static int adjust_mem_display(HWND hMemory,inspector_def *insp);
+
 
 static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 { switch (LOWORD(wparam)) 
@@ -126,7 +127,7 @@ static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 		case SB_THUMBPOSITION:
 		  return;
 	  }
-	   adjust_mem_display(hMemory,insp);
+	   adjust_mem_display(insp);
 }
 
 
@@ -150,30 +151,29 @@ static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto
 
 void set_edit_rect(inspector_def *insp);
 
-static int adjust_mem_display(HWND hMemory,inspector_def *insp)
-/* 0 if no update needed, else return 1 */
-{ int ret=0;
-  sb_range(hMemory, insp);
+void adjust_mem_display(inspector_def *insp)
+{ 
+  if (insp->hWnd==NULL) return;
+  sb_range(insp);
   if (insp->get_mem) 
 	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
     memset(insp->mem_buf,0,insp->mem_size);
   set_edit_rect(insp);
-  InvalidateRect(hMemory,NULL,insp->regs!=NULL);
-  return ret;
+  InvalidateRect(insp->hWnd,NULL,insp->regs!=NULL);
 }
 
 
 
 
 /* these depend only on the font, which is the same for all inspectors */
-static int line_height, digit_width, address_width, separator_width, separator_height, top_width; 
-
-static void get_font_metrics(HWND hWnd)
+static int line_height=0, digit_width, address_width, separator_width, separator_height, top_width; 
+int mem_min_width=0,mem_min_height=0;
+void set_mem_font_metrics(void)
 { SIZE size;
-  HDC hDC=GetDC(hWnd);
+  HDC hDC=GetDC(NULL);
   HFONT hfnt = GetStockObject(ANSI_FIXED_FONT); 
-  SelectObject(hDC, hfnt);
+  HFONT holdfnt=SelectObject(hDC, hfnt);
   GetTextExtentPoint32(hDC,"0",1,&size);
   separator_height=2;
   digit_width=size.cx;
@@ -182,7 +182,10 @@ static void get_font_metrics(HWND hWnd)
   GetTextExtentPoint32(hDC,"0x0000000000000000:",19,&size);
   address_width=size.cx;
   top_width=28;
-  ReleaseDC(hWnd,hDC);
+  SelectObject(hDC,holdfnt);
+  ReleaseDC(NULL,hDC);
+  mem_min_width=25*digit_width+separator_width;
+  mem_min_height= top_width+separator_height+line_height;
 }
 
 
@@ -217,7 +220,9 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
   MoveWindow(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),
 	         insp->width-sbw,top_width,sbw,insp->height-top_width,TRUE);
 
+
   insp->lines = (insp->height-top_width)/line_height;
+  if (insp->lines<1) insp->lines=1;
   
   insp->column_digits=chunk_len(insp->format,1<<insp->chunk);
 
@@ -231,7 +236,7 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
   }
   insp->line_range = insp->columns*(1<<insp->chunk);
   InvalidateRect(hMemory,NULL,TRUE);
-  adjust_mem_display(hMemory,insp);
+  adjust_mem_display(insp);
 }
 
 
@@ -567,14 +572,18 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
 	  SetFocus(GetDlgItem(hDlg,IDOK));
-	  get_font_metrics(hDlg);
 	  hDataEditInstance=hInst;
+	  register_subwindow(hDlg);
 	  return FALSE;
 	case WM_CLOSE:
 		DestroyWindow(hDlg);
 		return 0;
 	case WM_DESTROY:
-		DestroyDataEdit(0);
+		{  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+		   unregister_subwindow(hDlg);
+		   DestroyDataEdit(0);
+		   insp->hWnd=NULL;
+		}
 	  return FALSE;
 	case WM_LBUTTONDBLCLK:
 	{ HWND hde;
@@ -584,7 +593,6 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    InvalidateRect(insp->hWnd,&insp->edit_rect,TRUE);
 	  hde=GetDataEdit(0,hDlg);
 	  de_connect(hde,insp);
-	  insp->hWnd=hDlg;
       set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
 	  set_edit_rect(insp);
 	  InvalidateRect(insp->hWnd,&insp->edit_rect,FALSE);
@@ -603,7 +611,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  goto_addr=adjust_goto_addr(hDlg,insp,goto_addr);
 		  insp->sb_base = (unsigned int)(goto_addr-insp->address);
 		  insp->sb_cur = 0;
-		  adjust_mem_display(hDlg,insp);
+		  adjust_mem_display(insp);
 		 }
 	  }
 	  else if (HIWORD(wparam) == BN_CLICKED) 
@@ -668,12 +676,22 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 	}
 	  break;
+	case WM_GETMINMAXINFO:
+	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
+	  p->ptMinTrackSize.x = mem_min_width;
+      p->ptMinTrackSize.y = mem_min_height;
+	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
+	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
+	}
+	return 0;
   }
   return FALSE;
 }
 
 HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
-{ HWND h= CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hParent,MemoryDialogProc);
+{ HWND h;
+  if (line_height==0) set_mem_font_metrics();
+  h= CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hParent,MemoryDialogProc);
   hDataEditParent=hParent;
   return h;
 }

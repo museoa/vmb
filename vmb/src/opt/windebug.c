@@ -147,7 +147,6 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   	hDebug=hDlg;
   	InitializeCriticalSection (&msg_section);
 	hMemory=CreateMemoryDialog(hInst,hDlg);
-	register_subwindow(hMemory);
 	hFilter=CreateDialog(hInst,MAKEINTRESOURCE(IDD_FILTER),hDlg,FilterProc);
     register_subwindow(hFilter);
 	register_subwindow(hDebug);
@@ -207,7 +206,6 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == SC_CLOSE ) 
       { unregister_subwindow(hFilter);
 	    DestroyWindow(hFilter);
-	    unregister_subwindow(hMemory);
 		DestroyWindow(hMemory);
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
 		unregister_subwindow(hDebug);

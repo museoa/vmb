@@ -8,11 +8,61 @@
 #include "mmix-internals.h"
 #include "mmixlib.h"
 #include "debug.h"
+#include "resource.h"
+
 
 
 #define MAXMEM 5
-static HWND hMemory[MAXMEM]={0};
 inspector_def memory_insp[];
+unsigned int show_debug_windows = 0x27; 
+#define MAX_DEBUG_WINDOWS 9
+INT_PTR CALLBACK    
+OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
+{ 
+  switch ( message )
+  { case WM_INITDIALOG:
+      { int i;
+	    for (i=0;i<MAX_DEBUG_WINDOWS;i++)
+		{	CheckDlgButton(hDlg,IDC_SHOW_LOCAL+i,
+			   (show_debug_windows&(1<<i))?BST_CHECKED:BST_UNCHECKED);
+		}
+      }
+      return TRUE;
+    case WM_SYSCOMMAND:
+      if( wparam == SC_CLOSE ) 
+      { EndDialog(hDlg, TRUE);
+        return TRUE;
+      }
+      break;
+    case WM_COMMAND:
+      if( wparam == IDOK )
+      { int i;
+	    for (i=0;i<MAX_DEBUG_WINDOWS;i++)
+			if (IsDlgButtonChecked(hDlg,IDC_SHOW_RA+i))
+			  show_debug_windows|=1<<i;
+			else
+			  show_debug_windows&=~(1<<i);
+        EndDialog(hDlg, TRUE);
+        return TRUE;
+      }
+     break;
+  }
+  return FALSE;
+}
+
+
+void set_debug_windows(void)
+{
+  if (show_debug_windows&(1<<0)) new_register_view(0);
+  if (show_debug_windows&(1<<1)) new_register_view(1);
+  if (show_debug_windows&(1<<2)) new_register_view(2);
+  if (show_debug_windows&(1<<3)) new_register_view(3);
+  if (show_debug_windows&(1<<4)) new_memory_view(0);
+  if (show_debug_windows&(1<<5)) new_memory_view(1);
+  if (show_debug_windows&(1<<6)) new_memory_view(2);
+  if (show_debug_windows&(1<<7)) new_memory_view(3);
+  if (show_debug_windows&(1<<8)) new_memory_view(4);
+}
 
 /* generic routines */
 static int get_mem(uint64_t address, int size, unsigned char *buf)
@@ -34,7 +84,7 @@ static void store_mem(int segment, unsigned int offset, int size, unsigned char 
   addr.h=segment<<29;
   addr.l=offset;
   mmputchars(buf, size, addr);
-  MemoryDialogUpdate(hMemory[segment],&memory_insp[segment],offset,size);
+  MemoryDialogUpdate(memory_insp[segment].hWnd,&memory_insp[segment],offset,size);
 }
 
 /* specialized routines for the various segments */
@@ -86,12 +136,13 @@ static void store_neg_mem(unsigned int offset, int size, unsigned char *buf)
 }
 
 
+
 static inspector_def memory_insp[MAXMEM+1]=
-{ 	{"Text Segment",0x1000,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,0ULL<<61},
-	{"Data Segment",0x1000,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,-1,8,0,NULL,0,1ULL<<61},
-	{"Pool Segment",0x1000,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,-1,8,0,NULL,0,2ULL<<61},
-	{"Stack Segment",0x1000,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,-1,8,0,NULL,0,3ULL<<61},
-	{"Negative Segemnt",0x1000,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,4ULL<<61},
+{ 	{"Text Segment",0xffffffff,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,0ULL<<61},
+	{"Data Segment",0xffffffff,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,-1,8,0,NULL,0,1ULL<<61},
+	{"Pool Segment",0xffffffff,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,-1,8,0,NULL,0,2ULL<<61},
+	{"Stack Segment",0xffffffff,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,-1,8,0,NULL,0,3ULL<<61},
+	{"Negative Segemnt",0xffffffff,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,4ULL<<61},
 	{NULL}
 };
 
@@ -99,24 +150,84 @@ static inspector_def memory_insp[MAXMEM+1]=
 
 
 void new_memory_view(int i)
-{ if (mmix_status==MMIX_DISCONNECTED) return;
+{ HWND h;
+  int k;
+  if (mmix_status==MMIX_DISCONNECTED) return;
   if (i<0 || i>=MAXMEM) return;
-  if (hMemory[i]!=NULL) return;
-  hMemory[i] = CreateMemoryDialog(hInst,hSplitter);
-  SetInspector(hMemory[i], &memory_insp[i]);
-  ShowWindow(hMemory[i],SW_SHOW);
+  if (memory_insp[i].hWnd!=NULL) return;
+  for (k=i-1;k>=0&&memory_insp[k].hWnd==NULL;k--)
+	  continue;
+  if (k<0)
+    for (k=i+1;k<MAXMEM&&memory_insp[k].hWnd==NULL;k++)
+	  continue;
+  if (k>=MAXMEM)
+	 sp_create_options(0,0,0.0,mem_min_width,NULL);
+  else if (k<i)
+	 sp_create_options(0,0,0.5,0,memory_insp[k].hWnd);
+  else
+	 sp_create_options(1,0,0.5,0,memory_insp[k].hWnd);
+
+  h = CreateMemoryDialog(hInst,hSplitter);
+  SetInspector(h, &memory_insp[i]);
+  ShowWindow(h,SW_SHOW);
 }
 
 /* REgisters */
 
+
+unsigned int show_special_registers = 0xf03980da; /* bits correspond to registers from rZZ=31 to rB=0 */ 
 #define REG_LOCAL 0
 #define REG_GLOBAL 1
-#define REG_STACK 2
-#define REG_SPECIAL 3
+#define REG_SPECIAL 2
+#define REG_STACK 3
 #define MAXREG 4
-static HWND hRegisters[MAXREG]={0};
 struct register_def reg_names[256]={0};
 struct inspector_def register_insp[];
+void set_special_reg_name(void);
+
+INT_PTR CALLBACK    
+OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
+{ 
+  switch ( message )
+  { case WM_INITDIALOG:
+      { int i;
+	    for (i=0;i<32;i++)
+		{	CheckDlgButton(hDlg,IDC_SHOW_RA+i,
+			   (show_special_registers&(1<<i))?BST_CHECKED:BST_UNCHECKED);
+		    SetDlgItemText(hDlg,IDC_SHOW_RA+i,special_name[i]);
+		}
+      }
+      return TRUE;
+    case WM_SYSCOMMAND:
+      if( wparam == SC_CLOSE ) 
+      { EndDialog(hDlg, TRUE);
+        return TRUE;
+      }
+      break;
+    case WM_COMMAND:
+      if( wparam == IDOK )
+      { int i;
+	    for (i=0;i<32;i++)
+			if (IsDlgButtonChecked(hDlg,IDC_SHOW_RA+i))
+			  show_special_registers|=1<<i;
+			else
+			  show_special_registers&=~(1<<i);
+		if (register_insp[REG_SPECIAL].hWnd!=NULL)
+		{ set_special_reg_name();
+		  adjust_mem_display(&register_insp[REG_SPECIAL]);
+		}
+        EndDialog(hDlg, TRUE);
+        return TRUE;
+      }
+     break;
+  }
+  return FALSE;
+}
+
+
+
+
+
 
 void reg_names_init(void)
 { int i;
@@ -136,14 +247,17 @@ void reg_names_init(void)
 struct register_def special_reg_names[32]={0};
 
 void set_special_reg_name(void)
-{ int i;
-  for (i=0;i<32;i++)
-  { special_reg_names[i].name=special_name[i];
-    special_reg_names[i].offset=i*8;
-    special_reg_names[i].size=8;
-    special_reg_names[i].chunk=user_chunk;
-    special_reg_names[i].format=user_format;
+{ int i,k;
+  for (i=k=0;i<32;i++)
+  if (show_special_registers&(1<<i))
+  { special_reg_names[k].name=special_name[i];
+    special_reg_names[k].offset=i*8;
+    special_reg_names[k].size=8;
+    special_reg_names[k].chunk=user_chunk;
+    special_reg_names[k].format=user_format;
+	k++;
   }
+  register_insp[REG_SPECIAL].num_regs=k;
 }
 
 
@@ -169,7 +283,7 @@ void mem_to_locals(int from, int to)
 	  o->h=chartoint(local_mem+(i*8));
 	  o->l=chartoint(local_mem+(i*8)+4);
     }
-  MemoryDialogUpdate(hRegisters[REG_LOCAL],&register_insp[REG_LOCAL],register_insp[REG_LOCAL].regs[from].offset,8*(to-from));
+  MemoryDialogUpdate(register_insp[REG_LOCAL].hWnd,&register_insp[REG_LOCAL],register_insp[REG_LOCAL].regs[from].offset,8*(to-from));
 }
 
 
@@ -211,9 +325,9 @@ void mem_to_globals(int from, int to)
 	  o->l=chartoint(global_mem+(i*8)+4);
     }
   if (from<32)
-  	  MemoryDialogUpdate(hRegisters[REG_SPECIAL],&register_insp[REG_SPECIAL],register_insp[REG_SPECIAL].regs[from].offset,8*(to-from));
+  	  MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL],register_insp[REG_SPECIAL].regs[from].offset,8*(to-from));
   else if (to>=G)
-  	  MemoryDialogUpdate(hRegisters[REG_GLOBAL],&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from].offset,8*(to-from));
+  	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from].offset,8*(to-from));
 }
 
 
@@ -235,40 +349,49 @@ static void store_global_mem(unsigned int offset, int size, unsigned char *buf)
 struct inspector_def register_insp[MAXREG+1]=
 { {"Local Registers",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,1,reg_names},
   {"Global Registers",256*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,1,&reg_names[255]},
-  {"Registerstack",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,0,reg_names},
   {"Special Registers",32*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,32,special_reg_names},
- {NULL}
+  {"Registerstack",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,0,reg_names},
+{NULL}
 };
 
 void set_register_inspectors(void)
-{ register_insp[REG_LOCAL].num_regs=L;
-  register_insp[REG_GLOBAL].num_regs=256-G;
-  register_insp[REG_GLOBAL].regs=&reg_names[G];
+{ if (register_insp[REG_LOCAL].num_regs!=L)
+  { register_insp[REG_LOCAL].num_regs=L;
+    adjust_mem_display(&register_insp[REG_LOCAL]);
+  }
+  if (register_insp[REG_GLOBAL].num_regs!=256-G)
+  { register_insp[REG_GLOBAL].num_regs=256-G;
+    register_insp[REG_GLOBAL].regs=&reg_names[G];
+    adjust_mem_display(&register_insp[REG_GLOBAL]);
+  }
+  if (register_insp[REG_SPECIAL].hWnd!=NULL) set_special_reg_name();
 }
 
 void new_register_view(int i)
 { int k;
+  HWND h;
   if (i<0 || i>=MAXREG) return;
   if (reg_names[0].name==NULL){
 	reg_names_init();
 	set_special_reg_name();
+	set_mem_font_metrics();
   }
-  if (hRegisters[i]!=NULL) return;
-  for (k=i-1;k>=0&&hRegisters[k]==NULL;k--)
+  if (register_insp[i].hWnd!=NULL) return;
+  for (k=i-1;k>=0&&register_insp[k].hWnd==NULL;k--)
 	  continue;
   if (k<0)
-    for (k=i+1;k<MAXREG&&hRegisters[k]==NULL;k++)
+    for (k=i+1;k<MAXREG&&register_insp[k].hWnd==NULL;k++)
 	  continue;
   if (k>=MAXREG)
-	 sp_create_options(0,1,0.2,NULL);
+	 sp_create_options(0,1,0.0,mem_min_width,NULL);
   else if (k<i)
-	 sp_create_options(0,0,0.5,hRegisters[k]);
+	 sp_create_options(0,0,0.5,0,register_insp[k].hWnd);
   else
-	 sp_create_options(1,0,0.5,hRegisters[k]);
-  hRegisters[i] = CreateMemoryDialog(hInst,hSplitter);
-  SetInspector(hRegisters[i], &register_insp[i]);
+	 sp_create_options(1,0,0.5,0,register_insp[k].hWnd);
+  h = CreateMemoryDialog(hInst,hSplitter);
+  SetInspector(h, &register_insp[i]);
   set_register_inspectors();
-  ShowWindow(hRegisters[i],SW_SHOW);
+  ShowWindow(h,SW_SHOW);
 }
 
 
@@ -277,17 +400,30 @@ void new_register_view(int i)
 void memory_update(void)
 { int i;
   for (i=0; i<MAXMEM; i++)
-	if(hMemory[i])
-	  MemoryDialogUpdate(hMemory[i],&memory_insp[i], 0,memory_insp[i].size );
+	if(memory_insp[i].hWnd)
+	  MemoryDialogUpdate(memory_insp[i].hWnd,&memory_insp[i], 0,memory_insp[i].size );
   set_register_inspectors();
   for (i=0; i<MAXREG; i++)
-	if(hRegisters[i])
-	  MemoryDialogUpdate(hRegisters[i],&register_insp[i], 0,register_insp[i].size );
+	if(register_insp[i].hWnd)
+	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
 }
 
 
 #define MAXLINE (1<<11)
 static octa linetab[MAXLINE];
+static int linetab_empty=1;
+
+int has_debug_info(void)
+{ return !linetab_empty;
+}
+
+void clear_linetab(unsigned char file)
+{ int i;
+  if (file!=0) return;
+  for (i=0;i<MAXLINE;i++)
+	  linetab[i].h=linetab[i].l=0xFFFFFFFF;
+  linetab_empty=1;
+}
 
 octa line_to_loc(unsigned char file, int line)
 /* returns -1 if no location was found 
@@ -302,11 +438,13 @@ octa line_to_loc(unsigned char file, int line)
 }
 
 void add_line_loc(unsigned char file, int line, octa loc)
+/* called from the assembler making relations between lines and locations */
 {  if (file!=0 || line > MAXLINE) return;
    if (linetab[line].h<loc.h ||
 		(linetab[line].h==loc.h &&linetab[line].l<loc.l))
 		return;
    linetab[line]=loc;
+   linetab_empty=0;
 }
 
 int set_breakpoint(unsigned char file, int line_no)
@@ -333,9 +471,18 @@ int del_breakpoint(unsigned char file, int line_no)
   return 1;
 }
 
-void clear_breakpoints(unsigned char file)
-{ int i;
-  if (file!=0) return;
-  for (i=0;i<MAXLINE;i++)
-	  linetab[i].h=linetab[i].l=0xFFFFFFFF;
+static void mem_node_clear_breaks(unsigned char file_no,mem_node*p)
+{  int i;
+	if (p==NULL) return;
+   mem_node_clear_breaks(file_no, p->left);
+   mem_node_clear_breaks(file_no, p->right);
+   for (i=0;i<512;i++)
+   { mem_tetra *q=&(p->dat[i]);
+	   if(q->file_no==file_no)
+		   q->bkpt=0;
+   }
+}
+
+void mem_clear_breaks(unsigned char file_no)
+{ mem_node_clear_breaks(file_no,mem_root);
 }

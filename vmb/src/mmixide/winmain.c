@@ -19,7 +19,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.1 $ $Date: 2013-08-29 09:39:30 $";
+char version[]="$Revision: 1.2 $ $Date: 2013-09-11 16:19:54 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -113,6 +113,8 @@ int ide_connect(void)
      init_mmix_bus(host,port,"MMIX IDE");
   return vmb.connected;
 }
+
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
@@ -234,11 +236,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  if (!assemble_if_needed()) return 0;
 		  if (!ide_connect()) return 0;
 		  update_breakpoints();
+		  set_debug_windows();
 		  mmix_debug();
 	      return 0; 
+		case ID_MMIX_STOP:
+		  mmix_stop();
+		  return 0;
 	    case ID_MMIX_ASSEMBLE:
 		  ed_save_changes();
-		  mmix_assemble();
+		  mmix_assemble(0);
 	      return 0; 
 
 	    case ID_MMIX_CONNECT:
@@ -279,6 +285,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  return 0;
 	    case ID_REGISTERS_SPECIAL:
 		  new_register_view(3);
+		  return 0;
+		case ID_OPTIONS_SPECIALS:
+		  DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_SPECIAL),hWnd,OptionSpecialDialogProc);
+		  return 0;
+		case ID_OPTIONS_WINDOWS:
+		  DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_DEBUG),hWnd,OptionDebugDialogProc);
 		  return 0;
 	    case ID_HELP_ABOUT:
 	      DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
@@ -395,7 +407,7 @@ sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam)
 
 void new_edit(void)
 {  int stylebits;
-   sp_create_options(1,0,0.8,NULL);
+   sp_create_options(1,0,0.8,0,NULL);
    hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
 		0,0,400,300,hSplitter,NULL,hInst,NULL);
    ed_fn = (SciFnDirect)SendMessage(hEdit,SCI_GETDIRECTFUNCTION,0,0);
@@ -448,14 +460,14 @@ void new_edit(void)
    ed_send(SCI_MARKERSETFORE, MMIX_TRACE_MARKER,RGB(0xFF,0,0));
 
 
-   /* kommand keys */
+   /* kommand keys for the edit windows*/
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_PLUS+(SCMOD_CTRL<<16),SCI_ZOOMIN);
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_MINUS+(SCMOD_CTRL<<16),SCI_ZOOMOUT);
 }
 
 void update_breakpoints(void)
-{ int line = 0;
-  while ((line = (int)ed_send(SCI_MARKERNEXT,line,(1<<MMIX_BREAKX_MARKER)))>=0)
+{ int line = -1;
+  while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)))>=0)
    if (!set_breakpoint(0,line+1))
      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
 }
@@ -563,7 +575,7 @@ void ed_save_name(char *fullname)
 	}
 }
 
-int assembly_needed(void)
+int mmo_file_newer(void)
 { HANDLE mms, mmo;
   FILETIME mmsTime, mmoTime;
   char *mmo_name;
@@ -630,10 +642,17 @@ int ed_save_changes(void)
 
 
 int assemble_if_needed(void)
-{ if (assembly_needed())
+{ if (mmo_file_newer())
   {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", "MMIX IDE", MB_YESNOCANCEL);
 	 if (decision == IDYES)
-	   mmix_assemble();
+	   mmix_assemble(0);
+	 else if (decision == IDCANCEL)
+	   return 0;
+  }
+  if (!has_debug_info())
+  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", "MMIX IDE", MB_YESNOCANCEL);
+	 if (decision == IDYES)
+	   mmix_assemble(0);
 	 else if (decision == IDCANCEL)
 	   return 0;
   }
@@ -641,9 +660,10 @@ int assemble_if_needed(void)
 }
 
 void new_errorlist(void)
-{   sp_create_options(0,0,0.2,hEdit);
+{   sp_create_options(0,0,0.2,0,hEdit);
 	hError = CreateWindow("LISTBOX", "Errorlist" ,
-				WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY,
+				WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT 
+,
                 0,0,0,0,
 	            hSplitter, NULL, hInst, NULL);
 }
@@ -661,7 +681,8 @@ void add_button(int iconID, int menuID, int group, int buttonID)
 }
 
 void add_buttons(void)
-{ add_button(IDI_FILE_NEW,ID_FILE_NEW,BG_FILE,0);
+{ 
+  add_button(IDI_FILE_NEW,ID_FILE_NEW,BG_FILE,0);
   add_button(IDI_FILE_OPEN,ID_FILE_OPEN,BG_FILE,1);
   add_button(IDI_FILE_SAVE,ID_FILE_SAVE,BG_FILE,2);
   add_button(IDI_EDIT_COPY,ID_EDIT_COPY,BG_EDIT,3);
@@ -704,6 +725,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     add_buttons();
 
 	init_edit(hInstance);
+	mmix_lib_init();
 	new_edit();
 	hStatus = CreateWindow("STATIC", "Status" ,
 				WS_CHILD|WS_VISIBLE|SS_CENTER,
@@ -733,7 +755,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
-	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
+	  if (!TranslateAccelerator(hMainWnd, hAccelTable, &msg) &&
+		  !do_subwindow_msg(&msg) ) 
 	  { TranslateMessage(&msg);
 	    DispatchMessage(&msg);
 	  }

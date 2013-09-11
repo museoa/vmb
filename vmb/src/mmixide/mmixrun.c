@@ -132,13 +132,13 @@ static DWORD WINAPI AssemblerThreadProc(LPVOID file)
 	return 0;
 }
 
-void mmix_assemble(void)
+void mmix_assemble(int file_no)
 { HANDLE h;
   if (dwMMIXALThreadId!=0) return;
   if (hError==NULL) new_errorlist();
   ide_clear_error();
-  clear_breakpoints(0);
-
+		  clear_linetab(file_no);
+		  mem_clear_breaks(file_no);
   	src_file_name = fullname;
     obj_file_name[0]=0; /* -o */
 	listing_name[0]=0; /* -l */
@@ -182,9 +182,13 @@ void mmix_run_finish(void)
 #endif 
 }
 
+
+
+
 void mmix_exit(int returncode)
 { mmix_run_finish();
   FreeConsole();
+  dwMMIXThreadId=0;
   ExitThread(returncode);
 }
 
@@ -237,24 +241,24 @@ static DWORD WINAPI ConsoleThreadProc(LPVOID cp)
   FreeConsole();
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
+  dwMMIXThreadId=0;
   return returncode;
 }
 
 static void ConsoleThread(int proc(void *), void *param)
-{
-  HANDLE h;
+{ HANDLE hMMIXThread=NULL;
   static console_params cp;
   cp.param=param;
   cp.proc=proc;
-
-  h = CreateThread(
+  if (dwMMIXThreadId!=0) return;
+  hMMIXThread = CreateThread(
 			NULL,              // default security attributes
             0,                 // use default stack size  
             ConsoleThreadProc,        // thread function 
             &cp,             // argument to thread function 
             0,                 // use default creation flags 
             &dwMMIXThreadId);   // returns the thread identifier 
-    CloseHandle(h);
+  CloseHandle(hMMIXThread);
 }
 
 char full_mmo_name[MAX_PATH+1]={0};
@@ -282,23 +286,15 @@ void mmix_run_init(void)
 //	vmb_error_init_hook = win32_error_init;
   strncpy(full_mmo_name,fullname,MAX_PATH-4);
   full_mmo_name[strlen(full_mmo_name)-1]='o';
-  sclock.l=sclock.h=0;
-  profile_started=false;
-  tracing_exceptions=0xFF;
-  halted=false;
-  stack_tracing=false;
-  stdin_buf_start=stdin_buf_end=NULL;
-  good_guesses=bad_guesses=0;
-  profiling=false;
-  interrupt=false;
-  memset(file_info,0,sizeof(file_info));
-}
+  }
 
 void mmix_run(void)
 {		  interacting=false;
 		  show_operating_system=false;
           breakpoint=false;
 		  tracing=false;
+		  tracing_exceptions=0;
+          stack_tracing=false;
           ConsoleThread(mmix_main,NULL);
 }
 
@@ -307,10 +303,15 @@ void mmix_debug(void)
 		  show_operating_system=false;
           breakpoint=true;
 		  tracing=true;
-          ConsoleThread(mmix_main,NULL);
+		  tracing_exceptions=0xFFFF;
+		  stack_tracing=false;
+		  ConsoleThread(mmix_main,NULL);
 }
 
-
+void mmix_stop(void)
+{ interrupt=true;
+  if (!interacting) halted=true;
+}
 
 char * mmix_status_str[]={"Disconnected", "Connected","Off", "On", "Stopped", "Running", "Halted"};
 
@@ -323,5 +324,6 @@ void mmix_stopped(octa loc)
 { mem_tetra *ll;
   ide_status(mmix_status_str[mmix_status]);
   ll=mem_find(loc);
-  PostMessage(hMainWnd,WM_MMIX_STOPPED,ll->line_no,0);
+  if (ll->file_no==0)
+    PostMessage(hMainWnd,WM_MMIX_STOPPED,ll->line_no,0);
 }

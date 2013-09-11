@@ -64,8 +64,16 @@ Fatal errors need to be handled.
 
 @x
 @d panic(m) {@+fprintf(stderr,"Panic: %s!\n",m);@+exit(-2);@+}
+@<Initialize...@>=
+if (shift_left(neg_one,1).h!=0xffffffff)
+  panic("Incorrect implementation of type tetra");
+@.Incorrect implementation...@>
 @y
 @d panic(m) {@+vmb_fatal_error(__LINE__,m);@+}
+@<Set up persistent data@>=
+if (shift_left(neg_one,1).h!=0xffffffff)
+  return -1;
+@.Incorrect implementation...@>
 @z
 
 @x
@@ -92,6 +100,18 @@ The tet field of the mem_tetra is therefore eliminated
 @x
   tetra tet; /* the tetrabyte of simulated memory */
 @y
+@z
+
+@x
+@<Initialize...@>=
+mem_root=new_mem();
+mem_root->loc.h=0x40000000;
+last_mem=mem_root;
+@y
+@<Set up persistent data@>=
+mem_root=new_mem();
+mem_root->loc.h=0x40000000;
+last_mem=mem_root;
 @z
 
 @x
@@ -316,185 +336,34 @@ aux.h=0x60000000;
 }
 @z
 
-We do not support the printing of source lines.
-so we need no map entry in file nodes.
-
-@x  
-  long *map; /* pointer to map of file positions */
-@y
-@z  
-
 @x
-@ @<Glob...@>=
-file_node file_info[256]; /* data about each source file */
-int buf_size; /* size of buffer for source lines */
-Char *buffer;
-
-@ As in \.{MMIXAL}, we prefer source lines of length 72 characters or less,
-but the user is allowed to increase the limit. (Longer lines will silently
-be truncated to the buffer size when the simulator lists them.)
-
 @<Initialize...@>=
 if (buf_size<72) buf_size=72;
 buffer=(Char*)calloc(buf_size+1,sizeof(Char));
 if (!buffer) panic("Can't allocate source line buffer");
 @.Can't allocate...@>
-
-@ The first time we are called upon to list a line from a given source
-file, we make a map of starting locations for each line. Source files
-should contain at most 65535 lines. We assume that they contain
-no null characters.
-
-@<Sub...@>=
-void make_map @,@,@[ARGS((void))@];@+@t}\6{@>
-void make_map()
-{
-  long map[65536];
-  register int k,l;
-  register long*p;
-  @<Check if the source file has been modified@>;
-  for (l=1;l<65536 && !feof(src_file);l++) {
-    map[l]=ftell(src_file);
-   loop:@+if (!fgets(buffer,buf_size,src_file)) break;
-    if (buffer[strlen(buffer)-1]!='\n') goto loop;
-  }
-  file_info[cur_file].line_count=l;
-  file_info[cur_file].map=p=(long*)calloc(l,sizeof(long));
-  if (!p) panic("No room for a source-line map");
-@.No room...@>
-  for (k=1;k<l;k++) p[k]=map[k];
-}
-
-@ We want to warn the user if the source file has changed since the
-object file was written. The standard \CEE/ library doesn't provide
-the information we need; so we use the \UNIX/ system function |stat|,
-in hopes that other operating systems provide a similar way to do the job.
-@^system dependencies@>
-
-@<Preprocessor macros@>=
-#include <sys/types.h>
-#include <sys/stat.h>
-
-@ @<Check if the source file has been modified@>=
-@^system dependencies@>
-{
-  struct stat stat_buf;
-  if (stat(file_info[cur_file].name,&stat_buf)>=0)
-    if ((tetra)stat_buf.st_mtime > obj_time)
-      fprintf(stderr,
-         "Warning: File %s was modified; it may not match the program!\n",
-@.File...was modified@>
-         file_info[cur_file].name);
-}
-
-@ Source lines are listed by the |print_line| routine, preceded by
-12 characters containing the line number. If a file error occurs,
-nothing is printed---not even an error message; the absence of
-listed data is itself a message.
-
-@<Sub...@>=
-void print_line @,@,@[ARGS((int))@];@+@t}\6{@>
-void print_line(k)
-  int k;
-{
-  char buf[11];
-  if (k>=file_info[cur_file].line_count) return;
-  if (fseek(src_file,file_info[cur_file].map[k],SEEK_SET)!=0) return;
-  if (!fgets(buffer,buf_size,src_file)) return;
-  sprintf(buf,"%d:    ",k);
-  printf("line %.6s %s",buf,buffer);
-  if (buffer[strlen(buffer)-1]!='\n') printf("\n");
-  line_shown=true;
-}
-
-@ @<Preprocessor macros@>=
-#ifndef SEEK_SET
-#define SEEK_SET 0 /* code for setting the file pointer to a given offset */
-#endif
-
-@ The |show_line| routine is called when we want to output line |cur_line|
-of source file number |cur_file|, assuming that |cur_line!=0|. Its job
-is primarily to maintain continuity, by opening or reopening the |src_file|
-if the source file changes, and by connecting the previously output
-lines to the new one. Sometimes no output is necessary, because the
-desired line has already been printed.
-
-@<Sub...@>=
-void show_line @,@,@[ARGS((void))@];@+@t}\6{@>
-void show_line()
-{
-  register int k;
-  if (shown_file!=cur_file) @<Prepare to list lines from a new source file@>@;
-  else if (shown_line==cur_line) return; /* already shown */
-  if (cur_line>shown_line+gap+1 || cur_line<shown_line) {
-    if (shown_line>0)
-    { if (cur_line<shown_line) printf("--------\n"); /* indicate upward move */
-      else printf("     ...\n"); @+}/* indicate the gap */
-    print_line(cur_line);
-  }@+else@+ for (k=shown_line+1;k<=cur_line;k++) print_line(k);
-  shown_line=cur_line;
-}
-    
-@ @<Glob...@>=
-FILE *src_file; /* the currently open source file */
-int shown_file=-1; /* index of the most recently listed file */
-int shown_line; /* the line most recently listed in |shown_file| */
-int gap; /* minimum gap between consecutively listed source lines */
-bool line_shown; /* did we list anything recently? */
-bool showing_source; /* are we listing source lines? */
-int profile_gap; /* the |gap| when printing final frequencies */
-bool profile_showing_source; /* |showing_source| within final frequencies */
-
-@ @<Prepare to list lines from a new source file@>=
-{
-  if (!src_file) src_file=fopen(file_info[cur_file].name,"r");
-  else freopen(file_info[cur_file].name,"r",src_file);
-  if (!src_file) {
-    fprintf(stderr,"Warning: I can't open file %s; source listing omitted.\n",
-@.I can't open...@>
-               file_info[cur_file].name);
-    showing_source=false;
-    return;
-  }
-  printf("\"%s\"\n",file_info[cur_file].name);
-  shown_file=cur_file;
-  shown_line=0;
-  if (!file_info[cur_file].map) make_map();
-}
 @y
-@ @<Glob...@>=
-file_node file_info[256]; /* data about each source file */
-int gap; /* minimum gap between consecutively listed source lines */
-int profile_gap; /* the |gap| when printing final frequencies */
+@<Set up persistent data@>=
+if (buf_size<72) buf_size=72;
+buffer=(Char*)calloc(buf_size+1,sizeof(Char));
+if (!buffer) return -1;
 @z
+
+
+
 
 @x
-@ Here is a simple application of |show_line|. It is a recursive routine that
-@y
-@ Next is a recursive routine that
-@z
-
-we skip showing source lines.
-
-@x
-  if (showing_source && p->dat[j].line_no) {
-    cur_file=p->dat[j].file_no, cur_line=p->dat[j].line_no;
-    line_shown=false;
-    show_line();
-    if (line_shown) goto loc_implied;
-  }
-@y
-@z
-
-and eliminate the respective label.
-
-@x  
  loc_implied: printf("%10d. %08x%08x: %08x (%s)\n",
       p->dat[j].freq, cur_loc.h, cur_loc.l, p->dat[j].tet,
       info[p->dat[j].tet>>24].name);
 @y
-      printf("%10d. %08x%08x\n",
-      p->dat[j].freq, cur_loc.h, cur_loc.l);
+ loc_implied:
+ { tetra inst; 
+   load_instruction(&inst,cur_loc);
+   printf("%10d. %08x%08x: %08x (%s)\n",
+      p->dat[j].freq, cur_loc.h, cur_loc.l, inst,
+      info[inst>>24].name);
+ }
 @z
 
 
@@ -635,23 +504,28 @@ if (!l) panic("No room for the local registers");
 @.No room...@>
 cur_round=ROUND_NEAR;
 @y
-@<Initialize...@>=
-@<Boot the machine@>@;
+@<Set up persistent data@>=
 if (lring_size<256) lring_size=256;
 lring_mask=lring_size-1;
-if (lring_size&lring_mask)
-  panic("The number of local registers must be a power of 2");
-@.The number of local...@>
-if (l!=NULL) free(l);
+if (lring_size&lring_mask) return -1;
 l=(octa*)calloc(lring_size,sizeof(octa));
-if (!l) panic("No room for the local registers");
-@.No room...@>
+if (!l) return -1;
+
+@ @<Initialize...@>=
+sclock.l=sclock.h=0;
+profile_started=false;
+halted=false;
+stdin_buf_start=stdin_buf_end=NULL;
+good_guesses=bad_guesses=0;
+profiling=false;
+interrupt=false;
 
 @ @<Boot the machine@>=
 clear_all_data_vtc();
 clear_all_instruction_vtc();
 clear_all_data_cache();
 clear_all_instruction_cache();
+memset(l,0,sizeof(l));
 memset(g,0,sizeof(g));
 L=O=S=0;
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
@@ -1790,6 +1664,12 @@ int main(argc,argv)
 }
 @y
 #ifdef MMIXLIB
+int mmix_lib_init(void)
+{
+   @<Set up persistent data@>;
+   return 0;
+}
+
 int mmix_main(void *dummy)
 { char **boot_cur_arg;
   int boot_argc;
@@ -1806,12 +1686,12 @@ int main(argc,argv)
   char **boot_cur_arg;
   int boot_argc;
   @<Local registers@>;
+  @<Set up persistent data@>;
   @<Process the command line@>;
   if (host==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(host,port,"MMIX CPU");
   atexit(vmb_atexit);
 #endif
-  g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
  
   boot_cur_arg = cur_arg;
   boot_argc = argc;

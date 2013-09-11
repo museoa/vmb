@@ -7,10 +7,13 @@ extern void mmix_debug(void);
 extern void mmix_exit(int returncode);
 /* called if the mmix simulator needs to call exit(returncode); */
 
-extern void mmix_assemble(void);
+extern void mmix_assemble(int file_no);
 /* runs the mmix assembler */
 
 extern char *get_mmo_name(void);
 
 extern int mmix_connect(void);
 /* connects to the vmb bus */
+
+extern void mmix_stop(void);
+/* stopps a running mmix process */

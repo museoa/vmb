@@ -2,7 +2,8 @@
 #ifndef INSPECT_H
 #define INSPECT_H
 
-
+extern int mem_min_width,mem_min_height;
+extern void set_mem_font_metrics(void);
 enum mem_fmt {hex_format=0, ascii_format=1, unsigned_format=2, signed_format=3,  float_format=4, last_format=4, user_format=5 };
 
 enum chunk_fmt {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, last_chunk=3, user_chunk=4 };
@@ -51,9 +52,9 @@ struct inspector_def {
 	int column_width; /* column width in pixel */
 	int column_digits; /* number of output characters per column */
     unsigned int mem_base;
-	unsigned int mem_size; /* page currently displayed */
+	unsigned int mem_size; /* page currently displayed  from offset mem_base to mem_base+memsize*/
     unsigned char *mem_buf; /* memory buffer */
-	unsigned int old_base;
+	unsigned int old_base; /* same for the proviously displayed memory to indicate changes */
     unsigned int old_size;
     unsigned char* old_mem;
 };
@@ -73,6 +74,8 @@ extern void SetInspector(HWND hWnd, inspector_def * insp);
 /* call this function to tell the memory inspector that an update is due */
 void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size);
 
+
+extern void adjust_mem_display(inspector_def *insp);
 #else
 /* make it a no-op */
 #define mem_update(offset, size)

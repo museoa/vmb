@@ -3,14 +3,26 @@ Stepping, Continue
 
 Editing Registers
 
-Buttons
+Buttons with tool tips
 
 Options
    Editor
    Debugger
+   Registers
    
 VMB Debug
+    Memory view unrestricted
 
 Correct zoom of markers and line numbers
 
 Profiling support
+
+Multiple source files
+
+Bug in resume
+@<Load |g[k]| from the register stack@>=
+  will load rG even if less than 32. if zero is loaded we have
+  a loop inside the UNSAVE instruction because rB==0
+  it should set the B_BIT see 336 and 337 of mmix-pipe
+
+Remove cur_loc marker when editing

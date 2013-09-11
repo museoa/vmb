@@ -19,7 +19,7 @@ HWND GetDataEdit(int id, HWND hMemory)
   }
   if (hDataEdit[id]!=NULL)
     return hDataEdit[id];
-  sp_create_options(0, 0, 0.2, hMemory);
+  sp_create_options(0, 0, 0.2, mem_min_height,hMemory);
   hDataEdit[id] = CreateDataEdit(hInst,hSplitter);
   if (hDataEdit[id]==NULL)
     vmb_error(__LINE__,"Unable to create Data Editor");

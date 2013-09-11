@@ -149,8 +149,11 @@ static void release_layout(void)
 
 
 /* The splitter data structure */
+/* unit of a fill stretch */
+#define FILL (1<<((sizeof(int)*8)/4))
 typedef struct split {
   int x, y,w,h;
+  int min_w,min_h,stretch_w,stretch_h;
   struct split *Parent;
   enum {leaf=0, branch=1} tag;
   union {
@@ -177,7 +180,26 @@ static split *new_split(void)
 static void sp_resize(split *sp);
 
 #define get_split(ratio, vertical, w, h, sep) ((vertical)?((int)(((w)-(sep))*ratio)):((int)(((h)-(sep))*ratio)))
-#define get_split_width(sp) get_split(sp->o.sp.ratio,sp->o.sp.vertical,sp->w,sp->h,SPLITWIDTH)
+
+
+static int get_split_width(split *sp)
+/* return the size of the top/left part */
+{ return get_split(sp->o.sp.ratio, sp->o.sp.vertical,sp->w,sp->h,SPLITWIDTH);
+#if 0
+ if (sp->o.sp.vertical) /* return left part */
+  { int d = sp->w-sp->min_w;
+	if (sp->o.sp.BottomRight->stretch_w!=0)
+	  d = (d * sp->o.sp.TopLeft->stretch_w)/(sp->o.sp.TopLeft->stretch_w+sp->o.sp.BottomRight->stretch_w);
+    return sp->o.sp.TopLeft->min_w+d;
+  }
+  else
+  { int d = sp->h-sp->min_h;
+	if (sp->o.sp.BottomRight->stretch_h!=0)
+	  d = (d * sp->o.sp.TopLeft->stretch_h)/(sp->o.sp.TopLeft->stretch_h+sp->o.sp.BottomRight->stretch_h);
+    return sp->o.sp.TopLeft->min_h+d;
+  }
+#endif
+}
 
 static void set_split_ratio(split *sp, int w, int h)
 /* determine ration from width of top or left split window */
@@ -201,6 +223,52 @@ static void sp_setsize(split *sp, int x, int y, int w, int h)
   sp_resize(sp);
 }
 
+static void sp_propagate_layout(split *sp)
+/* call to determine minimum sizes and strechability at and below sp 
+   should be called only by sp_layout
+*/
+{ if (sp->tag==leaf)
+{ MINMAXINFO mmi={0};
+  mmi.ptMaxTrackSize.x=mmi.ptMaxTrackSize.y=mmi.ptMaxSize.x=mmi.ptMaxSize.y=FILL;
+  if (SendMessage(sp->o.hWnd,WM_GETMINMAXINFO,0,(LPARAM)&mmi)==0)
+	{ sp->min_w=mmi.ptMinTrackSize.x;
+	  sp->min_h=mmi.ptMinTrackSize.y;
+	  if (mmi.ptMaxTrackSize.x>mmi.ptMinTrackSize.x) 
+		sp->stretch_w=1*FILL;
+	  else
+		sp->stretch_w=0;
+	  if (mmi.ptMaxTrackSize.x>mmi.ptMinTrackSize.x) 
+		sp->stretch_h=1*FILL;
+	  else
+		sp->stretch_h=0;
+	}
+	else
+	{ sp->min_h=sp->min_w=0;
+	  sp->stretch_h=sp->stretch_w=1*FILL;
+	}
+  }
+  else if (sp->tag==branch)
+  { sp_propagate_layout(sp->o.sp.TopLeft);
+    sp_propagate_layout(sp->o.sp.BottomRight);
+	if (sp->o.sp.vertical)
+	{ sp->min_w= sp->o.sp.TopLeft->min_w + sp->o.sp.BottomRight->min_w+SPLITWIDTH;
+	  sp->min_h= max(sp->o.sp.TopLeft->min_h, sp->o.sp.BottomRight->min_h);
+      sp->stretch_w= sp->o.sp.TopLeft->stretch_w + sp->o.sp.BottomRight->stretch_w;
+	  sp->stretch_h= min(sp->o.sp.TopLeft->stretch_h, sp->o.sp.BottomRight->stretch_h);
+	}
+	else
+	{ sp->min_h= sp->o.sp.TopLeft->min_h + sp->o.sp.BottomRight->min_h+SPLITWIDTH;
+	  sp->min_w= max(sp->o.sp.TopLeft->min_w, sp->o.sp.BottomRight->min_w);
+      sp->stretch_h= sp->o.sp.TopLeft->stretch_h+ sp->o.sp.BottomRight->stretch_h;
+	  sp->stretch_w= min(sp->o.sp.TopLeft->stretch_w, sp->o.sp.BottomRight->stretch_w);
+	}
+  }
+}
+
+static void sp_layout(void)
+/* use this to recompute minimum sizes and strechability */
+{ if (Root!=NULL) sp_propagate_layout(Root);
+}
 
 static void sp_resize(split *sp)
 /* call if internal composition of splitter has changed */
@@ -283,6 +351,7 @@ static void sp_delete_leaf(split *sp)
 	  if (sp->o.sp.BottomRight!=NULL) free(sp->o.sp.BottomRight);
       DestroyWindow(sp->o.sp.hSplit);
 	  free(sp);
+	  sp_resize(Root);
 	}
   }
 }
@@ -522,14 +591,18 @@ static void sp_drag_line(RECT *rect, int w, int h, split *sp)
 /* optinons to guide the creation of subwindows */
 static int create_left = 1;
 static int create_vertical = 1;
+static int create_min=-1;
 static double create_ratio = 0.681;
 static HWND create_wnd = NULL;
 
-void sp_create_options(int left, int vertical, double ratio, HWND hWnd)
+void sp_create_options(int left, int vertical, double ratio, int min_wh, HWND hWnd)
 { if (left==0 || left==1) create_left=left; else create_left=1;
   if (vertical==0 || vertical==1) create_vertical=vertical; else create_vertical=!create_vertical;
-  if (0.0<ratio && ratio < 1.0) create_ratio= ratio; 
-  else create_ratio = 0.681;
+  if (0.0<ratio && ratio < 1.0)
+    create_ratio= ratio;
+  else
+    create_ratio = 0.618;
+  if (min_wh>0) create_min= min_wh; else create_min=0;
   if (create_left==0) create_ratio=1-create_ratio;
   create_wnd=hWnd; 
 }
@@ -566,6 +639,13 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		  { split *entry=NULL;
 		    if (create_wnd!=NULL)  entry = leaf_by_window(Root,create_wnd);
 			if (entry==NULL) entry=Root;
+			if (create_min&& entry!=NULL)
+			{ if (create_vertical)
+				  create_ratio = (double)create_min/entry->w;
+			  else
+				  create_ratio = (double)create_min/entry->h;
+			  if (!create_left) create_ratio=1.0-create_ratio;
+     		}
 			sp_add_leaf(hChildWnd,create_ratio,create_vertical,create_left,entry);
 		  }
      	  InvalidateRect(hSpliterBase,NULL,FALSE);
