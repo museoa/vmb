@@ -5,18 +5,15 @@ Running MMIX in subwindow.
 Using buttons for stepping and continue.
 
 Buttons with tool tips
-
-View
-  Syntax highlight on/off
   
 Options
    Editor
    Debugger
    Break on Main 
 
-Load sysmbol table
+Load symbol table
 Set breakpoints in symbol table
-brea   
+  
    
 VMB Debug
     Memory view unrestricted

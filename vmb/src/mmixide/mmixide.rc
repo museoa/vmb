@@ -63,9 +63,9 @@ BEGIN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
         MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT40051,MFT_STRING,MFS_GRAYED
+        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-        MENUITEM "&Exit",                       ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Exit\tCtrl+X",               ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
     END
     POPUP "Edit",                           65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -135,12 +135,14 @@ END
 
 IDR_ACCELERATOR ACCELERATORS 
 BEGIN
-    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
-    VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     "G",            ID_EDIT_FINDAGAIN,      VIRTKEY, CONTROL, NOINVERT
     "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
+    VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "X",            ID_FILE_EXIT,           VIRTKEY, CONTROL, NOINVERT
 END
 
 

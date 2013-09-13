@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\print.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winmain.c"
 				>
 			</File>
@@ -232,6 +236,10 @@
 			</File>
 			<File
 				RelativePath=".\mmixwinde.h"
+				>
+			</File>
+			<File
+				RelativePath=".\print.h"
 				>
 			</File>
 			<File

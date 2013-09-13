@@ -14,13 +14,14 @@
 #include "mmixlib.h"
 #include "mmix-bus.h"
 #include "findreplace.h"
+#include "print.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.3 $ $Date: 2013-09-13 13:42:07 $";
+char version[]="$Revision: 1.4 $ $Date: 2013-09-13 14:59:30 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -198,6 +199,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  return 0;
 	    case ID_FILE_SAVEAS:
 		  ed_save_as();
+		  return 0;
+	    case ID_FILE_PRINT:
+		  print();
 		  return 0;
 	    case ID_EDIT_UNDO:
 		  ed_send(SCI_UNDO,0,0);
