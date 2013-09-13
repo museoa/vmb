@@ -1,14 +1,22 @@
 
 Stepping, Continue
 
-Editing Registers
+Running MMIX in subwindow.
+Using buttons for stepping and continue.
 
 Buttons with tool tips
 
+View
+  Syntax highlight on/off
+  
 Options
    Editor
    Debugger
-   Registers
+   Break on Main 
+
+Load sysmbol table
+Set breakpoints in symbol table
+brea   
    
 VMB Debug
     Memory view unrestricted
@@ -19,10 +27,8 @@ Profiling support
 
 Multiple source files
 
-Bug in resume
-@<Load |g[k]| from the register stack@>=
-  will load rG even if less than 32. if zero is loaded we have
-  a loop inside the UNSAVE instruction because rB==0
-  it should set the B_BIT see 336 and 337 of mmix-pipe
-
 Remove cur_loc marker when editing
+
+Ask for reload after assembly while debugging
+
+O

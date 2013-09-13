@@ -13,13 +13,14 @@
 #include "mmixrun.h"
 #include "mmixlib.h"
 #include "mmix-bus.h"
+#include "findreplace.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.2 $ $Date: 2013-09-11 16:19:54 $";
+char version[]="$Revision: 1.3 $ $Date: 2013-09-13 13:42:07 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -114,7 +115,20 @@ int ide_connect(void)
   return vmb.connected;
 }
 
+static int menu_toggle(int id)
+/* toggle the menu id and return its new status */
+{ if (GetMenuState(hMenu,id,MF_BYCOMMAND)&MF_CHECKED)
+  { CheckMenuItem(hMenu,id,MF_BYCOMMAND|MF_UNCHECKED);
+    return 0;
+ }
+  else
+  { CheckMenuItem(hMenu,id,MF_BYCOMMAND|MF_CHECKED);
+    return 1;
+  }
+}
 
+void mms_style(void);
+void txt_style(void);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
@@ -213,18 +227,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case ID_VIEW_ZOOMOUT:
 		  ed_send(SCI_ZOOMOUT,0,0);
 		  return 0;
+
+		case ID_EDIT_FIND:
+			{ HWND h;
+			  h = CreateDialog(hInst,MAKEINTRESOURCE(IDD_FIND),hWnd,FindDialogProc);
+			  register_subwindow(h);
+			  ShowWindow(h, SW_SHOW); 
+			}
+			return 0;
+		case ID_EDIT_FINDAGAIN:
+			find_again();
+			return 0;
+		case ID_EDIT_REPLACE:
+			replace_again();
+			return 0;
 		case ID_VIEW_WHITESPACE:
-          if (GetMenuState(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND)&MF_CHECKED)
-		  {  ed_send(SCI_SETVIEWWS,SCWS_INVISIBLE,0);
-		     ed_send(SCI_SETVIEWEOL,0,0);
-			 CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|MF_UNCHECKED);
-		  }
-		  else
+          if (menu_toggle(ID_VIEW_WHITESPACE))
 		  {  ed_send(SCI_SETVIEWWS,SCWS_VISIBLEALWAYS,0);
 		     ed_send(SCI_SETVIEWEOL,1,0);
-			 CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|MF_CHECKED);
+		  }
+  		  else
+		  {  ed_send(SCI_SETVIEWWS,SCWS_INVISIBLE,0);
+		     ed_send(SCI_SETVIEWEOL,0,0);
+		  }
+
+		  return 0;
+		case ID_VIEW_SYNTAX:
+          if (menu_toggle(ID_VIEW_SYNTAX))
+		  {  mms_style();
+		  }
+		  else
+		  {  txt_style();
 		  }
 		  return 0;
+
+
 	    case ID_MMIX_RUN:
 		  if (!ed_save_changes()) return 0;
 		  if (!assemble_if_needed()) return 0;
@@ -404,20 +441,9 @@ sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam)
   // Scintilla_DirectFunction
 }
 
-
-void new_edit(void)
-{  int stylebits;
-   sp_create_options(1,0,0.8,0,NULL);
-   hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
-		0,0,400,300,hSplitter,NULL,hInst,NULL);
-   ed_fn = (SciFnDirect)SendMessage(hEdit,SCI_GETDIRECTFUNCTION,0,0);
-   ed_ptr= (sptr_t)SendMessage(hEdit,SCI_GETDIRECTPOINTER,0,0);
-
-  /* configure the style */
-   ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
-   ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
-   ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
-   /* configure the MMIXAL lexer */
+void mms_style(void)
+/* configure the MMIXAL lexer */
+{  int stylebits;  
    ed_send(SCI_SETLEXER,SCLEX_MMIXAL,0);
    stylebits= (int)ed_send(SCI_GETSTYLEBITSNEEDED,0,0);
    ed_send(SCI_SETSTYLEBITS,stylebits,0);
@@ -433,7 +459,26 @@ void new_edit(void)
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_SYMBOL,RGB(0,0x80,0xFF));
 
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_COMMENT,RGB(0,0xA0,0));
+}
 
+void txt_style(void)
+/* configure the NULL lexer */
+{  ed_send(SCI_SETLEXER,SCLEX_NULL,0);
+   ed_send(SCI_STYLECLEARALL,0,0);
+}
+void new_edit(void)
+{ 
+   sp_create_options(1,0,0.8,0,NULL);
+   hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
+		0,0,400,300,hSplitter,NULL,hInst,NULL);
+   ed_fn = (SciFnDirect)SendMessage(hEdit,SCI_GETDIRECTFUNCTION,0,0);
+   ed_ptr= (sptr_t)SendMessage(hEdit,SCI_GETDIRECTPOINTER,0,0);
+
+  /* configure the style */
+   ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
+   ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
+   ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
+   txt_style();
    /* configure margins and markers */
    /* line numbers */
    ed_send(SCI_SETMARGINTYPEN,MMIX_LINE_MARGIN,SC_MARGIN_NUMBER);

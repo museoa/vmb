@@ -21,28 +21,39 @@
 #define IDI_VIEW_ZOOMIN                 121
 #define IDD_SHOW_SPECIAL                127
 #define IDD_SHOW_DEBUG                  128
+#define IDD_FIND                        129
 #define IDC_SHOW_LOCAL                  1001
-#define IDC_SHOW_GLOBAL                 1002
-#define IDC_SHOW_SPECIAL                1003
-#define IDC_SHOW_REGSTACK               1004
-#define IDC_SHOW_TEXT                   1005
-#define IDC_SHOW_DATA                   1006
-#define IDC_SHOW_POOL                   1007
-#define IDC_SHOW_STACK                  1008
-#define IDC_SHOW_NEG                    1009
 #define IDC_SHOW_RA                     1001
+#define IDC_SHOW_GLOBAL                 1002
 #define IDC_SHOW_RB                     1002
+#define IDC_SHOW_SPECIAL                1003
 #define IDC_SHOW_RC                     1003
+#define IDC_COMBO1                      1003
+#define IDC_COMBO_FIND                  1003
+#define IDC_SHOW_REGSTACK               1004
 #define IDC_SHOW_RD                     1004
+#define IDC_FIND_NEXT                   1004
+#define IDC_SHOW_TEXT                   1005
 #define IDC_SHOW_RE                     1005
+#define IDC_FIND_PREV                   1005
+#define IDC_SHOW_DATA                   1006
 #define IDC_SHOW_RF                     1006
+#define IDC_CHECK_CASE                  1006
+#define IDC_SHOW_POOL                   1007
 #define IDC_SHOW_RG                     1007
+#define IDC_CHECK_WORD                  1007
+#define IDC_SHOW_STACK                  1008
 #define IDC_SHOW_RH                     1008
+#define IDC_COMBO_REPLACE               1008
+#define IDC_SHOW_NEG                    1009
 #define IDC_SHOW_RI                     1009
+#define IDC_REPLACE                     1009
 #define IDC_SHOW_RJ                     1010
 #define IDC_SHOW_RK                     1011
+#define IDC_REPLACE_ALL                 1011
 #define IDC_SHOW_RL                     1012
 #define IDC_SHOW_RM                     1013
+#define IDC_CHECK_WRAP                  1013
 #define IDC_SHOW_RN                     1014
 #define IDC_SHOW_RO                     1015
 #define IDC_SHOW_RP                     1016
@@ -105,14 +116,18 @@
 #define ID_VIEW_SHOWWHITESPACE          40059
 #define ID_VIEW_WHITESPACE              40060
 #define ID_MMIX_STOP                    40061
+#define ID_VIEW_SYNTAXHIGHLIGHTING      40062
+#define ID_VIEW_SYNTAX                  40063
+#define ID_EDIT_FINDAGAIN               40064
+#define ID_EDIT_REPLACEAGAIN            40069
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40062
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_RESOURCE_VALUE        130
+#define _APS_NEXT_COMMAND_VALUE         40070
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

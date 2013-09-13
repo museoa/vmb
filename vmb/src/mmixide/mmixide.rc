@@ -77,10 +77,11 @@ BEGIN
         MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE,MFT_STRING,MFS_ENABLED
         MENUITEM "Delete\tDel",                 ID_EDIT_DELETE,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-        MENUITEM "Select All\tCtrl+A",          ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-        MENUITEM "Find",                        ID_EDIT_FIND,MFT_STRING,MFS_GRAYED
-        MENUITEM "Replace",                     ID_EDIT_REPLACE,MFT_STRING,MFS_GRAYED
+        MENUITEM "&Find and Replace ...\tCtrl+F", ID_EDIT_FIND,MFT_STRING,MFS_ENABLED
+        MENUITEM "Find A&gain\tCtrl+G",         ID_EDIT_FINDAGAIN,MFT_STRING,MFS_ENABLED
+        MENUITEM "Replace Again\tCtrl+H",       ID_EDIT_REPLACE,MFT_STRING,MFS_ENABLED
     END
     POPUP "&View",                          65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -102,7 +103,8 @@ BEGIN
         MENUITEM MFT_SEPARATOR
         MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
         MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Show White Space",            ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Syntax Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED
+        MENUITEM "Show &White Space",           ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
     END
     POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -136,6 +138,9 @@ BEGIN
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
     VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "G",            ID_EDIT_FINDAGAIN,      VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -181,6 +186,43 @@ BEGIN
     CONTROL         "Negative Segment",IDC_SHOW_NEG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,110,75,10
     CONTROL         "Stack Segment",IDC_SHOW_STACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,63,10
 END
+
+IDD_FIND DIALOGEX 0, 0, 317, 79
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find and Replace"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Find:",IDC_STATIC,7,7,17,8
+    COMBOBOX        IDC_COMBO_FIND,42,7,191,80,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Find Next",IDC_FIND_NEXT,260,7,50,14
+    PUSHBUTTON      "Find Previous",IDC_FIND_PREV,260,24,50,14
+    CONTROL         "Match case",IDC_CHECK_CASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,52,10
+    CONTROL         "Match whole word",IDC_CHECK_WORD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,62,74,10
+    LTEXT           "Replace:",IDC_STATIC,7,23,29,8
+    COMBOBOX        IDC_COMBO_REPLACE,42,23,191,80,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Replace",IDC_REPLACE,260,41,50,14
+    PUSHBUTTON      "Replace All",IDC_REPLACE_ALL,260,58,50,14
+    CONTROL         "Wrap around",IDC_CHECK_WRAP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,97,62,58,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_FIND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 310
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 72
+    END
+END
+#endif    // APSTUDIO_INVOKED
 
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////

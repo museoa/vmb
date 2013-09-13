@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\findreplace.c"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixdata.c"
 				>
 			</File>
@@ -216,6 +220,10 @@
 			>
 			<File
 				RelativePath=".\debug.h"
+				>
+			</File>
+			<File
+				RelativePath=".\findreplace.h"
 				>
 			</File>
 			<File
