@@ -12,6 +12,11 @@
 #include "mmix-bus.h"
 #include "debug.h"
 
+#define STATIC_BUILD
+#include "../scintilla/include/scintilla.h"
+extern sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam);
+
+
 
 /* Assemble MMIX */
 void mmix_run_init(void);
@@ -36,10 +41,14 @@ void free_tree(trie_node *root)
   free(root);
 }
 
+
+octa Main_loc={0,0};
 DWORD dwMMIXALThreadId=0;
 static void mmixal_finish(void)
 { int i;
-	
+  trie_node *n=trie_search(trie_root,"Main");	
+  Main_loc=n->sym->equiv;
+
   dwMMIXALThreadId=0;
   if (listing_file!=NULL) 
   { fclose(listing_file);
@@ -305,6 +314,12 @@ void mmix_debug(void)
 		  tracing=true;
 		  tracing_exceptions=0xFFFF;
 		  stack_tracing=false;
+		  if (break_at_Main)
+		  { mem_tetra *ll;
+            ll=mem_find(Main_loc); /* not available if not loaded */
+            if (ll->file_no==0 && set_breakpoint(0,ll->line_no))
+		      ed_send(SCI_MARKERADD,ll->line_no-1,MMIX_BREAKX_MARKER);
+		  }
 		  ConsoleThread(mmix_main,NULL);
 }
 

@@ -14,3 +14,9 @@ extern void new_edit(void);
 extern void ide_exit_ignore(int returncode);
 extern void ed_open_file(char *name);
 #define WM_MMIX_STOPPED (WM_USER+1)
+
+#define MMIX_LINE_MARGIN 0
+#define MMIX_BREAKX_MARKER 1
+#define MMIX_BREAK_MARGIN 1
+#define MMIX_TRACE_MARKER 2
+#define MMIX_TRACE_MARGIN 2

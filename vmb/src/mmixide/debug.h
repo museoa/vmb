@@ -12,3 +12,4 @@ extern void set_debug_windows(void);
 extern void mem_clear_breaks(unsigned char file_no);
 extern void clear_linetab(unsigned char file);
 extern int has_debug_info(void);
+extern int break_at_Main;

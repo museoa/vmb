@@ -105,6 +105,8 @@ struct ternary_trie_struct*left,*mid,*right;
 struct sym_tab_struct*sym;
 }trie_node;
 
+extern trie_node *trie_search(trie_node *t, char *s);
+
 typedef struct {
   /* tetra tet;  the tetrabyte of simulated memory */
   tetra freq; /* the number of times it was obeyed as an instruction */

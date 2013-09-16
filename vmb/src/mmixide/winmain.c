@@ -21,7 +21,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.7 $ $Date: 2013-09-16 14:26:23 $";
+char version[]="$Revision: 1.8 $ $Date: 2013-09-16 15:34:02 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -83,11 +83,6 @@ void ide_mark_error(int line_no)
   previous_error_line_no=line_no;
 }
 
-#define MMIX_LINE_MARGIN 0
-#define MMIX_BREAKX_MARKER 1
-#define MMIX_BREAK_MARGIN 1
-#define MMIX_TRACE_MARKER 2
-#define MMIX_TRACE_MARGIN 2
 
 static int previous_mmix_line_no = -1;
 

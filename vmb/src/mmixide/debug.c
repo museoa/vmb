@@ -15,6 +15,7 @@
 #define MAXMEM 5
 inspector_def memory_insp[];
 unsigned int show_debug_windows = 0x27; 
+int break_at_Main = 1;
 #define MAX_DEBUG_WINDOWS 9
 INT_PTR CALLBACK    
 OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -26,6 +27,8 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		{	CheckDlgButton(hDlg,IDC_SHOW_LOCAL+i,
 			   (show_debug_windows&(1<<i))?BST_CHECKED:BST_UNCHECKED);
 		}
+        CheckDlgButton(hDlg,IDC_CHECK_MAIN,
+			   break_at_Main?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -42,9 +45,13 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			  show_debug_windows|=1<<i;
 			else
 			  show_debug_windows&=~(1<<i);
+		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
         EndDialog(hDlg, TRUE);
         return TRUE;
-      }
+      } else if (wparam==IDCANCEL)
+	  { EndDialog(hDlg, TRUE);
+        return TRUE;
+	  }
      break;
   }
   return FALSE;
@@ -218,7 +225,10 @@ OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
         EndDialog(hDlg, TRUE);
         return TRUE;
-      }
+      } else if (wparam==IDCANCEL)
+	  { EndDialog(hDlg, TRUE);
+        return TRUE;
+	  }
      break;
   }
   return FALSE;

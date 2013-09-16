@@ -49,6 +49,8 @@
 #define IDC_SHOW_RI                     1009
 #define IDC_REPLACE                     1009
 #define IDC_SHOW_RJ                     1010
+#define IDC_CHECK1                      1010
+#define IDC_CHECK_MAIN                  1010
 #define IDC_SHOW_RK                     1011
 #define IDC_REPLACE_ALL                 1011
 #define IDC_SHOW_RL                     1012
@@ -128,7 +130,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         40074
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
