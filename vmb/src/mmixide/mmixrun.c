@@ -151,6 +151,7 @@ void mmix_assemble(int file_no)
             NULL,             // argument to thread function 
             0,                 // use default creation flags 
             &dwMMIXALThreadId);   // returns the thread identifier 
+    WaitForSingleObject(h,INFINITE); //INFINITE
     CloseHandle(h);
 }
 
@@ -177,9 +178,8 @@ void mmix_run_finish(void)
        }
   }
   vmb_atexit();
-#ifdef MMIXLIB
   set_mmix_status(MMIX_OFF);
-#endif 
+  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,0); 
 }
 
 
@@ -310,6 +310,7 @@ void mmix_debug(void)
 
 void mmix_stop(void)
 { interrupt=true;
+  show_operating_system=true;
   if (!interacting) halted=true;
 }
 
@@ -326,4 +327,5 @@ void mmix_stopped(octa loc)
   ll=mem_find(loc);
   if (ll->file_no==0)
     PostMessage(hMainWnd,WM_MMIX_STOPPED,ll->line_no,0);
+  memory_update();
 }

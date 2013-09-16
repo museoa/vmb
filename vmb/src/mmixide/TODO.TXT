@@ -1,10 +1,8 @@
 
-Stepping, Continue
 
 Running MMIX in subwindow.
 Using buttons for stepping and continue.
 
-Buttons with tool tips
   
 Options
    Editor
@@ -24,8 +22,4 @@ Profiling support
 
 Multiple source files
 
-Remove cur_loc marker when editing
-
 Ask for reload after assembly while debugging
-
-O

@@ -21,7 +21,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.6 $ $Date: 2013-09-16 12:41:54 $";
+char version[]="$Revision: 1.7 $ $Date: 2013-09-16 14:26:23 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -32,7 +32,7 @@ void ed_new(void);
 void ed_save(void);
 void ed_save_as(void);
 int ed_save_changes(int cancel);
-
+void set_lineno_width(void);
 
 HINSTANCE hInst;
 HWND	  hMainWnd;
@@ -46,9 +46,9 @@ HWND	  hError=NULL;
 #define S_WIDTH 200
 
 void ide_status(char *message)
-{ //PostMessage(hStatus, WM_SETTEXT,0,(LPARAM)message);
+{ PostMessage(hStatus, WM_SETTEXT,0,(LPARAM)message);
   //UpdateWindow(hStatus);
-	SetWindowText(hStatus,message);
+  //SetWindowText(hStatus,message);
 }
 
 
@@ -91,17 +91,21 @@ void ide_mark_error(int line_no)
 
 static int previous_mmix_line_no = -1;
 
-void stopped_at_line(int line_no)
-/* called from MMIX Thread */
-{ 
-  if (previous_mmix_line_no > 0)
+static void clear_stop_marker(void)
+{ if (previous_mmix_line_no > 0)
+  {  PostMessage(hEdit,SCI_MARKERDELETEALL,MMIX_TRACE_MARKER,0);
+    previous_mmix_line_no= -1;
+  }
+}
+
+static void show_stop_marker(int line_no)
+{ if (previous_mmix_line_no > 0)
 	PostMessage(hEdit,SCI_MARKERDELETE,previous_mmix_line_no-1,MMIX_TRACE_MARKER);
   if (line_no>0) {
     PostMessage(hEdit,SCI_MARKERADD, line_no-1, MMIX_TRACE_MARKER);
 	PostMessage(hEdit,SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
   }
   previous_mmix_line_no=line_no;
-  memory_update();
 }
 
 void ide_clear_mmix_line(void)
@@ -173,6 +177,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
 		  }
 		}
+		else if(n->code==SCN_MODIFIED)
+		{ struct SCNotification *sn=(struct SCNotification*)n;
+		  if (sn->linesAdded!=0) clear_stop_marker();
+		}
 	  }
 	  return 0;
 
@@ -227,10 +235,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  return 0;
 	    case ID_VIEW_ZOOMIN:
 		  ed_send(SCI_ZOOMIN,0,0);
-		      set_pos_key(hMainWnd,defined);
+		  set_lineno_width();
 		  return 0;
 	    case ID_VIEW_ZOOMOUT:
 		  ed_send(SCI_ZOOMOUT,0,0);
+		  set_lineno_width();
 		  return 0;
 
 		case ID_EDIT_FIND:
@@ -371,7 +380,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
     return 0;
   case WM_MMIX_STOPPED:
-    stopped_at_line((int)wParam);
+    show_stop_marker((int)wParam);
 	return 0;
   case WM_CLOSE:
 	DestroyWindow(hWnd);
@@ -382,6 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PostQuitMessage(0);
     return 0;
   case WM_SYSCOMMAND:
+	//  	ed_save_changes(0);
 	break;
   }
  return (DefWindowProc(hWnd, message, wParam, lParam));
@@ -467,6 +477,19 @@ void txt_style(void)
 {  ed_send(SCI_SETLEXER,SCLEX_NULL,0);
    ed_send(SCI_STYLECLEARALL,0,0);
 }
+
+void set_lineno_width(void)
+{ char zeros[]= "00000";
+  char *number;
+  int lines, width;
+  lines=(int)ed_send(SCI_GETLINECOUNT,0,0);
+  if (lines<100) number= zeros+2;
+  else if (lines<1000) number = zeros+1;
+  else number=zeros;
+  width =(int) ed_send(SCI_TEXTWIDTH,MMIX_LINE_MARGIN,(sptr_t)number);
+  ed_send(SCI_SETMARGINWIDTHN,MMIX_LINE_MARGIN,width);
+}
+
 void new_edit(void)
 { 
    sp_create_options(1,0,0.8,0,NULL);
@@ -483,7 +506,8 @@ void new_edit(void)
    /* configure margins and markers */
    /* line numbers */
    ed_send(SCI_SETMARGINTYPEN,MMIX_LINE_MARGIN,SC_MARGIN_NUMBER);
-   ed_send(SCI_SETMARGINWIDTHN,MMIX_LINE_MARGIN,40);
+    set_lineno_width();
+
    /* errors */
    ed_send(SCI_MARKERDEFINE, ERROR_MARKER,SC_MARK_BACKGROUND);
    ed_send(SCI_MARKERSETBACK, ERROR_MARKER,RGB(0xFF,0xE0,0xE0));
@@ -555,6 +579,7 @@ void ed_open_file(char *name)
     ed_send(SCI_SETUNDOCOLLECTION, 1,0);
     ed_send(SCI_SETSAVEPOINT,0,0);
     ed_send(SCI_GOTOPOS,0,0);
+	set_lineno_width();
   }
   else
 	  ide_status("Unable to open file");

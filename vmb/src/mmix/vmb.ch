@@ -1901,8 +1901,10 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
   else
   { printf("Closing MMIX\n");
 #ifdef MMIXLIB
-    vmb_cancel_wait_for_event(&vmb);
+    show_operating_system=true;
+    interrupt=true;
     halted=1;
+    vmb_cancel_wait_for_event(&vmb);
 #else
     FreeConsole();
 #endif   
