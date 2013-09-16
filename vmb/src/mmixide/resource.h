@@ -120,13 +120,14 @@
 #define ID_VIEW_SYNTAX                  40063
 #define ID_EDIT_FINDAGAIN               40064
 #define ID_EDIT_REPLACEAGAIN            40069
+#define ID_FILE_PAGESETUP               40073
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         40070
+#define _APS_NEXT_COMMAND_VALUE         40074
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

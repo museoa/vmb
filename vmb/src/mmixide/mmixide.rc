@@ -63,6 +63,7 @@ BEGIN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
         MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
+        MENUITEM "Page Setup ...",              ID_FILE_PAGESETUP,MFT_STRING,MFS_ENABLED
         MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Exit\tCtrl+X",               ID_FILE_EXIT,MFT_STRING,MFS_ENABLED

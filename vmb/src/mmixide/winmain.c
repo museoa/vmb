@@ -21,7 +21,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.4 $ $Date: 2013-09-13 14:59:30 $";
+char version[]="$Revision: 1.5 $ $Date: 2013-09-16 11:50:43 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -31,7 +31,7 @@ void ed_close(void);
 void ed_new(void);
 void ed_save(void);
 void ed_save_as(void);
-int ed_save_changes(void);
+int ed_save_changes(int cancel);
 
 
 HINSTANCE hInst;
@@ -150,7 +150,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  if (hChildWnd==hError)
 			  hError=NULL;
 		  else if (hChildWnd==hEdit)
-		  {   ed_save_changes();		  
+		  {   ed_save_changes(0);		  
 		      hEdit=NULL;
 		  }
 		}
@@ -181,7 +181,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ /* if (HIWORD(wParam)==0)  Menu */
       switch(LOWORD(wParam))
 	  { case ID_FILE_EXIT:
-		  if (!ed_save_changes()) return 0;
 		  DestroyWindow(hWnd);
 	      return 0;
 	    case ID_FILE_NEW:
@@ -191,14 +190,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  ed_open();
 		  return 0;
 	    case ID_FILE_CLOSE:
-		  if (ed_save_changes()) 
-			  ed_send(WM_CLOSE,0,0);
+		  ed_send(WM_CLOSE,0,0);
 	      return 0;
 	    case ID_FILE_SAVE:
 		  ed_save();
 		  return 0;
 	    case ID_FILE_SAVEAS:
 		  ed_save_as();
+		  return 0;
+	    case ID_FILE_PAGESETUP:
+		  page_setup();
 		  return 0;
 	    case ID_FILE_PRINT:
 		  print();
@@ -267,13 +268,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 	    case ID_MMIX_RUN:
-		  if (!ed_save_changes()) return 0;
+		  if (!ed_save_changes(1)) return 0;
 		  if (!assemble_if_needed()) return 0;
 		  if (!ide_connect()) return 0;
 		  mmix_run();
 	      return 0; 
 		case ID_MMIX_DEBUG:
-		  if (!ed_save_changes()) return 0;
+		  if (!ed_save_changes(1)) return 0;
 		  if (!assemble_if_needed()) return 0;
 		  if (!ide_connect()) return 0;
 		  update_breakpoints();
@@ -284,7 +285,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  mmix_stop();
 		  return 0;
 	    case ID_MMIX_ASSEMBLE:
-		  ed_save_changes();
+		  if (!ed_save_changes(1)) return 0;
 		  mmix_assemble(0);
 	      return 0; 
 
@@ -373,18 +374,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     stopped_at_line((int)wParam);
 	return 0;
   case WM_CLOSE:
-    ed_save_changes();
 	DestroyWindow(hWnd);
 	return 0;
   case WM_DESTROY:
+	ed_save_changes(0);
 	set_pos_key(hMainWnd,defined);
     PostQuitMessage(0);
     return 0;
   case WM_SYSCOMMAND:
-	if (wParam==SC_CLOSE)
-	{ if (!ed_save_changes()) 
-		return 0;
-	}
 	break;
   }
  return (DefWindowProc(hWnd, message, wParam, lParam));
@@ -523,7 +520,7 @@ void update_breakpoints(void)
 
 void ed_new(void)
 {   if (hEdit==NULL) new_edit();
-	if (!ed_save_changes()) return;
+	if (!ed_save_changes(1)) return;
 	ed_send(SCI_CLEARALL,0,0);
 	ed_send(SCI_EMPTYUNDOBUFFER,0,0);
 	fullname[0] = '\0';
@@ -675,12 +672,12 @@ void ed_save_as(void)
 	}
 }
 
-int ed_save_changes(void)
+int ed_save_changes(int cancel)
 { int dirty;
   if (hEdit==NULL) return 1;
   dirty = (int)ed_send(SCI_GETMODIFY,0,0);
   if (dirty)
-  {	 int decision = MessageBox(hMainWnd, "Save changes ?", "MMIX IDE", MB_YESNOCANCEL);
+  {	 int decision = MessageBox(hMainWnd, "Save changes ?", "MMIX IDE", cancel?MB_YESNOCANCEL:MB_YESNO);
 	 if (decision == IDYES)
 	   ed_save();
 	 else if (decision == IDCANCEL)
@@ -772,7 +769,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hSplitter = sp_CreateSplitter("The Splitter", WS_CHILD|WS_VISIBLE,
                   0, BB_HEIGHT, r.right-r.left, r.bottom-r.top-BB_HEIGHT, hMainWnd, NULL, hInst, NULL);
     add_buttons();
-
+    printer_init();
 	init_edit(hInstance);
 	mmix_lib_init();
 	new_edit();
