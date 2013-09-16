@@ -12,7 +12,7 @@ extern HWND bb_CreateButtonBar(LPCTSTR lpWindowName, DWORD dwStyle,
 
 
 extern HWND bb_CreateButton(HWND hButtonBar,HANDLE hImg, int command, unsigned char group, unsigned char id, 
-					 unsigned char active, unsigned char visible);
+					 unsigned char active, unsigned char visible, char *tip);
 /* this creates a button with the Icon on its face and adds it to the button bar
    different buttons should have different ids, if id == 0 an id will be chosen 
    Call DestroyWindow on the return value to remove this button again */   

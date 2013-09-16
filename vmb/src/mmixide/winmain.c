@@ -21,7 +21,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.5 $ $Date: 2013-09-16 11:50:43 $";
+char version[]="$Revision: 1.6 $ $Date: 2013-09-16 12:41:54 $";
 char title[] ="VMB MMIX IDE";
 
 
@@ -720,26 +720,26 @@ void new_errorlist(void)
 #define BG_MMIX 3
 #define BG_HELP 4
 
-void add_button(int iconID, int menuID, int group, int buttonID)
+void add_button(int iconID, int menuID, int group, int buttonID, char *tip)
 { HANDLE h;
   h = LoadImage(hInst, MAKEINTRESOURCE(iconID),IMAGE_ICON,0,0,LR_DEFAULTCOLOR|LR_DEFAULTSIZE|LR_LOADTRANSPARENT);
-  bb_CreateButton(hButtonBar,h,menuID,group,buttonID,1,1);
+  bb_CreateButton(hButtonBar,h,menuID,group,buttonID,1,1,tip);
 }
 
 void add_buttons(void)
 { 
-  add_button(IDI_FILE_NEW,ID_FILE_NEW,BG_FILE,0);
-  add_button(IDI_FILE_OPEN,ID_FILE_OPEN,BG_FILE,1);
-  add_button(IDI_FILE_SAVE,ID_FILE_SAVE,BG_FILE,2);
-  add_button(IDI_EDIT_COPY,ID_EDIT_COPY,BG_EDIT,3);
-  add_button(IDI_EDIT_PASTE,ID_EDIT_PASTE,BG_EDIT,4);
-  add_button(IDI_EDIT_CUT,ID_EDIT_CUT,BG_EDIT,5);
-  add_button(IDI_EDIT_UNDO,ID_EDIT_UNDO,BG_EDIT,6);
-  add_button(IDI_EDIT_REDO,ID_EDIT_REDO,BG_EDIT,7);
-  add_button(IDI_VIEW_ZOOMIN,ID_VIEW_ZOOMIN,BG_VIEW,8);
-  add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,9);
-  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,10);
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_MMIX,10);
+  add_button(IDI_FILE_NEW,ID_FILE_NEW,BG_FILE,0,"New");
+  add_button(IDI_FILE_OPEN,ID_FILE_OPEN,BG_FILE,1,"Open");
+  add_button(IDI_FILE_SAVE,ID_FILE_SAVE,BG_FILE,2,"Save");
+  add_button(IDI_EDIT_COPY,ID_EDIT_COPY,BG_EDIT,3,"Copy");
+  add_button(IDI_EDIT_PASTE,ID_EDIT_PASTE,BG_EDIT,4,"Paste");
+  add_button(IDI_EDIT_CUT,ID_EDIT_CUT,BG_EDIT,5,"Cut");
+  add_button(IDI_EDIT_UNDO,ID_EDIT_UNDO,BG_EDIT,6,"Undo");
+  add_button(IDI_EDIT_REDO,ID_EDIT_REDO,BG_EDIT,7,"Redo");
+  add_button(IDI_VIEW_ZOOMIN,ID_VIEW_ZOOMIN,BG_VIEW,8,"Zoom in");
+  add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,9,"Zoom out");
+  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,10,"Debug");
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_MMIX,10,"About");
 }
 
 

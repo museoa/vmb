@@ -1,5 +1,6 @@
 /* Button Bar Code */
 #include <windows.h>
+#include <commctrl.h>
 #include "error.h"
 #include "buttonbar.h"
 
@@ -168,7 +169,7 @@ static int bb_get_command(button *b,HWND hWnd)
   return 0;
 }
 
-
+HWND hTooltips=NULL;
 
 static LRESULT CALLBACK ButtonBarProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {	button *bb_head;
@@ -177,6 +178,9 @@ static LRESULT CALLBACK ButtonBarProc(HWND hWnd, UINT message, WPARAM wParam, LP
 	{
 	case WM_CREATE:
 		SetWindowLongPtr(hWnd,GWLP_USERDATA,(LONG)(LONG_PTR)new_head()); /* empty list */
+        hTooltips=CreateWindowEx(WS_EX_TOPMOST,TOOLTIPS_CLASS,NULL,WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			hWnd,NULL,hButtonBarInst,NULL);
 		return 0;
 	case WM_SIZE:
 		if (wParam==SIZE_RESTORED)
@@ -201,6 +205,7 @@ static LRESULT CALLBACK ButtonBarProc(HWND hWnd, UINT message, WPARAM wParam, LP
 		{ head *h = bb_list(hWnd);
 		  while (*h!=NULL)
 	        DestroyWindow((*h)->hWnd);
+		  DestroyWindow(hTooltips);
 		}
 		break;
 	default:
@@ -240,13 +245,28 @@ HWND bb_CreateButtonBar(LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int n
 }
 
 
-HWND bb_CreateButton(HWND hButtonBar, HANDLE hImg, int command, unsigned char group, unsigned char id, unsigned char active, unsigned char visible)
+HWND bb_CreateButton(HWND hButtonBar, HANDLE hImg, int command, unsigned char group, unsigned char id, unsigned char active, unsigned char visible, char *tip)
 { HWND hB;
   button *b;
   head *h;
+  TOOLINFO ti;
   hB =CreateWindowEx(0,"BUTTON","B1",WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON|BS_ICON ,
 	                  0,0,BB_HEIGHT,BB_HEIGHT,hButtonBar,NULL,hButtonBarInst,MAKELPARAM(0,0));
   SendMessage(hB,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hImg);
+  
+  ti.cbSize=sizeof(TOOLINFO);
+  ti.uFlags=TTF_SUBCLASS|TTF_IDISHWND;
+  ti.hwnd=hButtonBar;
+  ti.hinst=hButtonBarInst;
+  ti.uId=(UINT_PTR)hB;
+  ti.lpszText=tip;
+  ti.rect.top=0;
+  ti.rect.left=0;
+  ti.rect.bottom=0;
+  ti.rect.right=0;
+  ti.lParam=0;
+ 
+  SendMessage(hTooltips,TTM_ADDTOOL,0,(LPARAM)&ti);
   h = bb_list(hButtonBar);
   b= add_button(h,hB,command, group,id);
   bb_set_button(b,active,visible);
