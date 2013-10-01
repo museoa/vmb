@@ -101,6 +101,9 @@ BEGIN
             MENUITEM "Stack Segment",               ID_MEM_STACKSEGMENT,MFT_STRING,MFS_ENABLED
             MENUITEM "Negative Segment",            ID_MEM_NEGATIVESEGMENT,MFT_STRING,MFS_ENABLED
         END
+        MENUITEM "Symbol table",                ID_VIEW_SYMBOLTABLE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&File List",                  ID_VIEW_FILELIST,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
         MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
@@ -112,15 +115,21 @@ BEGIN
         MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step",                        ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
+        MENUITEM "Continue",                    ID_MMIX_CONTINUE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Quit",                        ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Stop\tShift+F5",              ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Stop\tCtrl+C",                ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
     BEGIN
-        MENUITEM "&Special Registers ...",      ID_OPTIONS_SPECIALS,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Debug  ...",                 ID_OPTIONS_WINDOWS,MFT_STRING,MFS_ENABLED
+        MENUITEM "Editor ...",                  ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
+        MENUITEM "Assembler ...",               ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
+        MENUITEM "Motherboard ...",             ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
     BEGIN
@@ -139,11 +148,13 @@ BEGIN
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     "G",            ID_EDIT_FINDAGAIN,      VIRTKEY, CONTROL, NOINVERT
     "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "X",            ID_FILE_EXIT,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
     VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
-    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    "X",            ID_FILE_EXIT,           VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_MMIX_STOP,           VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_MMIX_DEBUG,          VIRTKEY, NOINVERT
 END
 
 
@@ -154,6 +165,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+IDI_ICON                ICON                    "icon.ico"
 IDI_FILE_NEW            ICON                    "Icons\\document-new-7.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoom-out-3.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\document-open-7.ico"
@@ -166,35 +178,43 @@ IDI_EDIT_UNDO           ICON                    "Icons\\edit-undo-4.ico"
 IDI_HELP                ICON                    "Icons\\help-3.ico"
 IDI_MMIX_DEBUG          ICON                    "Icons\\system-run-3.ico"
 IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoom-in-3.ico"
+IDI_FINDREPLACE         ICON                    "Icons\\edit-find-replace-4.ico"
+IDI_DEBUG_STEP          ICON                    "Icons\\step.ico"
+IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
+IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
+IDI_DEBUG_HALT          ICON                    "Icons\\halt.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_SHOW_DEBUG DIALOGEX 0, 0, 184, 166
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SHOW_DEBUG DIALOGEX 0, 0, 158, 195
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Debug Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,127,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,127,24,50,14
+    DEFPUSHBUTTON   "OK",IDOK,98,158,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,175,50,14
     CONTROL         "Local Registers",IDC_SHOW_LOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,17,64,10
     CONTROL         "Global Registers",IDC_SHOW_GLOBAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,28,67,10
     CONTROL         "Special Registers",IDC_SHOW_SPECIAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,39,70,10
-    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,50,62,10
+    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,50,62,10
     CONTROL         "Text Segment",IDC_SHOW_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,81,61,10
     CONTROL         "Data Segment",IDC_SHOW_DATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,93,61,10
     CONTROL         "Pool Segment",IDC_SHOW_POOL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,105,59,10
     CONTROL         "Negative Segment",IDC_SHOW_NEG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,129,75,10
     CONTROL         "Stack Segment",IDC_SHOW_STACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,117,63,10
-    GROUPBOX        "Show Registers",IDC_STATIC,9,7,106,57
-    GROUPBOX        "Show Memory",IDC_STATIC,9,71,102,72
-    CONTROL         "Break at Main",IDC_CHECK_MAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,148,59,10
+    GROUPBOX        "Show Registers",IDC_STATIC,9,7,142,57
+    GROUPBOX        "Show Memory",IDC_STATIC,9,71,83,72
+    CONTROL         "Break at Main",IDC_CHECK_MAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,162,59,10
+    PUSHBUTTON      "Choose ...",IDC_SELECT_SPECIALS,93,36,50,14
+    CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,146,96,10
+    CONTROL         "Show Trace",IDC_CHECK_TRACE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,177,53,10
 END
 
 IDD_FIND DIALOGEX 0, 0, 317, 79
-STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Find and Replace"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -211,6 +231,32 @@ BEGIN
     CONTROL         "Wrap around",IDC_CHECK_WRAP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,97,62,58,10
 END
 
+IDD_OPTIONS_ASSEMBLER DIALOGEX 0, 0, 186, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Assembler Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    LTEXT           "Buffer size",IDC_STATIC,7,9,50,8
+    EDITTEXT        IDC_BUFFERSIZE,63,7,56,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_BUFFERSIZE,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,64,7,11,14
+    CONTROL         "Expanded address calculations",IDC_CHECK_X,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,7,25,112,10
+    CONTROL         "Create listing file",IDC_CHECK_LISTING,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,7,41,112,10
+END
+
+IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Editor Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    CONTROL         "Allways save changed files",IDC_CHECK_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,101,10
+    CONTROL         "Show line numbers",IDC_CHECK_LINENO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,75,10
+    CONTROL         "Show profile",IDC_CHECK_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,55,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -220,6 +266,11 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO 
 BEGIN
+    IDD_SHOW_DEBUG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 189
+    END
+
     IDD_FIND, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -227,8 +278,63 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 72
     END
+
+    IDD_OPTIONS_ASSEMBLER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_OPTIONS_EDITOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x3L
+#else
+ FILEFLAGS 0x2L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Martin Ruckert ruckert@cs.hm.edu"
+            VALUE "FileDescription", "Integrated Development Environment for MMIX"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "mmixide"
+            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
+            VALUE "OriginalFilename", "mmixide.exe"
+            VALUE "ProductName", "MMIX IDE"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
 
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
@@ -249,7 +355,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Show Special Registers"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN

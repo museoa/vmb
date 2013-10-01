@@ -1,15 +1,14 @@
 extern void new_memory_view(int i);
 extern void new_register_view(int i);
 extern void memory_update(void);
-extern void add_line_loc(unsigned char file, int line_no, octa loc);
-extern int set_breakpoint(unsigned char file, int line_no);
-extern int del_breakpoint(unsigned char file, int line_no);
+
+extern int set_breakpoint(int file_no, int line_no);
+extern int del_breakpoint(int file_no, int line_no);
 extern void clear_breakpoints(unsigned char file);
 extern unsigned int show_special_registers;
 extern INT_PTR CALLBACK OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern INT_PTR CALLBACK OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern void set_debug_windows(void);
-extern void mem_clear_breaks(unsigned char file_no);
-extern void clear_linetab(unsigned char file);
-extern int has_debug_info(void);
 extern int break_at_Main;
+extern int trace;
+extern int show_os;

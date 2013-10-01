@@ -652,15 +652,16 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		}
 		return 0;
 	case WM_COMMAND:
-		return SendMessage(GetParent(hWnd),WM_COMMAND,wParam,lParam);
+	case WM_NOTIFY:
+    case WM_MEASUREITEM:
+	case WM_DRAWITEM: 
+		return SendMessage(GetParent(hWnd),message,wParam,lParam);
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
 		return 0;
 	case WM_DESTROY:
 		split_terminate();
         break;
-	case WM_NOTIFY:
-		return SendMessage(GetParent(hWnd),WM_NOTIFY,wParam,lParam);
 	default:
 		break;
 	}

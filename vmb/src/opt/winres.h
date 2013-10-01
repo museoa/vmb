@@ -23,6 +23,7 @@
 #define IDC_THE_SERVER                  1001
 #define IDC_THE_PORT                    1002
 #define IDC_DEBUG                       1003
+#define IDC_CHECK_AUTOCONNECT           1004
 
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008

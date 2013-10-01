@@ -25,8 +25,42 @@
 #define INTERNALS_H
 
 typedef enum{false=0,true}bool;
+typedef enum{
+TRAP,FCMP,FUN,FEQL,FADD,FIX,FSUB,FIXU,
+FLOT,FLOTI,FLOTU,FLOTUI,SFLOT,SFLOTI,SFLOTU,SFLOTUI,
+FMUL,FCMPE,FUNE,FEQLE,FDIV,FSQRT,FREM,FINT,
+MUL,MULI,MULU,MULUI,DIV,DIVI,DIVU,DIVUI,
+ADD,ADDI,ADDU,ADDUI,SUB,SUBI,SUBU,SUBUI,
+IIADDU,IIADDUI,IVADDU,IVADDUI,VIIIADDU,VIIIADDUI,XVIADDU,XVIADDUI,
+CMP,CMPI,CMPU,CMPUI,NEG,NEGI,NEGU,NEGUI,
+SL,SLI,SLU,SLUI,SR,SRI,SRU,SRUI,
+BN,BNB,BZ,BZB,BP,BPB,BOD,BODB,
+BNN,BNNB,BNZ,BNZB,BNP,BNPB,BEV,BEVB,
+PBN,PBNB,PBZ,PBZB,PBP,PBPB,PBOD,PBODB,
+PBNN,PBNNB,PBNZ,PBNZB,PBNP,PBNPB,PBEV,PBEVB,
+CSN,CSNI,CSZ,CSZI,CSP,CSPI,CSOD,CSODI,
+CSNN,CSNNI,CSNZ,CSNZI,CSNP,CSNPI,CSEV,CSEVI,
+ZSN,ZSNI,ZSZ,ZSZI,ZSP,ZSPI,ZSOD,ZSODI,
+ZSNN,ZSNNI,ZSNZ,ZSNZI,ZSNP,ZSNPI,ZSEV,ZSEVI,
+LDB,LDBI,LDBU,LDBUI,LDW,LDWI,LDWU,LDWUI,
+LDT,LDTI,LDTU,LDTUI,LDO,LDOI,LDOU,LDOUI,
+LDSF,LDSFI,LDHT,LDHTI,CSWAP,CSWAPI,LDUNC,LDUNCI,
+LDVTS,LDVTSI,PRELD,PRELDI,PREGO,PREGOI,GO,GOI,
+STB,STBI,STBU,STBUI,STW,STWI,STWU,STWUI,
+STT,STTI,STTU,STTUI,STO,STOI,STOU,STOUI,
+STSF,STSFI,STHT,STHTI,STCO,STCOI,STUNC,STUNCI,
+SYNCD,SYNCDI,PREST,PRESTI,SYNCID,SYNCIDI,PUSHGO,PUSHGOI,
+OR,ORI,ORN,ORNI,NOR,NORI,XOR,XORI,
+AND,ANDI,ANDN,ANDNI,NAND,NANDI,NXOR,NXORI,
+BDIF,BDIFI,WDIF,WDIFI,TDIF,TDIFI,ODIF,ODIFI,
+MUX,MUXI,SADD,SADDI,MOR,MORI,MXOR,MXORI,
+SETH,SETMH,SETML,SETL,INCH,INCMH,INCML,INCL,
+ORH,ORMH,ORML,ORL,ANDNH,ANDNMH,ANDNML,ANDNL,
+JMP,JMPB,PUSHJ,PUSHJB,GETA,GETAB,PUT,PUTI,
+POP,RESUME,SAVE,UNSAVE,SYNC,SWYM,GET,TRIP}mmix_opcode;
 typedef unsigned int tetra;
 typedef struct{tetra h,l;} octa;
+typedef unsigned char byte; /* a monobyte */
 typedef char Char; /* bytes that will become wydes some day */
 
 extern octa g[256]; /* global registers */
@@ -46,10 +80,24 @@ extern bool halted, profile_started, stack_tracing, profiling, interrupt, breakp
 extern unsigned int tracing_exceptions; /* exception bits that cause tracing */
 extern octa sclock;
 extern char *stdin_buf_start, *stdin_buf_end;
+extern bool resuming; /* are we resuming an interrupted instruction? */
+extern bool interact_after_break; /* should we go into interactive mode? */
+extern bool showing_stats; /* should traced instructions also show the statistics? */
+extern void show_stats(bool verbose);
+
 typedef enum{
 rB,rD,rE,rH,rJ,rM,rR,rBB,
 rC,rN,rO,rS,rI,rT,rTT,rK,rQ,rU,rV,rG,rL,
 rA,rF,rP,rW,rX,rY,rZ,rWW,rXX,rYY,rZZ} special_reg;
+
+typedef struct {
+  char *name; /* symbolic name of an opcode */
+  unsigned char flags; /* its instruction format */
+  unsigned char third_operand; /* its special register input */
+  unsigned char mems; /* how many $\mu$ it costs */
+  unsigned char oops; /* how many $\upsilon$ it costs */
+  char *trace_format; /* how it appears when traced */
+} op_info;
 
 #define trace_bit ((unsigned char)(1<<3))
 #define read_bit  ((unsigned char)(1<<2))
@@ -88,11 +136,9 @@ extern octa oplus(octa x, octa y);
 #define PT_BIT (1<<6) /* page table error */
 #define IN_BIT (1<<7) /* interval counter rI reaches zero */
 
-#ifdef MMIXLIB
-extern int mmix_main(void *param);
-#endif
-
 typedef struct sym_tab_struct{
+  int file_no;
+  int line_no;
 int serial;
 struct sym_tab_struct*link;
 octa equiv;
@@ -125,6 +171,7 @@ typedef struct mem_node_struct {
 typedef struct {
   char *name; /* name of source file */
   int line_count; /* number of lines in the file */
+  long *map; /* pointer to map of file positions */
 } file_node;
 
 extern file_node file_info[256];
@@ -134,6 +181,8 @@ extern mem_node *last_mem; /* the memory node most recently read or written */
 extern mem_tetra* mem_find(octa addr);
 extern trie_node *trie_root; 
 extern sym_node*sym_avail;
+#define DEFINED (sym_node*)1 /* code value for octabyte equivalents */
+
 extern bool long_warning_given;
 extern octa cur_loc, listing_loc;
 extern bool spec_mode;
@@ -146,6 +195,9 @@ extern sym_node forward_local[10],backward_local[10];
 extern int greg, lreg;
 extern int serial_number;
 extern void show_breaks(mem_node *p);
-
+extern char *special_name[32];
+extern octa incr(octa x, int d);
+extern mmix_opcode op; /* operation code of the current instruction */
+#define command_buf_size 1024 /* make it plenty long, for floating point tests */
 
 #endif

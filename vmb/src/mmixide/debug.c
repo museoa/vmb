@@ -7,8 +7,10 @@
 #include "bus-arith.h"
 #include "mmix-internals.h"
 #include "mmixlib.h"
+#include "info.h"
 #include "debug.h"
 #include "resource.h"
+#include "mmixrun.h"
 
 
 
@@ -16,6 +18,9 @@
 inspector_def memory_insp[];
 unsigned int show_debug_windows = 0x27; 
 int break_at_Main = 1;
+int trace = 1;
+int show_os = 0;
+
 #define MAX_DEBUG_WINDOWS 9
 INT_PTR CALLBACK    
 OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -27,8 +32,9 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		{	CheckDlgButton(hDlg,IDC_SHOW_LOCAL+i,
 			   (show_debug_windows&(1<<i))?BST_CHECKED:BST_UNCHECKED);
 		}
-        CheckDlgButton(hDlg,IDC_CHECK_MAIN,
-			   break_at_Main?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_TRACE,trace?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_OS,show_os?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -46,10 +52,15 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			else
 			  show_debug_windows&=~(1<<i);
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
+		trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
+		show_os=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
         EndDialog(hDlg, TRUE);
         return TRUE;
       } else if (wparam==IDCANCEL)
 	  { EndDialog(hDlg, TRUE);
+        return TRUE;
+	  } else if (wparam==IDC_SELECT_SPECIALS)
+	  { DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_SPECIAL),hDlg,OptionSpecialDialogProc);
         return TRUE;
 	  }
      break;
@@ -154,12 +165,12 @@ static inspector_def memory_insp[MAXMEM+1]=
 };
 
 
-
+int mmix_current_status;
 
 void new_memory_view(int i)
 { HWND h;
   int k;
-  if (mmix_status==MMIX_DISCONNECTED) return;
+  if (mmix_current_status==MMIX_DISCONNECTED) return;
   if (i<0 || i>=MAXMEM) return;
   if (memory_insp[i].hWnd!=NULL) return;
   for (k=i-1;k>=0&&memory_insp[k].hWnd==NULL;k--)
@@ -419,80 +430,22 @@ void memory_update(void)
 }
 
 
-#define MAXLINE (1<<11)
-static octa linetab[MAXLINE];
-static int linetab_empty=1;
-
-int has_debug_info(void)
-{ return !linetab_empty;
+static void set_x_break(octa loc)
+{ mem_find(loc)->bkpt |= exec_bit;
 }
 
-void clear_linetab(unsigned char file)
-{ int i;
-  if (file!=0) return;
-  for (i=0;i<MAXLINE;i++)
-	  linetab[i].h=linetab[i].l=0xFFFFFFFF;
-  linetab_empty=1;
-}
-
-octa line_to_loc(unsigned char file, int line)
-/* returns -1 if no location was found 
-   currently only for file==0 and line_no < (1<<11)
-*/
-{ octa loc;
-  if (file!=0 || line > MAXLINE)
-	  loc.h=loc.l=0xFFFFFFFF;
-  else
-	  loc = linetab[line];
-  return loc;
-}
-
-void add_line_loc(unsigned char file, int line, octa loc)
-/* called from the assembler making relations between lines and locations */
-{  if (file!=0 || line > MAXLINE) return;
-   if (linetab[line].h<loc.h ||
-		(linetab[line].h==loc.h &&linetab[line].l<loc.l))
-		return;
-   linetab[line]=loc;
-   linetab_empty=0;
-}
-
-int set_breakpoint(unsigned char file, int line_no)
+int set_breakpoint(int file_no, int line_no)
 /* return true if breakpoint could be set */
-{ octa loc;
-  mem_tetra *ll;
-  loc= line_to_loc(file,line_no);
-  if (loc.h==0xFFFFFFFF&&loc.l==0xFFFFFFFF)
-	  return 0;
-  if (mem_root==NULL || last_mem==NULL)
-	  return 0;
-  ll= mem_find(loc);
-  ll->bkpt |= exec_bit;
+{ for_all_loc(file_no, line_no, set_x_break);
   return 1;
-}
-int del_breakpoint(unsigned char file, int line_no)
-{ octa loc;
-  mem_tetra *ll;
-  loc= line_to_loc(file,line_no);
-  if (loc.h==0xFFFFFFFF&&loc.l==0xFFFFFFFF)
-	  return 0;
-  ll= mem_find(loc);
-  ll->bkpt &= ~exec_bit;
-  return 1;
+}	
+
+static void del_x_break(octa loc)
+{ mem_find(loc)->bkpt &= ~exec_bit;
 }
 
-static void mem_node_clear_breaks(unsigned char file_no,mem_node*p)
-{  int i;
-	if (p==NULL) return;
-   mem_node_clear_breaks(file_no, p->left);
-   mem_node_clear_breaks(file_no, p->right);
-   for (i=0;i<512;i++)
-   { mem_tetra *q=&(p->dat[i]);
-	   if(q->file_no==file_no)
-		   q->bkpt=0;
-   }
-}
 
-void mem_clear_breaks(unsigned char file_no)
-{ mem_node_clear_breaks(file_no,mem_root);
-}
+int del_breakpoint(int file_no, int line_no)
+{ for_all_loc(file_no, line_no, del_x_break);
+  return 1;
+}	

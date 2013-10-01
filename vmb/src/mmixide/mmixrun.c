@@ -6,212 +6,64 @@
 #include "error.h"
 #include "winopt.h"
 #include "winmain.h"
-#include "mmixrun.h"
 #include "mmix-internals.h"
 #include "mmixlib.h"
 #include "mmix-bus.h"
+#include "info.h"
 #include "debug.h"
-
-#define STATIC_BUILD
-#include "../scintilla/include/scintilla.h"
-extern sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam);
-
-
-
-/* Assemble MMIX */
-void mmix_run_init(void);
-
-void free_sym(sym_node *sym)
-{ if (((unsigned long long int)sym&~0x3)==0) return;
-  free_sym(sym->link);
-  sym->link=NULL;
-  free(sym);
-}
-  
-
-void free_tree(trie_node *root)
-{ if (root==NULL) return;
-  if (root->left!=NULL) free_tree(root->left);
-  root->left=NULL;
-  if (root->mid!=NULL) free_tree(root->mid);
-  root->mid=NULL;
-  if (root->right!=NULL) free_tree(root->right);
-  root->right=NULL;
-  free_sym(root->sym);
-  free(root);
-}
-
-
-octa Main_loc={0,0};
-DWORD dwMMIXALThreadId=0;
-static void mmixal_finish(void)
-{ int i;
-  trie_node *n=trie_search(trie_root,"Main");	
-  Main_loc=n->sym->equiv;
-
-  dwMMIXALThreadId=0;
-  if (listing_file!=NULL) 
-  { fclose(listing_file);
-    listing_file=NULL;
-  }
-  if (obj_file!=NULL) 
-  { fclose(obj_file);
-    obj_file=NULL;
-  }
-  if (src_file!=NULL) 
-  { fclose(src_file);
-    src_file=NULL;
-  }
-  cur_file=0;
-  line_no=0;
-  long_warning_given=0;
-  cur_loc.h=cur_loc.l=0;
-  listing_loc.h=listing_loc.l=0;
-  spec_mode= 0;
-  spec_mode_loc= 0;
-  err_count=0;
-  serial_number=0;
-  free(buffer); buffer=NULL;
-  free(lab_field); lab_field=NULL;
-  free(op_field); op_field=NULL;
-  free(operand_list); operand_list=NULL;
-  free(err_buf);err_buf=NULL;
-  free(op_stack); op_stack=NULL;
-  free(val_stack);val_stack=NULL;
-  filename[0]=NULL;
-  filename_passed[0]=0;
-  for (i=1;i<filename_count;i++)
-  { free(filename[i]);
-    filename[i]=NULL;
-	filename_passed[i]=0;
-  }
-  filename_count=0;
-  free_tree(trie_root); 
-  trie_root=NULL;
-  free_sym(sym_avail);
-  sym_avail=NULL;
-
-}
-
-void mmixal_init(void)
-{ int i;
-  cur_file=0;
-  line_no=0;
-  long_warning_given=0;
-  cur_loc.h=cur_loc.l=0;
-  listing_loc.h=listing_loc.l=0;
-  spec_mode= 0;
-  spec_mode_loc= 0;
-  mmo_ptr=0;
-  err_count=0;
-  serial_number=0;
-  filename_count=0;
-  for (i=0;i<10;i++)
-  { forward_local[i].link=0;
-    backward_local[i].link=0;
-  }
-  greg= 255;
-  lreg= 32;
-  halted = 0;
-}
-
-
-void mmixal_exit(int returncode)
-{ mmixal_finish();
-  ExitThread(returncode);
-}
-
-void mmixal_error(char *message, int line_no, int status)
-/* status = 0 normal, 1 warning, -1 fatal */
-{ if (status<0) ide_status(message);
-  else
-	 ide_add_error(message,line_no);
-}
-
-
-
-static DWORD WINAPI AssemblerThreadProc(LPVOID file)
-{   
-/* variables set by the command line */	
-	mmixal_init();
-	ide_status("mmixal running ...");
-    mmixal();
-    mmixal_finish();
-    ide_status("mmixal done.");
-	return 0;
-}
-
-void mmix_assemble(int file_no)
-{ HANDLE h;
-  if (dwMMIXALThreadId!=0) return;
-  if (hError==NULL) new_errorlist();
-  ide_clear_error();
-		  clear_linetab(file_no);
-		  mem_clear_breaks(file_no);
-  	src_file_name = fullname;
-    obj_file_name[0]=0; /* -o */
-	listing_name[0]=0; /* -l */
-	expanding=0; /* -x */
-    buf_size=500; /* -b */
-  h = CreateThread(
-			NULL,              // default security attributes
-            0,                 // use default stack size  
-            AssemblerThreadProc,        // thread function 
-            NULL,             // argument to thread function 
-            0,                 // use default creation flags 
-            &dwMMIXALThreadId);   // returns the thread identifier 
-    WaitForSingleObject(h,INFINITE); //INFINITE
-    CloseHandle(h);
-}
-
-
+#include "assembler.h"
+#include "mmixrun.h"
 /* Running MMIX */
 // maximum mumber of lines the output console should have
 
 static const WORD MAX_CONSOLE_LINES = 500;
 extern void vmb_atexit(void);
-
-
-typedef struct {
-	int (*proc)(void *);
-	void *param; } console_params;
-
+void mmix_run_init(void);
+int application_file_no=-1;
 DWORD dwMMIXThreadId=0;
 
-void mmix_run_finish(void)
-{ int i;
-  for (i=0; i<256;i++)
-  {   if (file_info[i].name!=NULL)
-       { free(file_info[i].name);
-         file_info[i].name=NULL;
-       }
-  }
-  vmb_atexit();
-  set_mmix_status(MMIX_OFF);
-  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,0); 
+static HANDLE hInteract=NULL;
+
+/* called by the mmix thread */
+int mmix_interact(void)
+{ DWORD w;
+  mmix_stopped(loc);
+  printf("----------------------------------------------------\n");
+  w = WaitForSingleObject(hInteract,INFINITE);
+  if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
+  { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
+  return 1;
 }
 
 
+ 
 
-
-void mmix_exit(int returncode)
-{ mmix_run_finish();
-  FreeConsole();
-  dwMMIXThreadId=0;
-  ExitThread(returncode);
+int mmix_continue(unsigned char command)
+{  if (hInteract==NULL) return 0;
+   switch (command)
+   { case 'q': /* quit */
+       halted=true;
+       break;
+     case 'c': /* continue */
+	   mmix_status(MMIX_RUNNING);
+       break;
+	 case 'n': /* next instruction */
+     default: breakpoint=tracing=true; /* trace one inst and break */
+       break;
+   }
+   show_stop_marker(edit_file_no,-1); /* clear stop marker */
+   SetEvent (hInteract);
+   return 1;
 }
 
-
-
-static DWORD WINAPI ConsoleThreadProc(LPVOID cp)
+static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int hConHandle;
   HANDLE lStdHandle;
   CONSOLE_SCREEN_BUFFER_INFO coninfo;
   FILE *fp;
   FILE stdoutOld, stdinOld, stderrOld;
   int returncode;
-  int (*proc)(void*) = ((console_params*)cp)->proc;
-  void *param=((console_params*)cp)->param;
+
   if (AllocConsole()==0)
     vmb_debugi(VMB_DEBUG_FATAL,"Unable to allocate Console (%X)",GetLastError());
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&coninfo);
@@ -239,32 +91,40 @@ static DWORD WINAPI ConsoleThreadProc(LPVOID cp)
   *stderr = *fp;
   setvbuf( stderr, NULL, _IONBF, 0 );
 
-  mmix_run_init();
+  if (hInteract==NULL)
+    hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
-  returncode = (*proc)(param);
+  vmb_exit_hook = mmix_exit;
+  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(application_file_no)));
+  application_file_no=-1;
+  vmb_atexit();
+  vmb_exit_hook = ide_exit_ignore;
+
+  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,(LPARAM)-1); 
+ 
+  if (hInteract!=NULL)
+   { CloseHandle(hInteract); 
+     hInteract=NULL;
+   }
+
   *stderr=stderrOld;
   *stdin=stdinOld;
   *stdout=stdoutOld;
-  
-  mmix_run_finish();
+
   FreeConsole();
-  vmb_atexit();
-  vmb_exit_hook = ide_exit_ignore;
   dwMMIXThreadId=0;
   return returncode;
 }
 
-static void ConsoleThread(int proc(void *), void *param)
+static void MMIXThread(void)
 { HANDLE hMMIXThread=NULL;
-  static console_params cp;
-  cp.param=param;
-  cp.proc=proc;
   if (dwMMIXThreadId!=0) return;
+  mmix_status(MMIX_RUNNING);
   hMMIXThread = CreateThread(
 			NULL,              // default security attributes
             0,                 // use default stack size  
-            ConsoleThreadProc,        // thread function 
-            &cp,             // argument to thread function 
+            MMIXThreadProc,        // thread function 
+            NULL,             // argument to thread function 
             0,                 // use default creation flags 
             &dwMMIXThreadId);   // returns the thread identifier 
   CloseHandle(hMMIXThread);
@@ -272,55 +132,40 @@ static void ConsoleThread(int proc(void *), void *param)
 
 char full_mmo_name[MAX_PATH+1]={0};
 
-char *get_mmo_name(void)
-{  if (fullname[0]==0) return NULL;
-   strncpy(full_mmo_name,fullname,MAX_PATH-4);
+char *get_mmo_name(char *full_mms_name)
+{  if (full_mms_name==NULL || full_mms_name[0]==0) return NULL;
+   strncpy(full_mmo_name,full_mms_name,MAX_PATH-4);
    full_mmo_name[strlen(full_mmo_name)-1]='o';
    return full_mmo_name;
 }
 
-void mmix_run_init(void)
-{ 
-  if (!vmb.connected)
-  { ide_status("connecting ...");
-    init_mmix_bus(host, port, "MMIX IDE");
-    if (!vmb.connected)
-    { ide_status("unable to connect to motherboard");
-    return;
-    }
-	ide_status("connected");
-  }
-    vmb_exit_hook = mmix_exit;
-//  vmb_debug_hook = win32_debug;
-//	vmb_error_init_hook = win32_error_init;
-  strncpy(full_mmo_name,fullname,MAX_PATH-4);
-  full_mmo_name[strlen(full_mmo_name)-1]='o';
-  }
-
-void mmix_run(void)
+void mmix_run(int file_no)
 {		  interacting=false;
 		  show_operating_system=false;
           breakpoint=false;
 		  tracing=false;
 		  tracing_exceptions=0;
           stack_tracing=false;
-          ConsoleThread(mmix_main,NULL);
+		  application_file_no=file_no;
+          MMIXThread();
 }
 
-void mmix_debug(void)
+void mmix_debug(int file_no)
 {		  interacting=true;
-		  show_operating_system=false;
+		  show_operating_system=show_os;
           breakpoint=true;
-		  tracing=true;
+		  tracing=trace;
 		  tracing_exceptions=0xFFFF;
 		  stack_tracing=false;
 		  if (break_at_Main)
-		  { mem_tetra *ll;
-            ll=mem_find(Main_loc); /* not available if not loaded */
-            if (ll->file_no==0 && set_breakpoint(0,ll->line_no))
-		      ed_send(SCI_MARKERADD,ll->line_no-1,MMIX_BREAKX_MARKER);
+		  { sym_node *sym=symbol2sym_node(":Main");
+			if (sym!=NULL)
+			{ loc2bkpt(sym->equiv)|= exec_bit;
+			  ide_mark_breakpoint(sym->file_no,sym->line_no);
+			}
 		  }
-		  ConsoleThread(mmix_main,NULL);
+		  application_file_no=file_no;
+		  MMIXThread();
 }
 
 void mmix_stop(void)
@@ -330,17 +175,16 @@ void mmix_stop(void)
 }
 
 char * mmix_status_str[]={"Disconnected", "Connected","Off", "On", "Stopped", "Running", "Halted"};
+int mmix_current_status=MMIX_OFF;
 
-void set_mmix_status(int status)
-{ mmix_status = status;
-  ide_status(mmix_status_str[mmix_status]);
+void mmix_status(int status)
+{ mmix_current_status=status;
+  ide_status(mmix_status_str[status]);
 }
 
 void mmix_stopped(octa loc)
 { mem_tetra *ll;
-  ide_status(mmix_status_str[mmix_status]);
   ll=mem_find(loc);
-  if (ll->file_no==0)
-    PostMessage(hMainWnd,WM_MMIX_STOPPED,ll->line_no,0);
-  memory_update();
+  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,item_data(ll->file_no,ll->line_no));
+
 }

@@ -44,20 +44,59 @@ If the option is omited altogether, localhost is contacted at port 9002.
 #else
 #define ARGS(list) ()
 #endif
+#define _MMIX_SIM_
+
+#pragma warning(disable : 4146 4267)
 
 @ @<Glob...@>=
 #include <time.h>
+
 #include "address.h"
 #include "mmix-bus.h"
 #include "vmb.h"
 #ifdef MMIXLIB
+#include <setjmp.h>
 #include "mmixlib.h"
 #endif
+@z
 
-device_info vmb = {0};
-#ifdef MMIXLIB
-int mmix_status = MMIX_OFF;
-#endif
+@x
+@ @<Sub...@>=
+void print_hex @,@,@[ARGS((octa))@];@+@t}\6{@>
+void print_hex(o)
+  octa o;
+@y
+@ @(libprint.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+//#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+void print_hex(octa o)
+@z
+
+
+
+
+
+The external definitions of mmix-arith
+should also go int a header file.
+
+@x
+@<Sub...@>=
+extern octa zero_octa; /* |zero_octa.h=zero_octa.l=0| */
+@y
+@<Sub...@>=
+#include "libarith.h"
+
+@ @(libarith.h@>=
+extern octa zero_octa; /* |zero_octa.h=zero_octa.l=0| */
 @z
 
 Fatal errors need to be handled.
@@ -75,6 +114,20 @@ if (shift_left(neg_one,1).h!=0xffffffff)
   return -1;
 @.Incorrect implementation...@>
 @z
+
+@x
+@<Sub...@>=
+void print_int @,@,@[ARGS((octa))@];@+@t}\6{@>
+void print_int(o)
+  octa o;
+@y
+@(libprint.c@>=
+
+void print_int(octa o)
+@z
+
+
+
 
 @x
 Each simulated tetrabyte has an associated frequency count and
@@ -103,6 +156,23 @@ The tet field of the mem_tetra is therefore eliminated
 @z
 
 @x
+@<Sub...@>=
+mem_node* new_mem @,@,@[ARGS((void))@];@+@t}\6{@>
+mem_node* new_mem()
+@y
+@(libmem.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+mem_node* new_mem(void)
+@z
+
+@x
 @<Initialize...@>=
 mem_root=new_mem();
 mem_root->loc.h=0x40000000;
@@ -113,6 +183,18 @@ mem_root=new_mem();
 mem_root->loc.h=0x40000000;
 last_mem=mem_root;
 @z
+
+@x
+@<Sub...@>=
+mem_tetra* mem_find @,@,@[ARGS((octa))@];@+@t}\6{@>
+mem_tetra* mem_find(addr)
+  octa addr;
+@y
+@(libmem.c@>=
+mem_tetra* mem_find(octa addr)
+@z
+
+
 
 @x
 @d mm 0x98 /* the escape code of \.{mmo} format */
@@ -148,10 +230,11 @@ but such enhancements are left to the interested reader.)
 
 @<Load object file@>=
 #ifdef MMIXLIB
-if (full_mmo_name!=NULL && full_mmo_name[0]!=0)
-{ mmo_file=fopen(full_mmo_name,"rb");
+if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
+{ mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {panic("Can't open mmo file");}
 #else
+#define mmo_file_name *cur_arg
 if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 { mmo_file=fopen(mmo_file_name,"rb");
   if (!mmo_file) {
@@ -181,7 +264,25 @@ if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 @d mmo_err {panic("Bad object file! (Try running MMOtype.)");}
 @z
 
+@x
+@<Sub...@>=
+void read_tet @,@,@[ARGS((void))@];@+@t}\6{@>
+void read_tet()
+@y
+@(libload.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+#include "mmix-bus.h"
+#include "mmixlib.h"
 
+void read_tet(void)
+@z
 
 @x
 if (buf[0]!=mm || buf[1]!=lop_pre) mmo_err;
@@ -198,18 +299,32 @@ if (buf[0]!=mmo_esc || buf[1]!=lop_pre) mmo_err;
 @x
 @d mmo_load(loc,val) ll=mem_find(loc), ll->tet^=val
 @y
-@<Sub...@>=
-#define mmo_load(loc, val)                  \
-{ octa x;                                   \
-  ll=mem_find(loc);                         \
-  load_data(4,&x,loc,0);                    \
-  x.l = x.l^val;                            \
-  if (!store_data(4,x,loc))                 \
-  panic("Unable to store mmo file to RAM"); \
+@d mmo_load(loc,val) ll=load_mem_tetra(loc,val)
+
+@(libload.c@>=
+static mem_tetra *load_mem_tetra(octa loc, tetra val)  
+{ octa x; 
+  mem_tetra *ll=mem_find(loc);           
+  load_data(4,&x,loc,0);     
+  x.l = x.l^val;             
+  if (!store_data(4,x,loc))  
+  panic("Unable to store mmo file to RAM");
+  return ll;
 }
 
 @ This function is used here:
 
+@z
+
+before we increment the line number,
+we must still reset frequency and breakpoints.
+
+@x
+    cur_line++;
+@y
+    ll->freq=0;
+    ll->bkpt=0;
+    cur_line++;
 @z
 
 The next lines of code complete loading the object file.
@@ -234,38 +349,63 @@ postamble=0;
 do @<Load the next item@>@;@+while (!postamble);
 @<Load the postamble@>;
 fclose(mmo_file);
+cur_line=0;
 write_all_data_cache();
 clear_all_instruction_cache();
 }
 @z
 
-we relax the requirement of a zero zbyte when
-we encounter a known file. So that we can reload the
-file after a reset.
+we have to map the file number stored in
+the mmo file as the ybyte to the 
+filenumbers used inside the library.
+
+First the case of known files.
 
 @x
 case lop_file:@+if (file_info[ybyte].name) {
    if (zbyte) mmo_err;
    cur_file=ybyte;
- }@+else {
-   if (!zbyte) mmo_err;
 @y
-case lop_file:@+if (!zbyte) {
-   cur_file=ybyte;
- }@+else {
-   if (file_info[ybyte].name) 
-   { free(file_info[ybyte].name);
-     file_info[ybyte].name=NULL;
-   }
+case lop_file:
+   if (ybyte2file_no[ybyte]>=0) {
+   if (zbyte) mmo_err;
+   cur_file=ybyte2file_no[ybyte];
 @z
 
+Now we handle new files.
 
 @x
+ }@+else {
+   if (!zbyte) mmo_err;
+   file_info[ybyte].name=(char*)calloc(4*zbyte+1,1);
+   if (!file_info[ybyte].name) {
      fprintf(stderr,"No room to store the file name!\n");@+exit(-5);
+@.No room...@>
+   }
+   cur_file=ybyte;
+   for (j=zbyte,p=file_info[ybyte].name; j>0; j--,p+=4) {
+     read_tet();
+     *p=buf[0];@+*(p+1)=buf[1];@+*(p+2)=buf[2];@+*(p+3)=buf[3];
+   }
+ }
 @y
-	 panic("No room to store the file name!\n");
-@z	 
-
+ }@+else {
+   char *name;
+   if (!zbyte) mmo_err;
+   name=(char*)calloc(4*zbyte+1,1);
+   if (!name) {
+     panic("No room to store the file name!\n");
+@.No room...@>
+   }   
+   for (j=zbyte,p=name; j>0; j--,p+=4) {
+     read_tet();
+     *p=buf[0];@+*(p+1)=buf[1];@+*(p+2)=buf[2];@+*(p+3)=buf[3];
+   }
+   cur_file=filename2file(name);
+   ybyte2file_no[ybyte]=cur_file;
+   file_info[cur_file].name=name;
+ }
+@z
 
 
 @x
@@ -309,8 +449,8 @@ g[255]=incr(aux,12*8); /* we will |UNSAVE| from here, to get going */
 @<Load the postamble@>=
 aux.h=0x60000000;
 { octa x;
-  x.h=0;@+x.l=argc;@+aux.l=0x00;
-  if (!store_data(8,x,aux)) /* and $\$0=|argc|$ */
+  x.h=0;@+x.l=0;@+aux.l=0x00;
+  if (!store_data(8,x,aux)) /* $\$0=|argc|$ */
      panic("Unable to store mmo file to RAM");
   x.h=0x40000000;@+x.l=0x8;@+aux.l=0x08;
   if (!store_data(8,x,aux)) /* and $\$1=\.{Pool\_Segment}+8$ */
@@ -336,6 +476,18 @@ aux.h=0x60000000;
 }
 @z
 
+Because mmo files have there own notion of
+file numbers, we have to map mmo file numbers
+to file numbers used in mem and in file_nodes.
+
+@x
+file_node file_info[256]; /* data about each source file */
+@y
+file_node file_info[256]; /* data about each source file */
+int ybyte2file_no[256]; /* mapping internal to external files */
+@z
+
+
 @x
 @<Initialize...@>=
 if (buf_size<72) buf_size=72;
@@ -349,8 +501,81 @@ buffer=(Char*)calloc(buf_size+1,sizeof(Char));
 if (!buffer) return -1;
 @z
 
+@x
+@<Sub...@>=
+void make_map @,@,@[ARGS((void))@];@+@t}\6{@>
+void make_map()
+@y
+@(libshowline.c@>=
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+@h
+@<Preprocessor macros@>@;
+@<Showline macros@>@;
+@<Type declarations@>@;
+//#include "libarith.h"
+#include "libglobals.h"
+//#include "address.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+void make_map(void)
+@z
+
+these include files are needed only in libshowline.c
+
+@x
+@<Preprocessor macros@>=
+@y
+@<Showline macros@>=
+@z
+
+@x
+@<Sub...@>=
+void print_line @,@,@[ARGS((int))@];@+@t}\6{@>
+void print_line(k)
+  int k;
+@y
+@(libshowline.c@>=
+void print_line(int k)
+@z
 
 
+@x
+@ @<Preprocessor macros@>=
+@y
+@ @<Showline macros@>=
+@z
+
+@x
+@<Sub...@>=
+void show_line @,@,@[ARGS((void))@];@+@t}\6{@>
+void show_line()
+@y
+@(libshowline.c@>=
+void show_line(void)
+@z
+
+@x
+@<Sub...@>=
+void print_freqs @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
+void print_freqs(p)
+  mem_node *p;
+@y
+@(libprofile.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+#include "mmixlib.h"
+
+void print_freqs(mem_node *p)
+@z
 
 @x
  loc_implied: printf("%10d. %08x%08x: %08x (%s)\n",
@@ -366,17 +591,21 @@ if (!buffer) return -1;
  }
 @z
 
+For the mmixlib, we split performing the
+instruction in three parts: 
+resuming,fetching, and executing.
 
 @x
+@<Perform one instruction@>=
+{
   if (resuming) loc=incr(inst_ptr,-4), inst=g[rX].l;
   else @<Fetch the next instruction@>;
 @y
-  op=SWYM;
-  zz=0;
-  f=0;
+@<Perform one instruction@>=
+{
   if (resuming)
   { loc=incr(inst_ptr,-4), inst=g[rzz?rXX:rX].l;
-    if (rzz==0)
+    if (rzz==0) /* RESUME 0 */
     { if ((loc.h&sign_bit) != (inst_ptr.h&sign_bit))
       { resuming = false;
         goto protection_violation;
@@ -384,20 +613,23 @@ if (!buffer) return -1;
       @<Check for security violation@>
     }
   }
-  else @<Fetch the next instruction@>;
 @z
+
+This restriction is no longer necessary.
 
 @x
   if (loc.h>=0x20000000) goto privileged_inst;
 @y
 @z
 
-
+the next two lines are not a propper part of
+performing an instruction and move to a separate 
+function respectively to the main loop.
+But we check for traps.
 @x
   @<Trace the current instruction, if requested@>;
+  if (resuming && op!=RESUME) resuming=false;
 @y
-  @<Trace the current instruction, if requested@>;
-  @<Check for trap interrupt@>;
 @z
 
 @x
@@ -412,7 +644,7 @@ bool interacting; /* are we in interactive mode? */
 @y
 bool interacting; /* are we in interactive mode? */
 bool show_operating_system = false; /* do we show negative addresses */
-static bool interact_after_resume = false;
+bool interact_after_resume = false;
 #ifdef MMIXLIB
 extern int port; /* on which port to connect to the bus */
 extern char *host; /* on which host to connect to the bus */
@@ -422,6 +654,30 @@ int port=9002; /* on which port to connect to the bus */
 char *host=localhost; /* on which host to connect to the bus */
 #endif
 @z
+
+We make some more variables global.
+
+@x
+@ @<Local...@>=
+register mmix_opcode op; /* operation code of the current instruction */
+register int xx,yy,zz,yz; /* operand fields of the current instruction */
+register tetra f; /* properties of the current |op| */
+@y
+@ @<Glob...@>=
+mmix_opcode op; /* operation code of the current instruction */
+tetra f; /* properties of the current |op| */
+int xx,yy,zz,yz; /* operand fields of the current instruction */
+
+@ @<Local...@>=
+@z
+
+and p is no longer needed in performing an instruction.
+
+@x
+register char *p; /* current place in a string */
+@y
+@z
+
 
 @x
 @ @<Fetch the next instruction@>=
@@ -443,16 +699,12 @@ char *host=localhost; /* on which host to connect to the bus */
   cur_file=ll->file_no;
   cur_line=ll->line_no;
   ll->freq++;
-  @<Check for security violation@>
-  if(!load_instruction(&inst,loc)) 
-  {  inst=SWYM;
-     x.h=sign_bit, x.l=SWYM<<24;
-     y = loc;
-     z = zero_octa;
-     goto inst_page_fault;
-  }
   if (ll->bkpt&exec_bit) breakpoint=true;
   tracing=breakpoint||(ll->bkpt&trace_bit)||(ll->freq<=trace_threshold);
+  inst=SWYM<<24; /* default SWYM */
+  @<Check for security violation@>
+  if(!load_instruction(&inst,loc)) 
+    goto page_fault;
   inst_ptr=incr(inst_ptr,4);
   if ((inst_ptr.h&sign_bit) && !(loc.h&sign_bit))
     goto protection_violation;
@@ -547,6 +799,7 @@ cur_round=ROUND_NEAR;
 stack_store must implement the rC register.
 
 @x
+@<Sub...@>=
 void stack_store @,@,@[ARGS((void))@];@+@t}\6{@>
 void stack_store()
 {
@@ -563,6 +816,7 @@ void stack_store()
   g[rS]=incr(g[rS],8),  S++;
 }
 @y
+@<Stack store@>=
 void stack_store @,@,@[ARGS((octa))@];@+@t}\6{@>
 void stack_store(x)
   octa x;
@@ -601,6 +855,21 @@ void stack_store(x)
   }
   g[rS]=incr(g[rS],8),  S++;
 }
+
+@ @<Sub...@>=
+@<Stack store@>@;
+@z
+
+Same with stack load.
+@x
+@<Sub...@>=
+void stack_load @,@,@[ARGS((void))@];@+@t}\6{@>
+@y
+@<Sub...@>=
+@<Stack load@>@;
+
+@ @<Stack load@>=
+void stack_load @,@,@[ARGS((void))@];@+@t}\6{@>
 @z
 
 @x
@@ -616,6 +885,16 @@ void stack_store(x)
 @y
 @z
 
+@x
+@<Sub...@>=
+int register_truth @,@,@[ARGS((octa,mmix_opcode))@];@+@t}\6{@>
+@y
+@<Sub...@>=
+@<Register truth@>@;
+
+@ @<Register truth@>=
+int register_truth @,@,@[ARGS((octa,mmix_opcode))@];@+@t}\6{@>
+@z
 
 @x
    inst_ptr=z;
@@ -643,7 +922,6 @@ page_fault:
  { x.h=0, x.l=inst;
    y = w;
    z = zero_octa;
-inst_page_fault:
    @<Initiate a trap interrupt@>
    inst_ptr=y=g[rTT];
  }
@@ -1185,6 +1463,7 @@ extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
 @z
 
 @x
+@<Sub...@>=
 int mmgetchars @,@,@[ARGS((char*,int,octa,int))@];@+@t}\6{@>
 int mmgetchars(buf,size,addr,stop)
   char *buf;
@@ -1206,6 +1485,17 @@ int mmgetchars(buf,size,addr,stop)
   return size;
 }
 @y
+@(libmmget.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "address.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
 int mmgetchars(buf,size,addr,stop)
   unsigned char *buf;
   int size;
@@ -1306,12 +1596,18 @@ void mmputchars(buf,size,addr)
 @ The subroutine |mmputchars(buf,size,addr)| puts |size| characters
 into the simulated memory starting at address |addr|.
 
-@<Sub...@>=
-void mmputchars @,@,@[ARGS((unsigned char*,int,octa))@];@+@t}\6{@>
-void mmputchars(buf,size,addr)
-  unsigned char *buf;
-  int size;
-  octa addr;
+@(libmmput.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "address.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+void mmputchars(unsigned char *buf,int size,octa addr)
 {
   register unsigned char *p;
   register int m;
@@ -1377,12 +1673,6 @@ if (!resuming)
     if (tracing)
     printf("Interrupt: rQ=%08x%08x rK=%08x%08x\n",
             g[rQ].h, g[rQ].l, g[rK].h, g[rK].l);
-  }
-  if (!vmb.connected)  goto end_simulation;
-  if (!vmb.power || vmb.reset_flag) 
-  { breakpoint=true; 
-    vmb.reset_flag=0; 
-    goto boot;
   }
   if ((g[rK].h & g[rQ].h) != 0 || (g[rK].l & g[rQ].l) != 0) 
   { /*this is a dynamic trap */
@@ -1591,29 +1881,9 @@ else
 
 
 @x
-@<Trace...@>=
 if (tracing) {
-  if (showing_source && cur_line) show_line();
-  @<Print the frequency count, the location, and the instruction@>;
-  @<Print a stream-of-consciousness description of the instruction@>;
-  if (showing_stats || breakpoint) show_stats(breakpoint);
-  just_traced=true;
-}@+else if (just_traced) {
-  printf(" ...............................................\n");
-  just_traced=false;
-  shown_line=-gap-1; /* gap will not be filled */
-}
 @y
-@<Trace...@>=
 if (tracing && (!(loc.h&0x80000000) || show_operating_system)) {
-  @<Print the frequency count, the location, and the instruction@>;
-  @<Print a stream-of-consciousness description of the instruction@>;
-  if (showing_stats || breakpoint) show_stats(breakpoint);
-  just_traced=true;
-}@+else if (just_traced) {
-  printf(" ...............................................\n");
-  just_traced=false;
-}
 @z
 
 
@@ -1628,6 +1898,41 @@ if (lhs[0]=='!') { printf("%s instruction!\n",lhs+1); /* privileged or illegal *
 @z
 
 @x
+@ @<Sub...@>=
+fmt_style style;
+char *stream_name[]={"StdIn","StdOut","StdErr"};
+@.StdIn@>
+@.StdOut@>
+@.StdErr@>
+@#
+void trace_print @,@,@[ARGS((octa))@];@+@t}\6{@>
+void trace_print(o)
+  octa o;
+@y
+@ @(libtrace.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+//#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+static fmt_style style;
+static char *stream_name[]={"StdIn","StdOut","StdErr"};
+@.StdIn@>
+@.StdOut@>
+@.StdErr@>
+@#
+void trace_print(octa o)
+@z
+  
+  
+
+@x
 char switchable_string[48]; /* holds |rhs|; position 0 is ignored */
  /* |switchable_string| must be able to hold any |trap_format| */
 @y
@@ -1635,8 +1940,42 @@ char switchable_string[300] ={0}; /* holds |rhs|; position 0 is ignored */
  /* |switchable_string| must be able to hold any debug message */
 @z
 
+@x
+@ @<Sub...@>=
+void show_stats @,@,@[ARGS((bool))@];@+@t}\6{@>
+void show_stats(verbose)
+  bool verbose;
+@y
+@ @(libstats.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+void show_stats(bool verbose)
+@z
+
 
 @x
+@* Running the program. Now we are ready to fit the pieces together into a
+working simulator.
+
+@c
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <signal.h>
+#include "abstime.h"
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+@<Global variables@>@;
+@<Subroutines@>@;
+@#
 int main(argc,argv)
   int argc;
   char *argv[];
@@ -1663,103 +2002,355 @@ int main(argc,argv)
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
 }
 @y
-#ifdef MMIXLIB
-int mmix_lib_init(void)
+@* Making the library. Now we are ready to write the different pieces of
+a working simulator to separate files of a library.
+
+@(liblibinit.c@>=
+#include <stdlib.h>
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+int mmix_lib_initialize(void)
 {
    @<Set up persistent data@>;
    return 0;
 }
 
-int mmix_main(void *dummy)
-{ char **boot_cur_arg;
-  int boot_argc;
-  static char *empty="";
-  int argc =0;
-  @<Local registers@>;
-  cur_arg=&empty;
-  if (!vmb.connected) panic("Not connected");
+@ @(libinit.c@>=
+#include <stdio.h>
+#include <signal.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+//#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+#ifdef WIN32
+BOOL CtrlHandler(DWORD fdwCtrlType);
 #else
+void catchint(int n);
+#endif
+
+int mmix_initialize(void)
+{  @<Initialize everything@>;
+  cur_seg.h=cur_seg.l=0; /* the Text segment is current */
+  return 0;
+}
+
+@ @(libboot.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "abstime.h"
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+#include "mmix-bus.h"
+#include "mmixlib.h"
+
+void mmix_boot(void)
+{  @<Boot the machine@>;
+}
+
+
+@ @(libload.c@>=
+int mmix_load_file(char *mmo_file_name)
+{ int j; /* miscellaneous indices */
+  mem_tetra *ll; /* current place in the simulated memory */
+  char *p; /* current place in a string */
+  free_file_info();
+   @<Load object file@>;
+   return 0;
+}
+
+@ @(libcommand.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+int mmix_commandline(int argc, char *argv[])
+{ int k;
+  @<Load the command line arguments@>;
+  g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
+  return 0;
+}
+
+@ @(libinteract.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+static octa scan_hex(char *s, octa offset);
+
+int	mmix_interact(void)      
+/* return zero to end the simulation */
+{ int j,k; /* miscellaneous indices */
+  mem_tetra *ll; /* current place in the simulated memory */
+  char *p; /* current place in a string */
+  @<Interact with the user@>;
+  return 1;
+end_simulation:
+  return 0;
+}
+
+@ @(libfetch.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+int mmix_fetch_instruction(void)
+/* return zero if no instruction was loaded */
+{ mem_tetra *ll; /* current place in the simulated memory */
+  @<Fetch the next instruction@>;
+  return 1;
+
+protection_violation: 
+  strcpy(lhs,"!protected");
+  g[rQ].h |= P_BIT; new_Q.h |= P_BIT; /* set the p bit */
+  return 0;
+
+security_inst: 
+  strcpy(lhs,"!insecure");
+  return 0;
+  
+page_fault: 
+  strcpy(lhs,"!not fetched");
+  return 0;
+}
+
+@ @(libperform.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "address.h"
+#include "mmix-bus.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+static bool interact_after_resume= false;
+
+@<Stack store@>@;
+@<Stack load@>@;
+@<Register truth@>@;
+
+int mmix_perform_instruction(void)  
+{ @<Local registers@>;
+  @<Perform one instruction@>@;
+  return 1;
+}
+
+@ @(libtrace.c@>=
+
+void mmix_trace(void)
+{ mem_tetra *ll; /* current place in the simulated memory */
+  char *p; /* current place in a string */
+
+  @<Trace the current instruction, if requested@>;
+} 
+
+@ @(libdtrap.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+void mmix_dynamic_trap(void)
+{  
+   @<Check for trap interrupt@>;
+}
+
+@ @(libprofile.c@>=
+
+
+void mmix_profile(void)
+{
+  @<Print all the frequency counts@>;
+}
+
+
+@ @(libfinal.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+int mmix_finalize(void)
+{ free_file_info();
+  return 0;
+}
+
+@ @(liblibfinal.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "vmb.h"
+#include "mmixlib.h"
+
+int mmix_lib_finalize(void)
+{ return 0;
+}
+
+@ @c
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <signal.h>
+#include "abstime.h"
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+@<Global variables@>@;
+@<Subroutines@>@;
+@#
 int main(argc,argv)
   int argc;
   char *argv[];
 {
   char **boot_cur_arg;
   int boot_argc;
-  @<Local registers@>;
   @<Set up persistent data@>;
   @<Process the command line@>;
   if (host==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(host,port,"MMIX CPU");
   atexit(vmb_atexit);
-#endif
  
   boot_cur_arg = cur_arg;
   boot_argc = argc;
   if (vmb.power)  
     vmb_raise_reset(&vmb);
-  @<Initialize everything@>;
+  mmix_initialize();
 
 boot:
 
   argc = boot_argc;
   cur_arg = boot_cur_arg;
-  @<Boot the machine@>;
-#ifdef MMIXLIB
-  mmix_status=MMIX_OFF;
-#endif    
+  mmix_boot();
+     
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
      if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-#ifdef MMIXLIB
-  mmix_status=MMIX_RUNNING;
-#endif  
-  @<Load object file@>;
-  @<Load the command line arguments@>;
-  g[rQ].h=g[rQ].l=new_Q.h=new_Q.l=0; /*hide problems with loading the command line*/
-  while (1) {
+  
+  mmix_load_file(*cur_arg);
+  mmix_commandline(argc, argv);
+  while (vmb.connected) {
     if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
     else if (!(inst_ptr.h&sign_bit) || show_operating_system || 
           (inst_ptr.h==0x80000000 && inst_ptr.l==0))
     { breakpoint=false;
-      if (interacting) {
-#ifdef MMIXLIB      
-        mmix_status=MMIX_STOPPED;
-        mmix_stopped(loc);
-#endif        
-        @<Interact with the user@>;
+      if (interacting) { 
+		if (!mmix_interact()) goto end_simulation;
       }
     }
     if (halted) break;
-#ifdef MMIXLIB      
-        mmix_status=MMIX_RUNNING;
-#endif        
- 
-    do @<Perform one instruction@>@;
-    while ((!interrupt && !breakpoint) || resuming);
+    do   
+    { if (!resuming)
+        mmix_fetch_instruction();
+      mmix_perform_instruction();
+      mmix_trace();
+      mmix_dynamic_trap();
+      if (resuming && op!=RESUME) resuming=false; 
+    } while ((vmb.connected && vmb.power && !vmb.reset_flag &&
+              !interrupt && !breakpoint) || 
+              resuming);
     if (interact_after_break) 
        interacting=true, interact_after_break=false;
-    if (!vmb.power)
+    if (!vmb.power|| vmb.reset_flag)
+    { breakpoint=true; 
+      vmb.reset_flag=0; 
       goto boot;
+    }
   }
-  end_simulation:
+  end_simulation:@+if (profiling) mmix_profile();
   if (interacting || profiling || showing_stats) show_stats(true);
-#ifdef MMIXLIB
-  mmix_status=MMIX_HALTED;
-  return g[255].l;
-#else  
+  mmix_finalize();
   return g[255].l; /* provide rudimentary feedback for non-interactive runs */
-#endif  
-}
+}  
+@z
+
+mmo_file_name becomes a variable not an alias.
+
+@x
+@d mmo_file_name *cur_arg
+@y
 @z
 
 @x
 if (!*cur_arg) scan_option("?",true); /* exit with usage note */
+argc -= cur_arg-argv; /* this is the |argc| of the user program */
 @y
+#ifndef MMIXLIB
+if (!*cur_arg) scan_option("?",true); /* exit with usage note */
+#endif
+argc -= (int)(cur_arg-argv); /* this is the |argc| of the user program */
 @z
 
+@x
+@<Subr...@>=
+void scan_option @,@,@[ARGS((char*,bool))@];@+@t}\6{@>
+void scan_option(arg,usage)
+  char *arg; /* command-line argument (without the `\.-') */
+  bool usage; /* should we exit with usage note if unrecognized? */
+@y
+@(libsoption.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmixlib.h"
+
+void scan_option(char *arg, /* command-line argument (without the `\.-') */
+                 bool usage) /* should we exit with usage note if unrecognized? */
+@z
 
 @x
  case 'l':@+if (!*(arg+1)) gap=3;
@@ -1834,12 +2425,8 @@ bool profiling=0; /* should we print the profile at the end? */
 @z
 
 @x
-"-l<n> list source lines when tracing, filling gaps <= n\n",@|
 "-s    show statistics after each traced instruction\n",@|
-"-P    print a profile when simulation ends\n",@|
-"-L<n> list source lines with the profile\n",@|
 @y
-"-r    trace hidden details of the register stack\n",@|
 "-O    trace inside the operating system\n",@|
 "-o    disable trace inside the operating system\n",@|
 "-B<n> connect to Bus on port <n>\n",@|
@@ -1888,7 +2475,7 @@ SetConsoleCtrlHandler( (PHANDLER_ROUTINE) CtrlHandler, TRUE );
 signal(SIGINT,catchint); /* now |catchint| will catch the first interrupt */
 #endif
 
-@ @<Subr...@>=
+@ @(libinit.c@>=
 #ifdef WIN32
 BOOL CtrlHandler( DWORD fdwCtrlType ) 
 { interrupt=true;
@@ -1901,10 +2488,8 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
   else
   { printf("Closing MMIX\n");
 #ifdef MMIXLIB
-    show_operating_system=true;
-    interrupt=true;
     halted=1;
-    vmb_cancel_wait_for_event(&vmb);
+    /* will not work if waiting for input */
 #else
     FreeConsole();
 #endif   
@@ -1933,6 +2518,16 @@ void catchint(n)
   { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
 @z
 
+@x
+@ @<Subr...@>=
+octa scan_hex @,@,@[ARGS((char*,octa))@];@+@t}\6{@>
+octa scan_hex(s,offset)
+  char *s;
+  octa offset;
+@y
+@ @(libinteract.c@>=
+octa scan_hex(char *s, octa offset)
+@z
 
 @x
  case 'M':@+if (!(cur_disp_addr.h&sign_bit)) {
@@ -1955,6 +2550,18 @@ void catchint(n)
  case 'M':
     load_data(8,&aux,cur_disp_addr,0);
 @z
+
+
+@x
+@ @<Subr...@>=
+void print_string @,@,@[ARGS((octa))@];@+@t}\6{@>
+void print_string(o)
+  octa o;
+@y
+@ @(libprint.c@>=
+void print_string(octa o)
+@z
+
 
 We allow tracing in the Textsegement and in the negative Segment.
 
@@ -1982,6 +2589,29 @@ case 'o': show_operating_system=false;@+goto passit;
 @z
 
 @x
+@ @<Sub...@>=
+void show_breaks @,@,@[ARGS((mem_node*))@];@+@t}\6{@>
+void show_breaks(p)
+  mem_node *p;
+@y
+@ @(libshowbreaks.c@>=
+#include <stdio.h>
+@h
+@<Preprocessor macros@>@;
+@<Type declarations@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+//#include "address.h"
+//#include "mmix-bus.h"
+#include "mmixlib.h"
+
+
+void show_breaks(mem_node *p)
+@z
+
+
+@x
 @<Load the command line arguments@>=
 x.h=0x40000000, x.l=0x8;
 loc=incr(x,8*(argc+1));
@@ -1995,12 +2625,15 @@ for (k=0; k<argc; k++,cur_arg++) {
 x.l=0;@+ll=mem_find(x);@+ll->tet=loc.h, (ll+1)->tet=loc.l;
 @y
 @<Load the command line arguments@>=
+x.h=0x60000000, x.l=0x00;
+aux.h=0, aux.l=argc;
+store_data(8,aux,x); /* and $\$0=|argc|$ */
 x.h=0x40000000, x.l=0x8;
 aux=incr(x,8*(argc+1));
-for (k=0; k<argc && *cur_arg!=NULL; k++,cur_arg++) {
+for (k=0; k<argc && *argv!=NULL; k++,argv++) {
   store_data(8,aux,x);
-  mmputchars((unsigned char *)*cur_arg,strlen(*cur_arg),aux);
-  x.l+=8, aux.l+=8+(tetra)(strlen(*cur_arg)&-8);
+  mmputchars((unsigned char *)*argv,strlen(*argv),aux);
+  x.l+=8, aux.l+=8+(tetra)(strlen(*argv)&-8);
 }
 if (argc>0) 
 { x.l=0;

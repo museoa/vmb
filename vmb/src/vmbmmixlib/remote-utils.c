@@ -455,9 +455,9 @@ static void start_thread(thread_function_ptr f, thread_data d)
 
 
 
-static THREAD_FUNCTION(gdb_read_loop, dummy)
+static DWORD WINAPI gdb_read_loop(LPVOID dummy)
 { char *read_buffer;
-  int port = (int)dummy;
+  int port = (int)(LPARAM)dummy;
 #ifdef DEBUG
   fprintf(stderr, "Starting read loop\n");
 #endif
@@ -659,7 +659,7 @@ int gdb_init(int port)
   /* If we don't do this, then gdbserver simply exits when the remote side dies. */
   signal (SIGPIPE, catchpipe);	
 #endif
-  start_thread(gdb_read_loop,(thread_data)port);
+  start_thread(gdb_read_loop,(thread_data)(LPARAM)port);
   start_thread(gdb_loop,0);
   return 1;
 }

@@ -4,9 +4,8 @@
 //
 #define IDR_MENU                        104
 #define IDR_ACCELERATOR                 106
-#define IDB_BITMAP1                     108
+#define IDI_ICON                        107
 #define IDB_FILE_NEW                    108
-#define IDI_ICON1                       109
 #define IDI_FILE_NEW                    110
 #define IDI_VIEW_ZOOMOUT                111
 #define IDI_FILE_OPEN                   112
@@ -22,6 +21,13 @@
 #define IDD_SHOW_SPECIAL                127
 #define IDD_SHOW_DEBUG                  128
 #define IDD_FIND                        129
+#define IDD_OPTIONS_ASSEMBLER           130
+#define IDD_OPTIONS_EDITOR              131
+#define IDI_FINDREPLACE                 132
+#define IDI_DEBUG_STEP                  134
+#define IDI_DEBUG_CONTINUE              136
+#define IDI_DEBUG_PAUSE                 138
+#define IDI_DEBUG_HALT                  139
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -49,17 +55,26 @@
 #define IDC_SHOW_RI                     1009
 #define IDC_REPLACE                     1009
 #define IDC_SHOW_RJ                     1010
-#define IDC_CHECK1                      1010
 #define IDC_CHECK_MAIN                  1010
 #define IDC_SHOW_RK                     1011
 #define IDC_REPLACE_ALL                 1011
+#define IDC_CHECK_AUTOSAVE              1011
+#define IDC_CHECK_TRACE                 1011
 #define IDC_SHOW_RL                     1012
+#define IDC_CHECK_LINENO                1012
+#define IDC_SPIN_BUFFERSIZE             1012
 #define IDC_SHOW_RM                     1013
 #define IDC_CHECK_WRAP                  1013
+#define IDC_BUFFERSIZE                  1013
+#define IDC_CHECK_PROFILE               1013
 #define IDC_SHOW_RN                     1014
+#define IDC_CHECK_X                     1014
 #define IDC_SHOW_RO                     1015
+#define IDC_CHECK_LISTING               1015
 #define IDC_SHOW_RP                     1016
+#define IDC_SELECT_SPECIALS             1016
 #define IDC_SHOW_RQ                     1017
+#define IDC_CHECK_OS                    1017
 #define IDC_SHOW_RR                     1018
 #define IDC_SHOW_RS                     1019
 #define IDC_SHOW_RT                     1020
@@ -114,7 +129,7 @@
 #define ID_VIEW_ZOOMOUT                 40050
 #define ID_FILE_PRINT40051              40051
 #define ID_MMIX_CONNECT                 40052
-#define ID_OPTIONS_WINDOWS              40053
+#define ID_OPTIONS_DEBUG                40053
 #define ID_VIEW_SHOWWHITESPACE          40059
 #define ID_VIEW_WHITESPACE              40060
 #define ID_MMIX_STOP                    40061
@@ -123,14 +138,23 @@
 #define ID_EDIT_FINDAGAIN               40064
 #define ID_EDIT_REPLACEAGAIN            40069
 #define ID_FILE_PAGESETUP               40073
+#define ID_VIEW_FILELIST                40074
+#define ID_VIEW_SYMBOLTABLE             40075
+#define ID_OPTIONS_ASSEMBLER            40076
+#define ID_OPTIONS_EDITOR               40077
+#define ID_OPTIONS_MOTHERBOARD          40078
+#define ID_MMIX_STEP                    40082
+#define ID_MMIX_CONTINUE                40083
+#define ID_MMIX_QUIT                    40084
+#define ID_OPTIONS_VMB                  40085
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         40074
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_COMMAND_VALUE         40086
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

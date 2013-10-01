@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "winmain.h"
+#include "info.h"
 #include "print.h"
 
 #pragma warning(disable : 4996)
@@ -85,10 +86,10 @@ int print(void)
 	struct Sci_RangeToFormat srf;
 	int print_from,print_to;
 	int page;
+	char *name;
     TEXTMETRIC tm;
 	int headheight;
 #define MAX_NAME 128
-	char shortname[MAX_NAME]={0};
 	char pagestr[20];
 	/* get information about the page */
 	resolution.x = GetDeviceCaps(pd.hDC, LOGPIXELSX);    // dpi in X direction
@@ -110,9 +111,6 @@ int print(void)
 	GetTextMetrics(pd.hDC,&tm);
 	headheight=tm.tmHeight + tm.tmExternalLeading;;
 
-    GetShortPathName(fullname,shortname,MAX_NAME);
-
-
 	margin.left=max(margin.left,printable.left);
 	margin.right=max(margin.right,printable.right);
 	margin.top=max(margin.top,printable.top);
@@ -120,10 +118,11 @@ int print(void)
 	margin.bottom=max(margin.bottom,printable.bottom);
 	margin.bottom=max(margin.bottom,2*headheight);
 
+	name = file2shortname(edit_file_no); 
 
     memset( &di, 0, sizeof(DOCINFO) );
     di.cbSize = sizeof(DOCINFO); 
-    di.lpszDocName = fullname; 
+    di.lpszDocName = file2fullname(edit_file_no); 
     di.lpszOutput = (LPTSTR) NULL; 
     di.lpszDatatype = (LPTSTR) NULL; 
     di.fwType = 0; 
@@ -160,7 +159,8 @@ int print(void)
  	while(print_from<print_to)
 	{ 
 	  SetTextAlign(pd.hDC,TA_LEFT|TA_BOTTOM);
-      TextOut(pd.hDC,srf.rc.left,srf.rc.top-headheight,shortname,(int)strlen(shortname));
+	  if (name!=NULL)
+      TextOut(pd.hDC,srf.rc.left,srf.rc.top-headheight,name,(int)strlen(name));
 
 	  { HPEN hPen = GetStockObject(BLACK_PEN);
 	    HPEN hPenOld = SelectObject(pd.hDC, hPen); 

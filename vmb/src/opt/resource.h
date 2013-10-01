@@ -37,6 +37,7 @@
 #define AFX_IDC_FONTSTYLES              1002
 #define IDC_DEBUG                       1003
 #define AFX_IDC_FONTSIZES               1003
+#define IDC_CHECK_AUTOCONNECT           1004
 #define AFX_IDC_STRIKEOUT               1004
 #define IDC_TAB_DEBUG                   1005
 #define AFX_IDC_UNDERLINE               1005
@@ -557,7 +558,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1044
+#define _APS_NEXT_CONTROL_VALUE         1045
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
