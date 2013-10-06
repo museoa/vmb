@@ -94,18 +94,3 @@ extern int file_list_drawitem(LPDRAWITEMSTRUCT di)
   return 0;
 }
  
-#if 0 
-                    hbmpPicture =(HBITMAP)SendMessage(di->hwndItem, 
-                        LB_GETITEMDATA, di->itemID, (LPARAM) 0); 
- 
-                    hdcMem = CreateCompatibleDC(di->hDC); 
-                    hbmpOld = SelectObject(hdcMem, hbmpPicture); 
- 
-                    BitBlt(di->hDC, 
-                        di->rcItem.left, di->rcItem.top, 
-                        di->rcItem.right - di->rcItem.left, 
-                        di->rcItem.bottom - di->rcItem.top, 
-                        hdcMem, 0, 0, SRCCOPY); 
- 
-                    // Display the text associated with the item. 
-#endif

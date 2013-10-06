@@ -12,3 +12,4 @@ extern void set_debug_windows(void);
 extern int break_at_Main;
 extern int trace;
 extern int show_os;
+extern int break_after;

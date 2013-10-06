@@ -10,6 +10,42 @@ extern sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam);
 #define MAX_FIND_STR 1024
 static char find_str[MAX_FIND_STR]={0};
 static char replace_str[MAX_FIND_STR]={0};
+static char expand_str[MAX_FIND_STR]={0};
+
+static char *expand_special(char *str)
+{ int to=0;
+  do {
+    if (*str=='\t')
+      expand_str[to++]='\\',expand_str[to++]='t';
+	else if (*str=='\n')
+      expand_str[to++]='\\',expand_str[to++]='n';
+	else    if (*str=='\r')
+      expand_str[to++]='\\',expand_str[to++]='r';
+	else
+      expand_str[to++]=*str;
+	str++;
+  } while (expand_str[to-1]!=0 && to<MAX_FIND_STR-3);
+  expand_str[to]=0;
+  return expand_str;
+}
+static contract_special(char *str)
+{ char *from=str;
+  do {
+    if (from[0]=='\\')
+	{ if (from[1]=='t')
+	    *str++='\t', from+=2;
+	  else if (from[1]=='n')
+	    *str++='\n', from+=2;
+	  else if (from[1]=='r')
+	    *str++='\r', from+=2;
+	  else
+	    *str++=from[1],from+=2;
+	}
+	else
+	  *str++=*from++;
+  } while (*str!=0);
+}
+
 
 #define MAX_HISTORY 10
 static char *find_history[MAX_HISTORY]={NULL};
@@ -24,11 +60,11 @@ void add_list(HWND h, char *str)
 { 
   LRESULT i=0;
   if (str[0]==0) return;
-  i=SendMessage(h,CB_FINDSTRINGEXACT ,-1,(LPARAM)(LPCTSTR)str);
+  i=SendMessage(h,CB_FINDSTRINGEXACT ,-1,(LPARAM)(LPCTSTR)expand_special(str));
   if(i!=CB_ERR)
   { SendMessage(h,CB_DELETESTRING ,i,0);
   }
-  i = SendMessage(h,CB_INSERTSTRING,0,(LPARAM)str);
+  i = SendMessage(h,CB_INSERTSTRING,0,(LPARAM)expand_special(str));
   SendMessage(h,CB_SETCURSEL,i,0);
 }
 
@@ -126,6 +162,8 @@ int replace_all(void)
 	
 
 
+
+
 INT_PTR CALLBACK 
 FindDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
@@ -133,6 +171,16 @@ switch ( message )
   { case WM_INITDIALOG:
 	  restore_history(GetDlgItem(hDlg,IDC_COMBO_FIND),find_history_count,find_history);
 	  restore_history(GetDlgItem(hDlg,IDC_COMBO_REPLACE),replace_history_count,replace_history);
+	  { int len = (int) ed_send(SCI_GETSELTEXT,0,0);
+		if (len < MAX_FIND_STR-1)
+		{ char * buf =malloc(len);
+		  if (buf!=NULL)
+		  { ed_send(SCI_GETSELTEXT,0,(LPARAM)buf);
+	  	    SetDlgItemText(hDlg,IDC_COMBO_FIND,expand_special(buf));
+		    free(buf);
+		  }
+		}
+	  }
 	  SendDlgItemMessage(hDlg,IDC_CHECK_CASE,BM_SETCHECK,
 		  (find_flags&SCFIND_MATCHCASE)?BST_CHECKED:BST_UNCHECKED,0);
 	  SendDlgItemMessage(hDlg,IDC_CHECK_WORD,BM_SETCHECK,
@@ -143,9 +191,11 @@ switch ( message )
     case WM_COMMAND:
 	  if (HIWORD(wparam) == BN_CLICKED) 
 	  { HWND hFind = GetDlgItem(hDlg,IDC_COMBO_FIND); 
-	    HWND hReplace = GetDlgItem(hDlg,IDC_COMBO_REPLACE); 
+	    HWND hReplace = GetDlgItem(hDlg,IDC_COMBO_REPLACE);
 	    SendMessage(hFind,WM_GETTEXT,MAX_FIND_STR-1,(LPARAM)(LPCTSTR)find_str);
+		contract_special(find_str);
 		SendMessage(hReplace,WM_GETTEXT,MAX_FIND_STR-1,(LPARAM)(LPCTSTR)replace_str);
+		contract_special(replace_str);
 		if( wparam == IDOK )
 		{ HWND hFocus;
 		  hFocus = GetFocus();

@@ -16,6 +16,8 @@ int unique_shortname(int file_no);
 
 extern void *file2document(int file_no); 
 /* return document, open if needed, return NULL if file not found  */
+extern trie_node *file2symbols(int file_no);
+/* return symbol trie for file */
 
 extern int filename2file(char *filename);
 /* return file_no for this file, allocate fullname as needed */
@@ -47,16 +49,15 @@ extern void add_line_loc(int file_no, int line_no, octa loc);
 /* associate this location with the given file and line */
 extern void fill_file_list(void);
 /* set all file names in the listbox h */
-extern void fill_symtab(void);
+extern void update_symtab(void);
 /* set all symbols in the symbol table*/
 extern void symtab_add_file(int file_no,trie_node *t);
 /* add a symbol table for this file */
-extern sym_node * symbol2sym_node(char *symbol);
-/* find a symbol in one of the symbol tables */
 extern void close_file(int file_no);
 /* remove a file from the database */
 extern int get_inuse_file(void);
 /* return a file that is in use */
 extern int line2freq(int file_no,int line_no);
 /* returns the frequency count for this line  or -1 if none found*/
-
+extern void mem_clear_breaks(int file_no);
+/* remove all breakpoints for this file */

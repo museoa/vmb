@@ -25,6 +25,8 @@ extern void set_lineno_width(void);
 extern void set_profile_width(void);
 extern void update_profile(void);
 #define WM_MMIX_STOPPED (WM_USER+1)
+#define WM_MMIX_RESET (WM_USER+2)
+#define WM_MMIX_LOAD (WM_USER+3)
 
 #define MMIX_LINE_MARGIN 0
 #define MMIX_PROFILE_MARGIN 1

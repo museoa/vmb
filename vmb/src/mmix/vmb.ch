@@ -317,13 +317,12 @@ static mem_tetra *load_mem_tetra(octa loc, tetra val)
 @z
 
 before we increment the line number,
-we must still reset frequency and breakpoints.
+we reset the frequency.
 
 @x
     cur_line++;
 @y
     ll->freq=0;
-    ll->bkpt=0;
     cur_line++;
 @z
 

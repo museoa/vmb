@@ -181,7 +181,8 @@ extern mem_node *last_mem; /* the memory node most recently read or written */
 extern mem_tetra* mem_find(octa addr);
 extern trie_node *trie_root; 
 extern sym_node*sym_avail;
-#define DEFINED (sym_node*)1 /* code value for octabyte equivalents */
+#define DEFINED (sym_node*)1     /* link value for octabyte equivalents */
+#define REGISTER (sym_node*) 2   /* link value for register equivalents */
 
 extern bool long_warning_given;
 extern octa cur_loc, listing_loc;

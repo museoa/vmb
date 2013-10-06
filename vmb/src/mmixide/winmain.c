@@ -26,7 +26,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.9 $ $Date: 2013-10-01 06:59:46 $";
+char version[]="$Revision: 1.10 $ $Date: 2013-10-06 16:22:42 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -140,7 +140,7 @@ int ide_connect(void)
 	init_mmix_bus(host,port,"MMIX IDE");
   else
   { int decision = MessageBox(hMainWnd, "Connect to Motherboard ?","VMB Connect",MB_YESNOCANCEL);
-	if (decision = IDYES)
+	if (decision == IDYES)
        init_mmix_bus(host,port,"MMIX IDE");
   }
   return vmb.connected;
@@ -175,6 +175,7 @@ void set_edit_file(int file_no)
      txt_style();
   SetWindowText(hMainWnd,file_listname(file_no));
   file_list_mark(edit_file_no);
+  update_symtab();
 }
 
 ide_mark_breakpoint(int file_no, int line_no)
@@ -385,18 +386,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_MMIX_CONTINUE:
 		  mmix_continue('c');
 		  return 0;
+	   case ID_MMIX_STOP:
+		  mmix_stop();
+		  return 0;
 		case ID_MMIX_QUIT:
 		  mmix_continue('q');
 		  return 0;
 		case ID_MMIX_DEBUG:
 		  if (!ide_prepare_mmix()) return 0;
-		  update_breakpoints();
 		  set_debug_windows();
 		  mmix_debug(edit_file_no);
 	      return 0; 
-		case ID_MMIX_STOP:
-		  mmix_stop();
-		  return 0;
 		case ID_MMIX_RUN:
 		  if (!ide_prepare_mmix()) return 0;
 		  mmix_run(edit_file_no);
@@ -404,9 +404,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  mmix_assemble(edit_file_no);
+		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==application_file_no && vmb.power)
+		  { MessageBox(hWnd,"Different mmo file running!", file_listname(edit_file_no),MB_OK|MB_ICONWARNING);
+		  }
 	      return 0; 
-
 	    case ID_MMIX_CONNECT:
 		  if (menu_toggle(ID_MMIX_CONNECT))
 		  { if (!vmb.connected)
@@ -447,13 +448,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  new_register_view(1);
 		  return 0;
 		case ID_REGISTERS_STACK:
-		  new_register_view(1);
+		  new_register_view(3);
 		  return 0;
 	    case ID_REGISTERS_SPECIAL:
-		  new_register_view(3);
+		  new_register_view(2);
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
+		  return 0;
+		case ID_OPTIONS_SYMTAB:
+		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_SYMTAB),hWnd,OptionSymtabDialogProc);
 		  return 0;
 		case ID_OPTIONS_ASSEMBLER:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_ASSEMBLER),hWnd,OptionAssemblerDialogProc);
@@ -535,6 +539,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ mmix_status(MMIX_HALTED);
       show_stop_marker(edit_file_no,-1); /* clear stop marker */
 	  bb_set_group(hButtonBar,BG_DEBUG,0,1);
+	  update_symtab();
 	}
 	else if (lParam==0)
 	{ mmix_status(MMIX_STOPPED);
@@ -546,6 +551,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	update_profile();
 	memory_update();
+	return 0;
+  case WM_MMIX_RESET:
+	return 0;
+  case WM_MMIX_LOAD:
+    update_breakpoints();
 	return 0;
   case WM_CLOSE:
 	if (ed_close_all(1))
@@ -756,7 +766,12 @@ void new_edit(void)
 
 void update_breakpoints(void)
 { int line = -1;
+  if (application_file_no<0) return;
+  if (break_at_Main) break_at_symbol(":Main");
   if (hEdit==NULL) return;
+  if (file2document(application_file_no)==NULL) return;
+  set_edit_file(application_file_no);
+  mem_clear_breaks(edit_file_no);
   while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)))>=0)
    if (!set_breakpoint(edit_file_no,line+1))
      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
@@ -966,7 +981,7 @@ int ed_save_changes(int cancel)
 int assemble_if_needed(int file_no)
 { char *full_mms_name=file2fullname(file_no);
   if (mmo_file_newer(full_mms_name))
-  {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", full_mms_name, MB_YESNOCANCEL);
+  {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(edit_file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -975,7 +990,7 @@ int assemble_if_needed(int file_no)
 	   return 0;
   }
   else if (!file2debuginfo(file_no))
-  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", "MMIX IDE", MB_YESNOCANCEL);
+  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(edit_file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -1063,7 +1078,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_edit(hInstance);
 	mmix_lib_initialize();
 	new_edit();
-	hStatus = CreateWindow("STATIC", "Status" ,
+	hStatus = CreateWindow("STATIC", version ,
 				WS_CHILD|WS_VISIBLE|SS_CENTER,
                 r.right-r.left-S_WIDTH,0, S_WIDTH,BB_HEIGHT,
 	            hMainWnd, NULL, hInstance, NULL);

@@ -669,7 +669,11 @@ void vmb_connect(device_info *vmb, char *host, int port)
    must be called before any of the other functions
 */
 {  vmb->fd= bus_connect(host,port);
-   if (vmb->fd<0) vmb_fatal_error(__LINE__,"Unable to connect to motherboard");
+   if (vmb->fd<0) 
+   { vmb_fatal_error(__LINE__,"Unable to connect to motherboard");
+     vmb->connected = 0;
+     return;
+   }
 
   vmb->connected = 1;
 #ifdef WIN32

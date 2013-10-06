@@ -164,7 +164,7 @@ static void mem_node_clear_breaks(unsigned char file_no,mem_node*p)
    }
 }
 
-static void mem_clear_breaks(int file_no)
+void mem_clear_breaks(int file_no)
 { mem_node_clear_breaks(file_no,mem_root);
 }
 
@@ -246,56 +246,19 @@ int line2freq(int file_no,int line_no)
   return freq_max;
 }
 
-static char symtab_buf[1000];
 
-void enumerate_symtab(trie_node *t, char *sym_ptr)
-{
-
-  if (t->left) enumerate_symtab(t->left,sym_ptr);
-  *sym_ptr=(char)t->ch;
-  if (t->sym && t->sym->link==DEFINED)
-  { *(sym_ptr+1)=0;
-     symtab_add(symtab_buf+1,t->sym); /* skip leading : */
-  }
-  if (t->mid) enumerate_symtab(t->mid,sym_ptr+1);
-  if (t->right) enumerate_symtab(t->right,sym_ptr);
-}
-
-static symtab_add_file_no(int file_no)
-{ 
-   if (symbols[file_no]!=NULL)
-     enumerate_symtab(symbols[file_no], symtab_buf);
-}
-
-
-void fill_symtab(void)
-{ int file_no;
-  symtab_reset();
-  for (file_no=0; file_no<next_file_no;file_no++)
-  { if (inuse(file_no))
-		symtab_add_file_no(file_no);
-  }
-}
 
 void symtab_add_file(int file_no,trie_node *t)
 { 
   clear_symbols(file_no);
   symbols[file_no]=t;
   has_debug_info[file_no] = 1;
-  fill_symtab();
+  update_symtab();
 }
 
-
-sym_node * symbol2sym_node(char *symbol)
-{ int file_no;
-  sym_node *p;
-  for (file_no=0; file_no<next_file_no;file_no++)
-  { if (inuse(file_no))
-    { p = find_symbol(symbol,symbols[file_no]);
-      if (p!=NULL && p->link==DEFINED) return p;
-    }
-  }
-  return NULL;
+trie_node *file2symbols(int file_no)
+{ if (file_no<0 || file_no>=next_file_no) return NULL;
+  return symbols[file_no];
 }
 
 void close_file(int file_no)

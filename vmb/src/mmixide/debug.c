@@ -16,10 +16,21 @@
 
 #define MAXMEM 5
 inspector_def memory_insp[];
-unsigned int show_debug_windows = 0x27; 
+
+#define WIN_LOCAL                  (1<<0)
+#define WIN_GLOBAL                 (1<<1)
+#define WIN_SPECIAL                (1<<2)
+#define WIN_REGSTACK               (1<<3)
+#define WIN_TEXT                   (1<<4)
+#define WIN_DATA                   (1<<5)
+#define WIN_POOL                   (1<<6)
+#define WIN_STACK                  (1<<7)
+
+unsigned int show_debug_windows = WIN_LOCAL|WIN_GLOBAL; 
 int break_at_Main = 1;
 int trace = 1;
 int show_os = 0;
+int break_after = 1;
 
 #define MAX_DEBUG_WINDOWS 9
 INT_PTR CALLBACK    
@@ -35,6 +46,8 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_TRACE,trace?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_os?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_BREAKAFTER,break_after?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,tracing_exceptions!=0?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -54,6 +67,11 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
 		show_os=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
+		break_after=IsDlgButtonChecked(hDlg,IDC_CHECK_BREAKAFTER);
+		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS))
+			tracing_exceptions=-1;
+		else
+			tracing_exceptions=0;
         EndDialog(hDlg, TRUE);
         return TRUE;
       } else if (wparam==IDCANCEL)
@@ -346,9 +364,9 @@ void mem_to_globals(int from, int to)
 	  o->l=chartoint(global_mem+(i*8)+4);
     }
   if (from<32)
-  	  MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL],register_insp[REG_SPECIAL].regs[from].offset,8*(to-from));
+	  MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL],from*8,8*(to-from));
   else if (to>=G)
-  	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from].offset,8*(to-from));
+  	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from-G].offset,8*(to-from));
 }
 
 
@@ -385,7 +403,6 @@ void set_register_inspectors(void)
     register_insp[REG_GLOBAL].regs=&reg_names[G];
     adjust_mem_display(&register_insp[REG_GLOBAL]);
   }
-  if (register_insp[REG_SPECIAL].hWnd!=NULL) set_special_reg_name();
 }
 
 void new_register_view(int i)

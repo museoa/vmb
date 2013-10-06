@@ -240,6 +240,7 @@ void init_mmix_bus(char *host, int port, char *name)
   vmb_debug_flag = 0;
   vmb_program_name = "MMIX CPU";
   vmb_connect(&vmb,host, port);
+  if (!vmb.connected) return;
   vmb_register(&vmb,0,0,0,-1,-1,name,g[rN].h>>24,(g[rN].h>>16)&0xFF);
   vmb_cache_init(&vmb_i_cache);
   vmb_cache_init(&vmb_d_cache);

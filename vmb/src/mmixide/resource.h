@@ -28,6 +28,7 @@
 #define IDI_DEBUG_CONTINUE              136
 #define IDI_DEBUG_PAUSE                 138
 #define IDI_DEBUG_HALT                  139
+#define IDD_OPTIONS_SYMTAB              141
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -63,10 +64,12 @@
 #define IDC_SHOW_RL                     1012
 #define IDC_CHECK_LINENO                1012
 #define IDC_SPIN_BUFFERSIZE             1012
+#define IDC_CHECK_BREAKAFTER            1012
 #define IDC_SHOW_RM                     1013
 #define IDC_CHECK_WRAP                  1013
 #define IDC_BUFFERSIZE                  1013
 #define IDC_CHECK_PROFILE               1013
+#define IDC_CHECK_EXCEPTIONS            1013
 #define IDC_SHOW_RN                     1014
 #define IDC_CHECK_X                     1014
 #define IDC_SHOW_RO                     1015
@@ -76,8 +79,12 @@
 #define IDC_SHOW_RQ                     1017
 #define IDC_CHECK_OS                    1017
 #define IDC_SHOW_RR                     1018
+#define IDC_CHECK_LOCALS                1018
 #define IDC_SHOW_RS                     1019
+#define IDC_CHECK_REGISTERS             1019
 #define IDC_SHOW_RT                     1020
+#define IDC_CHECK_REGISTERS2            1020
+#define IDC_CHECK_SMALL                 1020
 #define IDC_SHOW_RU                     1021
 #define IDC_SHOW_RV                     1022
 #define IDC_SHOW_RW                     1023
@@ -147,14 +154,16 @@
 #define ID_MMIX_CONTINUE                40083
 #define ID_MMIX_QUIT                    40084
 #define ID_OPTIONS_VMB                  40085
+#define ID_OPTIONS_SYMBOLTABLE          40086
+#define ID_OPTIONS_SYMTAB               40087
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
-#define _APS_NEXT_COMMAND_VALUE         40086
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_RESOURCE_VALUE        142
+#define _APS_NEXT_COMMAND_VALUE         40088
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
