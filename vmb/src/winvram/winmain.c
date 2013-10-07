@@ -12,8 +12,9 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.34 $ $Date: 2013-09-05 06:50:57 $";
+char version[]="$Revision: 1.35 $ $Date: 2013-10-07 16:32:56 $";
 char title[] ="VMB Video Ram";
+#define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
 int major_version=1, minor_version=5;
 /*
@@ -231,8 +232,8 @@ void init_screen(device_info *vmb)
 	  rc.left = 0;
 	  rc.right = (int)(width*zoom);
 	  rc.bottom = (int)(height*zoom);
-	  AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW,FALSE);
-      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
+	  AdjustWindowRect(&rc,WS_VRAM,FALSE);
+      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left,rc.bottom-rc.top,SWP_SHOWWINDOW);
 	}
 	inspector[0].name="Video RAM";
 	inspector[0].size=vmb_size;
@@ -853,14 +854,14 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		if (newwidth!=width || newheight!=height)
 		{ RECT rc;
 		  width=newwidth;
-		  newheight=newheight;
+		  height=newheight;
 		  init_gpu_memory();
 		  rc.top = 0;
 		  rc.left = 0;
 		  rc.right = (int)(width*zoom);
 		  rc.bottom = (int)(height*zoom);
-		  AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW,FALSE);
-          SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
+		  AdjustWindowRect(&rc,WS_VRAM,FALSE);
+          SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left,rc.bottom-rc.top,SWP_SHOWWINDOW);
 		}
 	    GetDlgItemText(hDlg,IDC_ADDRESS_MOUSE,tmp_option,MAXTMPOPTION);
         vmb_mouse_address = strtouint64(tmp_option); 
@@ -887,8 +888,8 @@ void set_zoom(double z)
   rc.left = 0;
   rc.right = (int)(width*zoom);
   rc.bottom = (int)(height*zoom);
-  AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW,FALSE);
-  SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left-2,rc.bottom-rc.top-2,SWP_SHOWWINDOW);
+  AdjustWindowRect(&rc,WS_VRAM,FALSE);
+  SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,rc.right-rc.left,rc.bottom-rc.top,SWP_SHOWWINDOW);
 }
 
 
@@ -1174,7 +1175,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 	else
 		bm.bmWidth=bm.bmHeight=CW_USEDEFAULT;
 
-    hMainWnd = CreateWindow(szClassName, title ,WS_OVERLAPPED|WS_BORDER|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX,
+    hMainWnd = CreateWindow(szClassName, title ,WS_VRAM,
                             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 	                        NULL, NULL, hInstance, NULL);
    return TRUE;
