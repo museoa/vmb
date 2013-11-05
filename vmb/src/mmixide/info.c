@@ -22,7 +22,9 @@ char *fullname[MAX_FILES+1] = {NULL}; /* the full filenames */
 char *shortname[MAX_FILES+1] = {NULL}; /* pointers to the tail of the fullname */
 static trie_node* symbols[MAX_FILES+1] = {NULL}; /* pointer to pruned symbol table */
 void *doc[MAX_FILES+1] = {NULL}; /* pointer to scintilla documents */
+char doc_dirty[MAX_FILES+1] ={0};
 char has_debug_info[MAX_FILES+1] ={0};
+char loading[MAX_FILES+1] ={0};
 static int next_file_no=0, count_file_no=0;
 
 #define available(file_no) (fullname[file_no]==NULL&&doc[file_no]==NULL)
@@ -32,14 +34,16 @@ static int next_file_no=0, count_file_no=0;
 static void free_name(int file_no)
 /* free the memory of fullname */
 { if (fullname[file_no]!=NULL)
-   free(fullname[file_no]);
+  { file_list_remove(file_no);
+    free(fullname[file_no]);
+  }
   fullname[file_no]=shortname[file_no]=NULL;
 }
 
 
-static int new_file_no(void)
+static int alloc_file_no(void)
 /* return -1 on failure, otherwise an available file number 
-   files without fullname and document are available
+   files without fullname or document are available
 */
 { int file_no;
   if (count_file_no>=MAX_FILES)
@@ -61,8 +65,12 @@ static int new_file_no(void)
 
 static void release_file_no(int file_no)
 { free_name(file_no);
-  if (doc[file_no]!=NULL) ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc[file_no]);
+  if (doc[file_no]!=NULL) 
+  { ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc[file_no]);
+    file_list_remove(file_no);
+  }
   doc[file_no]=NULL;
+  doc_dirty[file_no]=0;
   // symbols[file_no]=NULL; needs freeing 
   count_file_no--;
   while(next_file_no>0 && available(next_file_no-1)) next_file_no--;
@@ -82,14 +90,16 @@ int unique_shortname(int file_no)
 
 int edit_file_no = -1; /* the file currently in the editor */
 
-void *file2document(int file_no)
+void set_edit_document(void)
 /* return document, open if needed, return NULL if file not found  */
-{ if (file_no>=next_file_no) return NULL;
-  if (doc[file_no]==NULL)
-  { doc[file_no]=(void *)ed_send(SCI_CREATEDOCUMENT,0,0);
-    if (fullname[file_no]==NULL) file_list_add(file_no);
+{ if (doc[edit_file_no]==NULL)
+  { doc[edit_file_no]=(void *)ed_send(SCI_CREATEDOCUMENT,0,0);
+    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
+    if (fullname[edit_file_no]!=NULL) ed_open_file();
+    file_list_add(edit_file_no);
   }
-  return doc[file_no];
+  else
+    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
 }
 
 static int find_file(char *name)
@@ -99,8 +109,8 @@ static int find_file(char *name)
   return -1;
 }
 
-static int file_set_name(int file_no, char *filename)
-/* auxiliar function to compute full and short name and set them */
+int file_set_name(int file_no, char *filename)
+/* function to compute full and short name and set them */
 { static char name[MAX_PATH+1], *tail;
   int n;
   if (filename==NULL)
@@ -124,31 +134,31 @@ static int file_set_name(int file_no, char *filename)
   { strncpy(fullname[file_no],name,n+1);
 	shortname[file_no]=fullname[file_no]+(tail-name);
   }
-  return file_no;
-}
-
-int file_change_name(int file_no, char *filename)
-{ file_list_remove(file_no);
-  file_no = file_set_name(file_no,filename);
   file_list_add(file_no);
   return file_no;
 }
 
+
 int filename2file(char *filename)
 /* return file_no for this file, allocate fullname as needed */
-{ int file_no, no = new_file_no();
-	
+{ int new_no;
+  new_no = alloc_file_no();
+  if (new_no<0) return -1;
   if (filename==NULL)
-	 file_no = no;
+  {	file_list_add(new_no);
+    return new_no;
+  }
   else
-  {	if (file_set_name(no, filename)<0) return -1;
-	file_no=find_file(fullname[no]);
-	if (file_no!=no)
-	  release_file_no(no);
+  {	int file_no;
+    new_no= file_set_name(new_no, filename);
+    if (new_no<0) return -1;
+	file_no=find_file(fullname[new_no]);
+	if (file_no!=new_no)
+	  release_file_no(new_no);
 	else
 	  file_list_add(file_no);
+    return file_no;
   }
-  return file_no;
 }
 
 
@@ -208,15 +218,13 @@ void for_all_loc(int file_no, int line_no, void f(octa loc))
 }
 
 
-void fill_file_list(void)
+void for_all_files(void f(int i))
 /* set all file names in the file list list box h */
 { int file_no;
-  file_list_reset();
   for (file_no=0; file_no<next_file_no;file_no++)
   { if (inuse(file_no))
-		file_list_add(file_no);
+		f(file_no);
   }
-  file_list_mark(edit_file_no);
 }
 
 
@@ -263,8 +271,7 @@ trie_node *file2symbols(int file_no)
 
 void close_file(int file_no)
 /* remove a file from the database */
-{ file_list_remove(file_no);
-  release_file_no(file_no);
+{ release_file_no(file_no);
   clear_symbols(file_no);
   has_debug_info[file_no]=0;
 }

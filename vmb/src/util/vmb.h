@@ -68,7 +68,7 @@ typedef struct
   void (*reset)(void);
   void (*terminate)(void);
   void (*disconnected)(void);
-  void (*interrupt)(unsigned char interrupt);
+  void (*interrupt)(unsigned char i);
   unsigned char *(*get_payload)(unsigned int offset,int size);
   void (*put_payload)(unsigned int offset,int size, unsigned char *payload);
   void (*unknown)(unsigned char type,

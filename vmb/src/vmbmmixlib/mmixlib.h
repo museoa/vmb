@@ -51,6 +51,8 @@ extern int	mmix_interact(void);
 /* mmix user interaction */
 extern int mmix_fetch_instruction(void);
 /* called to fetch one instruction returns zero on error */
+extern int mmix_resume(void);
+/* called instead of mmix_fetch_insruction after a RESUME */
 extern int mmix_perform_instruction(void); 
 /* called to execute one instruction */
 extern void mmix_trace(void);

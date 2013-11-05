@@ -29,6 +29,7 @@
 #define IDI_DEBUG_PAUSE                 138
 #define IDI_DEBUG_HALT                  139
 #define IDD_OPTIONS_SYMTAB              141
+#define IDD_OPTIONS_SOURCES             142
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -64,7 +65,6 @@
 #define IDC_SHOW_RL                     1012
 #define IDC_CHECK_LINENO                1012
 #define IDC_SPIN_BUFFERSIZE             1012
-#define IDC_CHECK_BREAKAFTER            1012
 #define IDC_SHOW_RM                     1013
 #define IDC_CHECK_WRAP                  1013
 #define IDC_BUFFERSIZE                  1013
@@ -83,14 +83,21 @@
 #define IDC_SHOW_RS                     1019
 #define IDC_CHECK_REGISTERS             1019
 #define IDC_SHOW_RT                     1020
-#define IDC_CHECK_REGISTERS2            1020
 #define IDC_CHECK_SMALL                 1020
+#define IDC_TABWIDTH                    1020
 #define IDC_SHOW_RU                     1021
+#define IDC_SPIN_TABWIDTH               1021
 #define IDC_SHOW_RV                     1022
+#define IDC_RADIO_BREAK_AFTER           1022
 #define IDC_SHOW_RW                     1023
+#define IDC_RADIO_BREAK_BEFORE          1023
 #define IDC_SHOW_RX                     1024
+#define IDC_LIST_FILES                  1024
 #define IDC_SHOW_RY                     1025
+#define IDC_ADD                         1025
 #define IDC_SHOW_RZ                     1026
+#define IDC_BUTTON2                     1026
+#define IDC_REMOVE                      1026
 #define IDC_SHOW_RBB                    1027
 #define IDC_SHOW_RTT                    1028
 #define IDC_SHOW_RWW                    1029
@@ -156,14 +163,16 @@
 #define ID_OPTIONS_VMB                  40085
 #define ID_OPTIONS_SYMBOLTABLE          40086
 #define ID_OPTIONS_SYMTAB               40087
+#define ID_OPTIONS_EXTRASOURCES         40088
+#define ID_OPTIONS_SOURCES              40089
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        142
-#define _APS_NEXT_COMMAND_VALUE         40088
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_COMMAND_VALUE         40090
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

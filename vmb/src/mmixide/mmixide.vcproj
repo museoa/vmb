@@ -229,6 +229,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources.c"
+				>
+			</File>
+			<File
 				RelativePath=".\symtab.c"
 				>
 			</File>
@@ -283,11 +287,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\sources.h"
 				>
 			</File>
 			<File

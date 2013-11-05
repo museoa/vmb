@@ -28,8 +28,6 @@ inspector_def memory_insp[];
 
 unsigned int show_debug_windows = WIN_LOCAL|WIN_GLOBAL; 
 int break_at_Main = 1;
-int trace = 1;
-int show_os = 0;
 int break_after = 1;
 
 #define MAX_DEBUG_WINDOWS 9
@@ -44,9 +42,10 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			   (show_debug_windows&(1<<i))?BST_CHECKED:BST_UNCHECKED);
 		}
         CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_CHECK_TRACE,trace?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_CHECK_OS,show_os?BST_CHECKED:BST_UNCHECKED);
-		CheckDlgButton(hDlg,IDC_CHECK_BREAKAFTER,break_after?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_TRACE,tracing?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_RADIO_BREAK_BEFORE,!break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,tracing_exceptions!=0?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
@@ -65,9 +64,9 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			else
 			  show_debug_windows&=~(1<<i);
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
-		trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
-		show_os=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
-		break_after=IsDlgButtonChecked(hDlg,IDC_CHECK_BREAKAFTER);
+		tracing=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
+		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
+		break_after=IsDlgButtonChecked(hDlg,IDC_RADIO_BREAK_AFTER);
 		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS))
 			tracing_exceptions=-1;
 		else
@@ -220,7 +219,20 @@ unsigned int show_special_registers = 0xf03980da; /* bits correspond to register
 struct register_def reg_names[256]={0};
 struct inspector_def register_insp[];
 void set_special_reg_name(void);
-
+char *long_special_name[32]= {"rB bootstrap register (trip)",
+"rD dividend register","rE epsilon register","rH himult register",
+"rJ return-jump register","rM multiplex mask register",
+"rR remainder register","rBB bootstrap register (trap)",
+"rC continuation register","rN serial number","rO register stack offset",
+"rS register stack pointer","rI interval counter","rT trap address register",
+"rTT dynamic trap address register","rK interrupt mask register",
+"rQ interrupt request register","rU usage counter","rV virtual translation register",
+"rG global threshold register","rL local threshold register",
+"rA arithmetic status register","rF failure location register",
+"rP prediction register","rW where-interrupted register (trip)",
+"rX execution register (trip)","rY Y operand (trip)",
+"rZ Z operand (trip)","rWW where-interrupted register (trap)",
+"rXX execution register (trap)","rYY Y operand (trap)","rZZ Z operand (trap)"};
 INT_PTR CALLBACK    
 OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { 
@@ -230,7 +242,7 @@ OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    for (i=0;i<32;i++)
 		{	CheckDlgButton(hDlg,IDC_SHOW_RA+i,
 			   (show_special_registers&(1<<i))?BST_CHECKED:BST_UNCHECKED);
-		    SetDlgItemText(hDlg,IDC_SHOW_RA+i,special_name[i]);
+		    SetDlgItemText(hDlg,IDC_SHOW_RA+i,long_special_name[i]);
 		}
       }
       return TRUE;

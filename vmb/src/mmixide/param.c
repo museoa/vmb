@@ -37,6 +37,7 @@
 #include "param.h"
 #include "option.h"
 #include "bus-arith.h"
+#include "info.h"
 #include "winmain.h"
 
 
@@ -67,7 +68,7 @@ void usage(char *message)
 
 void do_argument(int pos, char * arg)
 { 
-  ed_open_file(arg);
+  set_edit_file(filename2file(arg));
 }
 
 int do_define(char *arg)

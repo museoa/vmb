@@ -20,13 +20,14 @@
 #include "mmixdata.h"
 #include "edit.h"
 #include "assembler.h"
+#include "sources.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.10 $ $Date: 2013-10-06 16:22:42 $";
+char version[]="$Revision: 1.11 $ $Date: 2013-11-05 17:00:32 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -38,7 +39,7 @@ char title[] ="VMB MMIX IDE";
 #define BG_HELP 5
 
 sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam);
-void ed_open(void);
+int ed_open(void);
 int ed_close(void);
 int ed_close_all(int cancel);
 void ed_new(void);
@@ -122,7 +123,8 @@ void show_stop_marker(int file_no, int line_no)
 	PostMessage(hEdit,SCI_MARKERDELETE,previous_mmix_line_no-1,MMIX_TRACE_MARKER);
   if (line_no>0) {
     PostMessage(hEdit,SCI_MARKERADD, line_no-1, MMIX_TRACE_MARKER);
-	PostMessage(hEdit,SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
+	PostMessage(hEdit,SCI_ENSUREVISIBLEENFORCEPOLICY,line_no-1,0); 
+//	PostMessage(hEdit,SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
   }
   previous_mmix_line_no=line_no;
 }
@@ -167,8 +169,11 @@ void set_edit_file(int file_no)
   if (file_no==edit_file_no || file_no<0) return;
   ide_clear_error_marker();
   clear_stop_marker();
+  if (edit_file_no>=0)
+    file2dirty(edit_file_no)=(int)ed_send(SCI_GETMODIFY,0,0);
   edit_file_no = file_no;
-  ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)file2document(file_no));
+  set_edit_document();
+  set_tabwidth();
   if (GetMenuState(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND)&MF_CHECKED)
      mms_style();
   else
@@ -183,9 +188,31 @@ ide_mark_breakpoint(int file_no, int line_no)
      ed_send(SCI_MARKERADD,line_no-1,MMIX_BREAKX_MARKER); /* lines start with zero */
 }
 
+static int all_saved=1;
+static int all_cancel=0;
+static int current_file_no=-1;
+
+void save_file_if_needed(int file_no)
+{ if (!all_saved) return;
+  if (file_no==current_file_no) return;
+  if (!file2dirty(file_no)) return;
+  set_edit_file(file_no);
+  if (!ed_save_changes(all_cancel)) all_saved=0;
+}
+
+int ed_save_all(int cancel)
+{ current_file_no = edit_file_no;
+  all_saved=1;
+  all_cancel=cancel;
+  for_all_files(save_file_if_needed);
+  set_edit_file(current_file_no);
+  return all_saved && ed_save_changes(cancel);
+}
+
+
 int ide_prepare_mmix(void)
-{ if (!ed_save_changes(1)) return 0;
-  if (!assemble_if_needed(edit_file_no)) return 0;
+{ if (!ed_save_all(1)) return 0;
+  if (!assemble_all_needed()) return 0;
   if (!ide_connect()) return 0;
   if (application_file_no==edit_file_no)
   { MessageBox(hMainWnd,"Application is already running.\r\nReset to load new code.","MMIX IDE",MB_OK);
@@ -202,9 +229,9 @@ int ide_prepare_mmix(void)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
   switch (message) 
-  {  
-  case WM_CREATE: 
-		return 0;
+  {     case WM_CREATE:
+         SetWindowPos(hWnd,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
+        return 0;
   case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
 		{	MoveWindow(hButtonBar, 0,0,LOWORD(lParam)-S_WIDTH,BB_HEIGHT, TRUE);
@@ -284,7 +311,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  ed_new();
 		  return 0;
 	    case ID_FILE_OPEN:
-		  ed_open();
+		  set_edit_file(ed_open());
 		  return 0;
 	    case ID_FILE_CLOSE:
           ed_close();
@@ -465,6 +492,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_OPTIONS_DEBUG:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_DEBUG),hWnd,OptionDebugDialogProc);
 		  return 0;
+		case ID_OPTIONS_SOURCES:
+		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_SOURCES),hWnd,OptionSourcesDialogProc);
+		  return 0;
 		case ID_OPTIONS_VMB:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_CONNECT),hWnd,ConnectDialogProc);
 		  return 0;
@@ -528,7 +558,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{ file_no=sym->file_no;
 		  line_no=sym->line_no;
  		  set_edit_file(file_no);
-		  ed_send(SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
+		  ed_send(SCI_ENSUREVISIBLEENFORCEPOLICY,line_no-1,0); 
+//		  ed_send(SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
 		  SetFocus(hEdit);
 		}
 	  }
@@ -709,6 +740,9 @@ void update_profile(void)
 
 }
 
+void set_tabwidth(void)
+{   ed_send(SCI_SETTABWIDTH,tabwidth,0);
+}
 
 void new_edit(void)
 { 
@@ -722,6 +756,7 @@ void new_edit(void)
    ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
    ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
+   ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_JUMPS|CARET_EVEN,3);
    txt_style();
    /* configure margins and markers */
    /* line numbers */
@@ -769,7 +804,6 @@ void update_breakpoints(void)
   if (application_file_no<0) return;
   if (break_at_Main) break_at_symbol(":Main");
   if (hEdit==NULL) return;
-  if (file2document(application_file_no)==NULL) return;
   set_edit_file(application_file_no);
   mem_clear_breaks(edit_file_no);
   while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)))>=0)
@@ -816,13 +850,8 @@ int ed_close_all(int cancel)
 
 
 
-void ed_open_file(char *name)
-{ int file_no;
-  FILE *fp;
-  if (hEdit==NULL) new_edit();
-  file_no = filename2file(name);
-  set_edit_file(file_no);
-  if (!ed_save_changes(1)) return;
+int ed_open_file(void)
+{ FILE *fp;
   fp = fopen(file2fullname(edit_file_no), "rb");
   if (fp) {
     char data[ED_BLOCKSIZE];
@@ -830,16 +859,20 @@ void ed_open_file(char *name)
     while ((len = fread(data, 1, ED_BLOCKSIZE, fp))>0)
       ed_send(SCI_ADDTEXT, len, (sptr_t)data);
 	fclose(fp); 
+	file2dirty(edit_file_no)=0;
     ed_send(SCI_SETUNDOCOLLECTION, 1,0);
     ed_send(SCI_SETSAVEPOINT,0,0);
     ed_send(SCI_GOTOPOS,0,0);
 	set_lineno_width();
+	return edit_file_no;
   }
   else
-	  ide_status("Unable to open file");
+  { ide_status("Unable to open file");
+    return -1;
+  }
 }
 
-void ed_open(void)
+int ed_open(void)
 { 	char name[MAX_PATH+1] = "\0";
 	OPENFILENAME ofn={0};
 	ofn.lStructSize= sizeof(OPENFILENAME);
@@ -854,7 +887,9 @@ void ed_open(void)
 	ofn.lpstrTitle = "Open File";
 	ofn.Flags = OFN_HIDEREADONLY;
     if (GetOpenFileName(&ofn)) 
-    ed_open_file(name);
+      return filename2file(name);
+	else
+      return -1;
 }
 
 
@@ -950,7 +985,7 @@ void ed_save_as(void)
 	ofn.Flags = OFN_HIDEREADONLY;
 
 	if (GetSaveFileName(&ofn) && !dont_overwrite(asname)) 
-	{  file_change_name(edit_file_no,asname);
+	{  file_set_name(edit_file_no,asname);
 	   ed_save_name(file2fullname(edit_file_no));
 	  //InvalidateRect(hEdit, NULL, NULL);
 	}
@@ -981,7 +1016,7 @@ int ed_save_changes(int cancel)
 int assemble_if_needed(int file_no)
 { char *full_mms_name=file2fullname(file_no);
   if (mmo_file_newer(full_mms_name))
-  {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(edit_file_no), MB_YESNOCANCEL);
+  {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -990,7 +1025,7 @@ int assemble_if_needed(int file_no)
 	   return 0;
   }
   else if (!file2debuginfo(file_no))
-  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(edit_file_no), MB_YESNOCANCEL);
+  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -999,6 +1034,20 @@ int assemble_if_needed(int file_no)
 	   return 0;
   }
   return 1;
+}
+
+static int all_assembled;
+
+static void assemble_loading_files(int file_no)
+{ if (!all_assembled) return;
+  if (!file2loading(file_no)) return;
+  if (!assemble_if_needed(file_no)) all_assembled=0;
+}
+
+int assemble_all_needed(void)
+{ all_assembled=1;
+  for_all_files(assemble_loading_files);
+  return all_assembled && assemble_if_needed(edit_file_no);
 }
 
 void new_errorlist(void)
@@ -1090,9 +1139,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     vmb_exit_hook=ide_exit_ignore;
     programhelpfile="mmixide.hlp";
 	/* normal vmb processing */
+	
 	  param_init ();
       get_pos_key(&xpos,&ypos,defined);
-      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
+      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 
 

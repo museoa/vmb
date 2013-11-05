@@ -4,17 +4,21 @@ extern int edit_file_no; /* the file currently in the editor */
 extern char *fullname[MAX_FILES+1]; /* the full filenames */
 extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
 extern char has_debug_info[MAX_FILES+1];
+extern char loading[MAX_FILES+1];
+extern char doc_dirty[MAX_FILES+1];
+
 extern void *doc[257]; /* pointer to scintilla documents */
 
 #define file2shortname(file_no) (shortname[file_no])
 #define file2fullname(file_no)  (fullname[file_no])
 #define file2debuginfo(file_no) (has_debug_info[file_no])
-
+#define file2loading(file_no) (loading[file_no])
+#define file2dirty(file_no) (doc_dirty[file_no])
 
 int unique_shortname(int file_no);
 /* find out wheter the shortname is unique */
 
-extern void *file2document(int file_no); 
+extern void set_edit_document(void); 
 /* return document, open if needed, return NULL if file not found  */
 extern trie_node *file2symbols(int file_no);
 /* return symbol trie for file */
@@ -22,8 +26,8 @@ extern trie_node *file2symbols(int file_no);
 extern int filename2file(char *filename);
 /* return file_no for this file, allocate fullname as needed */
 
-extern int file_change_name(int file_no, char *filename);
-/* give the file a new name */
+extern int file_set_name(int file_no, char *filename);
+/* function to compute full and short name and set them */
 
 extern void set_file(int file_no, char *filename);
 /* rearrange data to associate file_no with filename, 
@@ -47,7 +51,7 @@ extern void for_all_loc(int file_no, int line_no, void f(octa loc));
 
 extern void add_line_loc(int file_no, int line_no, octa loc);
 /* associate this location with the given file and line */
-extern void fill_file_list(void);
+extern void for_all_files(void f(int i));
 /* set all file names in the listbox h */
 extern void update_symtab(void);
 /* set all symbols in the symbol table*/

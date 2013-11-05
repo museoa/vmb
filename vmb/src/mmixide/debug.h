@@ -10,6 +10,4 @@ extern INT_PTR CALLBACK OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM
 extern INT_PTR CALLBACK OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern void set_debug_windows(void);
 extern int break_at_Main;
-extern int trace;
-extern int show_os;
 extern int break_after;

@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include "resource.h"
 #include "winmain.h"
 #include "edit.h"
@@ -6,6 +7,7 @@
 int autosave = 0;
 int show_line_no = 0;
 int show_profile = 0;
+int tabwidth = 4;
 
 INT_PTR CALLBACK    
 OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -15,6 +17,8 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       CheckDlgButton(hDlg,IDC_CHECK_AUTOSAVE,autosave?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_CHECK_LINENO,show_line_no?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_CHECK_PROFILE,show_profile?BST_CHECKED:BST_UNCHECKED);
+	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_TABWIDTH),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
+	  SetDlgItemInt(hDlg,IDC_TABWIDTH,tabwidth,FALSE);
       return TRUE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -30,6 +34,8 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_profile =IsDlgButtonChecked(hDlg,IDC_CHECK_PROFILE);
         set_profile_width();
 		update_profile();
+		tabwidth=GetDlgItemInt(hDlg,IDC_TABWIDTH,NULL,FALSE);
+		set_tabwidth();
 		EndDialog(hDlg, TRUE);
         return TRUE;
       } 

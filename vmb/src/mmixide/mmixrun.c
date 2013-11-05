@@ -31,8 +31,7 @@ static int mmix_waiting = 0;
 
 int mmix_interact(void)
 { DWORD w;
-  mmix_stopped(loc);
-  printf("----------------------------------------------------\n");
+  breakpoint=false;
   mmix_waiting = 1;
   w = WaitForSingleObject(hInteract,INFINITE);
   mmix_waiting = 0;
@@ -180,9 +179,7 @@ void mmix_reset(void)
 
 void mmix_debug(int file_no)
 {		  interacting=true;
-		  show_operating_system=show_os;
           breakpoint=true;
-		  tracing=trace;
 		  tracing_exceptions=0x0;
 		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
@@ -222,17 +219,29 @@ void mmix_exit(int returncode)
 
 /* this is the plain vmb version of mmix main() */
 
-int check_interact(void)
+static int check_interact(bool after)
 {   if (!interrupt && !breakpoint) return 1;
 	if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
-    else if (!(inst_ptr.h&sign_bit) || show_operating_system || 
-          (inst_ptr.h==0x80000000 && inst_ptr.l==0))
-    { breakpoint=false;
-      if (interacting) { 
-		return mmix_interact();
-      }
+	if (!interacting) { breakpoint=false; return 1; }
+	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
+	    return mmix_interact();
+
+	if (break_after && after)
+	{ if (!(loc.h&sign_bit)|| show_operating_system) 
+	    mmix_stopped(loc);
+	  if ((inst_ptr.h&sign_bit) && !show_operating_system) /* stop after operating system */
+		  return 1;
+	  return mmix_interact();
     }
-   return 1;
+	else if (!break_after && !after)
+	{ if (loc.h&sign_bit && 
+		!show_operating_system &&
+        !(loc.h==0x80000000 && loc.l==0)) 
+		return 1;
+      mmix_stopped(loc);
+	  return mmix_interact();
+    }
+    return 1;
 }
 
 int mmix_main(int argc, char *argv[],char *mmo_name)
@@ -246,37 +255,35 @@ int mmix_main(int argc, char *argv[],char *mmo_name)
     vmb_raise_reset(&vmb);
   mmix_initialize();
 boot:
+  vmb.reset_flag=0; 
   mmix_boot(); 
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
-     if (!vmb.connected) goto end_simulation;
+     if (!vmb.connected) panic("Power but not connected");
   }
   fprintf(stderr,"ON\n");
   mmix_load_file(mmo_name);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
-  while (vmb.connected) {
-	if (!break_after && !check_interact()) goto end_simulation;
-    if (halted) break;
-    do   
-    { if (!resuming)
-        mmix_fetch_instruction();
-      if (break_after && !check_interact()) goto end_simulation;
-      mmix_perform_instruction(); 
-	  mmix_trace();
-	  mmix_dynamic_trap();
-      if (resuming && op!=RESUME) resuming=false; 
-    } while ((vmb.connected && vmb.power && !vmb.reset_flag &&
-              !interrupt && !breakpoint) || 
-              resuming);
-    if (interact_after_break) 
-       interacting=true, interact_after_break=false;
+  while (vmb.connected&!halted) {
+	mmix_fetch_instruction();
+    if (!check_interact(false)) goto end_simulation;
+resume:
+    mmix_perform_instruction(); 
+	mmix_trace();
+	mmix_dynamic_trap();
+    if (resuming)
+	{ if (op==RESUME)
+	    goto resume;
+	  else
+	    resuming=false;
+	}
     if (!vmb.power|| vmb.reset_flag)
     { breakpoint=true; 
-      vmb.reset_flag=0; 
       goto boot;
     }
+    if (!check_interact(true)) goto end_simulation;
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(true);

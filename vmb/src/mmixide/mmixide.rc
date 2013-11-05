@@ -49,6 +49,101 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS 
+BEGIN
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "G",            ID_EDIT_FINDAGAIN,      VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
+    VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
+    VK_F5,          ID_MMIX_DEBUG,          VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON                    "icon.ico"
+IDI_FILE_NEW            ICON                    "Icons\\document-new-7.ico"
+IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoom-out-3.ico"
+IDI_FILE_OPEN           ICON                    "Icons\\document-open-7.ico"
+IDI_FILE_SAVE           ICON                    "Icons\\document-save-5.ico"
+IDI_EDIT_COPY           ICON                    "Icons\\edit-copy-8.ico"
+IDI_EDIT_CUT            ICON                    "Icons\\edit-cut-7.ico"
+IDI_EDIT_PASTE          ICON                    "Icons\\edit-paste-6.ico"
+IDI_EDIT_REDO           ICON                    "Icons\\edit-redo-4.ico"
+IDI_EDIT_UNDO           ICON                    "Icons\\edit-undo-4.ico"
+IDI_HELP                ICON                    "Icons\\help-3.ico"
+IDI_MMIX_DEBUG          ICON                    "Icons\\system-run-3.ico"
+IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoom-in-3.ico"
+IDI_FINDREPLACE         ICON                    "Icons\\edit-find-replace-4.ico"
+IDI_DEBUG_STEP          ICON                    "Icons\\step.ico"
+IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
+IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
+IDI_DEBUG_HALT          ICON                    "Icons\\halt.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x3L
+#else
+ FILEFLAGS 0x2L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Martin Ruckert ruckert@cs.hm.edu"
+            VALUE "FileDescription", "Integrated Development Environment for MMIX"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "mmixide"
+            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
+            VALUE "OriginalFilename", "mmixide.exe"
+            VALUE "ProductName", "MMIX IDE"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Menu
 //
 
@@ -131,6 +226,7 @@ BEGIN
         MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
         MENUITEM "Motherboard ...",             ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
         MENUITEM "Symbol table  ...",           ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
+        MENUITEM "E&xtra Sources ...",          ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
     BEGIN
@@ -141,60 +237,16 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Accelerator
-//
-
-IDR_ACCELERATOR ACCELERATORS 
-BEGIN
-    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
-    "G",            ID_EDIT_FINDAGAIN,      VIRTKEY, CONTROL, NOINVERT
-    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
-    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
-    VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
-    VK_F5,          ID_MMIX_DEBUG,          VIRTKEY, NOINVERT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON                ICON                    "icon.ico"
-IDI_FILE_NEW            ICON                    "Icons\\document-new-7.ico"
-IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoom-out-3.ico"
-IDI_FILE_OPEN           ICON                    "Icons\\document-open-7.ico"
-IDI_FILE_SAVE           ICON                    "Icons\\document-save-5.ico"
-IDI_EDIT_COPY           ICON                    "Icons\\edit-copy-8.ico"
-IDI_EDIT_CUT            ICON                    "Icons\\edit-cut-7.ico"
-IDI_EDIT_PASTE          ICON                    "Icons\\edit-paste-6.ico"
-IDI_EDIT_REDO           ICON                    "Icons\\edit-redo-4.ico"
-IDI_EDIT_UNDO           ICON                    "Icons\\edit-undo-4.ico"
-IDI_HELP                ICON                    "Icons\\help-3.ico"
-IDI_MMIX_DEBUG          ICON                    "Icons\\system-run-3.ico"
-IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoom-in-3.ico"
-IDI_FINDREPLACE         ICON                    "Icons\\edit-find-replace-4.ico"
-IDI_DEBUG_STEP          ICON                    "Icons\\step.ico"
-IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
-IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
-IDI_DEBUG_HALT          ICON                    "Icons\\halt.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
 //
 
-IDD_SHOW_DEBUG DIALOGEX 0, 0, 158, 244
+IDD_SHOW_DEBUG DIALOGEX 0, 0, 158, 273
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Debug Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,13,224,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,98,224,50,14
+    DEFPUSHBUTTON   "OK",IDOK,13,253,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,253,50,14
     CONTROL         "Local Registers",IDC_SHOW_LOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,17,64,10
     CONTROL         "Global Registers",IDC_SHOW_GLOBAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,28,67,10
     CONTROL         "Special Registers",IDC_SHOW_SPECIAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,39,70,10
@@ -208,10 +260,12 @@ BEGIN
     GROUPBOX        "Show Memory",IDC_STATIC,9,71,83,72
     CONTROL         "Break at Main",IDC_CHECK_MAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,149,59,10
     PUSHBUTTON      "Choose ...",IDC_SELECT_SPECIALS,93,36,50,14
-    CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,175,96,10
-    CONTROL         "Show Trace",IDC_CHECK_TRACE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,188,53,10
-    CONTROL         "Break after fetch",IDC_CHECK_BREAKAFTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,162,71,10
-    CONTROL         "Trace Exceptions",IDC_CHECK_EXCEPTIONS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,201,71,10
+    CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,188,96,10
+    CONTROL         "Show Trace",IDC_CHECK_TRACE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,201,53,10
+    CONTROL         "Trace Exceptions",IDC_CHECK_EXCEPTIONS,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,214,71,10
+    CONTROL         "Break after instruction (classic)",IDC_RADIO_BREAK_AFTER,
+                    "Button",BS_AUTORADIOBUTTON,15,162,115,10
+    CONTROL         "Break before instruction",IDC_RADIO_BREAK_BEFORE,"Button",BS_AUTORADIOBUTTON,15,175,93,10
 END
 
 IDD_FIND DIALOGEX 0, 0, 317, 79
@@ -256,6 +310,50 @@ BEGIN
     CONTROL         "Allways save changed files",IDC_CHECK_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,101,10
     CONTROL         "Show line numbers",IDC_CHECK_LINENO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,75,10
     CONTROL         "Show profile",IDC_CHECK_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,55,10
+    EDITTEXT        IDC_TABWIDTH,7,44,30,14,ES_RIGHT | ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_TABWIDTH,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,24,44,11,14
+    LTEXT           "Tabulator width",IDC_STATIC,39,48,51,8
+END
+
+IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Show Special Registers"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,126,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,126,24,50,14
+    CONTROL         "rA arithmetic status register",IDC_SHOW_RA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,111,10
+    CONTROL         "rB bootstrap register",IDC_SHOW_RB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,111,10
+    CONTROL         "rC continuation register",IDC_SHOW_RC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,111,10
+    CONTROL         "rD",IDC_SHOW_RD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,43,169,10
+    CONTROL         "rE",IDC_SHOW_RE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,169,10
+    CONTROL         "rF",IDC_SHOW_RF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,67,169,10
+    CONTROL         "rG",IDC_SHOW_RG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,169,10
+    CONTROL         "rH",IDC_SHOW_RH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,91,169,10
+    CONTROL         "rI",IDC_SHOW_RI,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,103,169,10
+    CONTROL         "rJ",IDC_SHOW_RJ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,115,169,10
+    CONTROL         "rK",IDC_SHOW_RK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,127,169,10
+    CONTROL         "rL",IDC_SHOW_RL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,169,10
+    CONTROL         "rM",IDC_SHOW_RM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,151,169,10
+    CONTROL         "rN",IDC_SHOW_RN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,163,169,10
+    CONTROL         "rO",IDC_SHOW_RO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,175,169,10
+    CONTROL         "rP",IDC_SHOW_RP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,187,169,10
+    CONTROL         "rQ",IDC_SHOW_RQ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,199,169,10
+    CONTROL         "rR",IDC_SHOW_RR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,211,169,10
+    CONTROL         "rS",IDC_SHOW_RS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,223,169,10
+    CONTROL         "rT",IDC_SHOW_RT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,235,169,10
+    CONTROL         "rU",IDC_SHOW_RU,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,247,169,10
+    CONTROL         "rV",IDC_SHOW_RV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,259,169,10
+    CONTROL         "rW",IDC_SHOW_RW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,271,169,10
+    CONTROL         "rX",IDC_SHOW_RX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,283,169,10
+    CONTROL         "rY",IDC_SHOW_RY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,295,169,10
+    CONTROL         "rZ",IDC_SHOW_RZ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,307,169,10
+    CONTROL         "rBB",IDC_SHOW_RBB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,319,169,10
+    CONTROL         "rTT",IDC_SHOW_RTT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,331,169,10
+    CONTROL         "rWW",IDC_SHOW_RWW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,343,169,10
+    CONTROL         "rXX",IDC_SHOW_RXX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,355,169,10
+    CONTROL         "rYY",IDC_SHOW_RYY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,367,169,10
+    CONTROL         "rZZ",IDC_SHOW_RZZ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,378,169,10
 END
 
 IDD_OPTIONS_SYMTAB DIALOGEX 0, 0, 186, 90
@@ -270,6 +368,18 @@ BEGIN
     CONTROL         "Show small values",IDC_CHECK_SMALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,73,10
 END
 
+IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 332, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Extra Sources"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,275,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,219,7,50,14
+    LISTBOX         IDC_LIST_FILES,7,24,318,59,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP,WS_EX_ACCEPTFILES
+    PUSHBUTTON      "Add ...",IDC_ADD,7,7,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE,63,7,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -281,7 +391,7 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_SHOW_DEBUG, DIALOG
     BEGIN
-        BOTTOMMARGIN, 238
+        BOTTOMMARGIN, 267
     END
 
     IDD_FIND, DIALOG
@@ -308,6 +418,14 @@ BEGIN
         BOTTOMMARGIN, 83
     END
 
+    IDD_SHOW_SPECIAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 388
+    END
+
     IDD_OPTIONS_SYMTAB, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -315,122 +433,13 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
     END
-END
-#endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x17L
-#ifdef _DEBUG
- FILEFLAGS 0x3L
-#else
- FILEFLAGS 0x2L
-#endif
- FILEOS 0x4L
- FILETYPE 0x1L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "040904b0"
-        BEGIN
-            VALUE "CompanyName", "Martin Ruckert ruckert@cs.hm.edu"
-            VALUE "FileDescription", "Integrated Development Environment for MMIX"
-            VALUE "FileVersion", "1, 0, 0, 1"
-            VALUE "InternalName", "mmixide"
-            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
-            VALUE "OriginalFilename", "mmixide.exe"
-            VALUE "ProductName", "MMIX IDE"
-            VALUE "ProductVersion", "1, 0, 0, 1"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x409, 1200
-    END
-END
-
-#endif    // German (Germany) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Show Special Registers"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,126,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,126,24,50,14
-    CONTROL         "rA",IDC_SHOW_RA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,30,10
-    CONTROL         "rB",IDC_SHOW_RB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,30,10
-    CONTROL         "rC",IDC_SHOW_RC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,30,10
-    CONTROL         "rD",IDC_SHOW_RD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,43,30,10
-    CONTROL         "rE",IDC_SHOW_RE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,30,10
-    CONTROL         "rF",IDC_SHOW_RF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,67,30,10
-    CONTROL         "rG",IDC_SHOW_RG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,30,10
-    CONTROL         "rH",IDC_SHOW_RH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,91,30,10
-    CONTROL         "rI",IDC_SHOW_RI,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,103,30,10
-    CONTROL         "rJ",IDC_SHOW_RJ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,115,30,10
-    CONTROL         "rK",IDC_SHOW_RK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,127,30,10
-    CONTROL         "rL",IDC_SHOW_RL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,30,10
-    CONTROL         "rM",IDC_SHOW_RM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,151,30,10
-    CONTROL         "rN",IDC_SHOW_RN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,163,30,10
-    CONTROL         "rO",IDC_SHOW_RO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,175,30,10
-    CONTROL         "rP",IDC_SHOW_RP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,187,30,10
-    CONTROL         "rQ",IDC_SHOW_RQ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,199,30,10
-    CONTROL         "rR",IDC_SHOW_RR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,211,30,10
-    CONTROL         "rS",IDC_SHOW_RS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,223,30,10
-    CONTROL         "rT",IDC_SHOW_RT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,235,30,10
-    CONTROL         "rU",IDC_SHOW_RU,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,247,30,10
-    CONTROL         "rV",IDC_SHOW_RV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,259,30,10
-    CONTROL         "rW",IDC_SHOW_RW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,271,30,10
-    CONTROL         "rX",IDC_SHOW_RX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,283,30,10
-    CONTROL         "rY",IDC_SHOW_RY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,295,30,10
-    CONTROL         "rZ",IDC_SHOW_RZ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,307,30,10
-    CONTROL         "rBB",IDC_SHOW_RBB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,319,30,10
-    CONTROL         "rTT",IDC_SHOW_RTT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,331,30,10
-    CONTROL         "rWW",IDC_SHOW_RWW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,343,30,10
-    CONTROL         "rXX",IDC_SHOW_RXX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,355,30,10
-    CONTROL         "rYY",IDC_SHOW_RYY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,367,30,10
-    CONTROL         "rZZ",IDC_SHOW_RZZ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,379,30,10
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_SHOW_SPECIAL, DIALOG
+    IDD_OPTIONS_SOURCES, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 176
+        RIGHTMARGIN, 325
         TOPMARGIN, 7
-        BOTTOMMARGIN, 388
+        BOTTOMMARGIN, 83
     END
 END
 #endif    // APSTUDIO_INVOKED

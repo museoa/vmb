@@ -1,25 +1,29 @@
+nicer icons, possibly 16x16 bit
 
+implement register stack view
+double click in the X in the splitter bar should close the current document not the edit window.
 
-Running MMIX in subwindow.
-Using buttons for stepping and continue.
+Tracing MMIX in subwindow not in console window
+Step over and step out
 
-  
-Options
-   Editor
-   Debugger
-   Break on Main 
+Exit with unnamed  window should ask for "save as"
 
-Load symbol table
+Breakpoints window
 Set breakpoints in symbol table
-  
+Be able to manage breakpoints even without source code.
+Manage read and write breakpoints  
    
-VMB Debug
-    Memory view unrestricted
-
-Correct zoom of markers and line numbers
-
-Profiling support
-
-Multiple source files
+Memory view unrestricted
 
 Ask for reload after assembly while debugging
+
+store options in registry to make them persistent.
+
+enable debug information of multiple source files. (To debug the bios)
+integrate the generation of image files
+	or other postprocessing
+
+Other Ideas:
+
+Add a reset button (doubling that of the motherboard).
+

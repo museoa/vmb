@@ -8,10 +8,13 @@
 #include "filelist.h"
 
 
-
+#if 0
 void file_list_reset(void)
-{  SendMessage(hFileList,LB_RESETCONTENT,0,0);	
+{  if (hFileList!=NULL)
+	SendMessage(hFileList,LB_RESETCONTENT,0,0);	
 }
+#endif
+
 
 #define MAX_LISTNAME 64
 char *file_listname(int file_no)
@@ -27,7 +30,9 @@ char *file_listname(int file_no)
 
 void file_list_remove(int file_no)
 { int item;
-  char *name = file_listname(file_no);
+  char *name;
+  if (hFileList==NULL) return;
+  name = file_listname(file_no);
   item = (int)SendMessage(hFileList,LB_FINDSTRINGEXACT,-1,(LPARAM)name);
   if(item==LB_ERR) return;
   SendMessage(hFileList,LB_DELETESTRING,item,0);
@@ -35,14 +40,20 @@ void file_list_remove(int file_no)
 
 void file_list_add(int file_no)
 { LPARAM item;
-  char *name = file_listname(file_no);
+  char *name;
+  if (hFileList==NULL) return;
+  name = file_listname(file_no);
+  item = (int)SendMessage(hFileList,LB_FINDSTRINGEXACT,-1,(LPARAM)name);
+  if(item!=LB_ERR) return;
   item = SendMessage(hFileList,LB_ADDSTRING,0,(LPARAM)name);
   SendMessage(hFileList,LB_SETITEMDATA,item,file_no);
 }
 
 void file_list_mark(int file_no)
 { int item;
-  char *name = file_listname(file_no);
+  char *name;
+  if (hFileList==NULL) return;
+  name = file_listname(file_no);
   item = (int)SendMessage(hFileList,LB_FINDSTRINGEXACT,-1,(LPARAM)name);
   if(item==LB_ERR) return;
   SendMessage(hFileList,LB_SETCURSEL,item,0);
@@ -54,7 +65,8 @@ void create_filelist(void)
 		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
              0,0,0,0,
 	         hSplitter, NULL, hInst, NULL);
-  fill_file_list();
+  for_all_files(file_list_add);
+  file_list_mark(edit_file_no);
 }
 
 int file_list_measureitem(LPMEASUREITEMSTRUCT lm)
