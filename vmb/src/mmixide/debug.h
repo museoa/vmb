@@ -1,6 +1,7 @@
 extern void new_memory_view(int i);
 extern void new_register_view(int i);
 extern void memory_update(void);
+extern void debug_init(void);
 
 extern int set_breakpoint(int file_no, int line_no);
 extern int del_breakpoint(int file_no, int line_no);
@@ -11,3 +12,8 @@ extern INT_PTR CALLBACK OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM w
 extern void set_debug_windows(void);
 extern int break_at_Main;
 extern int break_after;
+
+#define REG_LOCAL 0
+#define REG_GLOBAL 1
+#define REG_SPECIAL 2
+#define REG_STACK 3

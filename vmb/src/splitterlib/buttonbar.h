@@ -1,7 +1,7 @@
 #include <windows.h>
 
 
-#define BB_HEIGHT (32+8)
+#define BB_HEIGHT (24+8)
 extern void bb_init(HINSTANCE hInst);
 /* call this before using button bars */
 extern HWND bb_CreateButtonBar(LPCTSTR lpWindowName, DWORD dwStyle, 

@@ -27,7 +27,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.11 $ $Date: 2013-11-05 17:00:32 $";
+char version[]="$Revision: 1.12 $ $Date: 2013-11-08 11:26:31 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -469,16 +469,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  new_memory_view(4);
 		  return 0;
 	    case ID_REGISTERS_LOCAL:
-		  new_register_view(0);
+		  new_register_view(REG_LOCAL);
 		  return 0;
 	    case ID_REGISTERS_GLOBAL:
-		  new_register_view(1);
-		  return 0;
-		case ID_REGISTERS_STACK:
-		  new_register_view(3);
+		  new_register_view(REG_GLOBAL);
 		  return 0;
 	    case ID_REGISTERS_SPECIAL:
-		  new_register_view(2);
+		  new_register_view(REG_SPECIAL);
+		  return 0;
+		case ID_REGISTERS_STACK:
+		  new_register_view(REG_STACK);
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
@@ -1085,13 +1085,13 @@ void add_buttons(void)
 
   add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,11,"Debug");
   
-  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,12,"Step");
-  add_button(IDI_DEBUG_CONTINUE,ID_MMIX_CONTINUE,BG_DEBUG,13,"Continue");
-  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,14,"Stop");
-  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,15,"Quit");
+  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,12,"Step Instruction");
+  add_button(IDI_DEBUG_CONTINUE,ID_MMIX_CONTINUE,BG_DEBUG,13,"Continue Execution");
+  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,14,"Break Execution");
+  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,15,"Halt Execution");
   bb_set_group(hButtonBar,BG_DEBUG,0,1);
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_MMIX,15,"About");
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,16,"About");
 
 
 }
@@ -1126,6 +1126,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     printer_init();
 	init_edit(hInstance);
 	mmix_lib_initialize();
+	debug_init();
 	new_edit();
 	hStatus = CreateWindow("STATIC", version ,
 				WS_CHILD|WS_VISIBLE|SS_CENTER,

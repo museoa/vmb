@@ -15,13 +15,18 @@ extern char *chunk_names[];
 extern int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, 
 						int chunk_size, int column_digits);
 
+
 /* list registers strictly in order of increasing offsets */
+#define REG_OPT_DISABLED 0x1
+#define REG_OPT_SEPARATOR 0x2
+
 struct register_def
 { char *name;
   int offset;
   int size;
   enum chunk_fmt chunk;
   enum mem_fmt  format;
+  unsigned char options;
 };
 typedef struct register_def register_def;
 
@@ -35,7 +40,7 @@ struct inspector_def {
 	enum chunk_fmt chunk;
 	int de_offset; /* offset for the data editor, -1 if none*/
 	int sb_rng; /* number of lines covered by scrollbar */
-	int num_regs;      /* 0 if memory */
+	int num_regs;      /* number of registers if register_def!=NULL */
 	struct register_def *regs; /* NULL if memory */
 	/* the rest can be initialized with zero */
 	int max_regname;   /*maximum number of characters in register names */

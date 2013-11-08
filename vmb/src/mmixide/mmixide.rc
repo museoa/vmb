@@ -73,23 +73,23 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON                ICON                    "icon.ico"
-IDI_FILE_NEW            ICON                    "Icons\\document-new-7.ico"
-IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoom-out-3.ico"
-IDI_FILE_OPEN           ICON                    "Icons\\document-open-7.ico"
-IDI_FILE_SAVE           ICON                    "Icons\\document-save-5.ico"
-IDI_EDIT_COPY           ICON                    "Icons\\edit-copy-8.ico"
-IDI_EDIT_CUT            ICON                    "Icons\\edit-cut-7.ico"
-IDI_EDIT_PASTE          ICON                    "Icons\\edit-paste-6.ico"
-IDI_EDIT_REDO           ICON                    "Icons\\edit-redo-4.ico"
-IDI_EDIT_UNDO           ICON                    "Icons\\edit-undo-4.ico"
-IDI_HELP                ICON                    "Icons\\help-3.ico"
-IDI_MMIX_DEBUG          ICON                    "Icons\\system-run-3.ico"
-IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoom-in-3.ico"
-IDI_FINDREPLACE         ICON                    "Icons\\edit-find-replace-4.ico"
-IDI_DEBUG_STEP          ICON                    "Icons\\step.ico"
+IDI_FILE_NEW            ICON                    "Icons\\new.ico"
+IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
+IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
+IDI_FILE_SAVE           ICON                    "Icons\\save.ico"
+IDI_EDIT_COPY           ICON                    "Icons\\copy.ico"
+IDI_EDIT_CUT            ICON                    "Icons\\cut.ico"
+IDI_EDIT_PASTE          ICON                    "Icons\\paste.ico"
+IDI_EDIT_REDO           ICON                    "Icons\\redo.ico"
+IDI_EDIT_UNDO           ICON                    "Icons\\undo.ico"
+IDI_HELP                ICON                    "Icons\\help.ico"
+IDI_MMIX_DEBUG          ICON                    "Icons\\debug.ico"
+IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoomin.ico"
+IDI_FINDREPLACE         ICON                    "Icons\\find.ico"
+IDI_DEBUG_STEP          ICON                    "Icons\\stepin.ico"
 IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
 IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
-IDI_DEBUG_HALT          ICON                    "Icons\\halt.ico"
+IDI_DEBUG_HALT          ICON                    "Icons\\stop.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -250,7 +250,7 @@ BEGIN
     CONTROL         "Local Registers",IDC_SHOW_LOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,17,64,10
     CONTROL         "Global Registers",IDC_SHOW_GLOBAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,28,67,10
     CONTROL         "Special Registers",IDC_SHOW_SPECIAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,39,70,10
-    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,50,62,10
+    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,50,62,10
     CONTROL         "Text Segment",IDC_SHOW_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,81,61,10
     CONTROL         "Data Segment",IDC_SHOW_DATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,93,61,10
     CONTROL         "Pool Segment",IDC_SHOW_POOL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,105,59,10

@@ -17,14 +17,15 @@
 #define MAXMEM 5
 inspector_def memory_insp[];
 
-#define WIN_LOCAL                  (1<<0)
-#define WIN_GLOBAL                 (1<<1)
-#define WIN_SPECIAL                (1<<2)
-#define WIN_REGSTACK               (1<<3)
+#define WIN_REGSTACK               (1<<REG_STACK)
+#define WIN_LOCAL                  (1<<REG_LOCAL)
+#define WIN_GLOBAL                 (1<<REG_GLOBAL)
+#define WIN_SPECIAL                (1<<REG_SPECIAL)
 #define WIN_TEXT                   (1<<4)
 #define WIN_DATA                   (1<<5)
 #define WIN_POOL                   (1<<6)
 #define WIN_STACK                  (1<<7)
+#define WIN_NEG					   (1<<8)
 
 unsigned int show_debug_windows = WIN_LOCAL|WIN_GLOBAL; 
 int break_at_Main = 1;
@@ -36,12 +37,18 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { 
   switch ( message )
   { case WM_INITDIALOG:
-      { int i;
-	    for (i=0;i<MAX_DEBUG_WINDOWS;i++)
-		{	CheckDlgButton(hDlg,IDC_SHOW_LOCAL+i,
-			   (show_debug_windows&(1<<i))?BST_CHECKED:BST_UNCHECKED);
-		}
-        CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
+      { 
+        CheckDlgButton(hDlg,IDC_SHOW_LOCAL,(show_debug_windows&WIN_LOCAL)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_GLOBAL,(show_debug_windows&WIN_GLOBAL)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_SPECIAL,(show_debug_windows&WIN_SPECIAL)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_REGSTACK,(show_debug_windows&WIN_REGSTACK)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_TEXT,(show_debug_windows&WIN_TEXT)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_DATA,(show_debug_windows&WIN_DATA)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_POOL,(show_debug_windows&WIN_POOL)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_STACK,(show_debug_windows&WIN_STACK)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_NEG,(show_debug_windows&WIN_NEG)?BST_CHECKED:BST_UNCHECKED);
+
+		CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_TRACE,tracing?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
@@ -57,12 +64,17 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { int i;
-	    for (i=0;i<MAX_DEBUG_WINDOWS;i++)
-			if (IsDlgButtonChecked(hDlg,IDC_SHOW_RA+i))
-			  show_debug_windows|=1<<i;
-			else
-			  show_debug_windows&=~(1<<i);
+      { 
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_LOCAL)) show_debug_windows|=WIN_LOCAL; else show_debug_windows&=~WIN_LOCAL;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_GLOBAL)) show_debug_windows|=WIN_GLOBAL; else show_debug_windows&=~WIN_GLOBAL;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_SPECIAL)) show_debug_windows|=WIN_SPECIAL; else show_debug_windows&=~WIN_SPECIAL;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_REGSTACK)) show_debug_windows|=WIN_REGSTACK; else show_debug_windows&=~WIN_REGSTACK;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_TEXT)) show_debug_windows|=WIN_TEXT; else show_debug_windows&=~WIN_TEXT;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_DATA)) show_debug_windows|=WIN_DATA; else show_debug_windows&=~WIN_DATA;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_POOL)) show_debug_windows|=WIN_POOL; else show_debug_windows&=~WIN_POOL;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_STACK)) show_debug_windows|=WIN_STACK; else show_debug_windows&=~WIN_STACK;
+		if (IsDlgButtonChecked(hDlg,IDC_SHOW_NEG)) show_debug_windows|=WIN_NEG; else show_debug_windows&=~WIN_NEG;
+
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		tracing=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
@@ -87,8 +99,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 void set_debug_windows(void)
-{
-  if (show_debug_windows&(1<<0)) new_register_view(0);
+{ if (show_debug_windows&(1<<0)) new_register_view(0);
   if (show_debug_windows&(1<<1)) new_register_view(1);
   if (show_debug_windows&(1<<2)) new_register_view(2);
   if (show_debug_windows&(1<<3)) new_register_view(3);
@@ -211,12 +222,10 @@ void new_memory_view(int i)
 
 
 unsigned int show_special_registers = 0xf03980da; /* bits correspond to registers from rZZ=31 to rB=0 */ 
-#define REG_LOCAL 0
-#define REG_GLOBAL 1
-#define REG_SPECIAL 2
-#define REG_STACK 3
-#define MAXREG 4
+
+#define MAXREG 3
 struct register_def reg_names[256]={0};
+struct register_def reg_stack[256]={0};
 struct inspector_def register_insp[];
 void set_special_reg_name(void);
 char *long_special_name[32]= {"rB bootstrap register (trip)",
@@ -277,17 +286,41 @@ OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 
-
+static char *regnames[256] = {
+	"$0","$1","$2","$3","$4","$5","$6","$7","$8","$9",
+	"$10","$11","$12","$13","$14","$15","$16","$17","$18","$19",
+	"$20","$21","$22","$23","$24","$25","$26","$27","$28","$29",
+	"$30","$31","$32","$33","$34","$35","$36","$37","$38","$39",
+	"$40","$41","$42","$43","$44","$45","$46","$47","$48","$49",
+	"$50","$51","$52","$53","$54","$55","$56","$57","$58","$59",
+	"$60","$61","$62","$63","$64","$65","$66","$67","$68","$69",
+	"$70","$71","$72","$73","$74","$75","$76","$77","$78","$79",
+	"$80","$81","$82","$83","$84","$85","$86","$87","$88","$89",
+	"$90","$91","$92","$93","$94","$95","$96","$97","$98","$99",
+	"$100","$101","$102","$103","$104","$105","$106","$107","$108","$109",
+	"$110","$111","$112","$113","$114","$115","$116","$117","$118","$119",
+	"$120","$121","$122","$123","$124","$125","$126","$127","$128","$129",
+	"$130","$131","$132","$133","$134","$135","$136","$137","$138","$139",
+	"$140","$141","$142","$143","$144","$145","$146","$147","$148","$149",
+	"$150","$151","$152","$153","$154","$155","$156","$157","$158","$159",
+	"$160","$161","$162","$163","$164","$165","$166","$167","$168","$169",
+	"$170","$171","$172","$173","$174","$175","$176","$177","$178","$179",
+	"$180","$181","$182","$183","$184","$185","$186","$187","$188","$189",
+	"$190","$191","$192","$193","$194","$195","$196","$197","$198","$199",
+	"$200","$201","$202","$203","$204","$205","$206","$207","$208","$209",
+	"$210","$211","$212","$213","$214","$215","$216","$217","$218","$219",
+	"$220","$221","$222","$223","$224","$225","$226","$227","$228","$229",
+	"$230","$231","$232","$233","$234","$235","$236","$237","$238","$239",
+	"$240","$241","$242","$243","$244","$245","$246","$247","$248","$249",
+	"$250","$251","$252","$253","$254","$255"};
 
 
 void reg_names_init(void)
 { int i;
-  static char names[256*5];
   for (i=0;i<256;i++)
   { register_def *r;
     r= &reg_names[i];
-	r->name=names+i*5;
-	sprintf(r->name,"$%d",i);
+	r->name=regnames[i];
 	r->offset=i*8;
 	r->size=8;
 	r->chunk=user_chunk;
@@ -313,28 +346,30 @@ void set_special_reg_name(void)
 
 
 /* local registers */
-static unsigned char local_mem[256*8]={0};
+static unsigned char *local_mem=NULL;
 
 void locals_to_mem(int from, int to)
 { int i;
   for (i=from; i<to;i++)
-    if (i<L)
-    { octa *o= &l[(O+i)&lring_mask];
-	  inttochar(o->h,local_mem+(i*8));
-	  inttochar(o->l,local_mem+(i*8)+4);
+    { int k = i&lring_mask;
+	  octa *o= &l[k];
+	  inttochar(o->h,local_mem+(k*8));
+	  inttochar(o->l,local_mem+(k*8)+4);
     }
-    else
-	  memset(local_mem+(i*8),0,8);
 }
 void mem_to_locals(int from, int to)
 { int i;
-  for (i=from; i<to;i++)
-    if (i<L)
-    { octa *o= &l[(O+i)&lring_mask];
-	  o->h=chartoint(local_mem+(i*8));
-	  o->l=chartoint(local_mem+(i*8)+4);
-    }
-  MemoryDialogUpdate(register_insp[REG_LOCAL].hWnd,&register_insp[REG_LOCAL],register_insp[REG_LOCAL].regs[from].offset,8*(to-from));
+  int max = O-S+L;
+  if (to<max) max=to;
+  for (i=from; i<max;i++)
+  { int k= i&lring_mask;
+    octa *o= &l[k];
+    o->h=chartoint(local_mem+(k*8));
+    o->l=chartoint(local_mem+(k*8)+4);
+  }
+  if (to>max)
+   memset(local_mem+max*8,0,to-max*8);
+  MemoryDialogUpdate(register_insp[REG_LOCAL].hWnd,&register_insp[REG_LOCAL],to*8,(to-from)*8);
 }
 
 
@@ -351,6 +386,9 @@ static void store_local_mem(unsigned int offset, int size, unsigned char *buf)
 { memmove(local_mem+offset,buf,size);
   mem_to_locals(offset/8,(offset+size+7)/8);
 }
+
+
+
 
 /* global and special registers */
 
@@ -397,17 +435,41 @@ static void store_global_mem(unsigned int offset, int size, unsigned char *buf)
 }
 
 
-struct inspector_def register_insp[MAXREG+1]=
-{ {"Local Registers",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,1,reg_names},
-  {"Global Registers",256*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,1,&reg_names[255]},
+struct inspector_def register_insp[MAXREG+1]= /* array sorted by REG_LOCAL,REG_GLOBAL,REG_SPECIAL */
+{ {"Local Registers",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,0,reg_names},
+  {"Global Registers",256*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,0,&reg_names[255]},
   {"Special Registers",32*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,32,special_reg_names},
-  {"Registerstack",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,0,reg_names},
 {NULL}
 };
 
 void set_register_inspectors(void)
-{ if (register_insp[REG_LOCAL].num_regs!=L)
-  { register_insp[REG_LOCAL].num_regs=L;
+{ if (register_insp[REG_LOCAL].hWnd!=NULL)
+  { int i, n, r, b, opt;
+    if (show_debug_windows&WIN_REGSTACK)
+	{ n = (O-S)+L;
+	  b = S;
+	}
+	else 
+	{ n=L;
+	  b=O;
+	}
+	if (n>0xFF) n=0xFF;
+    register_insp[REG_LOCAL].num_regs=n;
+	opt=0;
+	for (r=L-1,i=n-1;i>=0;i--,r--)/* registerstack */
+	{ char *name;
+	  static char empty[]="";
+	  if (r<0) 
+	  { r=l[(b+i)&lring_mask].l;
+	    name = empty;
+		opt=REG_OPT_DISABLED;
+	  }
+	  else
+		name = regnames[r];
+	  reg_names[i].name=name;
+	  reg_names[i].offset=(b+i)*8;
+	  reg_names[i].options=opt;
+	}
     adjust_mem_display(&register_insp[REG_LOCAL]);
   }
   if (register_insp[REG_GLOBAL].num_regs!=256-G)
@@ -415,17 +477,24 @@ void set_register_inspectors(void)
     register_insp[REG_GLOBAL].regs=&reg_names[G];
     adjust_mem_display(&register_insp[REG_GLOBAL]);
   }
+  else
+	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL], register_insp[REG_GLOBAL].regs[0].offset,(256-G)*8);
+   MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL], 0,register_insp[REG_SPECIAL].size );
+}
+
+void debug_init(void)
+{ 	if (local_mem!=NULL) free(local_mem);
+    local_mem=calloc(lring_size,8);
+	if (local_mem==NULL)  vmb_fatal_error(__LINE__,"Out of Memory for local_mem");
+	reg_names_init();
+	set_special_reg_name();
+	set_mem_font_metrics();
 }
 
 void new_register_view(int i)
 { int k;
   HWND h;
   if (i<0 || i>=MAXREG) return;
-  if (reg_names[0].name==NULL){
-	reg_names_init();
-	set_special_reg_name();
-	set_mem_font_metrics();
-  }
   if (register_insp[i].hWnd!=NULL) return;
   for (k=i-1;k>=0&&register_insp[k].hWnd==NULL;k--)
 	  continue;
@@ -453,9 +522,9 @@ void memory_update(void)
 	if(memory_insp[i].hWnd)
 	  MemoryDialogUpdate(memory_insp[i].hWnd,&memory_insp[i], 0,memory_insp[i].size );
   set_register_inspectors();
-  for (i=0; i<MAXREG; i++)
-	if(register_insp[i].hWnd)
-	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
+//  for (i=0; i<MAXREG; i++)
+//	if(register_insp[i].hWnd)
+//	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
 }
 
 

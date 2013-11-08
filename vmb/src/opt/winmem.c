@@ -146,6 +146,16 @@ static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto
 
 
 
+static void refresh_old_mem(inspector_def *insp)
+{ if (insp->old_size<insp->mem_size)
+  { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
+    if (insp->old_mem==NULL)
+		vmb_fatal_error(__LINE__,"Out of memory");
+  }
+  memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
+  insp->old_base=insp->mem_base;
+  insp->old_size=insp->mem_size;
+}
 
   
 
@@ -155,6 +165,7 @@ void adjust_mem_display(inspector_def *insp)
 { 
   if (insp->hWnd==NULL) return;
   sb_range(insp);
+  refresh_old_mem(insp);
   if (insp->get_mem) 
 	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
@@ -162,6 +173,7 @@ void adjust_mem_display(inspector_def *insp)
   set_edit_rect(insp);
   InvalidateRect(insp->hWnd,NULL,insp->regs!=NULL);
 }
+
 
 
 
@@ -235,7 +247,7 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
       insp->column_digits=insp->column_width/digit_width;
   }
   insp->line_range = insp->columns*(1<<insp->chunk);
-  InvalidateRect(hMemory,NULL,TRUE);
+  InvalidateRect(hMemory,NULL,TRUE); /* can possibly be removed */
   adjust_mem_display(insp);
 }
 
@@ -286,16 +298,6 @@ void update_old_mem(inspector_def *insp)
    insp->old_size=insp->mem_size;
 }
 
-static void refresh_old_mem(inspector_def *insp)
-{ if (insp->old_size<insp->mem_size)
-  { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
-    if (insp->old_mem==NULL)
-		vmb_fatal_error(__LINE__,"Out of memory");
-  }
-  memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
-  insp->old_base=insp->mem_base;
-  insp->old_size=insp->mem_size;
-}
 
 static int different(inspector_def *insp,int offset, int size)
 { int i;
@@ -374,7 +376,7 @@ void update_max_regnames(inspector_def *insp)
 void display_registers(inspector_def *insp,HDC hdc)
 { 
   int i,k, nr;
-  char str[22]; /* big enough for the largest 8Byte integer */
+  char str[22]; /* big enough for the largest 8-Byte integer */
   RECT rect;
   nr = insp->num_regs;
   if (nr>insp->lines) nr=insp->lines;
@@ -388,6 +390,10 @@ void display_registers(inspector_def *insp,HDC hdc)
      x=digit_width*(insp->max_regname+1);
      SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
      SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
+	 if (r->options&REG_OPT_DISABLED)
+	   SetTextColor(hdc,GetSysColor(COLOR_GRAYTEXT));
+	 else
+ 	   SetTextColor(hdc,GetSysColor(COLOR_BTNTEXT));
      SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	 rect.top=y;
      rect.left=0;
