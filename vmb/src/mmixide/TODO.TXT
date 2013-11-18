@@ -1,6 +1,4 @@
-nicer icons, possibly 16x16 bit
 
-implement register stack view together with locals
 double click in the X in the splitter bar should close the current document not the edit window.
 
 Tracing MMIX in subwindow not in console window
@@ -15,9 +13,9 @@ Manage read and write breakpoints
    
 Memory view unrestricted
 
-Ask for reload after assembly while debugging
+Ask for reset/reload after assembly while debugging
 
-store options in registry to make them persistent.
+store options in registry to make them persistent
 
 integrate the generation of image files
 	or other postprocessing
@@ -31,3 +29,5 @@ Other Ideas:
 Add a reset button (doubling that of the motherboard).
 
 make mmixvd (visual debugger for mmix)
+
+get a decent icon for the mmixide

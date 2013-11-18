@@ -317,6 +317,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\copy.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\cut.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\debug.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Icons\document-new-7.ico"
 				>
 			</File>
@@ -357,11 +369,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\find.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Icons\halt.ico"
 				>
 			</File>
 			<File
 				RelativePath=".\Icons\help-3.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\help.ico"
 				>
 			</File>
 			<File
@@ -381,7 +401,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\new.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Image\NewDocumentHS.BMP"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\open.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\paste.ico"
 				>
 			</File>
 			<File
@@ -393,6 +425,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\redo.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\save.ico"
+				>
+			</File>
+			<File
 				RelativePath="..\scintilla\win32\ScintRes.rc"
 				>
 			</File>
@@ -401,11 +441,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\stepin.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Icons\stop.ico"
 				>
 			</File>
 			<File
 				RelativePath=".\Icons\system-run-3.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\undo.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\whitespace.ico"
 				>
 			</File>
 			<File
@@ -426,6 +478,14 @@
 			</File>
 			<File
 				RelativePath=".\Icons\zoom-out-3.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\zoomin.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\zoomout.ico"
 				>
 			</File>
 		</Filter>

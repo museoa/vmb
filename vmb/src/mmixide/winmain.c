@@ -21,13 +21,14 @@
 #include "edit.h"
 #include "assembler.h"
 #include "sources.h"
+#include "debug.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.12 $ $Date: 2013-11-08 11:26:31 $";
+char version[]="$Revision: 1.13 $ $Date: 2013-11-18 11:12:26 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -399,8 +400,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  {  ed_send(SCI_SETVIEWWS,SCWS_INVISIBLE,0);
 		     ed_send(SCI_SETVIEWEOL,0,0);
 		  }
-
 		  return 0;
+		case ID_ENCODING_ASCII:
+		  ed_send(SCI_SETCODEPAGE,0,0);
+          CheckMenuItem(hMenu,ID_ENCODING_ASCII,MF_BYCOMMAND|MF_CHECKED);
+          CheckMenuItem(hMenu,ID_ENCODING_UTF,MF_BYCOMMAND|MF_UNCHECKED);
+          return 0;
+		case ID_ENCODING_UTF:
+		  ed_send(SCI_SETCODEPAGE,SC_CP_UTF8,0);
+          CheckMenuItem(hMenu,ID_ENCODING_ASCII,MF_BYCOMMAND|MF_UNCHECKED);
+          CheckMenuItem(hMenu,ID_ENCODING_UTF,MF_BYCOMMAND|MF_CHECKED);
+          return 0;
 		case ID_VIEW_SYNTAX:
           if (menu_toggle(ID_VIEW_SYNTAX))
 		    mms_style();
@@ -478,7 +488,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  new_register_view(REG_SPECIAL);
 		  return 0;
 		case ID_REGISTERS_STACK:
-		  new_register_view(REG_STACK);
+		  show_debug_windows|=WIN_REGSTACK;
+		  new_register_view(REG_LOCAL);
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
@@ -797,6 +808,8 @@ void new_edit(void)
    /* kommand keys for the edit windows*/
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_PLUS+(SCMOD_CTRL<<16),SCI_ZOOMIN);
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_MINUS+(SCMOD_CTRL<<16),SCI_ZOOMOUT);
+   /* set standatd encoding */
+   SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_ENCODING_ASCII,(LPARAM)0);
 }
 
 void update_breakpoints(void)
@@ -1082,16 +1095,17 @@ void add_buttons(void)
   
   add_button(IDI_VIEW_ZOOMIN,ID_VIEW_ZOOMIN,BG_VIEW,9,"Zoom in");
   add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,10,"Zoom out");
+  add_button(IDI_VIEW_WHITESPACE,ID_VIEW_WHITESPACE,BG_VIEW,11,"Show Whitespace");
 
-  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,11,"Debug");
+  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,12,"Debug");
   
-  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,12,"Step Instruction");
-  add_button(IDI_DEBUG_CONTINUE,ID_MMIX_CONTINUE,BG_DEBUG,13,"Continue Execution");
-  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,14,"Break Execution");
-  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,15,"Halt Execution");
+  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,13,"Step Instruction");
+  add_button(IDI_DEBUG_CONTINUE,ID_MMIX_CONTINUE,BG_DEBUG,14,"Continue Execution");
+  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,15,"Break Execution");
+  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,16,"Halt Execution");
   bb_set_group(hButtonBar,BG_DEBUG,0,1);
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,16,"About");
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,17,"About");
 
 
 }

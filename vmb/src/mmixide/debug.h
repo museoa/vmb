@@ -17,3 +17,15 @@ extern int break_after;
 #define REG_GLOBAL 1
 #define REG_SPECIAL 2
 #define REG_STACK 3
+
+#define WIN_REGSTACK               (1<<REG_STACK)
+#define WIN_LOCAL                  (1<<REG_LOCAL)
+#define WIN_GLOBAL                 (1<<REG_GLOBAL)
+#define WIN_SPECIAL                (1<<REG_SPECIAL)
+#define WIN_TEXT                   (1<<4)
+#define WIN_DATA                   (1<<5)
+#define WIN_POOL                   (1<<6)
+#define WIN_STACK                  (1<<7)
+#define WIN_NEG					   (1<<8)
+
+extern unsigned int show_debug_windows;

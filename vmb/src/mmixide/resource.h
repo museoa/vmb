@@ -30,6 +30,7 @@
 #define IDI_DEBUG_HALT                  139
 #define IDD_OPTIONS_SYMTAB              141
 #define IDD_OPTIONS_SOURCES             142
+#define IDI_VIEW_WHITESPACE             143
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -99,7 +100,9 @@
 #define IDC_BUTTON2                     1026
 #define IDC_REMOVE                      1026
 #define IDC_SHOW_RBB                    1027
+#define IDC_CHECK_AUTOCLOSE             1027
 #define IDC_SHOW_RTT                    1028
+#define IDC_CHECK1                      1028
 #define IDC_SHOW_RWW                    1029
 #define IDC_SHOW_RXX                    1030
 #define IDC_SHOW_RYY                    1031
@@ -165,14 +168,17 @@
 #define ID_OPTIONS_SYMTAB               40087
 #define ID_OPTIONS_EXTRASOURCES         40088
 #define ID_OPTIONS_SOURCES              40089
+#define ID_OPTIONS_ENCODING             40090
+#define ID_ENCODING_ASCII               40091
+#define ID_ENCODING_UTF                 40092
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        143
-#define _APS_NEXT_COMMAND_VALUE         40090
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_RESOURCE_VALUE        144
+#define _APS_NEXT_COMMAND_VALUE         40093
+#define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

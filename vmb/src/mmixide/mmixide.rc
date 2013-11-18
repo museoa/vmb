@@ -90,6 +90,7 @@ IDI_DEBUG_STEP          ICON                    "Icons\\stepin.ico"
 IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
 IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
 IDI_DEBUG_HALT          ICON                    "Icons\\stop.ico"
+IDI_VIEW_WHITESPACE     ICON                    "Icons\\whitespace.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -227,6 +228,11 @@ BEGIN
         MENUITEM "Motherboard ...",             ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
         MENUITEM "Symbol table  ...",           ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
         MENUITEM "E&xtra Sources ...",          ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
+        POPUP "Encoding",                       65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "ASCII",                       ID_ENCODING_ASCII,MFT_STRING,MFS_ENABLED
+            MENUITEM "UTF",                         ID_ENCODING_UTF,MFT_STRING,MFS_ENABLED
+        END
     END
     POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
     BEGIN
@@ -240,32 +246,33 @@ END
 // Dialog
 //
 
-IDD_SHOW_DEBUG DIALOGEX 0, 0, 158, 273
+IDD_SHOW_DEBUG DIALOGEX 0, 0, 158, 254
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Debug Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,13,253,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,98,253,50,14
+    DEFPUSHBUTTON   "OK",IDOK,13,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,234,50,14
     CONTROL         "Local Registers",IDC_SHOW_LOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,17,64,10
     CONTROL         "Global Registers",IDC_SHOW_GLOBAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,28,67,10
     CONTROL         "Special Registers",IDC_SHOW_SPECIAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,39,70,10
-    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,50,62,10
-    CONTROL         "Text Segment",IDC_SHOW_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,81,61,10
-    CONTROL         "Data Segment",IDC_SHOW_DATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,93,61,10
-    CONTROL         "Pool Segment",IDC_SHOW_POOL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,105,59,10
-    CONTROL         "Negative Segment",IDC_SHOW_NEG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,129,75,10
-    CONTROL         "Stack Segment",IDC_SHOW_STACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,117,63,10
-    GROUPBOX        "Show Registers",IDC_STATIC,9,7,142,57
-    GROUPBOX        "Show Memory",IDC_STATIC,9,71,83,72
-    CONTROL         "Break at Main",IDC_CHECK_MAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,149,59,10
+    CONTROL         "Register Stack",IDC_SHOW_REGSTACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,81,17,62,10
+    CONTROL         "Text Segment",IDC_SHOW_TEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,70,61,10
+    CONTROL         "Data Segment",IDC_SHOW_DATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,81,61,10
+    CONTROL         "Pool Segment",IDC_SHOW_POOL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,94,59,10
+    CONTROL         "Negative Segment",IDC_SHOW_NEG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,118,75,10
+    CONTROL         "Stack Segment",IDC_SHOW_STACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,105,63,10
+    GROUPBOX        "Show Registers",IDC_STATIC,9,7,142,48
+    GROUPBOX        "Show Memory",IDC_STATIC,9,59,83,72
+    CONTROL         "Break at Main",IDC_CHECK_MAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,150,59,10
     PUSHBUTTON      "Choose ...",IDC_SELECT_SPECIALS,93,36,50,14
-    CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,188,96,10
-    CONTROL         "Show Trace",IDC_CHECK_TRACE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,201,53,10
-    CONTROL         "Trace Exceptions",IDC_CHECK_EXCEPTIONS,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,214,71,10
+    CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,189,96,10
+    CONTROL         "Show Trace",IDC_CHECK_TRACE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,202,53,10
+    CONTROL         "Trace Exceptions",IDC_CHECK_EXCEPTIONS,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,215,71,10
     CONTROL         "Break after instruction (classic)",IDC_RADIO_BREAK_AFTER,
-                    "Button",BS_AUTORADIOBUTTON,15,162,115,10
-    CONTROL         "Break before instruction",IDC_RADIO_BREAK_BEFORE,"Button",BS_AUTORADIOBUTTON,15,175,93,10
+                    "Button",BS_AUTORADIOBUTTON,15,163,115,10
+    CONTROL         "Break before instruction",IDC_RADIO_BREAK_BEFORE,"Button",BS_AUTORADIOBUTTON,15,176,93,10
+    CONTROL         "Auto-Close Debug Windows",IDC_CHECK_AUTOCLOSE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,15,137,105,10
 END
 
 IDD_FIND DIALOGEX 0, 0, 317, 79
@@ -322,9 +329,9 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,126,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,126,24,50,14
-    CONTROL         "rA arithmetic status register",IDC_SHOW_RA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,111,10
-    CONTROL         "rB bootstrap register",IDC_SHOW_RB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,111,10
-    CONTROL         "rC continuation register",IDC_SHOW_RC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,111,10
+    CONTROL         "rA",IDC_SHOW_RA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,111,10
+    CONTROL         "rB",IDC_SHOW_RB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,111,10
+    CONTROL         "rC",IDC_SHOW_RC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,111,10
     CONTROL         "rD",IDC_SHOW_RD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,43,169,10
     CONTROL         "rE",IDC_SHOW_RE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,169,10
     CONTROL         "rF",IDC_SHOW_RF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,67,169,10
@@ -391,7 +398,7 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_SHOW_DEBUG, DIALOG
     BEGIN
-        BOTTOMMARGIN, 267
+        BOTTOMMARGIN, 248
     END
 
     IDD_FIND, DIALOG
