@@ -42,3 +42,5 @@ extern void set_tabwidth(void);
 #define item_data(file_no, line_no) ((LPARAM)(((line_no)<<8)|((file_no)&0xff)))
 #define item_line_no(data) ((int)((data)>>8))
 #define item_file_no(data) ((int)((data)&0xff))
+extern COLORREF syntax_color[];
+extern void set_text_style(void);

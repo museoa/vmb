@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\breakpoints.c"
+				>
+			</File>
+			<File
 				RelativePath=".\debug.c"
 				>
 			</File>
@@ -251,6 +255,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\breakpoints.h"
+				>
+			</File>
+			<File
 				RelativePath=".\debug.h"
 				>
 			</File>
@@ -287,11 +295,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

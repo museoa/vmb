@@ -3,11 +3,28 @@
 #include "resource.h"
 #include "winmain.h"
 #include "edit.h"
-
+#define STATIC_BUILD
+#include "../scintilla/include/scilexer.h"
 int autosave = 0;
 int show_line_no = 0;
 int show_profile = 0;
 int tabwidth = 4;
+
+void choose_color(HWND hDlg, COLORREF *color)
+	  { CHOOSECOLOR cc;                 // common dialog box structure 
+        static COLORREF acrCustClr[16]; // array of custom colors 
+	    // Initialize CHOOSECOLOR 
+        ZeroMemory(&cc, sizeof(cc));
+        cc.lStructSize = sizeof(cc);
+        cc.hwndOwner = hDlg;
+        cc.lpCustColors = (LPDWORD) acrCustClr;
+		cc.rgbResult = *color;
+        cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+        if (ChooseColor(&cc)==TRUE) {
+		    *color = cc.rgbResult;
+		}
+	  }
+
 
 INT_PTR CALLBACK    
 OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -43,7 +60,54 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  { EndDialog(hDlg, TRUE);
         return TRUE;
 	  }
+	  else if (wparam==IDC_CHOOSE_OPCODE)
+	  { choose_color(hDlg,&syntax_color[SCE_MMIXAL_OPCODE_VALID]);
+	    InvalidateRect(GetDlgItem(hDlg,IDC_STATIC_OPCODE),NULL,FALSE);
+		set_text_style();
+	  }
+ 	  else if (wparam==IDC_CHOOSE_OPERROR)
+	  { choose_color(hDlg,&syntax_color[SCE_MMIXAL_OPCODE_UNKNOWN]);
+	    InvalidateRect(GetDlgItem(hDlg,IDC_STATIC_OPERROR),NULL,FALSE);
+		set_text_style();
+	  }
+ 	  else if (wparam==IDC_CHOOSE_REGISTER)
+	  { choose_color(hDlg,&syntax_color[SCE_MMIXAL_REGISTER]);
+	    InvalidateRect(GetDlgItem(hDlg,IDC_STATIC_REGISTER),NULL,FALSE);
+		set_text_style();
+	  }
+ 	  else if (wparam==IDC_CHOOSE_SYMBOL)
+	  { choose_color(hDlg,&syntax_color[SCE_MMIXAL_SYMBOL]);
+	    InvalidateRect(GetDlgItem(hDlg,IDC_STATIC_SYMBOL),NULL,FALSE);
+		set_text_style();
+	  }
+ 	  else if (wparam==IDC_CHOOSE_COMMENT)
+	  { choose_color(hDlg,&syntax_color[SCE_MMIXAL_COMMENT]);
+	    InvalidateRect(GetDlgItem(hDlg,IDC_STATIC_COMMENT),NULL,FALSE);
+		set_text_style();
+	  }
      break;
+	case WM_DRAWITEM:
+	 { LPDRAWITEMSTRUCT lpDrawItem = (LPDRAWITEMSTRUCT) lparam;
+	   int c=-1;
+       if (lpDrawItem->itemAction!=ODA_DRAWENTIRE)
+         return FALSE;
+	   if (wparam==IDC_STATIC_OPCODE)
+		   c = SCE_MMIXAL_OPCODE_VALID;
+	   else	if (wparam==IDC_STATIC_OPERROR)
+		   c = SCE_MMIXAL_OPCODE_UNKNOWN;
+	   else	if (wparam==IDC_STATIC_REGISTER)
+		   c = SCE_MMIXAL_REGISTER;
+	   else	if (wparam==IDC_STATIC_SYMBOL)
+		   c = SCE_MMIXAL_SYMBOL;
+	   else	if (wparam==IDC_STATIC_COMMENT)
+		   c = SCE_MMIXAL_COMMENT; 
+	   if (c>=0)
+	   { HBRUSH hb=CreateSolidBrush(syntax_color[c]);
+	     FillRect(lpDrawItem->hDC,&lpDrawItem->rcItem,hb);
+		 DeleteObject(hb);
+	   }
+	   return TRUE;
+	}
   }
   return FALSE;
 }

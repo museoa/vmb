@@ -22,13 +22,14 @@
 #include "assembler.h"
 #include "sources.h"
 #include "debug.h"
+#include "breakpoints.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.13 $ $Date: 2013-11-18 11:12:26 $";
+char version[]="$Revision: 1.14 $ $Date: 2013-12-14 16:59:14 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -164,6 +165,12 @@ static int menu_toggle(int id)
 void mms_style(void);
 void txt_style(void);
 
+void set_text_style(void)
+{ if (GetMenuState(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND)&MF_CHECKED)
+     mms_style();
+  else
+     txt_style();
+}
 
 void set_edit_file(int file_no)
 { if (hEdit==NULL) new_edit();
@@ -175,10 +182,7 @@ void set_edit_file(int file_no)
   edit_file_no = file_no;
   set_edit_document();
   set_tabwidth();
-  if (GetMenuState(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND)&MF_CHECKED)
-     mms_style();
-  else
-     txt_style();
+  set_text_style();
   SetWindowText(hMainWnd,file_listname(file_no));
   file_list_mark(edit_file_no);
   update_symtab();
@@ -491,6 +495,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  show_debug_windows|=WIN_REGSTACK;
 		  new_register_view(REG_LOCAL);
 		  return 0;
+		case ID_VIEW_BREAKPOINTS:
+          create_breakpoints();
+		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
 		  return 0;
@@ -670,6 +677,29 @@ LONG_PTR ed_send(unsigned int msg,ULONG_PTR wparam,LONG_PTR lparam)
   // Scintilla_DirectFunction
 }
 
+#define MMIXAL_COLORS (SCE_MMIXAL_INCLUDE+1)
+COLORREF syntax_color[MMIXAL_COLORS] =
+{       
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_LEADWS 0
+  RGB(0x00,0xB0,0x00),		//SCE_MMIXAL_COMMENT 1
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_LABEL 2
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_OPCODE 3
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_OPCODE_PRE 4
+  RGB(0x80,0x00,0x80),		//SCE_MMIXAL_OPCODE_VALID 5
+  RGB(0xFF,0x00,0x00),		//SCE_MMIXAL_OPCODE_UNKNOWN 6
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_OPCODE_POST 7
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_OPERANDS 8
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_NUMBER 9
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_REF 10
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_CHAR 11
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_STRING 12
+  RGB(0x00,0x00,0xFF),		//SCE_MMIXAL_REGISTER 13
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_HEX 14
+  RGB(0x00,0x00,0x00),		//SCE_MMIXAL_OPERATOR 15
+  RGB(0x00,0x80,0xFF),		//SCE_MMIXAL_SYMBOL 16
+  RGB(0x00,0x00,0x00)		//SCE_MMIXAL_INCLUDE 17
+};
+
 void mms_style(void)
 /* configure the MMIXAL lexer */
 {  int stylebits;  
@@ -678,16 +708,16 @@ void mms_style(void)
    ed_send(SCI_SETSTYLEBITS,stylebits,0);
    
    ed_send(SCI_SETKEYWORDS,0,(sptr_t)mmix_opcodes);
-   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_OPCODE_VALID,RGB(0,0,0xA0));
-   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_OPCODE_UNKNOWN,RGB(0xFF,0,0));
+   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_OPCODE_VALID,syntax_color[SCE_MMIXAL_OPCODE_VALID]);
+   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_OPCODE_UNKNOWN,syntax_color[SCE_MMIXAL_OPCODE_UNKNOWN]);
 
    ed_send(SCI_SETKEYWORDS,1,(sptr_t)mmix_special_registers);
-   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_REGISTER,RGB(0,0,0xFF));
+   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_REGISTER,syntax_color[SCE_MMIXAL_REGISTER]);
 
    ed_send(SCI_SETKEYWORDS,2,(sptr_t)mmix_predefined);
-   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_SYMBOL,RGB(0,0x80,0xFF));
+   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_SYMBOL,syntax_color[SCE_MMIXAL_SYMBOL]);
 
-   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_COMMENT,RGB(0,0xA0,0));
+   ed_send(SCI_STYLESETFORE,SCE_MMIXAL_COMMENT,syntax_color[SCE_MMIXAL_COMMENT]);
 }
 
 void txt_style(void)

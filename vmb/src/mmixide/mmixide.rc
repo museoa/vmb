@@ -130,6 +130,41 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BREAKPOINTS DIALOGEX 0, 0, 186, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Add",IDC_ADD,129,7,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE,129,25,50,14
+    EDITTEXT        IDC_ADDRESS,7,7,112,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_LIST_BREAKPOINTS,7,45,172,38,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_BREAKPOINTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -142,104 +177,6 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_MENU MENUEX 
-BEGIN
-    POPUP "&File",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&New",                        ID_FILE_NEW,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Open",                       ID_FILE_OPEN,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Close",                      ID_FILE_CLOSE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Page Setup ...",              ID_FILE_PAGESETUP,MFT_STRING,MFS_ENABLED
-        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Exit",                       ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "Edit",                           65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "Undo\tCtrl+Z",                ID_EDIT_UNDO,MFT_STRING,MFS_ENABLED
-        MENUITEM "Redo\tCtrl+Y",                ID_EDIT_REDO,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Cut\tCtrl+X",                 ID_EDIT_CUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY,MFT_STRING,MFS_ENABLED
-        MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Delete\tDel",                 ID_EDIT_DELETE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Find and Replace ...\tCtrl+F", ID_EDIT_FIND,MFT_STRING,MFS_ENABLED
-        MENUITEM "Find A&gain\tCtrl+G",         ID_EDIT_FINDAGAIN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Replace Again\tCtrl+H",       ID_EDIT_REPLACE,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&View",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        POPUP "&Registers",                     65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "&Local",                      ID_REGISTERS_LOCAL,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Global",                     ID_REGISTERS_GLOBAL,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Special",                    ID_REGISTERS_SPECIAL,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Stack",                      ID_REGISTERS_STACK,MFT_STRING,MFS_ENABLED
-        END
-        POPUP "&Memory",                        65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "&Text Segment",               ID_MEM_TEXTSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Data Segment",                ID_MEM_DATASEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Pool Segment",                ID_MEM_POOLSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Stack Segment",               ID_MEM_STACKSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Negative Segment",            ID_MEM_NEGATIVESEGMENT,MFT_STRING,MFS_ENABLED
-        END
-        MENUITEM "Symbol table",                ID_VIEW_SYMBOLTABLE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&File List",                  ID_VIEW_FILELIST,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Syntax Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED
-        MENUITEM "Show &White Space",           ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
-        MENUITEM "Step",                        ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
-        MENUITEM "Continue",                    ID_MMIX_CONTINUE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Quit",                        ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Stop",                        ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "Editor ...",                  ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
-        MENUITEM "Assembler ...",               ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
-        MENUITEM "Motherboard ...",             ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
-        MENUITEM "Symbol table  ...",           ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
-        MENUITEM "E&xtra Sources ...",          ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
-        POPUP "Encoding",                       65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "ASCII",                       ID_ENCODING_ASCII,MFT_STRING,MFS_ENABLED
-            MENUITEM "UTF",                         ID_ENCODING_UTF,MFT_STRING,MFS_ENABLED
-        END
-    END
-    POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-    BEGIN
-        MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
-    END
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -307,19 +244,35 @@ BEGIN
     CONTROL         "Create listing file",IDC_CHECK_LISTING,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,7,41,112,10
 END
 
-IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 90
+IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 190, 183
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editor Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,133,24,50,14
     CONTROL         "Allways save changed files",IDC_CHECK_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,101,10
     CONTROL         "Show line numbers",IDC_CHECK_LINENO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,75,10
     CONTROL         "Show profile",IDC_CHECK_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,55,10
     EDITTEXT        IDC_TABWIDTH,7,44,30,14,ES_RIGHT | ES_AUTOHSCROLL
     CONTROL         "",IDC_SPIN_TABWIDTH,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,24,44,11,14
     LTEXT           "Tabulator width",IDC_STATIC,39,48,51,8
+    GROUPBOX        "Syntax Highlighting",IDC_STATIC,7,70,176,106
+    PUSHBUTTON      "Choose ...",IDC_CHOOSE_OPCODE,126,81,50,14
+    CONTROL         "",IDC_STATIC_OPCODE,"Static",SS_OWNERDRAW | WS_GROUP,71,81,50,14
+    LTEXT           "Opcode",IDC_STATIC,15,86,26,8
+    PUSHBUTTON      "Choose ...",IDC_CHOOSE_OPERROR,126,99,50,14
+    CONTROL         "",IDC_STATIC_OPERROR,"Static",SS_OWNERDRAW | WS_GROUP,71,99,50,14
+    LTEXT           "Opcode Error",IDC_STATIC,15,103,44,8
+    PUSHBUTTON      "Choose ...",IDC_CHOOSE_REGISTER,126,117,50,14
+    CONTROL         "",IDC_STATIC_REGISTER,"Static",SS_OWNERDRAW | WS_GROUP,71,117,50,14
+    LTEXT           "Register",IDC_STATIC,15,120,28,8
+    PUSHBUTTON      "Choose ...",IDC_CHOOSE_SYMBOL,126,135,50,14
+    CONTROL         "",IDC_STATIC_SYMBOL,"Static",SS_OWNERDRAW | WS_GROUP,71,135,50,14
+    LTEXT           "Symbol",IDC_STATIC,15,137,24,8
+    PUSHBUTTON      "Choose ...",IDC_CHOOSE_COMMENT,126,153,50,14
+    CONTROL         "",IDC_STATIC_COMMENT,"Static",SS_OWNERDRAW | WS_GROUP,71,153,50,14
+    LTEXT           "Comment",IDC_STATIC,15,154,31,8
 END
 
 IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
@@ -420,9 +373,9 @@ BEGIN
     IDD_OPTIONS_EDITOR, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 179
+        RIGHTMARGIN, 183
         TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        BOTTOMMARGIN, 176
     END
 
     IDD_SHOW_SPECIAL, DIALOG
@@ -450,6 +403,105 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU MENUEX 
+BEGIN
+    POPUP "&File",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&New",                        ID_FILE_NEW,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Open",                       ID_FILE_OPEN,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Close",                      ID_FILE_CLOSE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Page Setup ...",              ID_FILE_PAGESETUP,MFT_STRING,MFS_ENABLED
+        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Exit",                       ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "Edit",                           65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "Undo\tCtrl+Z",                ID_EDIT_UNDO,MFT_STRING,MFS_ENABLED
+        MENUITEM "Redo\tCtrl+Y",                ID_EDIT_REDO,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Cut\tCtrl+X",                 ID_EDIT_CUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY,MFT_STRING,MFS_ENABLED
+        MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Delete\tDel",                 ID_EDIT_DELETE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Find and Replace ...\tCtrl+F", ID_EDIT_FIND,MFT_STRING,MFS_ENABLED
+        MENUITEM "Find A&gain\tCtrl+G",         ID_EDIT_FINDAGAIN,MFT_STRING,MFS_ENABLED
+        MENUITEM "Replace Again\tCtrl+H",       ID_EDIT_REPLACE,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&View",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        POPUP "&Registers",                     65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "&Local",                      ID_REGISTERS_LOCAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Global",                     ID_REGISTERS_GLOBAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Special",                    ID_REGISTERS_SPECIAL,MFT_STRING,MFS_ENABLED
+            MENUITEM "&Stack",                      ID_REGISTERS_STACK,MFT_STRING,MFS_ENABLED
+        END
+        POPUP "&Memory",                        65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "&Text Segment",               ID_MEM_TEXTSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Data Segment",                ID_MEM_DATASEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Pool Segment",                ID_MEM_POOLSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Stack Segment",               ID_MEM_STACKSEGMENT,MFT_STRING,MFS_ENABLED
+            MENUITEM "Negative Segment",            ID_MEM_NEGATIVESEGMENT,MFT_STRING,MFS_ENABLED
+        END
+        MENUITEM "Symbol &table",               ID_VIEW_SYMBOLTABLE,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Breakpoints",                ID_VIEW_BREAKPOINTS,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&File List",                  ID_VIEW_FILELIST,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
+        MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Syntax Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED
+        MENUITEM "Show &White Space",           ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step",                        ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
+        MENUITEM "Continue",                    ID_MMIX_CONTINUE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Quit",                        ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Stop",                        ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "Editor ...",                  ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
+        MENUITEM "Assembler ...",               ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
+        MENUITEM "Motherboard ...",             ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
+        MENUITEM "Symbol table  ...",           ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
+        MENUITEM "E&xtra Sources ...",          ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
+        POPUP "Encoding",                       65535,MFT_STRING,MFS_ENABLED
+        BEGIN
+            MENUITEM "ASCII",                       ID_ENCODING_ASCII,MFT_STRING,MFS_ENABLED
+            MENUITEM "UTF",                         ID_ENCODING_UTF,MFT_STRING,MFS_ENABLED
+        END
+    END
+    POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
+    BEGIN
+        MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
+    END
+END
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

@@ -17,8 +17,7 @@ Ask for reset/reload after assembly while debugging
 
 store options in registry to make them persistent
 
-integrate the generation of image files
-	or other postprocessing
+integrate the generation of image files or other postprocessing
 
 Add help for the ide
 
