@@ -23,13 +23,14 @@
 #include "sources.h"
 #include "debug.h"
 #include "breakpoints.h"
+#include "flags.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.14 $ $Date: 2013-12-14 16:59:14 $";
+char version[]="$Revision: 1.15 $ $Date: 2014-01-10 16:48:47 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -613,6 +614,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_DESTROY:
 	ed_close_all(0);
 	set_pos_key(hMainWnd,defined);
+	set_flags();
     PostQuitMessage(0);
     return 0;
   case WM_SYSCOMMAND:
@@ -1187,6 +1189,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	
 	  param_init ();
       get_pos_key(&xpos,&ypos,defined);
+	  get_flags();
       SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 
