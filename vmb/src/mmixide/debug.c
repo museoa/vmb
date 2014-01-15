@@ -17,17 +17,19 @@
 #define MAXMEM 5
 inspector_def memory_insp[];
 
-#define WIN_REGSTACK               (1<<REG_STACK)
-#define WIN_LOCAL                  (1<<REG_LOCAL)
-#define WIN_GLOBAL                 (1<<REG_GLOBAL)
-#define WIN_SPECIAL                (1<<REG_SPECIAL)
-#define WIN_TEXT                   (1<<4)
-#define WIN_DATA                   (1<<5)
-#define WIN_POOL                   (1<<6)
-#define WIN_STACK                  (1<<7)
-#define WIN_NEG					   (1<<8)
+int show_debug_local=1;
+int show_debug_global=1;
+int show_debug_special=0;
+int show_debug_regstack=0;
+int show_debug_text=0;
+int show_debug_data=0;
+int show_debug_pool=0;
+int show_debug_stack=0;
+int show_debug_neg=0;
 
-unsigned int show_debug_windows = WIN_LOCAL|WIN_GLOBAL; 
+
+
+
 int break_at_Main = 1;
 int break_after = 1;
 
@@ -38,15 +40,15 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   switch ( message )
   { case WM_INITDIALOG:
       { 
-        CheckDlgButton(hDlg,IDC_SHOW_LOCAL,(show_debug_windows&WIN_LOCAL)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_GLOBAL,(show_debug_windows&WIN_GLOBAL)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_SPECIAL,(show_debug_windows&WIN_SPECIAL)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_REGSTACK,(show_debug_windows&WIN_REGSTACK)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_TEXT,(show_debug_windows&WIN_TEXT)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_DATA,(show_debug_windows&WIN_DATA)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_POOL,(show_debug_windows&WIN_POOL)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_STACK,(show_debug_windows&WIN_STACK)?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_SHOW_NEG,(show_debug_windows&WIN_NEG)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_LOCAL,(show_debug_local)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_GLOBAL,(show_debug_global)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_SPECIAL,(show_debug_special)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_REGSTACK,(show_debug_regstack)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_TEXT,(show_debug_text)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_DATA,(show_debug_data)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_POOL,(show_debug_pool)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_STACK,(show_debug_stack)?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_SHOW_NEG,(show_debug_neg)?BST_CHECKED:BST_UNCHECKED);
 
 		CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_TRACE,tracing?BST_CHECKED:BST_UNCHECKED);
@@ -65,15 +67,15 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
     case WM_COMMAND:
       if( wparam == IDOK )
       { 
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_LOCAL)) show_debug_windows|=WIN_LOCAL; else show_debug_windows&=~WIN_LOCAL;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_GLOBAL)) show_debug_windows|=WIN_GLOBAL; else show_debug_windows&=~WIN_GLOBAL;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_SPECIAL)) show_debug_windows|=WIN_SPECIAL; else show_debug_windows&=~WIN_SPECIAL;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_REGSTACK)) show_debug_windows|=WIN_REGSTACK; else show_debug_windows&=~WIN_REGSTACK;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_TEXT)) show_debug_windows|=WIN_TEXT; else show_debug_windows&=~WIN_TEXT;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_DATA)) show_debug_windows|=WIN_DATA; else show_debug_windows&=~WIN_DATA;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_POOL)) show_debug_windows|=WIN_POOL; else show_debug_windows&=~WIN_POOL;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_STACK)) show_debug_windows|=WIN_STACK; else show_debug_windows&=~WIN_STACK;
-		if (IsDlgButtonChecked(hDlg,IDC_SHOW_NEG)) show_debug_windows|=WIN_NEG; else show_debug_windows&=~WIN_NEG;
+		show_debug_local=IsDlgButtonChecked(hDlg,IDC_SHOW_LOCAL);
+		show_debug_global=IsDlgButtonChecked(hDlg,IDC_SHOW_GLOBAL);
+		show_debug_special=IsDlgButtonChecked(hDlg,IDC_SHOW_SPECIAL);
+		show_debug_regstack=IsDlgButtonChecked(hDlg,IDC_SHOW_REGSTACK);
+		show_debug_text=IsDlgButtonChecked(hDlg,IDC_SHOW_TEXT);
+		show_debug_data=IsDlgButtonChecked(hDlg,IDC_SHOW_DATA);
+		show_debug_pool=IsDlgButtonChecked(hDlg,IDC_SHOW_POOL);
+		show_debug_stack=IsDlgButtonChecked(hDlg,IDC_SHOW_STACK);
+		show_debug_neg=IsDlgButtonChecked(hDlg,IDC_SHOW_NEG);
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		tracing=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
@@ -99,15 +101,14 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 void set_debug_windows(void)
-{ if (show_debug_windows&(1<<0)) new_register_view(0);
-  if (show_debug_windows&(1<<1)) new_register_view(1);
-  if (show_debug_windows&(1<<2)) new_register_view(2);
-  if (show_debug_windows&(1<<3)) new_register_view(3);
-  if (show_debug_windows&(1<<4)) new_memory_view(0);
-  if (show_debug_windows&(1<<5)) new_memory_view(1);
-  if (show_debug_windows&(1<<6)) new_memory_view(2);
-  if (show_debug_windows&(1<<7)) new_memory_view(3);
-  if (show_debug_windows&(1<<8)) new_memory_view(4);
+{ if (show_debug_local) new_register_view(0);
+  if (show_debug_global) new_register_view(1);
+  if (show_debug_special) new_register_view(2);
+  if (show_debug_text) new_memory_view(0);
+  if (show_debug_data) new_memory_view(1);
+  if (show_debug_pool) new_memory_view(2);
+  if (show_debug_stack) new_memory_view(3);
+  if (show_debug_neg) new_memory_view(4);
 }
 
 /* generic routines */
@@ -445,7 +446,7 @@ struct inspector_def register_insp[MAXREG+1]= /* array sorted by REG_LOCAL,REG_G
 void set_register_inspectors(void)
 { if (register_insp[REG_LOCAL].hWnd!=NULL)
   { int i, n, r, b, opt;
-    if (show_debug_windows&WIN_REGSTACK)
+    if (show_debug_regstack)
 	{ n = (O-S)+L;
 	  b = S;
 	}

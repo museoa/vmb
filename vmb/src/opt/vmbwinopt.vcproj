@@ -223,6 +223,14 @@
 				RelativePath=".\winproc.c"
 				>
 			</File>
+			<File
+				RelativePath=".\winreg.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winxy.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

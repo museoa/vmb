@@ -8,7 +8,7 @@ static const char  sp_bar_class_name[] = "SplitterBarClass";
 static const char  sp_class_name[] = "SplitterClass";
 static ATOM SplitterBarClass, SplitterClass;
 /* Layout */
-#define SPLITWIDTH (8+6)
+#define SPLITWIDTH (8)
 /* Colors for the spliterbar and its border */
 #define COLOR_SPLIT COLOR_MENUBAR
 #define COLOR_SPLIT_HI RGB(255,255,255))
@@ -378,7 +378,7 @@ static split *sp_add_leaf(HWND hWnd, double ratio, int vertical, int left,split 
 	 sibling->tag=top->tag;
      if (sibling->tag==leaf)
 	 { sibling->o.hWnd = top->o.hWnd;
-	   top->o.sp.hSplit=CreateWindow(sp_bar_class_name,"",WS_CHILD|WS_VISIBLE|WS_DLGFRAME 
+	   top->o.sp.hSplit=CreateWindow(sp_bar_class_name,"",WS_CHILD|WS_VISIBLE//|WS_BORDER //WS_DLGFRAME 
 //|WS_EX_NOPARENTNOTIFY 
 		   ,0,0,0,0,hSpliterBase,NULL,hSplitterInst,top);
 	   top->tag=branch;

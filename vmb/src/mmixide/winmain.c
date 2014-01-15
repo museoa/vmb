@@ -23,14 +23,13 @@
 #include "sources.h"
 #include "debug.h"
 #include "breakpoints.h"
-#include "flags.h"
 #include "winmain.h"
 
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.15 $ $Date: 2014-01-10 16:48:47 $";
+char version[]="$Revision: 1.16 $ $Date: 2014-01-15 17:13:00 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -163,15 +162,34 @@ static int menu_toggle(int id)
   }
 }
 
+int fontsize;
+int show_whitespace=0;
+
+void set_whitespace(void)
+{  if (show_whitespace)
+		  {  ed_send(SCI_SETVIEWWS,SCWS_VISIBLEALWAYS,0);
+		     ed_send(SCI_SETVIEWEOL,1,0);
+		  }
+  		  else
+		  {  ed_send(SCI_SETVIEWWS,SCWS_INVISIBLE,0);
+		     ed_send(SCI_SETVIEWEOL,0,0);
+		  }
+}
+
 void mms_style(void);
 void txt_style(void);
+int syntax_highlighting = 0;
+
+
 
 void set_text_style(void)
-{ if (GetMenuState(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND)&MF_CHECKED)
+{ if (syntax_highlighting)
      mms_style();
   else
      txt_style();
 }
+
+int codepage=0;
 
 void set_edit_file(int file_no)
 { if (hEdit==NULL) new_edit();
@@ -184,6 +202,8 @@ void set_edit_file(int file_no)
   set_edit_document();
   set_tabwidth();
   set_text_style();
+  set_whitespace();
+  ed_send(SCI_SETCODEPAGE,codepage,0);
   SetWindowText(hMainWnd,file_listname(file_no));
   file_list_mark(edit_file_no);
   update_symtab();
@@ -397,30 +417,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  set_lineno_width();
 		  return 0;
 		case ID_VIEW_WHITESPACE:
-          if (menu_toggle(ID_VIEW_WHITESPACE))
-		  {  ed_send(SCI_SETVIEWWS,SCWS_VISIBLEALWAYS,0);
-		     ed_send(SCI_SETVIEWEOL,1,0);
-		  }
-  		  else
-		  {  ed_send(SCI_SETVIEWWS,SCWS_INVISIBLE,0);
-		     ed_send(SCI_SETVIEWEOL,0,0);
-		  }
+          show_whitespace=menu_toggle(ID_VIEW_WHITESPACE);
+		  set_whitespace();
 		  return 0;
 		case ID_ENCODING_ASCII:
 		  ed_send(SCI_SETCODEPAGE,0,0);
+		  codepage=0;
           CheckMenuItem(hMenu,ID_ENCODING_ASCII,MF_BYCOMMAND|MF_CHECKED);
           CheckMenuItem(hMenu,ID_ENCODING_UTF,MF_BYCOMMAND|MF_UNCHECKED);
           return 0;
 		case ID_ENCODING_UTF:
 		  ed_send(SCI_SETCODEPAGE,SC_CP_UTF8,0);
+		  codepage=SC_CP_UTF8;
           CheckMenuItem(hMenu,ID_ENCODING_ASCII,MF_BYCOMMAND|MF_UNCHECKED);
           CheckMenuItem(hMenu,ID_ENCODING_UTF,MF_BYCOMMAND|MF_CHECKED);
           return 0;
 		case ID_VIEW_SYNTAX:
-          if (menu_toggle(ID_VIEW_SYNTAX))
-		    mms_style();
-		  else
-		    txt_style();
+          syntax_highlighting=menu_toggle(ID_VIEW_SYNTAX);
+		  set_text_style();
 		  return 0;
 		case ID_MMIX_STEP:
 		  mmix_continue('n');
@@ -493,7 +507,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  new_register_view(REG_SPECIAL);
 		  return 0;
 		case ID_REGISTERS_STACK:
-		  show_debug_windows|=WIN_REGSTACK;
+		  show_debug_regstack=1;
 		  new_register_view(REG_LOCAL);
 		  return 0;
 		case ID_VIEW_BREAKPOINTS:
@@ -613,8 +627,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
   case WM_DESTROY:
 	ed_close_all(0);
-	set_pos_key(hMainWnd,defined);
-	set_flags();
+	set_xypos(hMainWnd);
+	write_regtab(defined);
     PostQuitMessage(0);
     return 0;
   case WM_SYSCOMMAND:
@@ -702,6 +716,7 @@ COLORREF syntax_color[MMIXAL_COLORS] =
   RGB(0x00,0x00,0x00)		//SCE_MMIXAL_INCLUDE 17
 };
 
+
 void mms_style(void)
 /* configure the MMIXAL lexer */
 {  int stylebits;  
@@ -720,6 +735,7 @@ void mms_style(void)
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_SYMBOL,syntax_color[SCE_MMIXAL_SYMBOL]);
 
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_COMMENT,syntax_color[SCE_MMIXAL_COMMENT]);
+   syntax_highlighting = 1;
 }
 
 void txt_style(void)
@@ -731,6 +747,7 @@ void txt_style(void)
    ed_send(SCI_STYLESETFORE,0,RGB(0x0,0x0,0x0));
    ed_send(SCI_STYLESETBACK,0,RGB(0xFF,0xFF,0xFF));
    ed_send(SCI_COLOURISE,0,-1);
+   syntax_highlighting = 0;
 }
 
 void set_lineno_width(void)
@@ -800,7 +817,7 @@ void new_edit(void)
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
    ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
    ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_JUMPS|CARET_EVEN,3);
-   txt_style();
+   set_text_style();
    /* configure margins and markers */
    /* line numbers */
    ed_send(SCI_SETMARGINTYPEN,MMIX_LINE_MARGIN,SC_MARGIN_NUMBER);
@@ -1057,11 +1074,16 @@ int ed_save_changes(int cancel)
   return 1;
 }
 
+int auto_assemble=0;
 
 int assemble_if_needed(int file_no)
 { char *full_mms_name=file2fullname(file_no);
   if (mmo_file_newer(full_mms_name))
-  {	 int decision = MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
+  {	 int decision;
+     if (auto_assemble)
+    	 decision= IDYES;
+	 else	 
+		 decision= MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -1070,7 +1092,11 @@ int assemble_if_needed(int file_no)
 	   return 0;
   }
   else if (!file2debuginfo(file_no))
-  {	 int decision = MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
+  {	 int decision;
+     if (auto_assemble)    	 
+		 decision= IDYES;
+	 else
+		 decision= MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -1162,6 +1188,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     bb_init(hInstance);
 
 	if (!InitInstance (hInstance)) return FALSE;
+	  param_init ();
+	  read_regtab(defined);
+	  get_xypos();
+      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
@@ -1187,10 +1217,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     programhelpfile="mmixide.hlp";
 	/* normal vmb processing */
 	
-	  param_init ();
-      get_pos_key(&xpos,&ypos,defined);
-	  get_flags();
-      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 
 

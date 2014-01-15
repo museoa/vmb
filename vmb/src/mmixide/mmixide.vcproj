@@ -279,10 +279,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\flags.h"
-				>
-			</File>
-			<File
 				RelativePath=".\info.h"
 				>
 			</File>
@@ -303,11 +299,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

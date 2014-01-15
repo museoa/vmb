@@ -44,3 +44,7 @@ extern void set_tabwidth(void);
 #define item_file_no(data) ((int)((data)&0xff))
 extern COLORREF syntax_color[];
 extern void set_text_style(void);
+extern int syntax_highlighting;
+extern int show_whitespace;
+extern int fontsize;
+extern int codepage;

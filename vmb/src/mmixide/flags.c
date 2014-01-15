@@ -1,35 +1,60 @@
 #include <windows.h>
 #include "option.h"
+#include "param.h"
 #include "winopt.h"
 #include "winmain.h"
 #include "edit.h"
-#include "flags.h"
+#include "assembler.h"
+#include "debug.h"
+#include "mmix-internals.h"
+#include "symtab.h"
+#define STATIC_BUILD
+#include "../scintilla/include/scilexer.h"
 
-/* This file provides the functions set_flags and get_flags that store
-   user preferences in the registry and retieve them again.
-   Note: user preferences go in the registry, project settings should go 
-         (in the future) in the default.vmb file.
- */
+regtable regtab= {
+	{"xpos",&xpos,TYPE_DWORD},
+	{"ypos",&ypos,TYPE_DWORD},
+	/* editor options */
+	{"tabwidth",&tabwidth,TYPE_DWORD},
+	{KEY_FLAGS ,&autosave,0},
+	{KEY_FLAGS ,&show_line_no,1},
+	{KEY_FLAGS ,&show_profile,2},
+	{KEY_FLAGS ,&syntax_highlighting,3},
+	{KEY_FLAGS ,&show_whitespace,4},
+	{"fontsize",&fontsize,TYPE_DWORD},
+	{"codepage",&codepage,TYPE_DWORD},
 
-DWORD DFlags=0;
+	{"opcolor",&syntax_color[SCE_MMIXAL_OPCODE_VALID],TYPE_DWORD},
+	{"errcolor",&syntax_color[SCE_MMIXAL_OPCODE_UNKNOWN],TYPE_DWORD},
+	{"regcolor",&syntax_color[SCE_MMIXAL_REGISTER],TYPE_DWORD},
+	{"symcolor",&syntax_color[SCE_MMIXAL_SYMBOL],TYPE_DWORD},
+	{"commentcolor",&syntax_color[SCE_MMIXAL_COMMENT],TYPE_DWORD},
 
-#define SET_FLAG(x,FLAG) DFlags = ((DFlags & ~(FLAG)) | ((x)?(FLAG):0))
-#define GET_FLAG(x,FLAG) x = ((DFlags&(FLAG))!=0)
+    /* assembler options */
+	{"boption",&b_option,TYPE_DWORD},
+	{KEY_FLAGS ,&x_option,5},
+	{KEY_FLAGS ,&l_option,6},
+	{KEY_FLAGS ,&auto_assemble,7},
 
-void set_flags(void)
-{ 
-	SET_FLAG(autosave,FLAG_AUTOSAVE);
-	SET_FLAG(show_line_no,FLAG_SHOW_LINESNO);
-	SET_FLAG(show_profile,FLAG_SHOW_PROFILE);
-	set_reg_DWORD(defined,"flags",DFlags);
-}
+	/*debugger options */
+	{KEY_FLAGS,&break_at_Main,8},
+	{KEY_FLAGS,&break_after,9},
+	{KEY_FLAGS,&show_debug_local,10},
+	{KEY_FLAGS,&show_debug_global,11},
+	{KEY_FLAGS,&show_debug_special,12},
+	{KEY_FLAGS,&show_debug_regstack,13},
+	{KEY_FLAGS,&show_debug_text,14},
+	{KEY_FLAGS,&show_debug_data,15},
+	{KEY_FLAGS,&show_debug_pool,16},
+	{KEY_FLAGS,&show_debug_neg,17},
+	{KEY_FLAGS,&tracing,18},
+	{KEY_FLAGS,&show_operating_system,19},
+	{KEY_FLAGS,&tracing_exceptions,20},
+	{KEY_FLAGS,&auto_connect,21},
 
-void get_flags(void)
-{
-	DFlags=get_reg_DWORD(defined,"flags");
-	GET_FLAG(autosave,FLAG_AUTOSAVE);
-	GET_FLAG(show_line_no,FLAG_SHOW_LINESNO);
-	set_lineno_width();
-	GET_FLAG(show_profile,FLAG_SHOW_PROFILE);
-    set_profile_width();
-}
+    /* symbol table */
+	{KEY_FLAGS,&symtab_locals,22},
+	{KEY_FLAGS,&symtab_registers,23},
+	{KEY_FLAGS,&symtab_small,24},
+
+	{NULL,NULL,0}};
