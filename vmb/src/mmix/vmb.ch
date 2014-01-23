@@ -446,8 +446,8 @@ inst_ptr.h=(ll-2)->tet, inst_ptr.l=(ll-1)->tet; /* \.{Main} */
 g[255]=incr(aux,12*8); /* we will |UNSAVE| from here, to get going */
 @y
 @<Load the postamble@>=
-aux.h=0x60000000;
 { octa x;
+  aux.h=0x60000000;
   x.h=0;@+x.l=0;@+aux.l=0x00;
   if (!store_data(8,x,aux)) /* $\$0=|argc|$ */
      panic("Unable to store mmo file to RAM");
@@ -472,6 +472,7 @@ aux.h=0x60000000;
   x.h=G<<24; x.l=0 /* rA */; 
   if (!store_data(8,x,aux))
      panic("Unable to store mmo file to RAM");
+  G=g[rG].l; /* restore G to rG because it was changed above */
 }
 @z
 
@@ -779,11 +780,11 @@ clear_all_instruction_cache();
 memset(l,0,sizeof(l));
 memset(g,0,sizeof(g));
 L=O=S=0;
+G=g[rG].l=255;
 g[rN].h=(VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
 g[rN].l=ABSTIME; /* see comment and warning above */
 g[rT].h=0x80000000;g[rT].l=0x00000000;
 g[rTT].h=0x80000000;g[rTT].l=0x00000000;
-G=g[rG].l=255;
 g[rV].h=0x12340D00;
 g[rV].l=0x00002000;
 cur_round=ROUND_NEAR;
