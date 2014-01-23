@@ -13,6 +13,8 @@ Manage read and write breakpoints
    
 Memory view unrestricted
 
+Statistics line im Trace window
+
 Ask for reset/reload after assembly while debugging
 
 store options in registry to make them persistent
