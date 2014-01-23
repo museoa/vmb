@@ -2,24 +2,19 @@
 
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
-		<title>VMB ROM Device Specification</title>
+		<title>VMB Karel the Robot Device Specification</title>
 	</head>
 
 	<BODY>
-		<H1>ROM Device Specification</H1>
-		<img src="rom.gif" alt="" width="314" height="114" border="0">
-		<p>The ROM device offers a variable amount of read only memory at a configurable address.  The content of the memory is taken form an image file. Any type of file can be used as an image file, as the file is just placed into memory and mapped into the address space. The maximum file size is 4GByte. The actual size depends on the size of the image file. The size of the image file is rounded up to multiples of 1 kByte. Upon Power On or Reset,  the ROM image file is reread to update the ROM in case of changes were made to the image file.</p>
-		<h2>ROM Configuration</h2>
-		The ROM has the following configurable parameters:
+		<H1>Karel the Ronot Device Specification</H1>
+		<img src="karel.gif" alt="" width="314" height="114" border="0">
+		<p>Karel ...
+		<h2>Karels Configuration</h2>
+		Karel has the following configurable parameters:
 		<table>
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
 <tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
 <tr> <td>address   <td>0x8000000000000000<td> address where the resource is located </tr>
-			<tr>
-				<td>file</td>
-				<td></td>
-				<td>the file containing the ROM image</td>
-			</tr>
 			<tr> <td> x        <td> 0<td>the x position of the window </tr>
 			<tr> <td> y        <td> 0<td>the y position of the window </tr>
 			<tr> <td> minimized<td> false<td>start with a minimized window </tr>

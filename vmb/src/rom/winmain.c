@@ -11,7 +11,7 @@
 
 
 
-extern void open_file(void);
+
 
 
 INT_PTR CALLBACK  
@@ -68,9 +68,55 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
+#define REFRESH_TIME 50
+hFloor
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{ 
+{  switch( message )
+  { case WM_CREATE:
+		SetTimer(hWnd,1,REFRESH_TIME,NULL);
+		break;
+	case WM_TIMER:
+		{ RECT rect;
+		GetWindowRect(hWnd,&rect);
+		SetWindowPos(hWnd, HWND_TOP, rect.left+2, rect.top,0,0,SWP_NOACTIVATE|SWP_NOSIZE | SWP_NOZORDER |SWP_NOREDRAW);
+		BitBlt(hdc,x,y,cx,cy,hdcSrc CAPTUREBLT
+		StretchBlt()
+		InvalidateRect(hWnd,NULL,FALSE);
+		return 0; 
+
+		aus winvram
+{ PAINTSTRUCT ps;
+	  BOOL rc;
+	  DWORD dw;
+	  int src_left, src_top,src_right,src_bottom;
+	  EnterCriticalSection (&bitmap_section);
+      BeginPaint(hWnd, &ps); 
+	  src_left = (int)floor(ps.rcPaint.left/zoom);
+	  src_right = (int)ceil(ps.rcPaint.right/zoom);
+	  src_top = (int)floor(ps.rcPaint.top/zoom);
+	  src_bottom = (int)ceil(ps.rcPaint.bottom/zoom);
+	  if (zoom<1.0)
+	    SetStretchBltMode(ps.hdc,HALFTONE);
+	  else
+	    SetStretchBltMode(ps.hdc,COLORONCOLOR);
+	  rc = StretchBlt(ps.hdc, 
+		          (int)(src_left*zoom),(int)(src_top*zoom),
+				  (int)((src_right-src_left)*zoom), (int)((src_bottom-src_top)*zoom),
+                  hCanvas, 
+				  src_left,src_top, 
+				  src_right-src_left, src_bottom-src_top,
+				  SRCCOPY);
+      if (!rc)
+	    dw = GetLastError();
+	  EndPaint(hWnd, &ps); 
+	  LeaveCriticalSection (&bitmap_section);
+    }
+
+
+
+		}
+  }
     return (OptWndProc(hWnd, message, wParam, lParam));
 }
 
