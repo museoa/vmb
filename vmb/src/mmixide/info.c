@@ -33,7 +33,8 @@ static int next_file_no=0, count_file_no=0;
 
 static void free_name(int file_no)
 /* free the memory of fullname */
-{ if (fullname[file_no]!=NULL)
+{ if (file_no<0) return;
+  if (fullname[file_no]!=NULL)
   { file_list_remove(file_no);
     free(fullname[file_no]);
   }

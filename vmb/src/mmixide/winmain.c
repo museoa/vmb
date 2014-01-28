@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.16 $ $Date: 2014-01-15 17:13:00 $";
+char version[]="$Revision: 1.17 $ $Date: 2014-01-28 11:46:40 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -439,9 +439,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_MMIX_STEP:
 		  mmix_continue('n');
 		  return 0;
-		case ID_MMIX_CONTINUE:
-		  mmix_continue('c');
-		  return 0;
 	   case ID_MMIX_STOP:
 		  mmix_stop();
 		  return 0;
@@ -449,11 +446,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  mmix_continue('q');
 		  return 0;
 		case ID_MMIX_DEBUG:
-		  if (!ide_prepare_mmix()) return 0;
-		  set_debug_windows();
-		  mmix_debug(edit_file_no);
+		  if (mmix_active())
+		  { mmix_continue('c');
+		  }
+		  else 
+		  { if (!ide_prepare_mmix()) return 0;
+		    set_debug_windows();
+		    mmix_debug(edit_file_no);
+		  }
 	      return 0; 
 		case ID_MMIX_RUN:
+		  if (mmix_active()) return 0;
 		  if (!ide_prepare_mmix()) return 0;
 		  mmix_run(edit_file_no);
 	      return 0; 
@@ -602,7 +605,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (lParam==-1) /* terminated */   
 	{ mmix_status(MMIX_HALTED);
       show_stop_marker(edit_file_no,-1); /* clear stop marker */
-	  bb_set_group(hButtonBar,BG_DEBUG,0,1);
+	  bb_set_group(hButtonBar,BG_DEBUG,0,0);
 	  update_symtab();
 	}
 	else if (lParam==0)
@@ -804,14 +807,18 @@ void set_tabwidth(void)
 {   ed_send(SCI_SETTABWIDTH,tabwidth,0);
 }
 
-void new_edit(void)
-{ 
-   sp_create_options(1,0,0.8,0,NULL);
+
+void create_edit(void)
+{   sp_create_options(1,0,0.8,0,NULL);
    hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
 		0,0,400,300,hSplitter,NULL,hInst,NULL);
    ed_fn = (SciFnDirect)SendMessage(hEdit,SCI_GETDIRECTFUNCTION,0,0);
    ed_ptr= (sptr_t)SendMessage(hEdit,SCI_GETDIRECTPOINTER,0,0);
+}
 
+void new_edit(void)
+{ 
+  if (hEdit==NULL) create_edit();
   /* configure the style */
    ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
@@ -1027,11 +1034,12 @@ void ed_save(void)
 }
 
 void ed_save_as(void)
-{	char *name;
+{	char *name=NULL;
 	char asname[MAX_PATH+1] = "\0";
 	OPENFILENAME ofn ={0};
 	if (hEdit==NULL) return;
-	name = file2fullname(edit_file_no);
+	if (edit_file_no>=0)
+	  name = file2fullname(edit_file_no);
 	if (name!=NULL)
 	  strncpy(asname,name ,MAX_PATH);
 	else
@@ -1155,13 +1163,11 @@ void add_buttons(void)
   add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,10,"Zoom out");
   add_button(IDI_VIEW_WHITESPACE,ID_VIEW_WHITESPACE,BG_VIEW,11,"Show Whitespace");
 
-  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,12,"Debug");
-  
+  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,12,"Debug/Continue");
   add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,13,"Step Instruction");
-  add_button(IDI_DEBUG_CONTINUE,ID_MMIX_CONTINUE,BG_DEBUG,14,"Continue Execution");
   add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,15,"Break Execution");
   add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,16,"Halt Execution");
-  bb_set_group(hButtonBar,BG_DEBUG,0,1);
+  bb_set_group(hButtonBar,BG_DEBUG,0,0);
 
   add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,17,"About");
 
@@ -1188,11 +1194,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     bb_init(hInstance);
 
 	if (!InitInstance (hInstance)) return FALSE;
-	  param_init ();
-	  read_regtab(defined);
-	  get_xypos();
-      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
-
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
 		0, 0, r.right-r.left-S_WIDTH, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
@@ -1203,7 +1204,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_edit(hInstance);
 	mmix_lib_initialize();
 	debug_init();
+	  param_init ();
+	  read_regtab(defined);
+	  get_xypos();
+      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
+
 	new_edit();
+	if (edit_file_no<0) ed_new();
 	hStatus = CreateWindow("STATIC", version ,
 				WS_CHILD|WS_VISIBLE|SS_CENTER,
                 r.right-r.left-S_WIDTH,0, S_WIDTH,BB_HEIGHT,

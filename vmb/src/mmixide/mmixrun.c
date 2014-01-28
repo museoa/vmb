@@ -126,6 +126,13 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
   return returncode;
 }
 
+
+int mmix_active(void)
+/* returns 1 if the MMIXThread is running 0 otherwise */
+{ 
+	return dwMMIXThreadId!=0;
+}
+
 static void MMIXThread(void)
 { HANDLE hMMIXThread=NULL;
   if (dwMMIXThreadId!=0) return;
