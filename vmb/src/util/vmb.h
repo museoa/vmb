@@ -30,7 +30,7 @@
 #define WM_VMB_RESET		(WM_VMB+3)
 #define WM_VMB_CONNECT		(WM_VMB+4)
 #define WM_VMB_DISCONNECT	(WM_VMB+5)
-#define WM_VMB_MSG			(WM_VMB+6)
+
 #define WM_VMB_OTHER		(WM_VMB+7)
 
 

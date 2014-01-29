@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 #include "../scintilla/include/scilexer.h"
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.17 $ $Date: 2014-01-28 11:46:40 $";
+char version[]="$Revision: 1.18 $ $Date: 2014-01-29 17:33:47 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -810,7 +810,7 @@ void set_tabwidth(void)
 
 void create_edit(void)
 {   sp_create_options(1,0,0.8,0,NULL);
-   hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
+   hEdit = CreateWindowEx(0,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN|WS_BORDER,
 		0,0,400,300,hSplitter,NULL,hInst,NULL);
    ed_fn = (SciFnDirect)SendMessage(hEdit,SCI_GETDIRECTFUNCTION,0,0);
    ed_ptr= (sptr_t)SendMessage(hEdit,SCI_GETDIRECTPOINTER,0,0);

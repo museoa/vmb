@@ -27,7 +27,7 @@ BOOL InitInstance(HINSTANCE hInstance)
   r = LoadString(hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);
   if (r==0)
   { r = GetLastError();
-    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)",r);
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to load class name (%X)\n",r);
 	vmb_fatal_error(__LINE__,"Unable to load class name");
   }
   ZeroMemory(&wcex, sizeof(wcex));
@@ -74,7 +74,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HACCEL hAccelTable;
     MSG msg;
     vmb_message_hook = win32_message;
-	vmb_debug_hook = win32_debug;
+	vmb_debug_hook = win32_log;
 	vmb_error_init_hook = win32_error_init;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));

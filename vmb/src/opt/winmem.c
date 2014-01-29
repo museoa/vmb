@@ -588,7 +588,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		{  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		   unregister_subwindow(hDlg);
 		   DestroyDataEdit(0);
-		   insp->hWnd=NULL;
+		   if (insp!=NULL) insp->hWnd=NULL;
 		}
 	  return FALSE;
 	case WM_LBUTTONDBLCLK:

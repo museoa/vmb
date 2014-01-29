@@ -253,7 +253,7 @@ static
 int do_option(option_spec *p, char *arg)
 { 
   if (arg!=NULL)
-	  vmb_debugs(VMB_DEBUG_INFO, "argument: %s", arg);
+	  vmb_debugs(VMB_DEBUG_INFO, "argument: %s\n", arg);
   switch (p->kind)
   { case str_arg: 
       if (arg==NULL)
@@ -324,7 +324,7 @@ int do_option(option_spec *p, char *arg)
       *(p->handler.i)= 0;
       return 0;
     case fun_arg:
-      vmb_debug(VMB_DEBUG_INFO, "calling handler");
+      vmb_debug(VMB_DEBUG_INFO, "calling handler\n");
       { char *str=NULL;
         int r;
         store_strarg(&str,arg,0);
@@ -343,11 +343,11 @@ static
 int  do_option_long(char *cmd,char *arg)
 /* returns 1 if argument was used 0 otherwise */
 {  int i;
-   vmb_debugs(VMB_DEBUG_INFO, "searching for option: %s",cmd);
+   vmb_debugs(VMB_DEBUG_INFO, "searching for option: %s\n",cmd);
    i=0;
    while (1)
    { if (options[i].description==NULL)
-       { vmb_debugs(VMB_DEBUG_NOTIFY, "option ignored: %s",cmd);
+       { vmb_debugs(VMB_DEBUG_NOTIFY, "option ignored: %s\n",cmd);
         return 0;
       }
       if (cmd[strlen(options[i].longopt)] == '=')
@@ -368,11 +368,11 @@ int  do_option_short(char cmd,char *arg)
 {  int i;
 
    i=0;   
-   vmb_debugi(VMB_DEBUG_PROGRESS, "searching for option: -%c",cmd);
+   vmb_debugi(VMB_DEBUG_PROGRESS, "searching for option: -%c\n",cmd);
    
    while (1)
    { if (options[i].description==NULL)
-       { vmb_debugi(VMB_DEBUG_NOTIFY, "option ignored: -%c",cmd);
+       { vmb_debugi(VMB_DEBUG_NOTIFY, "option ignored: -%c\n",cmd);
         return 0;
       }
       if (cmd==options[i].shortopt)
@@ -430,7 +430,7 @@ int write_configfile(char *filename)
   { vmb_error(__LINE__,"Filename expected");
     return 0;
   }
-  vmb_debugs(VMB_DEBUG_PROGRESS, "writing configfile %s",filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "writing configfile %s\n",filename);
   out=fopen(filename,"w");
   if (out==NULL) 
 	  {  vmb_error(__LINE__,"Could not write configuration file");
@@ -477,7 +477,7 @@ int write_configfile(char *filename)
       continue;
   }
   fclose(out);
-  vmb_debug(VMB_DEBUG_PROGRESS, "done writing configfile");
+  vmb_debug(VMB_DEBUG_PROGRESS, "done writing configfile\n");
   return 1;
 }
 
@@ -551,7 +551,7 @@ FILE *vmb_fopen(char *filename, char *mode)
   { vmb_error(__LINE__,"Filename expected");
     return NULL;
   }
-  vmb_debugs(VMB_DEBUG_PROGRESS, "opening file %s",filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "opening file %s\n",filename);
   if (fopen_file!=NULL) free(fopen_file);
   fopen_file = NULL;
   fopen_file = malloc(strlen(filename)+1);
@@ -575,7 +575,7 @@ FILE *vmb_fopen(char *filename, char *mode)
   search[1]=configPATH;
   search[2]=programpath;
   for (i=0; i<3;i++)
-  { vmb_debugi(VMB_DEBUG_INFO, "searching path %d",i);
+  { vmb_debugi(VMB_DEBUG_INFO, "searching path %d\n",i);
     if (search[i]==NULL || search[i][0]==0) continue;
 	fopen_file= malloc(strlen(search[i])+strlen(filename)+1);
     if (fopen_file==NULL)
@@ -584,11 +584,11 @@ FILE *vmb_fopen(char *filename, char *mode)
     }
     strcpy(fopen_file,search[i]);
     strcat(fopen_file,filename);
-	vmb_debugs(VMB_DEBUG_INFO, "try to open file %s",fopen_file);
+	vmb_debugs(VMB_DEBUG_INFO, "try to open file %s\n",fopen_file);
     in=fopen(fopen_file,mode);
 	if (in!=NULL)
 	  return in;
-	vmb_debugs(VMB_DEBUG_INFO, "file %s not found",fopen_file);
+	vmb_debugs(VMB_DEBUG_INFO, "file %s not found\n",fopen_file);
 	free(fopen_file);
 	fopen_file=NULL;
   }
@@ -612,9 +612,9 @@ int parse_configfile(char *filename)
   { vmb_error(__LINE__,"Argument expected");
     return 0;
   }
-  vmb_debugs(VMB_DEBUG_PROGRESS, "reading configfile %s",filename);
-  vmb_debugs(VMB_DEBUG_PROGRESS, "defined %s",defined==NULL?"NULL":defined);
-  vmb_debugs(VMB_DEBUG_PROGRESS, "program arg %s",parg);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "reading configfile %s\n",filename);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "defined %s\n",defined==NULL?"NULL":defined);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "program arg %s\n",parg);
   in=vmb_fopen(filename,"r");
   if (in==NULL) return 0;
   set_PATH_FILE(fopen_file);
@@ -668,7 +668,7 @@ int parse_configfile(char *filename)
      { if (conditional ==1) 
          conditional=0;
        else
-         vmb_debug(VMB_DEBUG_NOTIFY, "Unmatched #endif"); 
+         vmb_debug(VMB_DEBUG_NOTIFY, "Unmatched #endif\n"); 
        continue;
      }
   
@@ -702,7 +702,7 @@ int parse_configfile(char *filename)
   }
   fclose(in);
   free(line);
-  vmb_debug(VMB_DEBUG_INFO, "done configfile");
+  vmb_debug(VMB_DEBUG_INFO, "done configfile\n");
   return 1;
 }
 
@@ -736,7 +736,7 @@ static void do_program(char * arg)
   }
   strncpy(programpath,arg,n);
   programpath[n]=0;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program path: %s", programpath);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program path: %s\n", programpath);
   i = (int)strlen(arg+n) + 1;
   vmb_program_name = malloc(i); /* name + '0' */
   if (vmb_program_name==NULL) 
@@ -744,7 +744,7 @@ static void do_program(char * arg)
     return;
   }
   strcpy(vmb_program_name,arg+n);
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program name: %s", vmb_program_name);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program name: %s\n", vmb_program_name);
   defined = malloc(i); /* name + '0' */
   if (defined==NULL) 
   { vmb_fatal_error(__LINE__,"Out of memory");
@@ -756,7 +756,7 @@ static void do_program(char * arg)
   if (strncmp(defined+i-5,".exe",4)== 0 || strncmp(defined+i-5,".EXE",4)== 0 )
 	  defined[i-5]=0;
 #endif 
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s", defined);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s\n", defined);
 }
 
 
@@ -800,7 +800,7 @@ void parse_commandstr(char *p)
 { int arguments;
   char *cmd, *arg;  
 vmb_debug_flag=1;vmb_debug_mask=0;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "reading commandstr %s",p);
+  vmb_debugs(VMB_DEBUG_PROGRESS, "reading commandstr %s\n",p);
   do_program(parse_argument(&p));
   arguments=do_define(parse_argument(&p));
   arguments++;
@@ -855,14 +855,14 @@ vmb_debug_flag=1;vmb_debug_mask=0;
      else
        do_argument(arguments++, parse_argument(&p));
   }
-  vmb_debug(VMB_DEBUG_INFO, "done commandstr");
+  vmb_debug(VMB_DEBUG_INFO, "done commandstr\n");
 }
 #endif
 
 void parse_commandline(int argc, char *argv[])
 { int i,j;
   int has_config=0;
-  vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline");
+  vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline\n");
   do_program(argv[0]);
   if (do_define(argv[1])) i=2; else i=1;
   for (j=i;j<argc;j++)
@@ -884,6 +884,6 @@ void parse_commandline(int argc, char *argv[])
       do_argument(i, argv[i]);
     i++;
   }
-  vmb_debug(VMB_DEBUG_INFO, "done commandline");
+  vmb_debug(VMB_DEBUG_INFO, "done commandline\n");
 }
 

@@ -16,6 +16,10 @@ static jmp_buf error_exit;
 
 @ @<Preprocessor definitions@>=
 #include <setjmp.h>
+#ifdef MMIX_PRINT
+extern int mmix_printf(char *format,...);
+#define printf(...) mmix_printf(__VA_ARGS__)
+#endif
 #pragma warning(disable : 4996)
 #define _MMIXAL_
 @z

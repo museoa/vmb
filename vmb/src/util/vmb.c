@@ -53,7 +53,7 @@ void vmb_raise_interrupt(device_info *vmb, unsigned char i)
 {  if ( i >= 64)
     return;
    send_msg(&(vmb->fd), TYPE_BUS, 0, (unsigned char)i, ID_INTERRUPT, 0, 0, 0);
-   vmb_debugi(VMB_DEBUG_INFO,"Raising interrupt %d",i);
+   vmb_debugi(VMB_DEBUG_INFO,"Raising interrupt %d\n",i);
 }
 
 
@@ -332,18 +332,18 @@ static void reply_payload(device_info *vmb, unsigned char address[8],int size, u
 { unsigned int address_hi = chartoint(address);
   unsigned int address_lo = chartoint(address+4);
   data_address *da;
-  vmb_debugx(VMB_DEBUG_INFO, "Searching for read request matching %s",address,8);
+  vmb_debugx(VMB_DEBUG_INFO, "Searching for read request matching %s\n",address,8);
   da = dequeue_read_request(address_hi,address_lo);
   if (da!=NULL)
-  { vmb_debug(VMB_DEBUG_INFO, "Matching read request found");
+  { vmb_debug(VMB_DEBUG_INFO, "Matching read request found\n");
     deliver_answer(da,size,payload);
   }
   else if (size == 0) /* this was a dummy answer, we drop all pending requests */
-  { vmb_debug(VMB_DEBUG_NOTIFY, "No matching request for dummy answer");
+  { vmb_debug(VMB_DEBUG_NOTIFY, "No matching request for dummy answer\n");
     flush_pending_read_queue();
   }
   else
-     vmb_debug(VMB_DEBUG_NOTIFY, "No matching read request found");
+     vmb_debug(VMB_DEBUG_NOTIFY, "No matching read request found\n");
 }
 
 void vmb_wait_for_valid(device_info *vmb, data_address *da)
@@ -406,20 +406,20 @@ static void read_request(device_info *vmb,  unsigned char a[8], int s, unsigned 
 
   offset = get_offset(vmb->address,a);
   if (hi_offset || overflow_offset || offset >= vmb->size)
-  { vmb_debugx(VMB_DEBUG_WARN, "Read request out of range at %s",a,8);
-    vmb_debug(VMB_DEBUG_INFO, "Sending empty answer");
+  { vmb_debugx(VMB_DEBUG_WARN, "Read request out of range at %s\n",a,8);
+    vmb_debug(VMB_DEBUG_INFO, "Sending empty answer\n");
     answer_readrequest(vmb, slot, a,0,NULL);
   }
   else if (offset + s > vmb->size)
-  { vmb_debugx(VMB_DEBUG_NOTIFY, "Read request partly out of range %s",a,8);
+  { vmb_debugx(VMB_DEBUG_NOTIFY, "Read request partly out of range %s\n",a,8);
 	s = vmb->size-offset;
-	vmb_debug(VMB_DEBUG_INFO, "Processing Read Request");
+	vmb_debug(VMB_DEBUG_INFO, "Processing Read Request\n");
     if (vmb->get_payload)  data = vmb->get_payload(offset,s);
     else data = NULL;
     answer_readrequest(vmb, slot,a,s,data);
   }
   else
-  { vmb_debug(VMB_DEBUG_INFO, "Processing Read Request");
+  { vmb_debug(VMB_DEBUG_INFO, "Processing Read Request\n");
     if (vmb->get_payload)  data = vmb->get_payload(offset,s);
     else data = NULL;
     answer_readrequest(vmb, slot,a,s,data);
@@ -431,21 +431,21 @@ static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned 
   offset = get_offset(vmb->address,a);
    if (hi_offset || overflow_offset || offset >= vmb->size)
   {
-    vmb_debugx(VMB_DEBUG_WARN, "Write request out of range at %s",a,8);
-    vmb_debugx(VMB_DEBUG_INFO, "Address: %s",vmb->address,8);
-    vmb_debugi(VMB_DEBUG_INFO, "Size:    %d",vmb->size);
-    vmb_debugi(VMB_DEBUG_INFO, "Offset:  %ud", offset);
+    vmb_debugx(VMB_DEBUG_WARN, "Write request out of range at %s\n",a,8);
+    vmb_debugx(VMB_DEBUG_INFO, "Address: %s\n",vmb->address,8);
+    vmb_debugi(VMB_DEBUG_INFO, "Size:    %d\n",vmb->size);
+    vmb_debugi(VMB_DEBUG_INFO, "Offset:  %ud\n", offset);
     failed_writerequest(vmb, slot,a);
 	return;
   }
   else if (offset + s > vmb->size)
-  { vmb_debugx(VMB_DEBUG_NOTIFY, "Write request partly out of range %s",a,8);
+  { vmb_debugx(VMB_DEBUG_NOTIFY, "Write request partly out of range %s\n",a,8);
 	s = vmb->size-offset;
-	vmb_debug(VMB_DEBUG_INFO, "Processing Write Request");
+	vmb_debug(VMB_DEBUG_INFO, "Processing Write Request\n");
     if (vmb->put_payload)  vmb->put_payload(offset,s,p);
   }
   else
-  { vmb_debug(VMB_DEBUG_INFO, "Processing Write Request");
+  { vmb_debug(VMB_DEBUG_INFO, "Processing Write Request\n");
     if (vmb->put_payload)  vmb->put_payload(offset,s,p);
   }
 }
@@ -453,7 +453,7 @@ static void write_request(device_info *vmb, unsigned char a[8], int s, unsigned 
 static void bus_error(device_info *vmb, unsigned char type, unsigned char a[8])
 { char hex[17]={0};
   chartohex(a,hex,8);
-  vmb_debugs(VMB_DEBUG_ERROR, "Bus error detected at %s",hex);
+  vmb_debugs(VMB_DEBUG_ERROR, "Bus error detected at %s\n",hex);
   if (vmb->buserror) vmb->buserror(type,a);
   return;
 }
@@ -561,23 +561,23 @@ static int get_request(device_info *vmb,
 
 static void clean_up_read_thread(void *dummy)
 { device_info *vmb = (device_info *)dummy;
-  vmb_debug(VMB_DEBUG_PROGRESS, "Terminating bus interface.");
+  vmb_debug(VMB_DEBUG_PROGRESS, "Terminating bus interface.\n");
   if (vmb->fd>=0)
-  { vmb_debug(VMB_DEBUG_INFO, "closing connection.");
+  { vmb_debug(VMB_DEBUG_INFO, "closing connection.\n");
     bus_unregister(vmb->fd);
     bus_disconnect(&(vmb->fd)); 
     vmb->fd = INVALID_SOCKET;
-    vmb_debug(VMB_DEBUG_INFO, "connection closed.");
+    vmb_debug(VMB_DEBUG_INFO, "connection closed.\n");
   }
   change_event(vmb, &vmb->connected, 0);
   flush_pending_read_queue();
-  vmb_debug(VMB_DEBUG_INFO, "read queue flushed.");
+  vmb_debug(VMB_DEBUG_INFO, "read queue flushed.\n");
   if (vmb->disconnected) vmb->disconnected();
 #ifdef WIN32
    CloseHandle(vmb->hevent); vmb->hevent = NULL;
    DeleteCriticalSection(&vmb->event_section);
 #endif
-  vmb_debug(VMB_DEBUG_INFO, "read tread cleaned.");
+  vmb_debug(VMB_DEBUG_INFO, "read tread cleaned.\n");
 }
 
 #ifdef WIN32
@@ -601,7 +601,7 @@ static void *read_loop(void *dummy)
 #else
   pthread_cleanup_pop(1);
 #endif
-    vmb_debug(VMB_DEBUG_INFO, "read loop terminated.");
+    vmb_debug(VMB_DEBUG_INFO, "read loop terminated.\n");
   return 0;
 }
 
@@ -720,7 +720,7 @@ void vmb_register(device_info *vmb, unsigned int address_hi, unsigned int addres
 #ifdef WIN32
    if (r<0)
    { TIMEVAL tv;
-     vmb_debug(VMB_DEBUG_ERROR,"Second attempt to register");
+     vmb_debug(VMB_DEBUG_ERROR,"Second attempt to register\n");
      tv.tv_sec=0;
 	 tv.tv_usec= 10000;
 	 select(0,NULL,NULL,NULL,&tv);
@@ -768,7 +768,7 @@ void vmb_store(device_info *vmb, data_address *da)
  
     inttochar(da->address_hi,address);
     inttochar(da->address_lo,address+4);
-    vmb_debugx(VMB_DEBUG_INFO, "Writing to address %s",address,8);
+    vmb_debugx(VMB_DEBUG_INFO, "Writing to address %s\n",address,8);
     send_msg(&(vmb->fd),
            (unsigned char)(TYPE_ADDRESS|TYPE_PAYLOAD),
            size,0,id,0,address,da->data);
@@ -794,7 +794,7 @@ void vmb_load(device_info *vmb, data_address *da)
     inttochar(da->address_hi,address);
     inttochar(da->address_lo,address+4);
     enqueue_read_request(da);
-    vmb_debugx(VMB_DEBUG_INFO, "Read request added for address %s",address,8);
+    vmb_debugx(VMB_DEBUG_INFO, "Read request added for address %s\n",address,8);
     send_msg(&(vmb->fd),
            (unsigned char)(TYPE_ADDRESS|TYPE_REQUEST),
            size,0,id,0,address,NULL);

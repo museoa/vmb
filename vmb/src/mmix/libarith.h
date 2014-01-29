@@ -1,5 +1,5 @@
 /*15:*/
-#line 98 "vmb.ch"
+#line 106 "vmb.ch"
 
 extern octa zero_octa;
 #line 593 "mmix-sim.w"

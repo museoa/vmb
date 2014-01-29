@@ -264,16 +264,16 @@ void vmb_debugm(int level, unsigned char mtype,unsigned char msize, unsigned cha
   n = sprintf(tmp,"\ttype:\t%s\r\n"
 	          "\tsize:\t%d\r\n"
 			  "\tslot:\t%d\r\n"
-			  "\tid  :\t%s",
+			  "\tid  :\t%s\r\n",
 			  debug_type(mtype),
 			  msize,
 			  mslot,
 			  id_str);
 
   if (mtype & TYPE_ADDRESS)
-    n += sprintf(tmp+n,"\r\n\taddress: %s", hexstr(maddress, 8));
+    n += sprintf(tmp+n,"\taddress: %s\r\n", hexstr(maddress, 8));
   if ((mtype & TYPE_PAYLOAD)&&!(VMB_DEBUG_PAYLOAD&vmb_debug_mask))
-    n += sprintf(tmp+n,"\r\n\tpayload: %s", hexstr(mpayload, 8 * (msize + 1)));
+    n += sprintf(tmp+n,"\tpayload: %s\r\n", hexstr(mpayload, 8 * (msize + 1)));
 #if 0
   if (mtype & TYPE_TIME)
      n += sprintf(tmp+n,"\r\n\ttime: %d", mtime);

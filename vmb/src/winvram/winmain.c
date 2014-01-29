@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.35 $ $Date: 2013-10-07 16:32:56 $";
+char version[]="$Revision: 1.36 $ $Date: 2014-01-29 17:33:47 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -1192,7 +1192,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HACCEL hAccelTable;
     MSG msg;
     vmb_message_hook = win32_message;
-	vmb_debug_hook = win32_debug;
+	vmb_debug_hook = win32_log;
 	vmb_error_init_hook = win32_error_init;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));

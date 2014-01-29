@@ -138,13 +138,13 @@ static int read_socket(int *socket, unsigned char *msg, int size)
 			return 0;
 		}
 #endif		
-        vmb_debug(VMB_DEBUG_NOTIFY,"Socket Read Error");
+        vmb_debug(VMB_DEBUG_NOTIFY,"Socket Read Error\n");
 		bus_read_error(socket);
 	  return -1;
 	}
     else if (i==0) /* connection has closed */
     { 
-    vmb_debug(VMB_DEBUG_PROGRESS,"Socket was closed");
+    vmb_debug(VMB_DEBUG_PROGRESS,"Socket was closed\n");
 
 /* there was a #ifdef WIN32 #else here to skip the disconnect with WIN32 */
       bus_read_error(socket); 

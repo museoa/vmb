@@ -10,7 +10,7 @@ extern HWND hpower;
 extern device_info vmb;
 
 extern void win32_message(char *msg);
-extern void win32_debug(char *msg);
+extern void win32_log(char *msg);
 extern void win32_error_init(int i);
 extern void mem_update(unsigned int offset, int size);
 /* call this function to tell a specific memory inspector i that an update is due */

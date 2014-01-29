@@ -222,7 +222,7 @@ void preload_data_cache(octa address, int size)
 static void mmix_buserror(unsigned char type, unsigned char a[8])
 { char hex[17]={0};
   chartohex(a,hex,8);
-  vmb_debugs(VMB_DEBUG_ERROR, "Bus error detected at %s",hex);
+  vmb_debugs(VMB_DEBUG_ERROR, "Bus error detected at %s\n",hex);
   g[rF].h = chartoint(a);
   g[rF].l = chartoint(a+4);
   g[rQ].l |= NM_BIT;

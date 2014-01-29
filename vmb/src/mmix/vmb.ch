@@ -46,6 +46,14 @@ If the option is omited altogether, localhost is contacted at port 9002.
 #endif
 #define _MMIX_SIM_
 
+#ifdef MMIX_PRINT
+extern int mmix_printf(char *format,...);
+extern int mmix_fputc(int c, FILE *f);
+#define printf(...) mmix_printf(__VA_ARGS__)
+#define fprintf(file,...) mmix_printf(__VA_ARGS__)
+#define fputc(c,f) mmix_fputc(c,f)
+#endif
+
 #pragma warning(disable : 4146 4267)
 
 @ @<Glob...@>=

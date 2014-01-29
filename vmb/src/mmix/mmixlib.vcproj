@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mmixlib"
 	ProjectGUID="{4CE6E4D2-F64A-42C0-A1E2-7CC6D9ECC7BE}"
 	RootNamespace="mmixlib"
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../util;../opt;../vmbmmixlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32;DEBUG"
+				PreprocessorDefinitions="MMIXLIB;WIN32;MMIX_PRINT;DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../util;../opt;../vmbmmixlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32"
+				PreprocessorDefinitions="MMIXLIB;WIN32;MMIX_PRINT"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -273,6 +273,10 @@
 						PreprocessorDefinitions="MMIXLIB"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mmix-arith.ch"
+				>
 			</File>
 			<File
 				RelativePath=".\mmix-arith.w"

@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <setjmp.h>
+#include "splitter.h"
 #include "vmb.h"
 #include "error.h"
 #include "winopt.h"
@@ -14,6 +15,7 @@
 #include "symtab.h"
 #include "debug.h"
 #include "assembler.h"
+#include "winlog.h"
 #include "mmixrun.h"
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -65,7 +67,7 @@ int mmix_continue(unsigned char command)
      SetEvent (hInteract);
    return 1;
 }
-
+#ifdef MMIX_CONSOLE
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int hConHandle;
   HANDLE lStdHandle;
@@ -75,7 +77,7 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
   int returncode;
 
   if (AllocConsole()==0)
-    vmb_debugi(VMB_DEBUG_FATAL,"Unable to allocate Console (%X)",GetLastError());
+    vmb_debugi(VMB_DEBUG_FATAL,"Unable to allocate Console (%X)\n",GetLastError());
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&coninfo);
   coninfo.dwSize.Y = MAX_CONSOLE_LINES;
   SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE),coninfo.dwSize);
@@ -125,6 +127,31 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
   dwMMIXThreadId=0;
   return returncode;
 }
+#else
+static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
+{   int returncode;
+
+  if (hInteract==NULL)
+    hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
+
+ 
+  vmb_exit_hook = mmix_exit;
+  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(application_file_no)));
+  application_file_no=-1;
+  vmb_atexit();
+  vmb_exit_hook = ide_exit_ignore;
+
+  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,(LPARAM)-1); 
+ 
+  if (hInteract!=NULL)
+   { CloseHandle(hInteract); 
+     hInteract=NULL;
+   }
+
+  dwMMIXThreadId=0;
+  return returncode;
+}
+#endif
 
 
 int mmix_active(void)
@@ -192,6 +219,10 @@ void mmix_debug(int file_no)
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  application_file_no=file_no;
 		  update_symtab();
+		  if (tracing && hLog==NULL)
+		  { sp_create_options(0,0,0.2,0,NULL);
+			hLog=CreateLog(hSplitter,hInst);
+		  }
 		  MMIXThread();
 }
 
@@ -251,6 +282,41 @@ static int check_interact(bool after)
     return 1;
 }
 
+#include "libglobals.h"
+#define RESUME_AGAIN 0
+#define RESUME_CONT 1
+#define RESUME_SET 2
+#define RESUME_TRANS 3 
+
+
+
+static char logstr[512];
+
+int mmix_printf(char *format,...)
+{ va_list vargs;
+  char logstr[512];
+  int n; 
+  va_start(vargs,format);	
+  n = vsprintf(logstr,format, vargs);
+  win32_log(logstr);
+  return n;
+}
+
+int mmix_fputc(int c, FILE *f)
+{ if (f==stdout)
+  { char str[2];
+    str[0]=c; str[1]=0;
+	win32_log(str);
+	return c;
+  }
+  else
+  return fputc(c,f);
+}
+
+
+
+
+
 int mmix_main(int argc, char *argv[],char *mmo_name)
 { g[255].h=0;
   g[255].l=setjmp(error_exit);
@@ -264,12 +330,12 @@ int mmix_main(int argc, char *argv[],char *mmo_name)
 boot:
   vmb.reset_flag=0; 
   mmix_boot(); 
-  fprintf(stderr,"Power...");
+  win32_log("Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
      if (!vmb.connected) panic("Power but not connected");
   }
-  fprintf(stderr,"ON\n");
+  win32_log("ON\n");
   mmix_load_file(mmo_name);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
