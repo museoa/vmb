@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "winmain.h"
 #include "info.h"
+#include "editor.h"
 #include "print.h"
 
 #pragma warning(disable : 4996)

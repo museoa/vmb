@@ -1,5 +1,5 @@
 #include "mmix-internals.h"
-extern int edit_file_no; /* the file currently in the editor */
+
 #define MAX_FILES 0x100
 extern char *fullname[MAX_FILES+1]; /* the full filenames */
 extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
@@ -18,8 +18,7 @@ extern void *doc[257]; /* pointer to scintilla documents */
 int unique_shortname(int file_no);
 /* find out wheter the shortname is unique */
 
-extern void set_edit_document(void); 
-/* return document, open if needed, return NULL if file not found  */
+
 extern trie_node *file2symbols(int file_no);
 /* return symbol trie for file */
 

@@ -28,4 +28,5 @@ extern int show_debug_data;
 extern int show_debug_pool;
 extern int show_debug_stack;
 extern int show_debug_neg;
+extern int show_trace;
 extern int auto_connect;

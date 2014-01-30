@@ -47,7 +47,7 @@ regtable regtab= {
 	{KEY_FLAGS,&show_debug_data,15},
 	{KEY_FLAGS,&show_debug_pool,16},
 	{KEY_FLAGS,&show_debug_neg,17},
-	{KEY_FLAGS,&tracing,18},
+	{KEY_FLAGS,&show_trace,18},
 	{KEY_FLAGS,&show_operating_system,19},
 	{KEY_FLAGS,&tracing_exceptions,20},
 	{KEY_FLAGS,&auto_connect,21},

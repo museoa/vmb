@@ -29,6 +29,8 @@ extern void mmix_status(int status);
 
 extern int break_at_symbol(char *symbol);
 
+extern void show_trace_window(void);
+
 #define MMIX_DISCONNECTED 0
 #define MMIX_CONNECTED    1
 #define MMIX_OFF          2

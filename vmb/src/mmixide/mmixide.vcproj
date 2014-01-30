@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mmixide"
 	ProjectGUID="{8C808B73-7109-450C-917C-2EC73293FD94}"
 	RootNamespace="mmixide"
@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\editor.c"
+				>
+			</File>
+			<File
 				RelativePath=".\filelist.c"
 				>
 			</File>
@@ -268,6 +272,10 @@
 			</File>
 			<File
 				RelativePath=".\edit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\editor.h"
 				>
 			</File>
 			<File

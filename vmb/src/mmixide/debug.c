@@ -32,6 +32,7 @@ int show_debug_neg=0;
 
 int break_at_Main = 1;
 int break_after = 1;
+int show_trace = 1;
 
 #define MAX_DEBUG_WINDOWS 9
 INT_PTR CALLBACK    
@@ -51,7 +52,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         CheckDlgButton(hDlg,IDC_SHOW_NEG,(show_debug_neg)?BST_CHECKED:BST_UNCHECKED);
 
 		CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_CHECK_TRACE,tracing?BST_CHECKED:BST_UNCHECKED);
+        CheckDlgButton(hDlg,IDC_CHECK_TRACE,show_trace?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_BEFORE,!break_after?BST_CHECKED:BST_UNCHECKED);
@@ -78,7 +79,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_debug_neg=IsDlgButtonChecked(hDlg,IDC_SHOW_NEG);
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
-		tracing=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
+		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
 		break_after=IsDlgButtonChecked(hDlg,IDC_RADIO_BREAK_AFTER);
 		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS))

@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "assembler.h"
 #include "winlog.h"
+#include "editor.h"
 #include "mmixrun.h"
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -219,14 +220,15 @@ void mmix_debug(int file_no)
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  application_file_no=file_no;
 		  update_symtab();
-		  if (tracing && hLog==NULL)
-		  { sp_create_options(0,0,0.2,0,NULL);
-			hLog=CreateLog(hSplitter,hInst);
-		  }
+		  if (show_trace) show_trace_window();
 		  MMIXThread();
 }
 
-
+void show_trace_window(void)
+{ if (hLog!=NULL) return;
+  sp_create_options(0,0,0.2,0,NULL);
+  hLog=CreateLog(hSplitter,hInst);
+}
 
 char * mmix_status_str[]={"Disconnected", "Connected","Off", "On", "Stopped", "Running", "Halted"};
 int mmix_current_status=MMIX_OFF;

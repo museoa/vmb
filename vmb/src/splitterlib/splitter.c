@@ -378,8 +378,7 @@ static split *sp_add_leaf(HWND hWnd, double ratio, int vertical, int left,split 
 	 sibling->tag=top->tag;
      if (sibling->tag==leaf)
 	 { sibling->o.hWnd = top->o.hWnd;
-	   top->o.sp.hSplit=CreateWindow(sp_bar_class_name,"",WS_CHILD|WS_VISIBLE//|WS_BORDER //WS_DLGFRAME 
-//|WS_EX_NOPARENTNOTIFY 
+	   top->o.sp.hSplit=CreateWindow(sp_bar_class_name,"",WS_CHILD|WS_VISIBLE//|WS_BORDER|WS_DLGFRAME|WS_EX_NOPARENTNOTIFY 
 		   ,0,0,0,0,hSpliterBase,NULL,hSplitterInst,top);
 	   top->tag=branch;
 	 }
@@ -389,7 +388,7 @@ static split *sp_add_leaf(HWND hWnd, double ratio, int vertical, int left,split 
 	   sibling->o.sp.BottomRight->Parent=sibling->o.sp.TopLeft->Parent=sibling;
    	   sibling->o.sp.vertical= top->o.sp.vertical;
 	   sibling->o.sp.ratio= top->o.sp.ratio;
-	   sibling->o.sp.hSplit=CreateWindow(sp_bar_class_name,"Split",WS_CHILD|WS_VISIBLE|WS_DLGFRAME 
+	   sibling->o.sp.hSplit=CreateWindow(sp_bar_class_name,"Split",WS_CHILD|WS_VISIBLE//|WS_DLGFRAME 
 		   ,0,0,0,0,hSpliterBase,NULL,hSplitterInst,sibling);
 	 }
 	 top->o.sp.vertical=vertical;
@@ -654,7 +653,9 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 	case WM_COMMAND:
 	case WM_NOTIFY:
     case WM_MEASUREITEM:
-	case WM_DRAWITEM: 
+	case WM_DRAWITEM: 	
+	case WM_CTLCOLOREDIT :
+	case WM_CTLCOLORSTATIC:
 		return SendMessage(GetParent(hWnd),message,wParam,lParam);
 	case WM_CLOSE:
 		DestroyWindow(hWnd);

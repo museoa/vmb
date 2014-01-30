@@ -6,7 +6,6 @@ extern HWND      hButtonBar;
 extern HWND hFileList;
 extern HWND hSymbolTable;
 extern HWND	  hEdit;
-extern LONG_PTR ed_send(unsigned int msg,ULONG_PTR wparam,LONG_PTR lparam);
 extern void ide_status(char *message);
 extern void ide_add_error(char *message, int file_no, int line_no);
 extern void ide_clear_error_marker(void);

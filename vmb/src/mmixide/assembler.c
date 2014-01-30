@@ -10,7 +10,7 @@
 int x_option = 0;
 int b_option = 80;
 int l_option = 0;
-
+int auto_assemble=0;
 
 INT_PTR CALLBACK    
 OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -19,6 +19,7 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
   { case WM_INITDIALOG:
       CheckDlgButton(hDlg,IDC_CHECK_X,x_option?BST_CHECKED:BST_UNCHECKED);
       CheckDlgButton(hDlg,IDC_CHECK_LISTING,l_option?BST_CHECKED:BST_UNCHECKED); 
+      CheckDlgButton(hDlg,IDC_CHECK_AUTOASSEMBLE,auto_assemble?BST_CHECKED:BST_UNCHECKED); 
 	  SetDlgItemInt(hDlg,IDC_BUFFERSIZE,b_option,FALSE);
 	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_BUFFERSIZE),UDM_SETRANGE,0,(LPARAM) MAKELONG (1000,0));
       return TRUE;
@@ -32,6 +33,7 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
       if( wparam == IDOK )
       { x_option=IsDlgButtonChecked(hDlg,IDC_CHECK_X);
         l_option=IsDlgButtonChecked(hDlg,IDC_CHECK_LISTING);
+        auto_assemble=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOASSEMBLE);
 		b_option=GetDlgItemInt(hDlg,IDC_BUFFERSIZE,NULL,FALSE);
         EndDialog(hDlg, TRUE);
         return TRUE;

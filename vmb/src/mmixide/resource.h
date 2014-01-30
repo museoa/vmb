@@ -78,6 +78,8 @@
 #define IDC_CHECK_LISTING               1015
 #define IDC_SHOW_RP                     1016
 #define IDC_SELECT_SPECIALS             1016
+#define IDC_CHECK_LISTING2              1016
+#define IDC_CHECK_AUTOASSEMBLE          1016
 #define IDC_SHOW_RQ                     1017
 #define IDC_CHECK_OS                    1017
 #define IDC_SHOW_RR                     1018
@@ -186,13 +188,14 @@
 #define ID_ENCODING_ASCII               40091
 #define ID_ENCODING_UTF                 40092
 #define ID_VIEW_BREAKPOINTS             40093
+#define ID_VIEW_TRACE                   40094
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        145
-#define _APS_NEXT_COMMAND_VALUE         40094
+#define _APS_NEXT_COMMAND_VALUE         40095
 #define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

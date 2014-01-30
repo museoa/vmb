@@ -1,7 +1,6 @@
 
 double click in the X in the splitter bar should close the current document not the edit window.
 
-Tracing MMIX in subwindow not in console window
 Step over and step out
 
 Exit with unnamed  window should ask for "save as"
@@ -16,8 +15,6 @@ Memory view unrestricted
 Statistics line im Trace window
 
 Ask for reset/reload after assembly while debugging
-
-store options in registry to make them persistent
 
 integrate the generation of image files or other postprocessing
 

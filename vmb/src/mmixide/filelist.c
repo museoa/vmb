@@ -5,6 +5,7 @@
 #include "splitter.h"
 #include "winmain.h"
 #include "info.h"
+#include "editor.h"
 #include "filelist.h"
 
 

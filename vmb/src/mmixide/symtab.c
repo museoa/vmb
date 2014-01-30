@@ -8,6 +8,7 @@
 #include "winmain.h"
 #include "mmixrun.h"
 #include "info.h"
+#include "editor.h"
 #include "symtab.h"
 
 int symtab_locals=0;

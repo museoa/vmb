@@ -10,6 +10,7 @@
 #include "winmain.h"
 #include "filelist.h"
 #include "symtab.h"
+#include "editor.h"
 #include "info.h"
 
 
@@ -67,7 +68,7 @@ static int alloc_file_no(void)
 static void release_file_no(int file_no)
 { free_name(file_no);
   if (doc[file_no]!=NULL) 
-  { ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc[file_no]);
+  { ed_release_document(doc[file_no]);
     file_list_remove(file_no);
   }
   doc[file_no]=NULL;
@@ -89,19 +90,6 @@ int unique_shortname(int file_no)
 }
 
 
-int edit_file_no = -1; /* the file currently in the editor */
-
-void set_edit_document(void)
-/* return document, open if needed, return NULL if file not found  */
-{ if (doc[edit_file_no]==NULL)
-  { doc[edit_file_no]=(void *)ed_send(SCI_CREATEDOCUMENT,0,0);
-    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
-    if (fullname[edit_file_no]!=NULL) ed_open_file();
-    file_list_add(edit_file_no);
-  }
-  else
-    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
-}
 
 static int find_file(char *name)
 { int i;
@@ -136,6 +124,7 @@ int file_set_name(int file_no, char *filename)
 	shortname[file_no]=fullname[file_no]+(tail-name);
   }
   file_list_add(file_no);
+  ed_add_tab(file_no);
   return file_no;
 }
 
@@ -147,6 +136,7 @@ int filename2file(char *filename)
   if (new_no<0) return -1;
   if (filename==NULL)
   {	file_list_add(new_no);
+    ed_add_tab(new_no);
     return new_no;
   }
   else
@@ -157,7 +147,9 @@ int filename2file(char *filename)
 	if (file_no!=new_no)
 	  release_file_no(new_no);
 	else
-	  file_list_add(file_no);
+	{  file_list_add(file_no);
+	   ed_add_tab(file_no);
+	}
     return file_no;
   }
 }
