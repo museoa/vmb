@@ -21,9 +21,11 @@ extern void ed_mark_error(int file_no, int line_no);
 extern void ed_refresh_breaks(void);
 
 extern void ed_operation(unsigned int op);
+extern void *ed_create_document(void);
 extern void ed_release_document(void * doc);
 extern void ed_get_document(void);
+extern int ed_open(void);
 
 extern void ed_add_tab(int file_no);
-
+extern void ed_remove_tab(int file_no);
 //extern void create_edit(void); /* create the editor pane */

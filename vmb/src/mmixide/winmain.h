@@ -16,8 +16,8 @@ extern int assemble_all_needed(void);
 extern void new_errorlist(void);
 extern void new_edit(void);
 extern void ide_exit_ignore(int returncode);
-extern int ed_open_file(void);
-extern int ed_open(void);
+
+
 extern void clear_stop_marker(void);
 extern void set_edit_file(int file_no);
 extern ide_mark_breakpoint(int file_no, int line_no);

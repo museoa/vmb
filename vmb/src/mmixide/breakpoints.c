@@ -24,7 +24,7 @@ char *breaks_listname(int breaks_no)
   char *name = breaks2shortname(breaks_no);
   if (name==NULL) name=noname;
   if (breaks_no==0) return name;
-  if(unique_shortname(breaks_no)) return name;
+  if(is_unique_shortname(breaks_no)) return name;
   sprintf_s(listname,MAX_LISTNAME,"%.64s (%d)",name,breaks_no);
   return listname;
 }

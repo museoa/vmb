@@ -448,8 +448,6 @@ BEGIN
         MENUITEM "&Breakpoints",                ID_VIEW_BREAKPOINTS,MFT_STRING,MFS_ENABLED
         MENUITEM "Trace",                       ID_VIEW_TRACE,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-        MENUITEM "&File List",                  ID_VIEW_FILELIST,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
         MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
         MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
         MENUITEM "&Syntax Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED

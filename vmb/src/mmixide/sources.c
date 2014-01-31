@@ -2,10 +2,8 @@
 #include "resource.h"
 #include "winmain.h"
 #include "info.h"
+#include "editor.h"
 #include "sources.h"
-
-
-
 
 static HWND hSources;
 

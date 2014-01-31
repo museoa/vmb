@@ -6,7 +6,7 @@ extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
 extern char has_debug_info[MAX_FILES+1];
 extern char loading[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];
-
+extern char needs_reading[MAX_FILES+1];
 extern void *doc[257]; /* pointer to scintilla documents */
 
 #define file2shortname(file_no) (shortname[file_no])
@@ -14,10 +14,10 @@ extern void *doc[257]; /* pointer to scintilla documents */
 #define file2debuginfo(file_no) (has_debug_info[file_no])
 #define file2loading(file_no) (loading[file_no])
 #define file2dirty(file_no) (doc_dirty[file_no])
+#define file2reading(file_no) (needs_reading[file_no])
 
-int unique_shortname(int file_no);
-/* find out wheter the shortname is unique */
-
+extern char *unique_name(int file_no);
+/* return a unique short name for the file */
 
 extern trie_node *file2symbols(int file_no);
 /* return symbol trie for file */
@@ -25,7 +25,7 @@ extern trie_node *file2symbols(int file_no);
 extern int filename2file(char *filename);
 /* return file_no for this file, allocate fullname as needed */
 
-extern int file_set_name(int file_no, char *filename);
+extern void file_set_name(int file_no, char *filename);
 /* function to compute full and short name and set them */
 
 extern void set_file(int file_no, char *filename);

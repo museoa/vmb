@@ -8,7 +8,6 @@
 #include "../scintilla/include/scintilla.h"
 #include "mmixrun.h"
 #include "winmain.h"
-#include "filelist.h"
 #include "symtab.h"
 #include "editor.h"
 #include "info.h"
@@ -19,28 +18,27 @@
 
 
 
-char *fullname[MAX_FILES+1] = {NULL}; /* the full filenames */
-char *shortname[MAX_FILES+1] = {NULL}; /* pointers to the tail of the fullname */
+char *fullname[MAX_FILES+1] = {NULL};	/* the full filenames */
+char *shortname[MAX_FILES+1] = {NULL};	/* pointers to the tail of the fullname */
 static trie_node* symbols[MAX_FILES+1] = {NULL}; /* pointer to pruned symbol table */
-void *doc[MAX_FILES+1] = {NULL}; /* pointer to scintilla documents */
-char doc_dirty[MAX_FILES+1] ={0};
-char has_debug_info[MAX_FILES+1] ={0};
-char loading[MAX_FILES+1] ={0};
-static int next_file_no=0, count_file_no=0;
+void *doc[MAX_FILES+1] = {NULL};		/* pointer to scintilla documents */
+char doc_dirty[MAX_FILES+1] ={0};		/* records whether the doc is dirty, but not for the edit_file */
+char has_debug_info[MAX_FILES+1] ={0};	/* is debug information available */
+char loading[MAX_FILES+1] ={0};			/* does this file need loading */
+char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
+static int next_file_no=0;				/* all used file numbers are below next_file_no */
+static int count_file_no=0;				/* number of used file numbers */
 
-#define available(file_no) (fullname[file_no]==NULL&&doc[file_no]==NULL)
+
+/* file numbers get allocated together with documents 
+   setting a filename must be followed by reading the file
+   the dirty flag is valid only if the file is currently not in the editor
+   the fullname and the short name are set and freed together, they are not required.
+   unique_name provides a uniqe short name for all files
+   file_no must always point to a valid file number 0<=file_no<=255
+*/
+#define available(file_no) (doc[file_no]==NULL)
 #define inuse(file_no) (!available(file_no))
-
-
-static void free_name(int file_no)
-/* free the memory of fullname */
-{ if (file_no<0) return;
-  if (fullname[file_no]!=NULL)
-  { file_list_remove(file_no);
-    free(fullname[file_no]);
-  }
-  fullname[file_no]=shortname[file_no]=NULL;
-}
 
 
 static int alloc_file_no(void)
@@ -48,47 +46,89 @@ static int alloc_file_no(void)
    files without fullname or document are available
 */
 { int file_no;
-  if (count_file_no>=MAX_FILES)
-  { vmb_error(__LINE__,"Too many files");
-    return -1;
-  }
-  else if (count_file_no==next_file_no)
-  { file_no=next_file_no;
-    next_file_no++;
-  }
-  else
-  { for(file_no=0;file_no<next_file_no;file_no++)
+  if (count_file_no<MAX_FILES)
+  { for(file_no=0;file_no<MAX_FILES;file_no++)
       if(available(file_no))
-		  break;
+	  { count_file_no++;
+        doc[file_no]=ed_create_document();
+		fullname[file_no]=shortname[file_no]=NULL;
+		needs_reading[file_no]=0;
+		symbols[file_no]=NULL;
+        doc_dirty[file_no]=0;
+        has_debug_info[file_no]=0;
+        loading[file_no]=0;
+		ed_add_tab(file_no);
+		if (file_no>=next_file_no) next_file_no = file_no+1;
+        return file_no;
+      }
   }
-  count_file_no++;
-  return file_no;
+  vmb_error(__LINE__,"Too many files");
+  return 0; /* we should never get here */
 }
 
 static void release_file_no(int file_no)
-{ free_name(file_no);
-  if (doc[file_no]!=NULL) 
-  { ed_release_document(doc[file_no]);
-    file_list_remove(file_no);
-  }
+{ if (file_no<0) return;
+  ed_remove_tab(file_no);
+  if (fullname[file_no]!=NULL)
+    free(fullname[file_no]);
+  fullname[file_no]=shortname[file_no]=NULL;
+  needs_reading[file_no]=0;
+  ed_release_document(doc[file_no]);
   doc[file_no]=NULL;
-  doc_dirty[file_no]=0;
   // symbols[file_no]=NULL; needs freeing 
   count_file_no--;
   while(next_file_no>0 && available(next_file_no-1)) next_file_no--;
 }
 
-int unique_shortname(int file_no)
+static int is_unique_shortname(int file_no)
 /* return true if the short filename is unique */
 {  int i;
    for (i=0; i<next_file_no; i++)
-	   if (inuse(file_no) && i!=file_no && 
-		   shortname[i]!=NULL && shortname[file_no]!=NULL && 
-		   strcmp(shortname[i],shortname[file_no])==0)
-		   return 0;
+	   if (inuse(i) && i!=file_no && 
+		    ( (shortname[i]==NULL && shortname[file_no]==NULL) ||
+		      (shortname[i]!=NULL && shortname[file_no]!=NULL && strcmp(shortname[i],shortname[file_no])==0)
+		    )
+		  )
+		  return 0;
    return 1;
 }
 
+char *unique_name(int file_no)
+{ 
+  static char noname[]="Unnamed";
+  char *name = file2shortname(file_no);
+  if (name==NULL) name=noname;
+  if(!is_unique_shortname(file_no) && file_no>0)
+  { static char str[64+7];
+    sprintf_s(str,64,"%.64s (%d)",name,file_no);
+	name = str;
+  }
+  return name;
+}
+
+static char *full_filename(char *filename, char **tail)
+/* compute and allocate the full filename for the given filename set tail to the shortname*/
+{ static char name[MAX_PATH+1], *head;
+  int n;
+  if (filename==NULL) return NULL;
+  n = GetFullPathName(filename,MAX_PATH,name,tail);
+  if (n<=0)
+  { vmb_error(__LINE__,"Illegal file name");
+    return NULL;
+  }
+  head =malloc(n+1);
+  if (head ==NULL)
+  { vmb_error(__LINE__,"Out of memory");
+    return NULL;
+  }
+  if (n>MAX_PATH)
+    GetFullPathName(filename,n,head,tail);
+  else
+  { strncpy(head,name,n+1);
+    *tail = head +(*tail-name);
+  }
+  return head;
+}
 
 
 static int find_file(char *name)
@@ -98,59 +138,42 @@ static int find_file(char *name)
   return -1;
 }
 
-int file_set_name(int file_no, char *filename)
-/* function to compute full and short name and set them */
-{ static char name[MAX_PATH+1], *tail;
-  int n;
-  if (filename==NULL)
-  { free_name(file_no);
+int filename2file(char *filename)
+/* return file_no for this file, allocate file_no if needed */
+{ int file_no;
+  char *head, *tail;
+  head = full_filename(filename, &tail);
+  if (head==NULL)
+  { file_no = alloc_file_no();
     return file_no;
-  } 
-  n = GetFullPathName(filename,MAX_PATH,name,&tail);
-  if (n<=0)
-  { vmb_error(__LINE__,"Illegal file name");
-    return -1;
   }
-  free_name(file_no);
-  fullname[file_no] = malloc(n+1);
-  if (fullname[file_no] ==NULL)
-  { vmb_error(__LINE__,"Out of memory");
-    return -1;
+  file_no=find_file(head);
+  if (file_no>=0) 
+  { free(head);
+	return file_no;
   }
-  if (n>MAX_PATH)
-    GetFullPathName(filename,MAX_PATH,fullname[file_no],&shortname[file_no]);
-  else
-  { strncpy(fullname[file_no],name,n+1);
-	shortname[file_no]=fullname[file_no]+(tail-name);
-  }
-  file_list_add(file_no);
+  file_no = alloc_file_no();
+  fullname[file_no]=head;
+  shortname[file_no]=tail;
+  needs_reading[file_no]=1;
   ed_add_tab(file_no);
   return file_no;
 }
 
 
-int filename2file(char *filename)
-/* return file_no for this file, allocate fullname as needed */
-{ int new_no;
-  new_no = alloc_file_no();
-  if (new_no<0) return -1;
-  if (filename==NULL)
-  {	file_list_add(new_no);
-    ed_add_tab(new_no);
-    return new_no;
-  }
-  else
-  {	int file_no;
-    new_no= file_set_name(new_no, filename);
-    if (new_no<0) return -1;
-	file_no=find_file(fullname[new_no]);
-	if (file_no!=new_no)
-	  release_file_no(new_no);
-	else
-	{  file_list_add(file_no);
-	   ed_add_tab(file_no);
-	}
-    return file_no;
+void file_set_name(int file_no, char *filename)
+/* function to compute full and short name and set them */
+{ char *head, *tail;
+  head = full_filename(filename, &tail);
+  if (fullname[file_no]!=NULL) free(fullname[file_no]);
+  fullname[file_no]=NULL;
+  shortname[file_no]=NULL;
+  needs_reading[file_no]=0;
+  if (head!=NULL)
+  { fullname[file_no]=head;
+    shortname[file_no]=tail;
+    needs_reading[file_no]=1;
+	ed_add_tab(file_no);
   }
 }
 

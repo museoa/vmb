@@ -201,10 +201,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\filelist.c"
-				>
-			</File>
-			<File
 				RelativePath=".\findreplace.c"
 				>
 			</File>
@@ -279,10 +275,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\filelist.h"
-				>
-			</File>
-			<File
 				RelativePath=".\findreplace.h"
 				>
 			</File>
@@ -307,11 +299,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File

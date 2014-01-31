@@ -15,7 +15,6 @@
 #include "findreplace.h"
 #include "print.h"
 #include "info.h"
-#include "filelist.h"
 #include "symtab.h"
 #include "mmixdata.h"
 #include "edit.h"
@@ -30,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.19 $ $Date: 2014-01-30 15:34:13 $";
+char version[]="$Revision: 1.20 $ $Date: 2014-01-31 15:03:25 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -160,16 +159,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 1;
 
   case WM_MEASUREITEM:
-    if (wParam==GetWindowLong(hFileList,GWL_ID))
-		return file_list_measureitem((LPMEASUREITEMSTRUCT)lParam);
-	else if (wParam==GetWindowLong(hSymbolTable,GWL_ID))
+	if (wParam==GetWindowLong(hSymbolTable,GWL_ID))
 		return symtab_measureitem((LPMEASUREITEMSTRUCT)lParam);
 	else
 	    break;
   case WM_DRAWITEM: 
-     if (wParam==GetWindowLong(hFileList,GWL_ID))
-		return file_list_drawitem((LPDRAWITEMSTRUCT)lParam);
-	else if (wParam==GetWindowLong(hSymbolTable,GWL_ID))
+    if (wParam==GetWindowLong(hSymbolTable,GWL_ID))
 		return symtab_drawitem((LPDRAWITEMSTRUCT)lParam);
 	else
 	    break;
@@ -237,16 +232,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_EDIT_REPLACE:
 			replace_again();
 			return 0;
-		case ID_VIEW_FILELIST:
-		  if (menu_toggle(ID_VIEW_FILELIST))
-		  { if (hFileList!=NULL) return 0;
-			create_filelist();
-		  }
-		  else
-		  {  DestroyWindow(hFileList);
-			 hFileList=NULL;
-		  }
-		  return 0;
 		case ID_VIEW_SYMBOLTABLE:
 		  if (menu_toggle(ID_VIEW_SYMBOLTABLE))
 		  { if (hSymbolTable!=NULL) return 0;
@@ -311,7 +296,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
 		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==application_file_no && vmb.power)
-		  { MessageBox(hWnd,"Different mmo file running!", file_listname(edit_file_no),MB_OK|MB_ICONWARNING);
+		  { MessageBox(hWnd,"Different mmo file running!", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
 	    case ID_MMIX_CONNECT:
@@ -577,7 +562,7 @@ int assemble_if_needed(int file_no)
      if (auto_assemble)
     	 decision= IDYES;
 	 else	 
-		 decision= MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
+		 decision= MessageBox(hMainWnd, "mms file newer than mmo file. Assemble?", unique_name(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -590,7 +575,7 @@ int assemble_if_needed(int file_no)
      if (auto_assemble)    	 
 		 decision= IDYES;
 	 else
-		 decision= MessageBox(hMainWnd, "no debug information available. Assemble?", file_listname(file_no), MB_YESNOCANCEL);
+		 decision= MessageBox(hMainWnd, "no debug information available. Assemble?", unique_name(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;

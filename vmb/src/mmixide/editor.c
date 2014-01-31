@@ -6,7 +6,6 @@
 #include "winmain.h"
 #include "splitter.h"
 #include "info.h"
-#include "filelist.h"
 #include "debug.h"
 #include "mmixdata.h"
 #include "edit.h"
@@ -22,7 +21,7 @@ int edit_file_no = -1; /* the file currently in the editor */
 HWND hEdit=NULL;
 static HWND hSCe=NULL;
 static HWND hTabs=NULL;
-static int tabh = 30;
+static int tabh = 40;
 static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 int register_editor(HINSTANCE hInstance)
@@ -46,11 +45,11 @@ int register_editor(HINSTANCE hInstance)
 }
 
 
-void create_edit(void)
+static void create_edit(void)
 {  
    sp_create_options(1,0,0.8,0,NULL);
    hEdit = CreateWindow("MMIXEDITORCLASS", NULL ,
-				WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
+				WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN|WS_BORDER,
                 CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
 	            hSplitter, NULL, hInst, NULL);
 }
@@ -71,6 +70,28 @@ void  ed_operation(unsigned int op)
 { ed_send(op,0,0);
 }
 
+void ed_tab_select(int file_no);
+#define ED_BLOCKSIZE 0x800
+static void ed_read_file(void)
+{ FILE *fp;
+  fp = fopen(file2fullname(edit_file_no), "rb");
+  if (fp) {
+    char data[ED_BLOCKSIZE];
+    size_t len;
+    while ((len = fread(data, 1, ED_BLOCKSIZE, fp))>0)
+      ed_send(SCI_ADDTEXT, len, (sptr_t)data);
+	fclose(fp); 
+	file2dirty(edit_file_no)=0;
+    ed_send(SCI_SETUNDOCOLLECTION, 1,0);
+    ed_send(SCI_SETSAVEPOINT,0,0);
+    ed_send(SCI_GOTOPOS,0,0);
+	set_lineno_width();
+  }
+  else
+  { ide_status("Unable to open file");
+  }
+  file2reading(edit_file_no)=0;
+}
 
 
 void set_edit_file(int file_no)
@@ -81,13 +102,15 @@ void set_edit_file(int file_no)
   if (edit_file_no>=0)
     file2dirty(edit_file_no)=(int)ed_send(SCI_GETMODIFY,0,0);
   edit_file_no = file_no;
-  ed_get_document();
+  ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
+  if (fullname[edit_file_no]!=NULL && file2reading(edit_file_no)) ed_read_file();
   set_tabwidth();
   set_text_style();
   set_whitespace(show_whitespace);
   ed_send(SCI_SETCODEPAGE,codepage,0);
-  SetWindowText(hMainWnd,file_listname(file_no));
-  file_list_mark(edit_file_no);
+  //SetWindowText(hMainWnd,unique_name(file_no));
+  ed_tab_select(edit_file_no);
+  //file_list_mark(edit_file_no);
   update_symtab();
 }
 
@@ -122,7 +145,7 @@ int ed_save_all(int cancel)
 
 
 
-#define ED_BLOCKSIZE 0x800
+
 void init_edit(HINSTANCE hInstance)
 {	Scintilla_RegisterClasses(hInstance);
 	Scintilla_LinkLexers();
@@ -133,17 +156,31 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 { 	
   switch (message) 
   { case WM_CREATE:
-         hSCe = CreateWindowEx(WS_EX_LEFT,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN|WS_BORDER,
-		       0,0,100,10,hWnd,NULL,hInst,NULL);
+         hSCe = CreateWindowEx(WS_EX_LEFT,"Scintilla","Editor",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
+		       0,0,0,0,hWnd,NULL,hInst,NULL);
          ed_fn = (SciFnDirect)SendMessage(hSCe,SCI_GETDIRECTFUNCTION,0,0);
          ed_ptr= (sptr_t)SendMessage(hSCe,SCI_GETDIRECTPOINTER,0,0);
-		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN|WS_BORDER,
-		       0,0,100,tabh,hWnd,NULL,hInst,NULL);
+		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
+		       0,0,0,0,hWnd,NULL,hInst,NULL);
+         SendMessage(hTabs,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
+		 
 	     return 0;
     case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
-		{  MoveWindow(hTabs,0,0,LOWORD(lParam),tabh, TRUE);
-           MoveWindow(hSCe,0,tabh,LOWORD(lParam),HIWORD(lParam)-tabh, TRUE);
+		{ if (TabCtrl_GetItemCount(hTabs)>1)
+		  {  RECT r;
+		     r.top=r.left=0;
+		     r.bottom=HIWORD(lParam);
+		     r.right=LOWORD(lParam);
+		     TabCtrl_AdjustRect(hTabs,FALSE,&r);
+			 ShowWindow(hTabs,SW_SHOW);
+		     MoveWindow(hTabs,0,0,LOWORD(lParam),HIWORD(lParam), TRUE);
+             MoveWindow(hSCe,r.left,r.top,r.right-r.left,r.bottom-r.top, TRUE);
+		   }
+		   else
+		   { ShowWindow(hTabs,SW_HIDE);
+		     MoveWindow(hSCe,0,0,LOWORD(lParam),HIWORD(lParam), TRUE);
+		   }
 		}
 		break;
 	case WM_DESTROY:
@@ -154,28 +191,38 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		break;
     case WM_NOTIFY:
 	  { NMHDR *n = (NMHDR*)lParam;
-	    if (n->code == SCN_MARGINCLICK)
-		{ struct SCNotification *sn=(struct SCNotification*)n;
-		  int line, brkp;
-		  line = (int)ed_send(SCI_LINEFROMPOSITION,sn->position,0);
-		  brkp = (int)ed_send(SCI_MARKERGET,line,0);
-		  brkp &= 1<<MMIX_BREAKX_MARKER;
-          if (brkp)
-		  { del_breakpoint(edit_file_no,line+1);
-		    ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
-		  }
-		  else
-		  { 
-		    if (set_breakpoint(edit_file_no,line+1))
-		      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
+	    if (n->hwndFrom==hTabs)
+		{ if (n->code == TCN_SELCHANGE)
+		  { int index = TabCtrl_GetCurSel(hTabs);
+ 			TCITEM tie;
+			tie.mask=TCIF_PARAM;
+			if (TabCtrl_GetItem(hTabs,index,&tie))
+			  set_edit_file((int)tie.lParam);
 		  }
 		}
-		else if(n->code==SCN_MODIFIED)
-		{ struct SCNotification *sn=(struct SCNotification*)n;
-		  if (sn->linesAdded!=0) clear_stop_marker();
-		}
-	  }
+	    else if (n->hwndFrom=hSCe)
+	    {  if (n->code == SCN_MARGINCLICK)
+		  { struct SCNotification *sn=(struct SCNotification*)n;
+		    int line, brkp;
+		    line = (int)ed_send(SCI_LINEFROMPOSITION,sn->position,0);
+		    brkp = (int)ed_send(SCI_MARKERGET,line,0);
+		    brkp &= 1<<MMIX_BREAKX_MARKER;
+            if (brkp)
+		    { del_breakpoint(edit_file_no,line+1);
+		      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
+		    }
+		    else
+		    { if (set_breakpoint(edit_file_no,line+1))
+		        ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
+		    }
+		  }
+		  else if(n->code==SCN_MODIFIED)
+		  { struct SCNotification *sn=(struct SCNotification*)n;
+		    if (sn->linesAdded!=0) clear_stop_marker();
+		  }
+	    }
 	  return 0;
+	}
   }
   return (DefWindowProc(hWnd, message, wParam, lParam));
 }
@@ -408,29 +455,8 @@ int ed_close_all(int cancel)
 
 
 
-int ed_open_file(void)
-{ FILE *fp;
-  fp = fopen(file2fullname(edit_file_no), "rb");
-  if (fp) {
-    char data[ED_BLOCKSIZE];
-    size_t len;
-    while ((len = fread(data, 1, ED_BLOCKSIZE, fp))>0)
-      ed_send(SCI_ADDTEXT, len, (sptr_t)data);
-	fclose(fp); 
-	file2dirty(edit_file_no)=0;
-    ed_send(SCI_SETUNDOCOLLECTION, 1,0);
-    ed_send(SCI_SETSAVEPOINT,0,0);
-    ed_send(SCI_GOTOPOS,0,0);
-	set_lineno_width();
-	return edit_file_no;
-  }
-  else
-  { ide_status("Unable to open file");
-    return -1;
-  }
-}
-
 int ed_open(void)
+/* opens a file as a new document */
 { 	char name[MAX_PATH+1] = "\0";
 	OPENFILENAME ofn={0};
 	ofn.lStructSize= sizeof(OPENFILENAME);
@@ -470,10 +496,11 @@ int dont_overwrite(char *fullname)
 }
 
 
-void ed_save_name(char *fullname)
+static void ed_write_file(void)
 {	FILE *fp;
-    if (fullname[0]==0) return;
-    fp = fopen(fullname, "wb");
+    char *name = fullname[edit_file_no];
+    if (name==NULL || name[0]==0) return;
+    fp = fopen(name, "wb");
 	if (fp) {
 		int i;
 		struct Sci_TextRange tr;
@@ -496,10 +523,10 @@ void ed_save_name(char *fullname)
 
 void ed_save(void)
 { if (hEdit==NULL) return;
-  if (file2fullname(edit_file_no)==0)
+  if (file2fullname(edit_file_no)==NULL)
     ed_save_as();
   else
-	ed_save_name(file2fullname(edit_file_no));
+	ed_write_file();
 }
 
 void ed_save_as(void)
@@ -525,7 +552,8 @@ void ed_save_as(void)
 
 	if (GetSaveFileName(&ofn) && !dont_overwrite(asname)) 
 	{  file_set_name(edit_file_no,asname);
-	   ed_save_name(file2fullname(edit_file_no));
+	   ed_write_file();
+	   file2reading(edit_file_no)=0;
 	  //InvalidateRect(hEdit, NULL, NULL);
 	}
 }
@@ -541,7 +569,7 @@ int ed_save_changes(int cancel)
 	    return 1;
 	 }
 	 else 
-	 { int decision= MessageBox(hMainWnd, "Save changes ?", file_listname(edit_file_no), cancel?MB_YESNOCANCEL:MB_YESNO);
+	 { int decision= MessageBox(hMainWnd, "Save changes ?", unique_name(edit_file_no), cancel?MB_YESNOCANCEL:MB_YESNO);
 	   if (decision == IDYES)
 	     ed_save();
 	   else if (decision == IDCANCEL)
@@ -640,32 +668,68 @@ void set_text_style(void)
      txt_style();
 }
 
-void ed_get_document(void)
-{ if (doc[edit_file_no]==NULL)
-  { doc[edit_file_no]=(void *)ed_send(SCI_CREATEDOCUMENT,0,0);
-    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
-    if (fullname[edit_file_no]!=NULL) ed_open_file();
-    file_list_add(edit_file_no);
-	ed_add_tab(edit_file_no);
-  }
-  else
-    ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
+void *ed_create_document(void)
+{ return (void *)ed_send(SCI_CREATEDOCUMENT,0,0);
 }
 
 void ed_release_document(void * doc)
-{ ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc);
+{ if (doc!=NULL) ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc);
 }
 
 
 
+
+static int find_tab(int file_no)
+/* searches the tab control for the given file_no. Returns teh index if found, -1 otherwise. */
+{ int count = TabCtrl_GetItemCount(hTabs);
+  int index;
+  for (index=0; index<count;index++)
+  { TCITEM tie;
+    tie.mask=TCIF_PARAM;
+	if (TabCtrl_GetItem(hTabs,index,&tie) && tie.lParam==file_no) return index;
+  }
+  return -1;
+}
+
+static void resize_tab(void)
+{ RECT r;
+  GetWindowRect(hEdit,&r);
+  SendMessage(hEdit,WM_SIZE,SIZE_RESTORED,MAKELONG( r.right-r.left,r.bottom-r.top));
+}
+
+void ed_tab_select(int file_no)
+{  int index = find_tab(file_no);
+   if (index>=0)
+	 TabCtrl_SetCurSel(hTabs,index);
+}
+
+void ed_remove_tab(int file_no)
+{ int index = find_tab(file_no);
+  if (index>=0)
+  {  TabCtrl_DeleteItem (hTabs, index);
+     if (TabCtrl_GetItemCount(hTabs)==1) resize_tab();
+  }
+}
+
 void ed_add_tab(int file_no)
 { TCITEM tie;
-  int i=0;
+  int index;
   if (hTabs==NULL) return;
   if (file_no<0) return;
-  tie.mask = TCIF_TEXT;
-  tie.iImage = -1;
-  tie.pszText = file_listname(file_no);
-  TabCtrl_InsertItem (hTabs, file_no, &tie);
-  TabCtrl_SetCurSel (hTabs, i);
+  index = find_tab(file_no);
+  if (index>=0)
+  { tie.mask = TCIF_TEXT|TCIF_PARAM;
+    tie.pszText = unique_name(file_no);
+    tie.lParam=file_no;
+    TabCtrl_SetItem (hTabs, file_no, &tie);
+  }
+  else
+  { index = TabCtrl_GetItemCount(hTabs);
+    tie.mask = TCIF_TEXT|TCIF_PARAM;
+    tie.pszText = unique_name(file_no);
+    tie.lParam=file_no;
+    TabCtrl_InsertItem (hTabs, index, &tie);
+	if (index==1) resize_tab();
+  }
+  TabCtrl_SetCurSel (hTabs, index);
 }
