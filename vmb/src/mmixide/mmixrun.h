@@ -1,4 +1,4 @@
-extern int application_file_no;
+extern int running_file_no;
 extern int mmix_active(void);
 /* returns true if the mmix thread is running */
 extern void mmix_run(int file_no);

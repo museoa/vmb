@@ -115,8 +115,8 @@ static symtab_add_file_no(int file_no)
 void update_symtab(void)
 { 
   symtab_reset();
-  if (application_file_no>=0)
-	symtab_add_file_no(application_file_no);
+  if (running_file_no>=0)
+	symtab_add_file_no(running_file_no);
   else if (edit_file_no>=0)
 	symtab_add_file_no(edit_file_no);
 }

@@ -78,7 +78,6 @@
 #define IDC_CHECK_LISTING               1015
 #define IDC_SHOW_RP                     1016
 #define IDC_SELECT_SPECIALS             1016
-#define IDC_CHECK_LISTING2              1016
 #define IDC_CHECK_AUTOASSEMBLE          1016
 #define IDC_SHOW_RQ                     1017
 #define IDC_CHECK_OS                    1017
@@ -123,6 +122,8 @@
 #define IDC_STATIC_COMMENT              1041
 #define IDC_OPCODE_TXT                  1042
 #define IDC_ERROR_TXT                   1043
+#define IDC_APPLICATION                 1044
+
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -196,7 +197,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         40095
-#define _APS_NEXT_CONTROL_VALUE         1044
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

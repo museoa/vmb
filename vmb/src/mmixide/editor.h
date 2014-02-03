@@ -4,7 +4,7 @@ extern void init_edit(HINSTANCE hInstance);
 
 extern void ed_new(void);
 extern void ed_save(void);
-extern void ed_save_as(void);
+extern int ed_save_as(void);
 extern int ed_save_changes(int cancel);
 extern int ed_save_all(int cancel);
 extern int ed_close(void);
@@ -20,7 +20,7 @@ extern void  ed_show_line(int line_no);
 extern void ed_mark_error(int file_no, int line_no);
 extern void ed_refresh_breaks(void);
 
-extern void ed_operation(unsigned int op);
+extern int ed_operation(unsigned int op);
 extern void *ed_create_document(void);
 extern void ed_release_document(void * doc);
 extern void ed_get_document(void);

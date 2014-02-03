@@ -3,9 +3,9 @@ extern HWND	  hMainWnd, hError;
 extern HMENU	  hMenu;
 extern HWND	  hSplitter;
 extern HWND      hButtonBar;
-extern HWND hFileList;
 extern HWND hSymbolTable;
 extern HWND	  hEdit;
+
 extern void ide_status(char *message);
 extern void ide_add_error(char *message, int file_no, int line_no);
 extern void ide_clear_error_marker(void);
@@ -17,6 +17,7 @@ extern void new_errorlist(void);
 extern void new_edit(void);
 extern void ide_exit_ignore(int returncode);
 
+extern void set_application(int file_no);
 
 extern void clear_stop_marker(void);
 extern void set_edit_file(int file_no);

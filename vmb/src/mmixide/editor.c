@@ -66,8 +66,8 @@ LONG_PTR ed_send(unsigned int msg,ULONG_PTR wparam,LONG_PTR lparam)
   // Scintilla_DirectFunction used only in findreplace.c and print.c
 }
 
-void  ed_operation(unsigned int op)
-{ ed_send(op,0,0);
+int  ed_operation(unsigned int op)
+{ return (int)ed_send(op,0,0);
 }
 
 void ed_tab_select(int file_no);
@@ -126,10 +126,9 @@ static int all_cancel=0;
 static int current_file_no=-1;
 
 
-void save_file_if_needed(int file_no)
+static void save_file_if_needed(int file_no)
 { if (!all_saved) return;
-  if (file_no==current_file_no) return;
-  if (!file2dirty(file_no)) return;
+  if (!file_dirty(file_no)) return;
   set_edit_file(file_no);
   if (!ed_save_changes(all_cancel)) all_saved=0;
 }
@@ -140,7 +139,7 @@ int ed_save_all(int cancel)
   all_cancel=cancel;
   for_all_files(save_file_if_needed);
   set_edit_file(current_file_no);
-  return all_saved && ed_save_changes(cancel);
+  return all_saved;
 }
 
 
@@ -183,6 +182,9 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		   }
 		}
 		break;
+	case WM_CLOSE:
+		ed_close();		  
+		return 0;
 	case WM_DESTROY:
 		ed_close_all(0);		  
 		hEdit=NULL;
@@ -431,6 +433,8 @@ int ed_close(void)
 { int file_no;
   if (!ed_save_changes(1)) return 0;
   close_file(edit_file_no);
+  if (edit_file_no==application_file_no) 
+	set_application(-1);
   edit_file_no=-1; /* no edit file yet */
   file_no=get_inuse_file();
   if (file_no>=0) set_edit_file(file_no);
@@ -450,6 +454,7 @@ int ed_close_all(int cancel)
     if (file_no>=0) set_edit_file(file_no);
   }
   ed_new();
+  set_application(-1);
   return 1;
 }
 
@@ -529,17 +534,17 @@ void ed_save(void)
 	ed_write_file();
 }
 
-void ed_save_as(void)
+int ed_save_as(void)
 {	char *name=NULL;
 	char asname[MAX_PATH+1] = "\0";
 	OPENFILENAME ofn ={0};
-	if (hEdit==NULL) return;
+	if (hEdit==NULL) return 0;
 	if (edit_file_no>=0)
 	  name = file2fullname(edit_file_no);
 	if (name!=NULL)
 	  strncpy(asname,name ,MAX_PATH);
 	else
-	  asname[0]=0;
+	  strncpy(asname,unique_name(edit_file_no),MAX_PATH);
 	ofn.lStructSize= sizeof(ofn);
 	ofn.lpstrFile = asname;
 	ofn.hwndOwner = hMainWnd;
@@ -555,7 +560,10 @@ void ed_save_as(void)
 	   ed_write_file();
 	   file2reading(edit_file_no)=0;
 	  //InvalidateRect(hEdit, NULL, NULL);
+	   return 1;
 	}
+	else
+	  return 0;
 }
 
 int ed_save_changes(int cancel)

@@ -28,6 +28,7 @@ char loading[MAX_FILES+1] ={0};			/* does this file need loading */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
+int application_file_no = -1; /* the main application for debugging and running */
 
 
 /* file numbers get allocated together with documents 
@@ -40,6 +41,22 @@ static int count_file_no=0;				/* number of used file numbers */
 #define available(file_no) (doc[file_no]==NULL)
 #define inuse(file_no) (!available(file_no))
 
+
+
+int file_dirty(int file_no)
+{ if (file_no==edit_file_no)
+    return (int)ed_operation(SCI_GETMODIFY);
+  else
+	return file2dirty(file_no);
+}
+
+void set_application(int file_no)
+{ application_file_no = file_no;
+  if (application_file_no<0) 
+	  SetWindowText(hMainWnd,"VMB MMIX IDE");
+  else
+	  SetWindowText(hMainWnd,unique_name(file_no));
+}
 
 static int alloc_file_no(void)
 /* return -1 on failure, otherwise an available file number 
@@ -100,7 +117,7 @@ char *unique_name(int file_no)
   if (name==NULL) name=noname;
   if(!is_unique_shortname(file_no) && file_no>0)
   { static char str[64+7];
-    sprintf_s(str,64,"%.64s (%d)",name,file_no);
+    sprintf_s(str,64,"%.64s-%d",name,file_no);
 	name = str;
   }
   return name;
@@ -152,11 +169,16 @@ int filename2file(char *filename)
   { free(head);
 	return file_no;
   }
-  file_no = alloc_file_no();
+  /* at this point we might reuse file number 0 if it is unnamed, in use, and not dirty */
+  if (fullname[0]==NULL && doc[0]!=NULL && !file_dirty(0))
+	  file_no=0;
+  else
+      file_no = alloc_file_no();
   fullname[file_no]=head;
   shortname[file_no]=tail;
   needs_reading[file_no]=1;
-  ed_add_tab(file_no);
+  ed_add_tab(file_no); /* name has changed */
+  if (application_file_no<0||application_file_no==file_no) set_application(file_no); /* the first filename is the application */
   return file_no;
 }
 
@@ -174,6 +196,7 @@ void file_set_name(int file_no, char *filename)
     shortname[file_no]=tail;
     needs_reading[file_no]=1;
 	ed_add_tab(file_no);
+	if (application_file_no<0||application_file_no==file_no) set_application(file_no); /* the first filename is the application */
   }
 }
 
@@ -246,7 +269,7 @@ void for_all_files(void f(int i))
 
 void add_line_loc(int file_no, int line_no, octa loc)
 /* called from the assembler making relations between lines and locations */
-{ if (application_file_no>=0) 
+{ if (running_file_no>=0) 
     return; /* there is an application running */
   else
   { mem_tetra *ll = mem_find(loc);

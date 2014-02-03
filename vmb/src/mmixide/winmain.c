@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.20 $ $Date: 2014-01-31 15:03:25 $";
+char version[]="$Revision: 1.21 $ $Date: 2014-02-03 16:23:44 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -49,9 +49,7 @@ HWND      hButtonBar;
 HWND      hStatus;
 
 HWND	  hError=NULL;
-HWND	  hFileList=NULL;
 HWND	  hSymbolTable=NULL;
-
 
 #define S_WIDTH 200
 
@@ -60,7 +58,6 @@ void ide_status(char *message)
   UpdateWindow(hStatus);
   //SetWindowText(hStatus,message);
 }
-
 
 
 
@@ -115,11 +112,11 @@ int ide_prepare_mmix(void)
 { if (!ed_save_all(1)) return 0;
   if (!assemble_all_needed()) return 0;
   if (!ide_connect()) return 0;
-  if (application_file_no==edit_file_no)
+  if (running_file_no==application_file_no)
   { MessageBox(hMainWnd,"Application is already running.\r\nReset to load new code.","MMIX IDE",MB_OK);
     return 0;
   }
-  else if (application_file_no>=0)
+  else if (running_file_no>=0)
   { MessageBox(hMainWnd,"Different Application is already running.","MMIX IDE",MB_OK);
     return 0;
   }
@@ -146,10 +143,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  if (hChildWnd==hError)
 		  {
 			hError=NULL;
-		  }
-		  else if (hChildWnd==hFileList)
-		  { CheckMenuItem(hMenu,ID_VIEW_FILELIST,MF_BYCOMMAND|MF_UNCHECKED);
-		    hFileList=NULL;
 		  }
 		  else if (hChildWnd==hSymbolTable)
 		  { CheckMenuItem(hMenu,ID_VIEW_SYMBOLTABLE,MF_BYCOMMAND|MF_UNCHECKED);
@@ -284,18 +277,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  else 
 		  { if (!ide_prepare_mmix()) return 0;
 		    set_debug_windows();
-		    mmix_debug(edit_file_no);
+		    mmix_debug(application_file_no);
 		  }
 	      return 0; 
 		case ID_MMIX_RUN:
 		  if (mmix_active()) return 0;
 		  if (!ide_prepare_mmix()) return 0;
-		  mmix_run(edit_file_no);
+		  mmix_run(application_file_no);
 	      return 0; 
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==application_file_no && vmb.power)
+		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==running_file_no && vmb.power)
 		  { MessageBox(hWnd,"Different mmo file running!", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
@@ -405,17 +398,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  default:
 			  return 0;
 		}
-	  }
-	  else if (hControl==hFileList)
-	  { int item, file_no;
-		item = (int)SendMessage(hFileList,LB_GETCURSEL,0,0);
-	    if (item!=LB_ERR)
-		  file_no = (int)SendMessage(hFileList,LB_GETITEMDATA,item,0);
-		else
-		  file_no = -1;
-		if (HIWORD(wParam)== LBN_DBLCLK)
-		    set_edit_file(file_no);
-	  }	  
+	  } 
 	  else if (hControl==hSymbolTable && HIWORD(wParam)== LBN_DBLCLK)
 	  { int item, line_no, file_no;
 	    sym_node *sym=NULL;
@@ -525,10 +508,10 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 void update_breakpoints(void)
 { int line = -1;
-  if (application_file_no<0) return;
+  if (running_file_no<0) return;
   if (break_at_Main) break_at_symbol(":Main");
   if (hEdit==NULL) return;
-  set_edit_file(application_file_no);
+  set_edit_file(running_file_no);
   ed_refresh_breaks();
 }
 
@@ -557,6 +540,11 @@ int mmo_file_newer(char *full_mms_name)
 
 int assemble_if_needed(int file_no)
 { char *full_mms_name=file2fullname(file_no);
+  if (full_mms_name==NULL)
+  { set_edit_file(file_no);
+    if (!ed_save_as()) 
+	  return 0;
+  }
   if (mmo_file_newer(full_mms_name))
   {	 int decision;
      if (auto_assemble)
@@ -575,7 +563,7 @@ int assemble_if_needed(int file_no)
      if (auto_assemble)    	 
 		 decision= IDYES;
 	 else
-		 decision= MessageBox(hMainWnd, "no debug information available. Assemble?", unique_name(file_no), MB_YESNOCANCEL);
+		 decision= MessageBox(hMainWnd, "No debug information available. Assemble?", unique_name(file_no), MB_YESNOCANCEL);
 	 if (decision == IDYES)
 	 { int err_count=mmix_assemble(file_no);
 	   if (err_count!=0) return 0;
@@ -595,9 +583,13 @@ static void assemble_loading_files(int file_no)
 }
 
 int assemble_all_needed(void)
-{ all_assembled=1;
+{ if (application_file_no<0)
+  { MessageBox(hMainWnd, "No mms file selected as application. Select source file first.", "Error", MB_ICONEXCLAMATION|MB_OK);
+    return 0;
+  }
+  all_assembled=1;
   for_all_files(assemble_loading_files);
-  return all_assembled && assemble_if_needed(edit_file_no);
+  return all_assembled && assemble_if_needed(application_file_no);
 }
 
 void new_errorlist(void)

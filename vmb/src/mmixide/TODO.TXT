@@ -1,9 +1,8 @@
-
-double click in the X in the splitter bar should close the current document not the edit window.
+5:20 PM 2/3/2014
 
 Step over and step out
 
-Exit with unnamed  window should ask for "save as"
+Exit and selecting cancel in save as should cancel the exit.
 
 Breakpoints window
 Set breakpoints in symbol table

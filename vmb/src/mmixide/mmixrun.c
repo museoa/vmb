@@ -24,7 +24,7 @@
 static const WORD MAX_CONSOLE_LINES = 500;
 extern void vmb_atexit(void);
 void mmix_run_init(void);
-int application_file_no=-1;
+int running_file_no=-1;
 DWORD dwMMIXThreadId=0;
 
 static HANDLE hInteract=NULL;
@@ -108,8 +108,8 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
   vmb_exit_hook = mmix_exit;
-  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(application_file_no)));
-  application_file_no=-1;
+  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(running_file_no)));
+  running_file_no=-1;
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
 
@@ -137,8 +137,8 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 
  
   vmb_exit_hook = mmix_exit;
-  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(application_file_no)));
-  application_file_no=-1;
+  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(running_file_no)));
+  running_file_no=-1;
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
 
@@ -191,13 +191,13 @@ void mmix_run(int file_no)
 		  tracing=false;
 		  tracing_exceptions=0;
           stack_tracing=false;
-		  application_file_no=file_no;
+		  running_file_no=file_no;
 		  update_symtab();
           MMIXThread();
 }
 
 int break_at_symbol(char *symbol)
-{ sym_node *sym=find_symbol(symbol,application_file_no);
+{ sym_node *sym=find_symbol(symbol,running_file_no);
   if (sym!=NULL&& sym->link==DEFINED)
   { loc2bkpt(sym->equiv)|= exec_bit;
 	ide_mark_breakpoint(sym->file_no,sym->line_no);
@@ -218,7 +218,7 @@ void mmix_debug(int file_no)
 		  tracing_exceptions=0x0;
 		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
-		  application_file_no=file_no;
+		  running_file_no=file_no;
 		  update_symtab();
 		  if (show_trace) show_trace_window();
 		  MMIXThread();

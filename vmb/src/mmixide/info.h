@@ -8,6 +8,7 @@ extern char loading[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];
 extern char needs_reading[MAX_FILES+1];
 extern void *doc[257]; /* pointer to scintilla documents */
+extern int application_file_no; /* the main application for debugging and running */
 
 #define file2shortname(file_no) (shortname[file_no])
 #define file2fullname(file_no)  (fullname[file_no])
@@ -15,6 +16,8 @@ extern void *doc[257]; /* pointer to scintilla documents */
 #define file2loading(file_no) (loading[file_no])
 #define file2dirty(file_no) (doc_dirty[file_no])
 #define file2reading(file_no) (needs_reading[file_no])
+
+extern int file_dirty(int file_no);
 
 extern char *unique_name(int file_no);
 /* return a unique short name for the file */
