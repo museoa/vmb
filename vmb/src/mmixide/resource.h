@@ -32,6 +32,11 @@
 #define IDD_OPTIONS_SOURCES             142
 #define IDI_VIEW_WHITESPACE             143
 #define IDD_BREAKPOINTS                 144
+#define IDI_ICON1                       145
+#define IDI_DEBUG_STEPOVER              145
+#define IDI_ICON2                       146
+#define IDI_DEBUF_STEPOUT               146
+#define IDI_DEBUG_STEPOUT               146
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -123,7 +128,6 @@
 #define IDC_OPCODE_TXT                  1042
 #define IDC_ERROR_TXT                   1043
 #define IDC_APPLICATION                 1044
-#define IDC_CHECK_MIISSING_APP          1047
 #define IDC_CHECK_MISSING_APP           1047
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
@@ -191,13 +195,15 @@
 #define ID_ENCODING_UTF                 40092
 #define ID_VIEW_BREAKPOINTS             40093
 #define ID_VIEW_TRACE                   40094
+#define ID_MMIX_STEPOVER                40095
+#define ID_MMIX_STEPOUT                 40096
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        145
-#define _APS_NEXT_COMMAND_VALUE         40095
+#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_COMMAND_VALUE         40097
 #define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

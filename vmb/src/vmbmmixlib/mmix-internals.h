@@ -76,6 +76,9 @@ extern octa new_Q;
 extern int good_guesses, bad_guesses;
 extern bool interacting;
 extern bool show_operating_system;
+extern octa rOlimit;
+extern bool just_traced;
+extern bool trace_once;
 extern bool halted, profile_started, stack_tracing, profiling, interrupt, breakpoint, tracing;
 extern unsigned int tracing_exceptions; /* exception bits that cause tracing */
 extern octa sclock;
@@ -186,6 +189,7 @@ extern sym_node*sym_avail;
 
 extern bool long_warning_given;
 extern octa cur_loc, listing_loc;
+extern octa neg_one;
 extern bool spec_mode;
 extern tetra spec_mode_loc;
 extern char filename_passed[256];

@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.22 $ $Date: 2014-02-04 10:54:56 $";
+char version[]="$Revision: 1.23 $ $Date: 2014-02-04 16:45:11 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -258,7 +258,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  set_text_style();
 		  return 0;
 		case ID_MMIX_STEP:
+		  mmix_continue('s');
+		  return 0;
+		case ID_MMIX_STEPOVER:
 		  mmix_continue('n');
+		  return 0;
+		case ID_MMIX_STEPOUT:
+		  mmix_continue('o');
 		  return 0;
 	   case ID_MMIX_STOP:
 		  mmix_stop();
@@ -626,11 +632,13 @@ void add_buttons(void)
 
   add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,12,"Debug/Continue");
   add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,13,"Step Instruction");
-  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,15,"Break Execution");
-  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,16,"Halt Execution");
+  add_button(IDI_DEBUG_STEPOVER,ID_MMIX_STEPOVER,BG_DEBUG,14,"Step Over");
+  add_button(IDI_DEBUG_STEPOUT,ID_MMIX_STEPOUT,BG_DEBUG,15,"Step Out");
+  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,16,"Break Execution");
+  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,17,"Halt Execution");
   bb_set_group(hButtonBar,BG_DEBUG,0,0);
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,17,"About");
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,18,"About");
 
 
 }

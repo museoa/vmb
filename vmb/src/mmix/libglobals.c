@@ -51,9 +51,11 @@ bool resuming;
 bool halted;
 bool breakpoint;
 bool tracing;
+bool trace_once;
 bool stack_tracing;
 bool interacting;
 bool show_operating_system= false;
+octa rOlimit={-1,-1};
 #ifdef MMIXLIB
 extern int port; /* on which port to connect to the bus */
 extern char *host; /* on which host to connect to the bus */

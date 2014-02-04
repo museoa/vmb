@@ -652,6 +652,8 @@ bool interacting; /* are we in interactive mode? */
 @y
 bool interacting; /* are we in interactive mode? */
 bool show_operating_system = false; /* do we show negative addresses */
+bool trace_once=false;
+octa rOlimit={-1,-1}; /* tracing and break only if g[rO]<=rOlimit */
 bool interact_after_resume = false;
 #ifdef MMIXLIB
 extern int port; /* on which port to connect to the bus */
@@ -1891,7 +1893,9 @@ else
 @x
 if (tracing) {
 @y
-if (tracing && (!(loc.h&0x80000000) || show_operating_system)) {
+if (trace_once|| (tracing && (!(loc.h&sign_bit) || show_operating_system)&&
+   (g[rO].h<rOlimit.h || (g[rO].h==rOlimit.h&&g[rO].l<=rOlimit.l)))) {
+   trace_once=false;
 @z
 
 

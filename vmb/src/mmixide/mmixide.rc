@@ -180,6 +180,16 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
+IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Dialog
 //
 
@@ -464,12 +474,14 @@ BEGIN
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
         MENUITEM "Step",                        ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step &Over",                  ID_MMIX_STEPOVER,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step O&ut",                   ID_MMIX_STEPOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Break",                       ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
         MENUITEM "Quit",                        ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Stop",                        ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
     BEGIN

@@ -48,10 +48,12 @@ void mmix_stop(void)
   //show_operating_system=true;
   if (!interacting) halted=true;
 }
- 
+
 
 int mmix_continue(unsigned char command)
-{  if (hInteract==NULL) return 0;
+{ 
+   if (hInteract==NULL) return 0;
+   rOlimit=neg_one;
    switch (command)
    { case 'q': /* quit */
        breakpoint=halted=true;
@@ -59,7 +61,16 @@ int mmix_continue(unsigned char command)
      case 'c': /* continue */
 	   mmix_status(MMIX_RUNNING);
        break;
-	 case 'n': /* next instruction */
+	 case 'n': /* next instruction/ step over*/
+	   rOlimit=g[rO];
+       interacting=breakpoint=tracing=true; /* trace one inst and break */
+       break;
+	 case 'o': /* step out */
+		 rOlimit=g[rO];
+         rOlimit=incr(g[rO],-1);
+       interacting=breakpoint=tracing=true; /* trace one inst and break */
+       break;
+	 case 's': /* step instruction */
      default: interacting=breakpoint=tracing=true; /* trace one inst and break */
        break;
    }
@@ -260,6 +271,11 @@ void mmix_exit(int returncode)
 
 /* this is the plain vmb version of mmix main() */
 
+static int check_rO(void)
+/* returns true if g[rO]<=rOlimit */
+{ return (g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h;
+}
+
 static int check_interact(bool after)
 {   if (!interrupt && !breakpoint) return 1;
 	if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
@@ -267,21 +283,37 @@ static int check_interact(bool after)
 	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
 	    return mmix_interact();
 
-	if (break_after && after)
-	{ if (!(loc.h&sign_bit)|| show_operating_system) 
-	    mmix_stopped(loc);
-	  if ((inst_ptr.h&sign_bit) && !show_operating_system) /* stop after operating system */
+    if (break_after)
+	{ if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
+	  {  mmix_stopped(loc); /* display the last stop marker */
+	     trace_once=1;
+	  }
+	  if (after)
+	  { if ((inst_ptr.h&sign_bit) && !show_operating_system) /* no stop in the operating system */  
 		  return 1;
-	  return mmix_interact();
-    }
-	else if (!break_after && !after)
-	{ if (loc.h&sign_bit && 
-		!show_operating_system &&
-        !(loc.h==0x80000000 && loc.l==0)) 
-		return 1;
-      mmix_stopped(loc);
-	  return mmix_interact();
-    }
+	    if (!check_rO()) /* no stop inside funczion */
+		  return 1;
+		if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) /* this is the case for step and step out but not for step over */
+	      mmix_stopped(loc); 
+	    return mmix_interact();
+      }
+	}
+	else
+	{ if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
+	  {  mmix_stopped(loc); /* display the last stop marker */
+	     trace_once=1;
+	  }
+	  if (!after)
+	  { if (loc.h&sign_bit && 
+		  !show_operating_system &&
+          !(loc.h==0x80000000 && loc.l==0)) 
+		    return 1;
+	    if (!check_rO()) 
+			return 1; /* here we still trace the pop instead of the push (or both) with step over */
+	    mmix_stopped(loc);
+	    return mmix_interact();
+      }
+	}
     return 1;
 }
 
