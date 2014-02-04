@@ -1,9 +1,9 @@
-extern int running_file_no;
+
 extern int mmix_active(void);
 /* returns true if the mmix thread is running */
-extern void mmix_run(int file_no);
+extern void mmix_run(void);
 /* runs the mmix simulator */
-extern void mmix_debug(int file_no);
+extern void mmix_debug(void);
 /* runs the mmix simulator in debug mode */
 
 extern int mmix_assemble(int file_no);

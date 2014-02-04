@@ -57,4 +57,7 @@ regtable regtab= {
 	{KEY_FLAGS,&symtab_registers,23},
 	{KEY_FLAGS,&symtab_small,24},
 
+	{KEY_FLAGS,&missing_app,25},
+
+
 	{NULL,NULL,0}};

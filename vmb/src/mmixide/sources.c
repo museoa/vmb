@@ -10,7 +10,7 @@ static HWND hSources;
 static void add_load_files(int file_no)
 { char *name;
   name = file2fullname(file_no);
-  if (name!=NULL && file2loading(file_no))
+  if (name!=NULL && file2assembly(file_no))
   { int i = (int)SendMessage(hSources,LB_ADDSTRING,0,(LPARAM)name);
     SendMessage(hSources,LB_SETITEMDATA,i,(LPARAM)file_no);}
 }
@@ -21,14 +21,14 @@ static void add_files(int file_no)
    SendMessage(hSources,CB_SETITEMDATA,i,(LPARAM)file_no);
    if (file_no==application_file_no) application_index=i;
 }
-static void set_load_files(int file_no)
+static void set_assembly_files(int file_no)
 { char *name;
   int i;
   name = file2fullname(file_no);
   if (name==NULL) return;
   i=(int)SendMessage(hSources,LB_FINDSTRING,-1,(LPARAM)name);
-  if (i==LB_ERR) file2loading(file_no)=0;
-  else file2loading(file_no)=1;
+  if (i==LB_ERR) file2assembly(file_no)=0;
+  else file2assembly(file_no)=1;
 
 }
 
@@ -53,7 +53,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { for_all_files(set_load_files);
+      { for_all_files(set_assembly_files);
         hSources=NULL;
 		application_index = (int)SendMessage(GetDlgItem(hDlg,IDC_APPLICATION),CB_GETCURSEL,0,0);
 		if (application_index!=CB_ERR)

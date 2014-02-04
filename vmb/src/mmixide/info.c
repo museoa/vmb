@@ -24,7 +24,7 @@ static trie_node* symbols[MAX_FILES+1] = {NULL}; /* pointer to pruned symbol tab
 void *doc[MAX_FILES+1] = {NULL};		/* pointer to scintilla documents */
 char doc_dirty[MAX_FILES+1] ={0};		/* records whether the doc is dirty, but not for the edit_file */
 char has_debug_info[MAX_FILES+1] ={0};	/* is debug information available */
-char loading[MAX_FILES+1] ={0};			/* does this file need loading */
+char needs_assembly[MAX_FILES+1] ={0};			/* does this file need needs_assembly */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
@@ -73,7 +73,7 @@ static int alloc_file_no(void)
 		symbols[file_no]=NULL;
         doc_dirty[file_no]=0;
         has_debug_info[file_no]=0;
-        loading[file_no]=0;
+        needs_assembly[file_no]=0;
 		ed_add_tab(file_no);
 		if (file_no>=next_file_no) next_file_no = file_no+1;
         return file_no;
@@ -269,7 +269,7 @@ void for_all_files(void f(int i))
 
 void add_line_loc(int file_no, int line_no, octa loc)
 /* called from the assembler making relations between lines and locations */
-{ if (running_file_no>=0) 
+{ if (mmix_active()) 
     return; /* there is an application running */
   else
   { mem_tetra *ll = mem_find(loc);

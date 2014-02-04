@@ -96,7 +96,8 @@ static void ed_read_file(void)
 
 void set_edit_file(int file_no)
 { if (hEdit==NULL) new_edit();
-  if (file_no==edit_file_no || file_no<0) return;
+  if (file_no<0) return;
+  if (file_no==edit_file_no && !(fullname[edit_file_no]!=NULL && file2reading(edit_file_no))) return;
   ide_clear_error_marker();
   clear_stop_marker();
   if (edit_file_no>=0)

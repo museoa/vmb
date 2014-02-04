@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.21 $ $Date: 2014-02-03 16:23:44 $";
+char version[]="$Revision: 1.22 $ $Date: 2014-02-04 10:54:56 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -109,17 +109,13 @@ static int menu_toggle(int id)
 
 
 int ide_prepare_mmix(void)
-{ if (!ed_save_all(1)) return 0;
+{  if (mmix_active())
+  { MessageBox(hMainWnd,"MMIX is already running.","Error",MB_OK|MB_ICONEXCLAMATION);
+    return 0;
+  }
+  if (!ed_save_all(1)) return 0;
   if (!assemble_all_needed()) return 0;
   if (!ide_connect()) return 0;
-  if (running_file_no==application_file_no)
-  { MessageBox(hMainWnd,"Application is already running.\r\nReset to load new code.","MMIX IDE",MB_OK);
-    return 0;
-  }
-  else if (running_file_no>=0)
-  { MessageBox(hMainWnd,"Different Application is already running.","MMIX IDE",MB_OK);
-    return 0;
-  }
   bb_set_group(hButtonBar,BG_DEBUG,1,1);
   return 1;
 }
@@ -277,19 +273,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  else 
 		  { if (!ide_prepare_mmix()) return 0;
 		    set_debug_windows();
-		    mmix_debug(application_file_no);
+		    mmix_debug();
 		  }
 	      return 0; 
 		case ID_MMIX_RUN:
 		  if (mmix_active()) return 0;
 		  if (!ide_prepare_mmix()) return 0;
-		  mmix_run(application_file_no);
+		  mmix_run();
 	      return 0; 
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==running_file_no && vmb.power)
-		  { MessageBox(hWnd,"Different mmo file running!", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
+		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==application_file_no && mmix_active() && vmb.power)
+		  { MessageBox(hWnd,"mmo file already running! Reset to reload file.", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
 	    case ID_MMIX_CONNECT:
@@ -508,10 +504,10 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 void update_breakpoints(void)
 { int line = -1;
-  if (running_file_no<0) return;
+  if (application_file_no<0) return;
   if (break_at_Main) break_at_symbol(":Main");
   if (hEdit==NULL) return;
-  set_edit_file(running_file_no);
+  set_edit_file(application_file_no);
   ed_refresh_breaks();
 }
 
@@ -539,7 +535,9 @@ int mmo_file_newer(char *full_mms_name)
 
 
 int assemble_if_needed(int file_no)
-{ char *full_mms_name=file2fullname(file_no);
+{ char *full_mms_name;
+  if (file_no<0) return 1;
+  full_mms_name=file2fullname(file_no);
   if (full_mms_name==NULL)
   { set_edit_file(file_no);
     if (!ed_save_as()) 
@@ -574,22 +572,22 @@ int assemble_if_needed(int file_no)
   return 1;
 }
 
-static int all_assembled;
+static int assembly_ok=0;
 
 static void assemble_loading_files(int file_no)
-{ if (!all_assembled) return;
-  if (!file2loading(file_no)) return;
-  if (!assemble_if_needed(file_no)) all_assembled=0;
+{ if (!assembly_ok) return;
+  if (!file2assembly(file_no)) return;
+  if (file_no==application_file_no) return;
+  if (!assemble_if_needed(file_no)) assembly_ok=0;
 }
 
 int assemble_all_needed(void)
-{ if (application_file_no<0)
-  { MessageBox(hMainWnd, "No mms file selected as application. Select source file first.", "Error", MB_ICONEXCLAMATION|MB_OK);
-    return 0;
+{ if (application_file_no<0&& missing_app)
+  { MessageBox(hMainWnd, "No mms file selected as application.", "Warning", MB_ICONEXCLAMATION|MB_OK);
   }
-  all_assembled=1;
+  assembly_ok=1;
   for_all_files(assemble_loading_files);
-  return all_assembled && assemble_if_needed(application_file_no);
+  return assembly_ok && assemble_if_needed(application_file_no);
 }
 
 void new_errorlist(void)

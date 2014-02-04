@@ -123,7 +123,8 @@
 #define IDC_OPCODE_TXT                  1042
 #define IDC_ERROR_TXT                   1043
 #define IDC_APPLICATION                 1044
-
+#define IDC_CHECK_MIISSING_APP          1047
+#define IDC_CHECK_MISSING_APP           1047
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -197,7 +198,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         40095
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

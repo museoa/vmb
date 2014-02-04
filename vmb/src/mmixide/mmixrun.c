@@ -24,7 +24,7 @@
 static const WORD MAX_CONSOLE_LINES = 500;
 extern void vmb_atexit(void);
 void mmix_run_init(void);
-int running_file_no=-1;
+
 DWORD dwMMIXThreadId=0;
 
 static HANDLE hInteract=NULL;
@@ -130,15 +130,17 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 }
 #else
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
-{   int returncode;
+{ int returncode;
+  char *mmo_name=NULL;
 
   if (hInteract==NULL)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
  
   vmb_exit_hook = mmix_exit;
-  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(running_file_no)));
-  running_file_no=-1;
+  if (application_file_no>=0)
+	  mmo_name=get_mmo_name(file2fullname(application_file_no));
+  returncode = mmix_main(0,NULL,mmo_name);
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
 
@@ -184,20 +186,20 @@ char *get_mmo_name(char *full_mms_name)
    return full_mmo_name;
 }
 
-void mmix_run(int file_no)
+void mmix_run(void)
 {		  interacting=false;
 		  show_operating_system=false;
           breakpoint=false;
 		  tracing=false;
 		  tracing_exceptions=0;
           stack_tracing=false;
-		  running_file_no=file_no;
+
 		  update_symtab();
           MMIXThread();
 }
 
 int break_at_symbol(char *symbol)
-{ sym_node *sym=find_symbol(symbol,running_file_no);
+{ sym_node *sym=find_symbol(symbol,application_file_no);
   if (sym!=NULL&& sym->link==DEFINED)
   { loc2bkpt(sym->equiv)|= exec_bit;
 	ide_mark_breakpoint(sym->file_no,sym->line_no);
@@ -212,13 +214,12 @@ void mmix_reset(void)
 }
 
 
-void mmix_debug(int file_no)
+void mmix_debug(void)
 {		  interacting=true;
           breakpoint=true;
 		  tracing_exceptions=0x0;
 		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
-		  running_file_no=file_no;
 		  update_symtab();
 		  if (show_trace) show_trace_window();
 		  MMIXThread();
@@ -338,7 +339,7 @@ boot:
      if (!vmb.connected) panic("Power but not connected");
   }
   win32_log("ON\n");
-  mmix_load_file(mmo_name);
+  if (mmo_name!=NULL) mmix_load_file(mmo_name);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
   while (vmb.connected&!halted) {

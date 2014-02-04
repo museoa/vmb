@@ -4,7 +4,7 @@
 extern char *fullname[MAX_FILES+1]; /* the full filenames */
 extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
 extern char has_debug_info[MAX_FILES+1];
-extern char loading[MAX_FILES+1];
+extern char needs_assembly[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];
 extern char needs_reading[MAX_FILES+1];
 extern void *doc[257]; /* pointer to scintilla documents */
@@ -13,7 +13,7 @@ extern int application_file_no; /* the main application for debugging and runnin
 #define file2shortname(file_no) (shortname[file_no])
 #define file2fullname(file_no)  (fullname[file_no])
 #define file2debuginfo(file_no) (has_debug_info[file_no])
-#define file2loading(file_no) (loading[file_no])
+#define file2assembly(file_no) (needs_assembly[file_no])
 #define file2dirty(file_no) (doc_dirty[file_no])
 #define file2reading(file_no) (needs_reading[file_no])
 

@@ -26,7 +26,7 @@ int show_debug_data=0;
 int show_debug_pool=0;
 int show_debug_stack=0;
 int show_debug_neg=0;
-
+int missing_app=1;
 
 
 
@@ -57,6 +57,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_BEFORE,!break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,tracing_exceptions!=0?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -77,6 +78,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_debug_pool=IsDlgButtonChecked(hDlg,IDC_SHOW_POOL);
 		show_debug_stack=IsDlgButtonChecked(hDlg,IDC_SHOW_STACK);
 		show_debug_neg=IsDlgButtonChecked(hDlg,IDC_SHOW_NEG);
+		missing_app=IsDlgButtonChecked(hDlg,IDC_CHECK_MISSING_APP);
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
