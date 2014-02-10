@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.36 $ $Date: 2014-01-29 17:33:47 $";
+char version[]="$Revision: 1.37 $ $Date: 2014-02-10 14:05:42 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -82,15 +82,45 @@ static void get_one_pixel(int x, int y, unsigned char color[4])
 	  color[3]=GetBValue(c);
 }
 
+static screen_put_byte(unsigned int pos, unsigned char p)
+{ int x, y, z;
+  unsigned char xrgb[4];
+  COLORREF c;
+	x = (pos/4) % framewidth;
+    y = (pos/4) / framewidth;
+	z = (pos%4);
+	c = GetPixel(hCanvas,x,y);
+	xrgb[0]=0;
+	xrgb[1] = GetRValue(c);
+    xrgb[2] = GetGValue(c);
+    xrgb[3] = GetBValue(c);
+	xrgb[z]= p;
+	c = RGB(xrgb[1],xrgb[2],xrgb[3]);
+ 	c = SetPixel(hCanvas,x,y,c);
+}
+
 void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 { RECT rect;
-  int i = 0;
-  int pos=offset,remaining=size;
-  int minx=framewidth-1,miny=frameheight-1,maxx=0,maxy=0;
+  int i;
+  int pos,remaining;
+  int x, y;
+  int minx,miny,maxx,maxy;
+  pos=offset;
+  i=0;
+  remaining=size;
+  y = (pos/4) / framewidth;
+  x = (pos/4) % framewidth;
+  maxx=minx=x;
+  maxy=miny=y;
   EnterCriticalSection (&bitmap_section);
+  while (pos%4!=0 && remaining>0)
+  { screen_put_byte(pos,payload[i]);
+    pos++;
+	i++;
+	remaining--;
+  }
   while (remaining >= 4)
-  { int x, y;
-    y = (pos/4) / framewidth;
+  { y = (pos/4) / framewidth;
 	x = (pos/4) % framewidth;
 	if (x>maxx)maxx=x;
 	if (y>maxy)maxy=y;
@@ -101,26 +131,17 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
 	pos = pos+4;
 	remaining = remaining-4;
   }
-  if (remaining > 0)
-  { int x, y;
-    unsigned char r,g,b;
-    COLORREF c;
+  while (remaining > 0)
+  { screen_put_byte(pos,payload[i]);
     y = (pos/4) / framewidth;
 	x = (pos/4) % framewidth;
 	if (x>maxx)maxx=x;
 	if (y>maxy)maxy=y;
 	if (x<minx)minx=x;
 	if (y<miny)miny=y;
-	c = GetPixel(hCanvas,x,y);
-	r = GetRValue(c);
-    g = GetGValue(c);
-    b = GetBValue(c);
-
-	if (size > 1) r = payload[i+1];
-    if (size > 2) g = payload[i+2];
-	if (size > 3) b = payload[i+3];
-	c = RGB(r,g,b);
- 	c = SetPixel(hCanvas,x,y,c);
+	pos++;
+	i++;
+	remaining--;
   }
   rect.top=(int)(miny*zoom);
   rect.left=(int)(minx*zoom);

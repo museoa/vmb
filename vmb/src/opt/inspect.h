@@ -21,9 +21,9 @@ extern int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 #define REG_OPT_SEPARATOR 0x2
 
 struct register_def
-{ char *name;
-  int offset;
-  int size;
+{ char *name;	/* must not be NULL */
+  int offset;   /* must not be negativ */
+  int size;		
   enum chunk_fmt chunk;
   enum mem_fmt  format;
   unsigned char options;
@@ -62,6 +62,7 @@ struct inspector_def {
 	unsigned int old_base; /* same for the proviously displayed memory to indicate changes */
     unsigned int old_size;
     unsigned char* old_mem;
+	int change_address;
 };
 
 typedef struct inspector_def inspector_def;

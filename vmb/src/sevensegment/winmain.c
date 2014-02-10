@@ -19,7 +19,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.24 $ $Date: 2013-09-05 08:50:40 $";
+char version[]="$Revision: 1.25 $ $Date: 2014-02-10 14:05:42 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -230,7 +230,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HACCEL hAccelTable;
     MSG msg;
     vmb_message_hook = win32_message;
-	vmb_debug_hook = win32_debug;
+	vmb_debug_hook = win32_log;
 	vmb_error_init_hook = win32_error_init;
 
 	hMenu = LoadMenu(hInstance,MAKEINTRESOURCE(IDR_MENU));

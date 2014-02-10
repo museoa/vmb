@@ -275,7 +275,6 @@ if (mmo_file_name!=NULL && mmo_file_name[0]!=0)
 @x
 @<Sub...@>=
 void read_tet @,@,@[ARGS((void))@];@+@t}\6{@>
-void read_tet()
 @y
 @(libload.c@>=
 #include <stdio.h>
@@ -289,7 +288,18 @@ void read_tet()
 #include "mmix-bus.h"
 #include "mmixlib.h"
 
-void read_tet(void)
+@<Loading subroutines@>@;
+
+@ @<Loading subroutines@>=
+void read_tet @,@,@[ARGS((void))@];@+@t}\6{@>
+@z
+
+@x
+@ @<Sub...@>=
+byte read_byte @,@,@[ARGS((void))@];@+@t}\6{@>
+@y
+@ @<Loading subroutines@>=
+byte read_byte @,@,@[ARGS((void))@];@+@t}\6{@>
 @z
 
 @x
@@ -408,7 +418,7 @@ Now we handle new files.
      read_tet();
      *p=buf[0];@+*(p+1)=buf[1];@+*(p+2)=buf[2];@+*(p+3)=buf[3];
    }
-   cur_file=filename2file(name);
+   cur_file=filename2file(name,ybyte);
    ybyte2file_no[ybyte]=cur_file;
    file_info[cur_file].name=name;
  }
@@ -2251,20 +2261,34 @@ int mmix_lib_finalize(void)
 #include <ctype.h>
 #include <string.h>
 #include <signal.h>
+#include <setjmp.h>
 #include "abstime.h"
 @h
 @<Preprocessor macros@>@;
 @<Type declarations@>@;
-@<Global variables@>@;
-@<Subroutines@>@;
+#include "libarith.h"
+#include "libglobals.h"
+#include "vmb.h"
+#include "mmix-bus.h"
+#include "mmixlib.h"
+
 @#
+jmp_buf error_exit;
+char localhost[]="localhost";
+int port=9002; /* on which port to connect to the bus */
+char *host=localhost; /* on which host to connect to the bus */
+
 int main(argc,argv)
   int argc;
   char *argv[];
 {
   char **boot_cur_arg;
   int boot_argc;
-  @<Set up persistent data@>;
+  mmix_lib_initialize();
+  g[255].h=0;
+  g[255].l=setjmp(error_exit);
+  if (g[255].l!=0)
+   goto end_simulation;
   @<Process the command line@>;
   if (host==NULL) panic("No Bus given. Use Option -B[host:]port");
   init_mmix_bus(host,port,"MMIX CPU");
@@ -2303,7 +2327,7 @@ boot:
     if (halted) break;
     do   
     { if (!resuming)
-        mmix_fetch_instruction();
+        mmix_fetch_instruction();       
       mmix_perform_instruction();
       mmix_trace();
       mmix_dynamic_trap();
@@ -2315,7 +2339,6 @@ boot:
        interacting=true, interact_after_break=false;
     if (!vmb.power|| vmb.reset_flag)
     { breakpoint=true; 
-      vmb.reset_flag=0; 
       goto boot;
     }
   }
@@ -2416,6 +2439,13 @@ void scan_option(char *arg, /* command-line argument (without the `\.-') */
  case 'o': show_operating_system=false;@+return;
 @z
 
+@x
+ case 'f': @<Open a file for simulated standard input@>;@+return;
+ case 'D': @<Open a file for dumping binary output@>;@+return;
+@y
+@z
+
+
 we need to replace all exits.
 
 @x
@@ -2444,6 +2474,12 @@ bool profiling=0; /* should we print the profile at the end? */
 "-B<n> connect to Bus on port <n>\n",@|
 "-s    show statistics after each traced instruction\n",@|
 @z
+
+@x
+"-f<filename> use given file to simulate standard input\n",@|
+@y
+@z
+
 
 @x
 "T         set current segment to Text_Segment\n",@|

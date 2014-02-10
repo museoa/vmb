@@ -21,7 +21,6 @@
 #define IDC_TAB_OUTPUT                  1000
 #define IDC_THE_SERVER                  1001
 #define IDC_THE_PORT                    1002
-#define IDC_DEBUG                       1003
 #define IDC_TAB_DEBUG                   1005
 #define IDC_HIDE_ALL                    1006
 #define IDC_HIDE_MSG                    1007

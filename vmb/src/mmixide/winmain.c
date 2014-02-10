@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.23 $ $Date: 2014-02-04 16:45:11 $";
+char version[]="$Revision: 1.24 $ $Date: 2014-02-10 14:05:41 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -490,7 +490,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 	wcex.hbrBackground	= (HBRUSH)(COLOR_MENUBAR+1);
 	wcex.lpszMenuName	= MAKEINTRESOURCE(IDR_MENU);
 	wcex.lpszClassName = classname;
-	wcex.hIconSm		= LoadIcon(hInstance,MAKEINTRESOURCE(IDI_ICON));
+	wcex.hIconSm		= LoadIcon(hInstance,MAKEINTRESOURCE(IDI_ICON_SMALL));
 
 	if (!RegisterClassEx(&wcex)) return FALSE;
 
@@ -673,10 +673,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	init_edit(hInstance);
 	mmix_lib_initialize();
 	debug_init();
-	  param_init ();
-	  read_regtab(defined);
-	  get_xypos();
-      SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
+	param_init ();
+	read_regtab(defined);
+	get_xypos();
+	CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|(show_whitespace?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND|(syntax_highlighting?MF_CHECKED:MF_UNCHECKED));
+
+    SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 	new_edit();
 	if (edit_file_no<0) ed_new();

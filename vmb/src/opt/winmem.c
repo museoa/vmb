@@ -14,10 +14,7 @@
 #include "winde.h"
 
 
-
-
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
-
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 
 
@@ -86,6 +83,7 @@ static void sb_range(inspector_def *insp)
   { insp->mem_buf=realloc(insp->mem_buf,mem_size);
     if (insp->mem_buf==NULL)
 		vmb_fatal_error(__LINE__,"Out of memory");
+	memset(insp->mem_buf+insp->mem_size,0,mem_size-insp->mem_size);
   }
   insp->mem_size=mem_size;
   si.cbSize=sizeof(si);
@@ -132,11 +130,13 @@ static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 
 
 static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto_addr)
-{ if (goto_addr<insp->address)
-    { goto_addr=insp->address;
-    }
-    else if (goto_addr>=insp->address+insp->size)
-    { goto_addr=insp->address+(insp->size-1);
+{   if (!insp->change_address)
+    { if (goto_addr<insp->address)
+      { goto_addr=insp->address;
+      }
+      else if (goto_addr>=insp->address+insp->size)
+      { goto_addr=insp->address+(insp->size-1);
+      }
     }
     uint64tohex(goto_addr,tmp_option);
     SetDlgItemText(hMemory,IDC_GOTO,tmp_option);
@@ -302,7 +302,9 @@ void update_old_mem(inspector_def *insp)
 static int different(inspector_def *insp,int offset, int size)
 { int i;
   for (i=0;i<size;i++)
-  { if (insp->old_mem[offset+i]!=insp->mem_buf[offset+i]) return 1;
+  { unsigned int index=offset+i;
+    if (index>=insp->old_size || index>=insp->mem_size ||
+	    insp->old_mem[offset+i]!=insp->mem_buf[offset+i]) return 1;
   }
   return 0;
 }
@@ -554,9 +556,20 @@ void SetInspector(HWND hMemory, inspector_def * insp)
   update_max_regnames(insp);
   resize_memory_dialog(hMemory,insp);
   if (insp->regs==NULL)
-  { adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
-	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_SHOW);
+  { RECT r;
+	POINT p;
+    int xButton;
+    adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
 	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_SHOW);
+	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_SHOW);
+	GetWindowRect(GetDlgItem(hMemory,IDC_GOTO),&r);
+	p.x=r.right;
+	p.y=r.top;
+    ScreenToClient(hMemory,&p);
+	xButton=p.x+digit_width;
+	GetWindowRect(GetDlgItem(hMemory,IDC_FORMAT),&r);
+	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),xButton,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),xButton+digit_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
   }
   else
   { RECT r;
@@ -615,7 +628,15 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           GetDlgItemText(hDlg,IDC_GOTO,tmp_option,MAXTMPOPTION);
     	  goto_addr = strtouint64(tmp_option);
 		  goto_addr=adjust_goto_addr(hDlg,insp,goto_addr);
-		  insp->sb_base = (unsigned int)(goto_addr-insp->address);
+		  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
+		    insp->sb_base = (unsigned int)(goto_addr-insp->address);
+		  else /* move base address of inspector */
+		  { insp->address=goto_addr;
+		    insp->sb_base=0;
+			insp->mem_size=0;
+		    insp->de_offset=-1;
+			set_edit_rect(insp);
+		  }
 		  insp->sb_cur = 0;
 		  adjust_mem_display(insp);
 		 }
@@ -704,6 +725,7 @@ HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
 
 
 void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size)
+/* called if size byte in memory at offset have changed */
 { if (hMemory==NULL) return;
   if (insp->regs==NULL) adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
   if (offset>=insp->mem_base+insp->mem_size || offset+size<=insp->mem_base) 

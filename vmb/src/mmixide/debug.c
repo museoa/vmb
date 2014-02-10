@@ -131,8 +131,10 @@ static unsigned char *load_mem(uint64_t address, int size)
 
 static void store_mem(int segment, unsigned int offset, int size, unsigned char *buf)
 { octa addr;
-  addr.h=segment<<29;
-  addr.l=offset;
+  uint64_t a;
+  a = memory_insp[segment].address+offset;
+  addr.h=(tetra)(a>>32);
+  addr.l=(tetra)(a&0xFFFFFFFF);
   mmputchars(buf, size, addr);
   MemoryDialogUpdate(memory_insp[segment].hWnd,&memory_insp[segment],offset,size);
 }
@@ -140,46 +142,46 @@ static void store_mem(int segment, unsigned int offset, int size, unsigned char 
 /* specialized routines for the various segments */
 
 static int get_text_mem(unsigned int offset, int size, unsigned char *buf)
-{ return get_mem(0ULL+offset,size,buf);
+{ return get_mem(memory_insp[0].address+offset,size,buf);
 }
 static unsigned char * load_text_mem(unsigned int offset, int size)
-{ return load_mem(0ULL+offset,size);
+{ return load_mem(memory_insp[0].address+offset,size);
 }
 static void store_text_mem(unsigned int offset, int size, unsigned char *buf)
 { store_mem(0,offset,size,buf);
 }
 static int get_data_mem(unsigned int offset, int size, unsigned char *buf)
-{return get_mem((1ULL<<61)+offset,size,buf);
+{return get_mem(memory_insp[1].address+offset,size,buf);
 }
 static unsigned char * load_data_mem(unsigned int offset, int size)
-{ return load_mem((1ULL<<61)+offset,size);
+{ return load_mem(memory_insp[1].address+offset,size);
 }
 static void store_data_mem(unsigned int offset, int size, unsigned char *buf)
 { store_mem(1,offset,size,buf);
 }
 static int get_pool_mem(unsigned int offset, int size, unsigned char *buf)
-{return get_mem((2ULL<<61)+offset,size,buf);
+{return get_mem(memory_insp[2].address+offset,size,buf);
 }
 static unsigned char * load_pool_mem(unsigned int offset, int size)
-{ return load_mem((2ULL<<61)+offset,size);
+{ return load_mem(memory_insp[2].address+offset,size);
 }
 static void store_pool_mem(unsigned int offset, int size, unsigned char *buf)
 { store_mem(2,offset,size,buf);
 }
 static int get_stack_mem(unsigned int offset, int size, unsigned char *buf)
-{return get_mem((3ULL<<61)+offset,size,buf);
+{return get_mem(memory_insp[3].address+offset,size,buf);
 }
 static unsigned char * load_stack_mem(unsigned int offset, int size)
-{ return load_mem((3ULL<<61)+offset,size);
+{ return load_mem(memory_insp[3].address+offset,size);
 }
 static void store_stack_mem(unsigned int offset, int size, unsigned char *buf)
 { store_mem(3,offset,size,buf);
 }
 static int get_neg_mem(unsigned int offset, int size, unsigned char *buf)
-{return get_mem((4ULL<<61)+offset,size,buf);
+{return get_mem(memory_insp[4].address+offset,size,buf);
 }
 static unsigned char * load_neg_mem(unsigned int offset, int size)
-{ return load_mem((4ULL<<61)+offset,size);
+{ return load_mem(memory_insp[4].address+offset,size);
 }
 static void store_neg_mem(unsigned int offset, int size, unsigned char *buf)
 { store_mem(4,offset,size,buf);
@@ -216,7 +218,7 @@ void new_memory_view(int i)
 	 sp_create_options(0,0,0.5,0,memory_insp[k].hWnd);
   else
 	 sp_create_options(1,0,0.5,0,memory_insp[k].hWnd);
-
+  memory_insp[i].change_address=1;
   h = CreateMemoryDialog(hInst,hSplitter);
   SetInspector(h, &memory_insp[i]);
   ShowWindow(h,SW_SHOW);

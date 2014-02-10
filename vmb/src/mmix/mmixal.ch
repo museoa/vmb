@@ -9,7 +9,9 @@ to declare the extern library interface.
 @<Preprocessor definitions@>=
 @y
 @<Sub...@>=
+#ifdef MMIXLIB
 #include "mmixlib.h"
+#endif
 
 @ @<Global...@>=
 static jmp_buf error_exit;
@@ -50,7 +52,7 @@ the external file number for it.
 @x
         filename_count++;
 @y
-        file_no[filename_count]=filename2file(filename[filename_count]);
+        file_no[filename_count]=filename2file(filename[filename_count],filename_count);
         filename_count++;
 @z
 
@@ -248,7 +250,7 @@ filename[0]=src_file_name;
 filename_count=1;
 @y
 filename[0]=src_file_name;
-file_no[0]=filename2file(src_file_name);
+file_no[0]=filename2file(src_file_name,0);
 filename_count=1;
 @z
 

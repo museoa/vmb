@@ -61,6 +61,13 @@ extern void mmix_exit(int returncode);
 /* call to cause a running mmix simulator to return*/
 extern void mmix_dynamic_trap(void);
 /* check for dynamic traps */
+extern void mmix_profile(void);
+/* print the profile */
+
+extern int mmix_printf(char *format,...);
+/* printf replacement */
+extern int mmix_fputc(int c, FILE *f);
+/* fputc replacement */
 
 
 #if 0
@@ -102,7 +109,7 @@ extern int mmixal(char *mms_name, char *mmo_name, char *mml_name, int x_option, 
 */
 
 /* functions that need to be provided externaly for mmixal */
-extern int filename2file(char *filename);
+extern int filename2file(char *filename, char c);
 /* return file_no for this file */
 
 extern void mmixal_error(char *message, int file_no, int line_no, int status);

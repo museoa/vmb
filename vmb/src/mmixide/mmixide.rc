@@ -13,39 +13,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// German (Germany) resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -72,7 +46,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON                    "icon.ico"
+IDI_ICON                ICON                    "Icons\\icon.ico"
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
@@ -87,10 +61,12 @@ IDI_MMIX_DEBUG          ICON                    "Icons\\debug.ico"
 IDI_VIEW_ZOOMIN         ICON                    "Icons\\zoomin.ico"
 IDI_FINDREPLACE         ICON                    "Icons\\find.ico"
 IDI_DEBUG_STEP          ICON                    "Icons\\stepin.ico"
-IDI_DEBUG_CONTINUE      ICON                    "Icons\\continue.ico"
 IDI_DEBUG_PAUSE         ICON                    "Icons\\pause.ico"
 IDI_DEBUG_HALT          ICON                    "Icons\\stop.ico"
 IDI_VIEW_WHITESPACE     ICON                    "Icons\\whitespace.ico"
+IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
+IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
+IDI_ICON_SMALL          ICON                    "icons\\mmixidesmall.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -145,53 +121,6 @@ BEGIN
     EDITTEXT        IDC_ADDRESS,7,7,112,14,ES_AUTOHSCROLL
     LISTBOX         IDC_LIST_BREAKPOINTS,7,45,172,38,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_BREAKPOINTS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 83
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-#endif    // German (Germany) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
-IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
 
 IDD_SHOW_DEBUG DIALOGEX 0, 0, 307, 193
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -348,6 +277,14 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO 
 BEGIN
+    IDD_BREAKPOINTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+
     IDD_SHOW_DEBUG, DIALOG
     BEGIN
         RIGHTMARGIN, 158
@@ -502,6 +439,26 @@ BEGIN
         MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
     END
 END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.\0"
+END
+
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

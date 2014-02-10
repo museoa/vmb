@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "mmix-internals.h"
 #include "vmb.h"
 #include "mmixlib.h"

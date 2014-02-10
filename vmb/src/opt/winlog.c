@@ -91,12 +91,10 @@ LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
 	  msg_changed = 0;
 	  CallWindowProc(StaticWndProc,hWnd,WM_SETTEXT,0,(LPARAM)msg_buffer);
 	  LeaveCriticalSection (&msg_section);
-	  /* n = SendDlgItemMessage(hDlg,IDC_DEBUG,WM_GETTEXTLENGTH,0,0); */
       SendMessage(hWnd,EM_SETSEL,n,n);
       SendMessage(hWnd,EM_SCROLLCARET,0,0); 
 	  return 0;
 	}
-//	else if (message == WM_SYSCOMMAND && wparam == SC_CLOSE ) 
 	else if (message == WM_DESTROY) 
 	{ unregister_subwindow(hLog);
 	  DeleteCriticalSection(&msg_section);

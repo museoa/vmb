@@ -73,7 +73,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=5;
-char version[] = "$Revision: 1.45 $ $Date: 2013-09-05 08:50:39 $";
+char version[] = "$Revision: 1.46 $ $Date: 2014-02-10 14:05:42 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -1109,7 +1109,7 @@ WinMain (HINSTANCE hInstance,
   WSADATA wsadata;
   
   vmb_message_hook = win32_message;
-  vmb_debug_hook = win32_debug;
+  vmb_debug_hook = win32_log;
   vmb_error_init_hook = win32_error_init;
 
   LoadString (hInstance, IDS_CLASS, szClassName, MAX_LOADSTRING);

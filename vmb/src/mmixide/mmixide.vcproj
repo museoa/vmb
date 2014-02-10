@@ -299,11 +299,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
@@ -325,10 +329,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\Icons\continue.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\copy.ico"
 				>
 			</File>
@@ -341,46 +341,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\document-new-7.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\document-open-7.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\document-save-5.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-copy-8.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-cut-7.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-find-replace-4.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-paste-6.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-redo-4.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\edit-undo-4.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\ff.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\find.ico"
 				>
 			</File>
@@ -389,23 +349,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\help-3.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\help.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\icon.ico"
+				RelativePath=".\Icons\icon.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\Image\icon1.ico"
+				RelativePath=".\Icons\icon3.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\icon2.ico"
+				RelativePath=".\Icons\mmixide.ico"
 				>
 			</File>
 			<File
@@ -413,11 +369,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\new.ico"
+				RelativePath=".\Icons\mmixidesmall.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\Image\NewDocumentHS.BMP"
+				RelativePath=".\Icons\new.ico"
 				>
 			</File>
 			<File
@@ -433,19 +389,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\play.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\redo.ico"
 				>
 			</File>
 			<File
 				RelativePath=".\Icons\save.ico"
-				>
-			</File>
-			<File
-				RelativePath="..\scintilla\win32\ScintRes.rc"
 				>
 			</File>
 			<File
@@ -469,10 +417,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\system-run-3.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\undo.ico"
 				>
 			</File>
@@ -490,14 +434,6 @@
 			</File>
 			<File
 				RelativePath="..\opt\win32dedit.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\zoom-in-3.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\zoom-out-3.ico"
 				>
 			</File>
 			<File

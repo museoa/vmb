@@ -325,30 +325,6 @@ static int check_interact(bool after)
 
 
 
-static char logstr[512];
-
-int mmix_printf(char *format,...)
-{ va_list vargs;
-  char logstr[512];
-  int n; 
-  va_start(vargs,format);	
-  n = vsprintf(logstr,format, vargs);
-  win32_log(logstr);
-  return n;
-}
-
-int mmix_fputc(int c, FILE *f)
-{ if (f==stdout)
-  { char str[2];
-    str[0]=c; str[1]=0;
-	win32_log(str);
-	return c;
-  }
-  else
-  return fputc(c,f);
-}
-
-
 
 
 

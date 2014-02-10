@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mmixcpu"
 	ProjectGUID="{A1A6581E-EE63-4F3B-A52A-49C1E28C52E2}"
 	RootNamespace="mmix"
@@ -188,48 +188,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\address.c"
-				>
-			</File>
-			<File
-				RelativePath=".\arith-win.ch"
-				>
-			</File>
-			<File
-				RelativePath=".\mmix-arith.c"
-				>
-			</File>
-			<File
-				RelativePath=".\mmix-arith.w"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c&#x0D;&#x0A;"
-						AdditionalDependencies="arith-win.ch"
-						Outputs="mmix-arith.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						CommandLine="ctangle mmix-arith arith-win.ch mmix-arith.c"
-						AdditionalDependencies="arith-win.ch"
-						Outputs="mmix-arith.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\mmix-bus.c"
-				>
-			</File>
-			<File
 				RelativePath=".\mmix-sim.w"
 				>
 				<FileConfiguration
@@ -238,7 +196,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
-						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch"
 						Outputs="mmix-vmb.c"
 					/>
@@ -249,7 +207,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
-						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
 						AdditionalDependencies="vmb.ch"
 						Outputs="mmix-vmb.c"
 					/>
@@ -269,7 +227,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
-						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
 						AdditionalDependencies="mmix-sim.w"
 						Outputs="mmix-vmb.c"
 					/>
@@ -280,7 +238,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
-						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c"
+						CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;"
 						AdditionalDependencies="mmix-sim.w"
 						Outputs="mmix-vmb.c"
 					/>
@@ -293,23 +251,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\vmbmmixlib\address.h"
-				>
-			</File>
-			<File
-				RelativePath="..\vmbmmixlib\buffers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\vmbmmixlib\mmix-bus.h"
-				>
-			</File>
-			<File
 				RelativePath="..\vmbmmixlib\mmix-internals.h"
 				>
 			</File>
 			<File
-				RelativePath="..\vmbmmixlib\signals.h"
+				RelativePath="..\vmbmmixlib\mmixlib.h"
 				>
 			</File>
 		</Filter>

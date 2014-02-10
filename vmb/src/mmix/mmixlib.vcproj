@@ -92,7 +92,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Ctangle mmix-vmb.c and mmix-arith.c"
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch mmixal.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -219,7 +219,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\libmmixal.c"
+				>
+			</File>
+			<File
 				RelativePath=".\libmmput.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libname.c"
 				>
 			</File>
 			<File
@@ -248,6 +256,10 @@
 			</File>
 			<File
 				RelativePath=".\libstats.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libstdout.c"
 				>
 			</File>
 			<File
@@ -284,10 +296,6 @@
 			</File>
 			<File
 				RelativePath=".\mmix-sim.w"
-				>
-			</File>
-			<File
-				RelativePath=".\mmixal.c"
 				>
 			</File>
 			<File

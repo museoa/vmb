@@ -25,18 +25,17 @@
 #define IDD_OPTIONS_EDITOR              131
 #define IDI_FINDREPLACE                 132
 #define IDI_DEBUG_STEP                  134
-#define IDI_DEBUG_CONTINUE              136
 #define IDI_DEBUG_PAUSE                 138
 #define IDI_DEBUG_HALT                  139
 #define IDD_OPTIONS_SYMTAB              141
 #define IDD_OPTIONS_SOURCES             142
 #define IDI_VIEW_WHITESPACE             143
 #define IDD_BREAKPOINTS                 144
-#define IDI_ICON1                       145
 #define IDI_DEBUG_STEPOVER              145
-#define IDI_ICON2                       146
 #define IDI_DEBUF_STEPOUT               146
 #define IDI_DEBUG_STEPOUT               146
+#define IDI_ICON1                       150
+#define IDI_ICON_SMALL                  150
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -104,7 +103,6 @@
 #define IDC_SHOW_RY                     1025
 #define IDC_ADD                         1025
 #define IDC_SHOW_RZ                     1026
-#define IDC_BUTTON2                     1026
 #define IDC_REMOVE                      1026
 #define IDC_SHOW_RBB                    1027
 #define IDC_CHECK_AUTOCLOSE             1027
@@ -150,23 +148,14 @@
 #define ID_MEM_POOLSEGMENT              40030
 #define ID_MEM_STACKSEGMENT             40031
 #define ID_MEM_NEGATIVESEGMENT          40032
-#define ID_FILE_NEW40035                40035
-#define ID_FILE_SAVE40036               40036
 #define ID_FILE_SAVEAS                  40037
-#define ID_EDIT_CUT40038                40038
-#define ID_EDIT_COPY40039               40039
-#define ID_EDIT_PASTE40040              40040
-#define ID_EDIT_UNDO40041               40041
-#define ID_EDIT_REDO40042               40042
 #define ID_EDIT_DELETE                  40043
 #define ID_EDIT_SELECTALL               40044
 #define ID_EDIT_FINDANDREPLACE          40045
-#define ID_EDIT_REPLACE40046            40046
 #define ID_MMIX_ASSEMBLE                40047
 #define ID_MMIX_DEBUG                   40048
 #define ID_VIEW_ZOOMIN                  40049
 #define ID_VIEW_ZOOMOUT                 40050
-#define ID_FILE_PRINT40051              40051
 #define ID_MMIX_CONNECT                 40052
 #define ID_OPTIONS_DEBUG                40053
 #define ID_VIEW_SHOWWHITESPACE          40059
@@ -202,7 +191,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_RESOURCE_VALUE        151
 #define _APS_NEXT_COMMAND_VALUE         40097
 #define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101

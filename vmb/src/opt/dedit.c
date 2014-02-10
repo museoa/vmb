@@ -9,9 +9,9 @@
 typedef struct dataedit
 {  HWND hWnd;
    inspector_def *insp;
-   char * name; /* display if not NULL */
-   uint64_t address; /* display instead of name if name==NULL */
-   int offset; /* offset to devices base address */
+   char * reg_name; /* register name, if NULL this is memory */
+   int reg_offset; /* offset to devices base address */
+   uint64_t address; /* use instead of name and offset if name==NULL */
    unsigned char mem[8]; /* up to one octa */
    int size; /* 1,2,4, or 8  number of byte to edit */
    enum mem_fmt format;
@@ -206,11 +206,11 @@ static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
 static void show_edit_name(dataedit *de)
 { if (de->insp==NULL)
 	SetDlgItemText(de->hWnd,IDC_NAME,"Disconnected");
-  else if (de->name!=NULL)
-	SetDlgItemText(de->hWnd,IDC_NAME,de->name);
+  else if (de->reg_name!=NULL)
+	SetDlgItemText(de->hWnd,IDC_NAME,de->reg_name);
   else
   { char str[22]; /* big enough for the largest 8Byte integer */
-    uint64tohex(de->address+de->offset,str);
+    uint64tohex(de->address,str);
     SetDlgItemText(de->hWnd,IDC_NAME,str);
   }
 }
@@ -222,8 +222,8 @@ void de_update(HWND hDlg)
 { 
   dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
   if (de->insp==NULL || de->insp->de_offset<0)
-  { de->name=NULL;
-	de->offset=0;
+  { de->reg_name=NULL;
+	de->reg_offset=0;
 	set_edit_format(de,hex_format);
 	set_edit_chunk(de,byte_chunk);
 	de->size=0;
@@ -231,21 +231,24 @@ void de_update(HWND hDlg)
   }
   else if (de->insp->regs!=NULL)
   {	struct register_def *r = &(de->insp->regs[de->insp->de_offset]);
-	de->name=r->name;
+    static char empty[1]={0};
+	de->reg_name=r->name;
+	if (de->reg_name==NULL) de->reg_name=empty;
   	de->size=r->size;
   	set_edit_format(de, r->format);
     set_edit_chunk(de,r->chunk);
-	de->offset=r->offset;
+	de->reg_offset=r->offset;
+    if (de->size>0) de->insp->get_mem(r->offset,r->size,de->mem);
   }
   else
-  {	de->name=NULL;
-  	de->address=de->insp->address;
+  {	de->reg_name=NULL;
+  	de->address=de->insp->address+de->insp->de_offset;
     de->size=1<<de->insp->chunk;
   	set_edit_format(de, de->insp->format);
     set_edit_chunk(de, de->insp->chunk);
-	de->offset=de->insp->de_offset;
+	de->reg_offset=0;
+    if (de->size>0) de->insp->get_mem(de->insp->de_offset,de->size,de->mem);
   }
-  if (de->size>0) de->insp->get_mem(de->offset,de->size,de->mem);
   show_edit_mem(de);
   show_edit_name(de);
   show_edit_windows(de);
@@ -266,9 +269,12 @@ void de_save(HWND hDlg)
 /* call to save the content of the editor back to to memory.
    This is the same as pressing the store button */
 { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
-  if (de->insp!=NULL && de->insp->store !=NULL)
+  if (de->insp!=NULL && de->insp->store !=NULL && de->insp->de_offset>=0)
   { put_edit_mem(de);
-    de->insp->store(de->offset,de->size,de->mem); 
+    if (de->reg_name!=NULL)
+      de->insp->store(de->reg_offset,de->size,de->mem); 
+	else
+	  de->insp->store((int)(de->address-de->insp->address),de->size,de->mem); 
   }
 }
 
@@ -304,8 +310,11 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if (HIWORD(wparam) == BN_CLICKED) 
 	  { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		if (LOWORD(wparam) ==IDC_LOAD)   /* User has hit the Load key.*/
-		{ if (de->insp!=NULL && de->insp->load!=NULL) 
-		  { memmove(de->mem,de->insp->load(de->offset,de->size),de->size); 
+		{ if (de->insp!=NULL && de->insp->load!=NULL && de->insp->de_offset>=0) 
+		  { if (de->reg_name!=NULL)
+ 			  memmove(de->mem,de->insp->load(de->reg_offset,de->size),de->size);
+		    else
+			  memmove(de->mem,de->insp->load((int)(de->address-de->insp->address),de->size),de->size);
 		    show_edit_mem(de);
 		  }
 		}
