@@ -155,7 +155,7 @@ static int find_file(char *name)
   return -1;
 }
 
-int filename2file(char *filename)
+int filename2file(char *filename,char c)
 /* return file_no for this file, allocate file_no if needed */
 { int file_no;
   char *head, *tail;

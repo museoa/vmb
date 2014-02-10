@@ -422,7 +422,7 @@ void new_edit(void)
 void ed_new(void)
 { int file_no;
   if (hEdit==NULL) new_edit();
-  file_no = filename2file(NULL);
+  file_no = filename2file(NULL,0);
   set_edit_file(file_no);
 /*	ed_send(SCI_SETSAVEPOINT,0,0);
 	ed_send(SCI_CANCEL,0,0);
@@ -477,7 +477,7 @@ int ed_open(void)
 	ofn.lpstrTitle = "Open File";
 	ofn.Flags = OFN_HIDEREADONLY;
     if (GetOpenFileName(&ofn)) 
-      return filename2file(name);
+      return filename2file(name,0);
 	else
       return -1;
 }

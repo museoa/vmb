@@ -25,7 +25,7 @@ extern char *unique_name(int file_no);
 extern trie_node *file2symbols(int file_no);
 /* return symbol trie for file */
 
-extern int filename2file(char *filename);
+extern int filename2file(char *filename, char c);
 /* return file_no for this file, allocate fullname as needed */
 
 extern void file_set_name(int file_no, char *filename);

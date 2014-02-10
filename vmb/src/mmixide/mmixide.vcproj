@@ -73,6 +73,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -151,6 +152,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -299,15 +301,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\scintilla\win32\resource.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
 				RelativePath="..\opt\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File

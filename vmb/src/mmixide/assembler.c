@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <commctrl.h>
+#include <stdio.h>
 #include "resource.h"
 #include "winmain.h"
 #include "info.h"
