@@ -34,8 +34,9 @@
 #define IDI_DEBUG_STEPOVER              145
 #define IDI_DEBUF_STEPOUT               146
 #define IDI_DEBUG_STEPOUT               146
-#define IDI_ICON1                       150
 #define IDI_ICON_SMALL                  150
+#define IDI_BREAK						151
+#define IDI_TRACE						152
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -186,6 +187,8 @@
 #define ID_VIEW_TRACE                   40094
 #define ID_MMIX_STEPOVER                40095
 #define ID_MMIX_STEPOUT                 40096
+#define ID_MMIX_BREAK                   40097
+#define ID_MMIX_TRACE                   40098
 
 // Next default values for new objects
 // 

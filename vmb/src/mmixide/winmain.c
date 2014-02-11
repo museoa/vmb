@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.24 $ $Date: 2014-02-10 14:05:41 $";
+char version[]="$Revision: 1.25 $ $Date: 2014-02-11 15:25:03 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -220,6 +220,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_EDIT_REPLACE:
 			replace_again();
+			return 0;
+		case ID_MMIX_TRACE:
+			ed_toggle_trace();
+			return 0;
+		case ID_MMIX_BREAK:
+			ed_toggle_break();
 			return 0;
 		case ID_VIEW_SYMBOLTABLE:
 		  if (menu_toggle(ID_VIEW_SYMBOLTABLE))
@@ -431,7 +437,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ mmix_status(MMIX_STOPPED);
 	  show_stop_marker(item_file_no(lParam),item_line_no(lParam));
 	}
-	update_profile();
+	display_profile();
 	memory_update();
 	return 0;
   case WM_MMIX_RESET:
@@ -636,9 +642,12 @@ void add_buttons(void)
   add_button(IDI_DEBUG_STEPOUT,ID_MMIX_STEPOUT,BG_DEBUG,15,"Step Out");
   add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,16,"Break Execution");
   add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,17,"Halt Execution");
-  bb_set_group(hButtonBar,BG_DEBUG,0,0);
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,18,"About");
+  bb_set_group(hButtonBar,BG_DEBUG,0,0);
+  add_button(IDI_BREAK,ID_MMIX_BREAK,BG_EDIT,18,"Set Breakpoint");
+  add_button(IDI_TRACE,ID_MMIX_TRACE,BG_EDIT,19,"SetTracepoint");
+
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,20,"About");
 
 
 }

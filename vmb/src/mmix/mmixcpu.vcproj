@@ -180,6 +180,10 @@
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
 			RelativePathToProject="..\util\vmbwin.vcproj"
 		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{4B0D2135-BFD9-4380-9406-3AA5E6A7D9D1}"
+			RelativePathToProject="..\vmbmmixlib\vmbmmixlib.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter

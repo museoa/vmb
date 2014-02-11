@@ -26,6 +26,7 @@ extern void show_stop_marker(int file_no, int line_no);
 extern void set_lineno_width(void);
 extern void set_profile_width(void);
 extern void update_profile(void);
+extern void display_profile(void);
 extern void set_tabwidth(void);
 #define WM_MMIX_STOPPED (WM_USER+1)
 #define WM_MMIX_RESET (WM_USER+2)
@@ -34,6 +35,8 @@ extern void set_tabwidth(void);
 #define MMIX_LINE_MARGIN 0
 #define MMIX_PROFILE_MARGIN 1
 #define MMIX_BREAKX_MARKER 1
+#define MMIX_BREAKT_MARKER 3
+
 #define MMIX_BREAK_MARGIN 2
 #define MMIX_TRACE_MARKER 2
 #define MMIX_TRACE_MARGIN 3

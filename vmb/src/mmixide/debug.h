@@ -5,6 +5,8 @@ extern void debug_init(void);
 
 extern int set_breakpoint(int file_no, int line_no);
 extern int del_breakpoint(int file_no, int line_no);
+extern int set_tracepoint(int file_no, int line_no);
+extern int del_tracepoint(int file_no, int line_no);
 extern void clear_breakpoints(unsigned char file);
 extern unsigned int show_special_registers;
 extern INT_PTR CALLBACK OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );

@@ -553,3 +553,23 @@ int del_breakpoint(int file_no, int line_no)
 { for_all_loc(file_no, line_no, del_x_break);
   return 1;
 }	
+
+static void set_t_break(octa loc)
+{ mem_find(loc)->bkpt |= trace_bit;
+}
+
+int set_tracepoint(int file_no, int line_no)
+/* return true if breakpoint could be set */
+{ for_all_loc(file_no, line_no, set_t_break);
+  return 1;
+}	
+
+static void del_t_break(octa loc)
+{ mem_find(loc)->bkpt &= ~trace_bit;
+}
+
+
+int del_tracepoint(int file_no, int line_no)
+{ for_all_loc(file_no, line_no, del_t_break);
+  return 1;
+}	

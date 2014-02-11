@@ -2360,9 +2360,6 @@ mmo_file_name becomes a variable not an alias.
 if (!*cur_arg) scan_option("?",true); /* exit with usage note */
 argc -= cur_arg-argv; /* this is the |argc| of the user program */
 @y
-#ifndef MMIXLIB
-if (!*cur_arg) scan_option("?",true); /* exit with usage note */
-#endif
 argc -= (int)(cur_arg-argv); /* this is the |argc| of the user program */
 @z
 

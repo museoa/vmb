@@ -143,8 +143,36 @@ int ed_save_all(int cancel)
   return all_saved;
 }
 
+void ed_toggle_trace(void)
+{   int pos = (int)ed_send(SCI_GETCURRENTPOS,0,0);
+	int line = (int)ed_send(SCI_LINEFROMPOSITION,pos,0);
+	int markers = (int)ed_send(SCI_MARKERGET,line,0);
+	if (markers & (1<<MMIX_BREAKT_MARKER))
+	{  del_tracepoint(edit_file_no,line+1);
+		ed_send(SCI_MARKERDELETE,line,MMIX_BREAKT_MARKER);
+	}
+	else
+	{ if (set_tracepoint(edit_file_no,line+1))
+      ed_send(SCI_MARKERADD,line,MMIX_BREAKT_MARKER);
+	}
+}
 
+void ed_toggle_break_at(int position)
+{ int line = (int)ed_send(SCI_LINEFROMPOSITION,position,0);
+  int markers = (int)ed_send(SCI_MARKERGET,line,0);
+  if (markers & (1<<MMIX_BREAKX_MARKER))
+  { del_breakpoint(edit_file_no,line+1);
+    ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
+  }
+  else
+  { if (set_breakpoint(edit_file_no,line+1))
+      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
+  }
+}
 
+void ed_toggle_break(void)
+{ ed_toggle_break_at((int)ed_send(SCI_GETCURRENTPOS,0,0));
+}
 
 void init_edit(HINSTANCE hInstance)
 {	Scintilla_RegisterClasses(hInstance);
@@ -338,18 +366,10 @@ void set_profile_width(void)
 
 #define STYLE_PROFILE (STYLE_LASTPREDEFINED+1)
 
-void update_profile(void)
-{ int line_no, from, to;
-  COLORREF back;
-  if (!show_profile) return;
 
-  from = (int)ed_send(SCI_GETFIRSTVISIBLELINE,0,0);
-  to= from+(int)ed_send(SCI_LINESONSCREEN,0,0);
-
-  ed_send(SCI_STYLESETFORE,STYLE_PROFILE, RGB(0x00,0x00,0xD0));
-  back = (COLORREF)ed_send(SCI_STYLEGETBACK,STYLE_LINENUMBER,0);
-  ed_send(SCI_STYLESETBACK,STYLE_PROFILE, back);
-  for (line_no=from;line_no<=to; line_no++)
+static void show_profile_range(int from, int to)
+{ int line_no;
+	for (line_no=from;line_no<=to; line_no++)
   { char number[21];
     int freq = line2freq(edit_file_no,line_no+1);
 	if (freq<=0) continue;
@@ -357,7 +377,21 @@ void update_profile(void)
 	ed_send(SCI_MARGINSETTEXT,line_no, (sptr_t)number);
     ed_send(SCI_MARGINSETSTYLE,line_no, STYLE_PROFILE);
   }
+}
 
+void update_profile(void)
+{ int from, to;
+  if (!show_profile) return;
+
+  from = (int)ed_send(SCI_GETFIRSTVISIBLELINE,0,0);
+  to= from+(int)ed_send(SCI_LINESONSCREEN,0,0);
+  show_profile_range(from,to);
+}
+
+
+void display_profile(void)
+{   if (!show_profile) return;
+	show_profile_range(0,(int)ed_send(SCI_GETLINECOUNT,0,0));
 }
 
 void set_tabwidth(void)
@@ -365,6 +399,9 @@ void set_tabwidth(void)
 }
 
 #define ERROR_MARKER 0
+
+#include "Icons\blue16.c"
+#include "Icons\black8on16.c"
 
 void new_edit(void)
 { 
@@ -384,7 +421,8 @@ void new_edit(void)
    ed_send(SCI_SETMARGINTYPEN,MMIX_PROFILE_MARGIN,SC_MARGIN_RTEXT);
    ed_send(SCI_SETMARGINMASKN,MMIX_PROFILE_MARGIN,0);
 
-   ed_send(SCI_STYLESETFORE,STYLE_PROFILE, RGB(0x80,0xFF,0x80));
+   ed_send(SCI_STYLESETFORE,STYLE_PROFILE, RGB(0x00,0x00,0xD0));
+   ed_send(SCI_STYLESETBACK,STYLE_PROFILE, ed_send(SCI_STYLEGETBACK,STYLE_LINENUMBER,0));
 
    set_profile_width();
    update_profile();
@@ -395,17 +433,23 @@ void new_edit(void)
    ed_send(SCI_MARKERSETFORE, ERROR_MARKER,RGB(0,0,0));
 
    /* break points */
-   ed_send(SCI_SETMARGINTYPEN,MMIX_TRACE_MARGIN,SC_MARGIN_SYMBOL);
-   ed_send(SCI_SETMARGINWIDTHN,MMIX_TRACE_MARGIN,16);
-   ed_send(SCI_SETMARGINMASKN,MMIX_TRACE_MARGIN,(1<<MMIX_TRACE_MARKER));
-   ed_send(SCI_MARKERDEFINE, MMIX_BREAKX_MARKER,SC_MARK_CIRCLE);
-   ed_send(SCI_MARKERSETBACK, MMIX_BREAKX_MARKER,RGB(0x00,0x00,0xFF));
-   ed_send(SCI_MARKERSETFORE, MMIX_BREAKX_MARKER,RGB(0x00,0x00,0xFF));
-   /* tracing */
    ed_send(SCI_SETMARGINTYPEN,MMIX_BREAK_MARGIN,SC_MARGIN_SYMBOL);
    ed_send(SCI_SETMARGINWIDTHN,MMIX_BREAK_MARGIN,16);
    ed_send(SCI_SETMARGINSENSITIVEN,MMIX_BREAK_MARGIN,1);
-   ed_send(SCI_SETMARGINMASKN,MMIX_BREAK_MARGIN,(1<<MMIX_BREAKX_MARKER));
+   ed_send(SCI_SETMARGINMASKN,MMIX_BREAK_MARGIN,(1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER));
+
+   ed_send(SCI_RGBAIMAGESETWIDTH,blue16.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,blue16.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKX_MARKER,(LONG_PTR)blue16.pixel_data);
+
+   ed_send(SCI_RGBAIMAGESETWIDTH,black8on16.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,black8on16.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKT_MARKER,(LONG_PTR)black8on16.pixel_data);
+
+   /* tracing */
+   ed_send(SCI_SETMARGINTYPEN,MMIX_TRACE_MARGIN,SC_MARGIN_SYMBOL);
+   ed_send(SCI_SETMARGINWIDTHN,MMIX_TRACE_MARGIN,16);
+   ed_send(SCI_SETMARGINMASKN,MMIX_TRACE_MARGIN,(1<<MMIX_TRACE_MARKER));
    ed_send(SCI_MARKERDEFINE, MMIX_TRACE_MARKER,SC_MARK_ARROW);
    ed_send(SCI_MARKERSETBACK, MMIX_TRACE_MARKER,RGB(0xFF,0x00,0x00));
    ed_send(SCI_MARKERSETFORE, MMIX_TRACE_MARKER,RGB(0xFF,0,0));
@@ -656,9 +700,17 @@ void set_whitespace(int ws)
 void ed_refresh_breaks(void)
 { int line=-1;
   mem_clear_breaks(edit_file_no);
-  while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)))>=0)
-   if (!set_breakpoint(edit_file_no,line+1))
-     ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
+  while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)))>=0)
+  { int markers = ed_send(SCI_MARKERGET,line,0);
+    if (markers & (1<<MMIX_BREAKX_MARKER))
+	{ if (!set_breakpoint(edit_file_no,line+1))
+        ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
+	}
+	else if (markers & (1<<MMIX_BREAKT_MARKER))
+	{ if (!set_tracepoint(edit_file_no,line+1))
+        ed_send(SCI_MARKERDELETE,line,MMIX_BREAKT_MARKER);
+	}
+  }
 }
 
 void  ed_show_line(int line_no)

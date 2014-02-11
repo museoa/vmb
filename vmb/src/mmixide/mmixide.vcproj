@@ -301,15 +301,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\scintilla\win32\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
 				RelativePath="..\opt\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File
@@ -330,6 +330,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\Icons\break.ico"
+				>
+			</File>
 			<File
 				RelativePath=".\Icons\copy.ico"
 				>
@@ -419,6 +423,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\trace.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Icons\undo.ico"
 				>
 			</File>
@@ -447,6 +455,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

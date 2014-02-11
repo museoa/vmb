@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Ctangle mmix-vmb.c and mmix-arith.c"
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch mmixal.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -92,7 +92,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Ctangle mmix-vmb.c and mmix-arith.c"
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -156,6 +156,10 @@
 			>
 			<File
 				RelativePath=".\arith-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\libarith.c"
 				>
 			</File>
 			<File
@@ -265,26 +269,6 @@
 			<File
 				RelativePath=".\libtrace.c"
 				>
-			</File>
-			<File
-				RelativePath=".\mmix-arith.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="MMIXLIB"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="MMIXLIB"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mmix-arith.ch"

@@ -374,3 +374,28 @@ resume:
   mmix_finalize();
   return g[255].l;
 }
+
+
+static char logstr[512];
+
+int mmix_printf(char *format,...)
+{ va_list vargs;
+  char logstr[512];
+  int n; 
+  va_start(vargs,format);	
+  n = vsprintf(logstr,format, vargs);
+  win32_log(logstr);
+  return n;
+}
+
+int mmix_fputc(int c, FILE *f)
+{  if (f==stdout||f==stderr)  
+   { logstr[0]=c;
+     logstr[1]=0;
+     win32_log(logstr);
+     return 1;
+   }
+   else
+	 return fputc(c,f);
+}
+

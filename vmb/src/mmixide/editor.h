@@ -28,4 +28,7 @@ extern int ed_open(void);
 
 extern void ed_add_tab(int file_no);
 extern void ed_remove_tab(int file_no);
+
+extern void ed_toggle_trace(void);
+extern void ed_toggle_break(void);
 //extern void create_edit(void); /* create the editor pane */

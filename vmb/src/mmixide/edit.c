@@ -50,7 +50,7 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         set_lineno_width();
 		show_profile =IsDlgButtonChecked(hDlg,IDC_CHECK_PROFILE);
         set_profile_width();
-		update_profile();
+		display_profile();
 		tabwidth=GetDlgItemInt(hDlg,IDC_TABWIDTH,NULL,FALSE);
 		set_tabwidth();
 		EndDialog(hDlg, TRUE);

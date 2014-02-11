@@ -67,6 +67,8 @@ IDI_VIEW_WHITESPACE     ICON                    "Icons\\whitespace.ico"
 IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
 IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
 IDI_ICON_SMALL          ICON                    "icons\\mmixidesmall.ico"
+IDI_BREAK               ICON                    "Icons\\break.ico"
+IDI_TRACE               ICON                    "Icons\\trace.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -419,6 +421,8 @@ BEGIN
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set Breakpoint",              ID_MMIX_BREAK,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set Tracepoint",              ID_MMIX_TRACE,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -452,7 +456,6 @@ BEGIN
     "resource.\0"
 END
 
-
 3 TEXTINCLUDE 
 BEGIN
     "\r\0"
@@ -470,7 +473,6 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
