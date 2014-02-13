@@ -1,6 +1,5 @@
 5:20 PM 2/3/2014
 
-Step over and step out
 
 Exit and selecting cancel in save as should cancel the exit.
 
@@ -8,8 +7,6 @@ Breakpoints window
 Set breakpoints in symbol table
 Be able to manage breakpoints even without source code.
 Manage read and write breakpoints  
-   
-Memory view unrestricted
 
 Statistics line im Trace window
 

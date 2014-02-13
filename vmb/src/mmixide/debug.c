@@ -533,43 +533,26 @@ void memory_update(void)
 //	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
 }
 
+static int break_mask=0;
 
-static void set_x_break(octa loc)
-{ mem_find(loc)->bkpt |= exec_bit;
+static void set_break(octa loc)
+{ mem_find(loc)->bkpt |= break_mask;
 }
 
-int set_breakpoint(int file_no, int line_no)
+static void del_break(octa loc)
+{ mem_find(loc)->bkpt &= ~break_mask;
+}
+
+int set_breakpoint(int file_no, int line_no, int mask)
 /* return true if breakpoint could be set */
-{ for_all_loc(file_no, line_no, set_x_break);
+{ break_mask=mask;
+  for_all_loc(file_no, line_no, set_break);
   return 1;
 }	
 
-static void del_x_break(octa loc)
-{ mem_find(loc)->bkpt &= ~exec_bit;
-}
 
-
-int del_breakpoint(int file_no, int line_no)
-{ for_all_loc(file_no, line_no, del_x_break);
-  return 1;
-}	
-
-static void set_t_break(octa loc)
-{ mem_find(loc)->bkpt |= trace_bit;
-}
-
-int set_tracepoint(int file_no, int line_no)
-/* return true if breakpoint could be set */
-{ for_all_loc(file_no, line_no, set_t_break);
-  return 1;
-}	
-
-static void del_t_break(octa loc)
-{ mem_find(loc)->bkpt &= ~trace_bit;
-}
-
-
-int del_tracepoint(int file_no, int line_no)
-{ for_all_loc(file_no, line_no, del_t_break);
+int del_breakpoint(int file_no, int line_no, int mask)
+{ break_mask=mask;
+  for_all_loc(file_no, line_no, del_break);
   return 1;
 }	

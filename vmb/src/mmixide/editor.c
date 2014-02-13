@@ -143,35 +143,24 @@ int ed_save_all(int cancel)
   return all_saved;
 }
 
-void ed_toggle_trace(void)
-{   int pos = (int)ed_send(SCI_GETCURRENTPOS,0,0);
-	int line = (int)ed_send(SCI_LINEFROMPOSITION,pos,0);
-	int markers = (int)ed_send(SCI_MARKERGET,line,0);
-	if (markers & (1<<MMIX_BREAKT_MARKER))
-	{  del_tracepoint(edit_file_no,line+1);
-		ed_send(SCI_MARKERDELETE,line,MMIX_BREAKT_MARKER);
-	}
-	else
-	{ if (set_tracepoint(edit_file_no,line+1))
-      ed_send(SCI_MARKERADD,line,MMIX_BREAKT_MARKER);
-	}
-}
 
-void ed_toggle_break_at(int position)
+static void ed_toggle_break_at(int position,int bits)
 { int line = (int)ed_send(SCI_LINEFROMPOSITION,position,0);
   int markers = (int)ed_send(SCI_MARKERGET,line,0);
-  if (markers & (1<<MMIX_BREAKX_MARKER))
-  { del_breakpoint(edit_file_no,line+1);
-    ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
+  if (markers & bits)
+  { int i;
+	del_breakpoint(edit_file_no,line+1, bits);
+    for (i=0;i<4;i++)
+     if (bits&(1<<i)) ed_send(SCI_MARKERDELETE,line,i);
   }
   else
-  { if (set_breakpoint(edit_file_no,line+1))
-      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
+  { if (set_breakpoint(edit_file_no,line+1, bits))
+      ed_send(SCI_MARKERADDSET,line,bits);
   }
 }
 
-void ed_toggle_break(void)
-{ ed_toggle_break_at((int)ed_send(SCI_GETCURRENTPOS,0,0));
+void ed_toggle_break(int bits)
+{ ed_toggle_break_at((int)ed_send(SCI_GETCURRENTPOS,0,0),bits);
 }
 
 void init_edit(HINSTANCE hInstance)
@@ -239,11 +228,11 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		    brkp = (int)ed_send(SCI_MARKERGET,line,0);
 		    brkp &= 1<<MMIX_BREAKX_MARKER;
             if (brkp)
-		    { del_breakpoint(edit_file_no,line+1);
+		    { del_breakpoint(edit_file_no,line+1,exec_bit);
 		      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
 		    }
 		    else
-		    { if (set_breakpoint(edit_file_no,line+1))
+		    { if (set_breakpoint(edit_file_no,line+1,exec_bit))
 		        ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
 		    }
 		  }
@@ -400,8 +389,10 @@ void set_tabwidth(void)
 
 #define ERROR_MARKER 0
 
-#include "Icons\blue16.c"
-#include "Icons\black8on16.c"
+#include "Icons\brkexec.c"
+#include "Icons\brkread.c"
+#include "Icons\brkwrite.c"
+#include "Icons\brktrace.c"
 
 void new_edit(void)
 { 
@@ -436,15 +427,26 @@ void new_edit(void)
    ed_send(SCI_SETMARGINTYPEN,MMIX_BREAK_MARGIN,SC_MARGIN_SYMBOL);
    ed_send(SCI_SETMARGINWIDTHN,MMIX_BREAK_MARGIN,16);
    ed_send(SCI_SETMARGINSENSITIVEN,MMIX_BREAK_MARGIN,1);
-   ed_send(SCI_SETMARGINMASKN,MMIX_BREAK_MARGIN,(1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER));
+   ed_send(SCI_SETMARGINMASKN,MMIX_BREAK_MARGIN,
+	   (1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKR_MARKER)|
+	   (1<<MMIX_BREAKW_MARKER)|(1<<MMIX_BREAKT_MARKER)	   
+	   );
 
-   ed_send(SCI_RGBAIMAGESETWIDTH,blue16.width,0);
-   ed_send(SCI_RGBAIMAGESETHEIGHT,blue16.height,0);
-   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKX_MARKER,(LONG_PTR)blue16.pixel_data);
+   ed_send(SCI_RGBAIMAGESETWIDTH,brkexec.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,brkexec.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKX_MARKER,(LONG_PTR)brkexec.pixel_data);
 
-   ed_send(SCI_RGBAIMAGESETWIDTH,black8on16.width,0);
-   ed_send(SCI_RGBAIMAGESETHEIGHT,black8on16.height,0);
-   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKT_MARKER,(LONG_PTR)black8on16.pixel_data);
+   ed_send(SCI_RGBAIMAGESETWIDTH,brktrace.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,brktrace.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKT_MARKER,(LONG_PTR)brktrace.pixel_data);
+
+   ed_send(SCI_RGBAIMAGESETWIDTH,brkread.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,brkread.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKR_MARKER,(LONG_PTR)brkread.pixel_data);
+
+   ed_send(SCI_RGBAIMAGESETWIDTH,brkwrite.width,0);
+   ed_send(SCI_RGBAIMAGESETHEIGHT,brkwrite.height,0);
+   ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKW_MARKER,(LONG_PTR)brkwrite.pixel_data);
 
    /* tracing */
    ed_send(SCI_SETMARGINTYPEN,MMIX_TRACE_MARGIN,SC_MARGIN_SYMBOL);
@@ -700,15 +702,19 @@ void set_whitespace(int ws)
 void ed_refresh_breaks(void)
 { int line=-1;
   mem_clear_breaks(edit_file_no);
-  while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,(1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)))>=0)
-  { int markers = ed_send(SCI_MARKERGET,line,0);
-    if (markers & (1<<MMIX_BREAKX_MARKER))
-	{ if (!set_breakpoint(edit_file_no,line+1))
-        ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
-	}
-	else if (markers & (1<<MMIX_BREAKT_MARKER))
-	{ if (!set_tracepoint(edit_file_no,line+1))
-        ed_send(SCI_MARKERDELETE,line,MMIX_BREAKT_MARKER);
+  while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,
+	                           (1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)|
+	                           (1<<MMIX_BREAKR_MARKER)|(1<<MMIX_BREAKW_MARKER)
+							   ))>=0)
+  { int markers = (int)ed_send(SCI_MARKERGET,line,0);
+    int bits =0;
+
+    if (markers & (1<<MMIX_BREAKX_MARKER)) bits|=exec_bit;
+    if (markers & (1<<MMIX_BREAKR_MARKER)) bits|=read_bit;
+    if (markers & (1<<MMIX_BREAKW_MARKER)) bits|=write_bit;
+    if (markers & (1<<MMIX_BREAKT_MARKER)) bits|=trace_bit;
+	{ if (!set_breakpoint(edit_file_no,line+1,bits))
+        ed_send(SCI_MARKERDELETE,line,markers);
 	}
   }
 }

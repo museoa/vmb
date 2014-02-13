@@ -35,8 +35,10 @@
 #define IDI_DEBUF_STEPOUT               146
 #define IDI_DEBUG_STEPOUT               146
 #define IDI_ICON_SMALL                  150
-#define IDI_BREAK						151
-#define IDI_TRACE						152
+#define IDI_BREAKX						151
+#define IDI_BREAKR						152
+#define IDI_BREAKW						153
+#define IDI_BREAKT						154
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -187,15 +189,17 @@
 #define ID_VIEW_TRACE                   40094
 #define ID_MMIX_STEPOVER                40095
 #define ID_MMIX_STEPOUT                 40096
-#define ID_MMIX_BREAK                   40097
-#define ID_MMIX_TRACE                   40098
+#define ID_MMIX_BREAKX                  40097
+#define ID_MMIX_BREAKR                  40098
+#define ID_MMIX_BREAKW                  40099
+#define ID_MMIX_BREAKT                  40100
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        151
-#define _APS_NEXT_COMMAND_VALUE         40097
+#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_COMMAND_VALUE         40101
 #define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

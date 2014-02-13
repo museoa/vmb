@@ -67,8 +67,10 @@ IDI_VIEW_WHITESPACE     ICON                    "Icons\\whitespace.ico"
 IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
 IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
 IDI_ICON_SMALL          ICON                    "icons\\mmixidesmall.ico"
-IDI_BREAK               ICON                    "Icons\\break.ico"
-IDI_TRACE               ICON                    "Icons\\trace.ico"
+IDI_BREAKX              ICON                    "Icons\\brkexec.ico"
+IDI_BREAKR              ICON                    "Icons\\brkread.ico"
+IDI_BREAKW              ICON                    "Icons\\brkwrite.ico"
+IDI_BREAKT              ICON                    "Icons\\brktrace.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -421,8 +423,10 @@ BEGIN
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set Breakpoint",              ID_MMIX_BREAK,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set Tracepoint",              ID_MMIX_TRACE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set E&xecute Breakpoint",              ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Tracepoint",              ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Read Breakpoint",         ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Write Breakpoint",        ID_MMIX_BREAKW,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
     BEGIN

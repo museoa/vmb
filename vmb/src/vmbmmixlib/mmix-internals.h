@@ -75,6 +75,7 @@ extern int lring_mask; /* one less than |lring_size| */
 extern octa new_Q;
 extern int good_guesses, bad_guesses;
 extern bool interacting;
+extern bool rw_break;
 extern bool show_operating_system;
 extern octa rOlimit;
 extern bool just_traced;

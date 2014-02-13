@@ -283,15 +283,16 @@ static int check_interact(bool after)
 	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
 	    return mmix_interact();
 
-    if (break_after)
-	{ if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
+    if (break_after||rw_break)
+	{ rw_break=false;
+	  if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
 	  {  mmix_stopped(loc); /* display the last stop marker */
 	     trace_once=1;
 	  }
 	  if (after)
 	  { if ((inst_ptr.h&sign_bit) && !show_operating_system) /* no stop in the operating system */  
 		  return 1;
-	    if (!check_rO()) /* no stop inside funczion */
+	    if (!check_rO()) /* no stop inside function */
 		  return 1;
 		if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) /* this is the case for step and step out but not for step over */
 	      mmix_stopped(loc); 

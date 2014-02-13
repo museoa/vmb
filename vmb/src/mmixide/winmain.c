@@ -29,7 +29,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.25 $ $Date: 2014-02-11 15:25:03 $";
+char version[]="$Revision: 1.26 $ $Date: 2014-02-13 10:18:20 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -221,11 +221,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_EDIT_REPLACE:
 			replace_again();
 			return 0;
-		case ID_MMIX_TRACE:
-			ed_toggle_trace();
+		case ID_MMIX_BREAKT:
+			ed_toggle_break(trace_bit);
 			return 0;
-		case ID_MMIX_BREAK:
-			ed_toggle_break();
+		case ID_MMIX_BREAKX:
+			ed_toggle_break(exec_bit);
+			return 0;
+		case ID_MMIX_BREAKR:
+			ed_toggle_break(read_bit);
+			return 0;
+		case ID_MMIX_BREAKW:
+			ed_toggle_break(write_bit);
 			return 0;
 		case ID_VIEW_SYMBOLTABLE:
 		  if (menu_toggle(ID_VIEW_SYMBOLTABLE))
@@ -644,10 +650,12 @@ void add_buttons(void)
   add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,17,"Halt Execution");
 
   bb_set_group(hButtonBar,BG_DEBUG,0,0);
-  add_button(IDI_BREAK,ID_MMIX_BREAK,BG_EDIT,18,"Set Breakpoint");
-  add_button(IDI_TRACE,ID_MMIX_TRACE,BG_EDIT,19,"SetTracepoint");
+  add_button(IDI_BREAKX,ID_MMIX_BREAKX,BG_EDIT,18,"Toggle Execute Breakpoint");
+  add_button(IDI_BREAKR,ID_MMIX_BREAKR,BG_EDIT,19,"Toggle Read Breakpoint");
+  add_button(IDI_BREAKW,ID_MMIX_BREAKW,BG_EDIT,20,"Toggle Write Breakpoint");
+  add_button(IDI_BREAKT,ID_MMIX_BREAKT,BG_EDIT,21,"Toggle Tracepoint");
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,20,"About");
+  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,22,"About");
 
 
 }
@@ -680,6 +688,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     add_buttons();
     printer_init();
 	init_edit(hInstance);
+	new_edit();
 	mmix_lib_initialize();
 	debug_init();
 	param_init ();
@@ -690,7 +699,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
-	new_edit();
 	if (edit_file_no<0) ed_new();
 	hStatus = CreateWindow("STATIC", version ,
 				WS_CHILD|WS_VISIBLE|SS_CENTER,

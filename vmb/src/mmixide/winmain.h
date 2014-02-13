@@ -34,12 +34,16 @@ extern void set_tabwidth(void);
 
 #define MMIX_LINE_MARGIN 0
 #define MMIX_PROFILE_MARGIN 1
-#define MMIX_BREAKX_MARKER 1
+#define MMIX_BREAK_MARGIN 2
+#define MMIX_TRACE_MARGIN 3
+
+/* this must match the definition of exec_bit, write_bit, read_bit and trace_bit in mmix-internals.h */
+#define MMIX_BREAKX_MARKER 0
+#define MMIX_BREAKW_MARKER 1
+#define MMIX_BREAKR_MARKER 2
 #define MMIX_BREAKT_MARKER 3
 
-#define MMIX_BREAK_MARGIN 2
-#define MMIX_TRACE_MARKER 2
-#define MMIX_TRACE_MARGIN 3
+#define MMIX_TRACE_MARKER 4
 
 /* packing file and line in an LPARAM */
 #define item_data(file_no, line_no) ((LPARAM)(((line_no)<<8)|((file_no)&0xff)))

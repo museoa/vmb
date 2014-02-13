@@ -49,6 +49,7 @@ extern bool trace_once;
 extern bool stack_tracing;
 extern bool interacting;
 extern bool show_operating_system;
+extern bool rw_break;
 extern octa rOlimit;
 extern int port;
 extern char*host;

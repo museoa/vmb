@@ -202,7 +202,7 @@ mem_tetra* mem_find(addr)
 mem_tetra* mem_find(octa addr)
 @z
 
-
+defining the macro mm conflicts with other macros when using MS Visual C
 
 @x
 @d mm 0x98 /* the escape code of \.{mmo} format */
@@ -663,6 +663,7 @@ bool interacting; /* are we in interactive mode? */
 bool interacting; /* are we in interactive mode? */
 bool show_operating_system = false; /* do we show negative addresses */
 bool trace_once=false;
+bool rw_break=false;
 octa rOlimit={-1,-1}; /* tracing and break only if g[rO]<=rOlimit */
 bool interact_after_resume = false;
 #ifdef MMIXLIB
@@ -816,6 +817,13 @@ cur_round=ROUND_NEAR;
   if (((S-O-L)&lring_mask)==0) stack_store(l[S&lring_mask]);
 @z
 
+@x
+@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) breakpoint=tracing=true
+@y
+@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) rw_break=breakpoint=tracing=true
+@z
+
+
 stack_store must implement the rC register.
 
 @x
@@ -878,6 +886,12 @@ void stack_store(x)
 
 @ @<Sub...@>=
 @<Stack store@>@;
+@z
+
+@x
+@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) breakpoint=tracing=true
+@y
+@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) rw_break=breakpoint=tracing=true
 @z
 
 Same with stack load.

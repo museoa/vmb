@@ -52,6 +52,7 @@ bool halted;
 bool breakpoint;
 bool tracing;
 bool trace_once;
+bool rw_break;
 bool stack_tracing;
 bool interacting;
 bool show_operating_system= false;
