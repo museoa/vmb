@@ -46,6 +46,7 @@ extern void set_tabwidth(void);
 #define MMIX_BREAKT_MARKER 3
 
 #define MMIX_TRACE_MARKER 4
+#define MMIX_ERROR_MARKER 5
 
 /* packing file and line in an LPARAM */
 #define item_data(file_no, line_no) ((LPARAM)(((line_no)<<8)|((file_no)&0xff)))

@@ -385,7 +385,7 @@ void set_tabwidth(void)
 {   ed_send(SCI_SETTABWIDTH,tabwidth,0);
 }
 
-#define ERROR_MARKER 0
+
 
 #include "Icons\brkexec.c"
 #include "Icons\brkread.c"
@@ -417,9 +417,9 @@ void new_edit(void)
    update_profile();
 
    /* errors */
-   ed_send(SCI_MARKERDEFINE, ERROR_MARKER,SC_MARK_BACKGROUND);
-   ed_send(SCI_MARKERSETBACK, ERROR_MARKER,RGB(0xFF,0xE0,0xE0));
-   ed_send(SCI_MARKERSETFORE, ERROR_MARKER,RGB(0,0,0));
+   ed_send(SCI_MARKERDEFINE, MMIX_ERROR_MARKER,SC_MARK_BACKGROUND);
+   ed_send(SCI_MARKERSETBACK, MMIX_ERROR_MARKER,RGB(0xFF,0xE0,0xE0));
+   ed_send(SCI_MARKERSETFORE, MMIX_ERROR_MARKER,RGB(0,0,0));
 
    /* break points */
    ed_send(SCI_SETMARGINTYPEN,MMIX_BREAK_MARGIN,SC_MARGIN_SYMBOL);
@@ -638,7 +638,7 @@ static int previous_error_line_no=-1;
 
 
 void ide_clear_error_marker(void)
-{ ed_send(SCI_MARKERDELETEALL,ERROR_MARKER,0);
+{ ed_send(SCI_MARKERDELETEALL,MMIX_ERROR_MARKER,0);
   previous_error_line_no=-1;
 }
 
@@ -646,9 +646,9 @@ void ed_mark_error(int file_no, int line_no)
 { 
   set_edit_file(file_no);
   if (previous_error_line_no>=0)
-	ed_send(SCI_MARKERDELETE, previous_error_line_no-1, ERROR_MARKER);
+	ed_send(SCI_MARKERDELETE, previous_error_line_no-1, MMIX_ERROR_MARKER);
   if (line_no>=0) {
-    ed_send(SCI_MARKERADD, line_no-1, ERROR_MARKER);
+    ed_send(SCI_MARKERADD, line_no-1, MMIX_ERROR_MARKER);
     ed_send(SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
   }
   previous_error_line_no=line_no;

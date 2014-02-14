@@ -212,7 +212,8 @@ void mmix_run(void)
 int break_at_symbol(int file_no,char *symbol)
 { sym_node *sym=find_symbol(symbol,file_no);
   if (sym!=NULL&& sym->link==DEFINED)
-  { ide_mark_breakpoint(sym->file_no,sym->line_no);
+  { loc2bkpt(sym->equiv)|=exec_bit;
+	ide_mark_breakpoint(sym->file_no,sym->line_no);
 	return 1;
   }
   else
