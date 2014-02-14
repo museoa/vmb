@@ -35,10 +35,10 @@
 #define IDI_DEBUF_STEPOUT               146
 #define IDI_DEBUG_STEPOUT               146
 #define IDI_ICON_SMALL                  150
-#define IDI_BREAKX						151
-#define IDI_BREAKR						152
-#define IDI_BREAKW						153
-#define IDI_BREAKT						154
+#define IDI_BREAKX                      151
+#define IDI_BREAKR                      152
+#define IDI_BREAKW                      153
+#define IDI_BREAKT                      154
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -130,6 +130,13 @@
 #define IDC_ERROR_TXT                   1043
 #define IDC_APPLICATION                 1044
 #define IDC_CHECK_MISSING_APP           1047
+#define IDC_TAB_FILES                   1048
+#define IDC_TAB_FULLNAME                1049
+#define IDC_CHECK_SYMBOLS               1052
+#define IDC_CHECK_LOADMMO               1053
+#define IDC_CHECK_EXECUTE               1054
+#define IDC_EDIT1                       1055
+#define IDC_EDIT_COMMAND                1055
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -200,7 +207,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        154
 #define _APS_NEXT_COMMAND_VALUE         40101
-#define _APS_NEXT_CONTROL_VALUE         1048
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

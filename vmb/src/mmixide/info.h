@@ -3,6 +3,7 @@
 #define MAX_FILES 0x100
 extern char *fullname[MAX_FILES+1]; /* the full filenames */
 extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
+extern char *command[MAX_FILES+1];
 extern char has_debug_info[MAX_FILES+1];
 extern char needs_assembly[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];

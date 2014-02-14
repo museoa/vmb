@@ -209,11 +209,10 @@ void mmix_run(void)
           MMIXThread();
 }
 
-int break_at_symbol(char *symbol)
-{ sym_node *sym=find_symbol(symbol,application_file_no);
+int break_at_symbol(int file_no,char *symbol)
+{ sym_node *sym=find_symbol(symbol,file_no);
   if (sym!=NULL&& sym->link==DEFINED)
-  { loc2bkpt(sym->equiv)|= exec_bit;
-	ide_mark_breakpoint(sym->file_no,sym->line_no);
+  { ide_mark_breakpoint(sym->file_no,sym->line_no);
 	return 1;
   }
   else
@@ -371,7 +370,7 @@ resume:
     if (!check_interact(true)) goto end_simulation;
   }
   end_simulation:
-  if (interacting || profiling || showing_stats) show_stats(true);
+  if (interacting || profiling || showing_stats) show_stats(false);
   mmix_finalize();
   return g[255].l;
 }

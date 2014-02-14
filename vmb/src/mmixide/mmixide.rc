@@ -8,7 +8,6 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "afxres.h"
-
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -258,18 +257,22 @@ BEGIN
     CONTROL         "Show small values",IDC_CHECK_SMALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,73,10
 END
 
-IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 332, 124
+IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 332, 151
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sources"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,275,25,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,275,7,50,14
-    LISTBOX         IDC_LIST_FILES,7,58,318,59,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP,WS_EX_ACCEPTFILES
-    PUSHBUTTON      "Add ...",IDC_ADD,7,41,50,14
-    PUSHBUTTON      "Remove",IDC_REMOVE,63,41,50,14
-    LTEXT           "Main application",IDC_STATIC,7,8,52,8
-    COMBOBOX        IDC_APPLICATION,64,7,199,33,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,275,42,50,15
+    PUSHBUTTON      "Add File ...",IDC_ADD,5,40,50,15
+    LTEXT           "Main application",IDC_STATIC,5,10,52,10
+    COMBOBOX        IDC_APPLICATION,65,7,260,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_TABSTOP,7,62,318,15
+    LTEXT           "Full name",IDC_TAB_FULLNAME,17,83,299,8
+    CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,94,119,10
+    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,17,105,59,10
+    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,118,74,10
+    EDITTEXT        IDC_EDIT_COMMAND,28,130,297,14,ES_AUTOHSCROLL
 END
 
 
@@ -340,7 +343,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 325
         TOPMARGIN, 7
-        BOTTOMMARGIN, 117
+        BOTTOMMARGIN, 144
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -423,10 +426,10 @@ BEGIN
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set E&xecute Breakpoint",              ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Tracepoint",              ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Read Breakpoint",         ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Write Breakpoint",        ID_MMIX_BREAKW,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set E&xecute Breakpoint",     ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Tracepoint",             ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Read Breakpoint",        ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
+        MENUITEM "Set &Write Breakpoint",       ID_MMIX_BREAKW,MFT_STRING,MFS_ENABLED
     END
     POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -457,12 +460,17 @@ END
 
 1 TEXTINCLUDE 
 BEGIN
-    "resource.\0"
+    "resource.h\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
     "\r\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED

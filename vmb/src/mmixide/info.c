@@ -20,6 +20,7 @@
 
 char *fullname[MAX_FILES+1] = {NULL};	/* the full filenames */
 char *shortname[MAX_FILES+1] = {NULL};	/* pointers to the tail of the fullname */
+extern char *command[MAX_FILES+1]={NULL};
 static trie_node* symbols[MAX_FILES+1] = {NULL}; /* pointer to pruned symbol table */
 void *doc[MAX_FILES+1] = {NULL};		/* pointer to scintilla documents */
 char doc_dirty[MAX_FILES+1] ={0};		/* records whether the doc is dirty, but not for the edit_file */

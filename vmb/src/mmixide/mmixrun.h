@@ -27,7 +27,7 @@ extern void mmix_status(int status);
 /* called from the GUI thread to display the status od the mmix thread */
 /* definitions needed for mmix-sim */
 
-extern int break_at_symbol(char *symbol);
+extern int break_at_symbol(int file_no, char *symbol);
 
 extern void show_trace_window(void);
 

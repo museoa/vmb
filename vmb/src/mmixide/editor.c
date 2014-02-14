@@ -109,9 +109,7 @@ void set_edit_file(int file_no)
   set_text_style();
   set_whitespace(show_whitespace);
   ed_send(SCI_SETCODEPAGE,codepage,0);
-  //SetWindowText(hMainWnd,unique_name(file_no));
   ed_tab_select(edit_file_no);
-  //file_list_mark(edit_file_no);
   update_symtab();
 }
 
@@ -747,7 +745,7 @@ void ed_release_document(void * doc)
 
 
 static int find_tab(int file_no)
-/* searches the tab control for the given file_no. Returns teh index if found, -1 otherwise. */
+/* searches the tab control for the given file_no. Returns the index if found, -1 otherwise. */
 { int count = TabCtrl_GetItemCount(hTabs);
   int index;
   for (index=0; index<count;index++)

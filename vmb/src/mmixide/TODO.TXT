@@ -1,14 +1,14 @@
-5:20 PM 2/3/2014
+Marker in multiple files
+cmds do not work as expected
 
-
-Exit and selecting cancel in save as should cancel the exit.
 
 Breakpoints window
 Set breakpoints in symbol table
 Be able to manage breakpoints even without source code.
-Manage read and write breakpoints  
 
 Statistics line im Trace window
+
+give the register windows a minimum width
 
 Ask for reset/reload after assembly while debugging
 

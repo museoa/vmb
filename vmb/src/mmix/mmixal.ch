@@ -72,15 +72,20 @@ Next we change the way errors are reported:
     err_count++;
   }
 @y
-  if (message[0]=='*')
+  if (message[0]=='*'){
     mmixal_error(message+1,file_no[cur_file],line_no,1);
-  else if (message[0]=='!')
+    err_count+=0x1;
+    }
+  else if (message[0]=='!') {
     mmixal_error(message+1,file_no[cur_file],line_no,-1);
+    err_count=-2;
+  }
   else {
     mmixal_error(message,file_no[cur_file],line_no,0);
-    err_count++;
+    err_count+=0x10000;
   }
 @z                 
+
 
 The error exit is redirected using a longjmp.
 
@@ -89,6 +94,12 @@ The error exit is redirected using a longjmp.
 @y
   if (message[0]=='!') 
     longjmp(error_exit,-2);
+@z
+
+@x
+int err_count; /* this many errors were found */
+@y
+int err_count; /* negativ for fatal erros else (erros<<16)+warnings */
 @z
 
 In the assemble subroutine, we have the
@@ -162,9 +173,13 @@ normal error reporting macros.
 
 @x
   fprintf(stderr,"undefined symbol: %s\n",sym_buf+1);
+@.undefined symbol@>
+  err_count++;
 @y
   sprintf(err_buf,"undefined symbol: %s",sym_buf+1);
   report_error(err_buf);
+@.undefined symbol@>
+  err_count+=0x10000;
 @z
 
 when a sym_node becomes DEFINED, we record file and line.
@@ -265,13 +280,10 @@ if (err_count) {
 }
 exit(err_count);
 @y
-if (err_count) {
-  if (err_count>1){
-    sprintf(err_buf,"%d errors were found.",err_count);
+  if (err_count>0){
+    sprintf(err_buf,"%d errors and %d warnings were found.",err_count>>16, err_count&0xFFFF);
     report_error(err_buf);
   }
-  else report_error("One error was found.");
-}
 clean_up:
   if (listing_file!=NULL) 
   { fclose(listing_file);
@@ -318,7 +330,7 @@ usual error reporting.
 @x
   err_count++,fprintf(stderr,"undefined local symbol %dF\n",j);
 @y
-  { err_count++;
+  { err_count+=0x10000;
     sprintf(err_buf,"undefined local symbol %dF\n",j);
     report_error(err_buf);
   }

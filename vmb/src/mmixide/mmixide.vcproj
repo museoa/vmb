@@ -301,15 +301,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\scintilla\win32\resource.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
 				RelativePath="..\opt\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File
@@ -332,6 +332,22 @@
 			>
 			<File
 				RelativePath=".\Icons\break.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\brkexec.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\brkread.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\brktrace.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\brkwrite.ico"
 				>
 			</File>
 			<File
@@ -455,10 +471,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\resource"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

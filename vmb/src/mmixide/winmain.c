@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <afxres.h>
 #include <stdio.h>
+#include <process.h>
 #include "winopt.h"
 #include "resource.h"
 #include "splitter.h"
@@ -29,7 +30,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.26 $ $Date: 2014-02-13 10:18:20 $";
+char version[]="$Revision: 1.27 $ $Date: 2014-02-14 08:09:37 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -115,6 +116,7 @@ int ide_prepare_mmix(void)
   }
   if (!ed_save_all(1)) return 0;
   if (!assemble_all_needed()) return 0;
+  if (!execute_commands()) return 0;
   if (!ide_connect()) return 0;
   bb_set_group(hButtonBar,BG_DEBUG,1,1);
   return 1;
@@ -523,7 +525,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 void update_breakpoints(void)
 { int line = -1;
   if (application_file_no<0) return;
-  if (break_at_Main) break_at_symbol(":Main");
+  if (break_at_Main) break_at_symbol(application_file_no,":Main");
   if (hEdit==NULL) return;
   set_edit_file(application_file_no);
   ed_refresh_breaks();
@@ -606,6 +608,54 @@ int assemble_all_needed(void)
   assembly_ok=1;
   for_all_files(assemble_loading_files);
   return assembly_ok && assemble_if_needed(application_file_no);
+}
+
+#define MAXPROG 512
+
+static int execution_ok=0;
+static void execute_file_command(int file_no)
+{ 
+#if 0  
+  char *argv[MAXARG] = {0};
+  char argc;
+  char prog[MAXPROG], cmd[MAXPROG];
+  char *FilePart;
+#else
+  char *argv[4];
+#endif
+  if (!execution_ok) return;
+  if (command[file_no]==NULL) return;
+#if 0
+  strncpy_s(cmd,MAXPROG,command[file_no],MAXPROG);
+  argc = mk_argv(argv,cmd,1);
+  if (argc<=0)
+          return;
+
+  if (SearchPath(NULL,argv[0],".exe",MAXPROG,prog,&FilePart)<=0)
+  {	 MessageBox(NULL,"Unable to find command",argv[0],MB_OK);
+     execution_ok=0;
+  }
+  else 
+  { argv[0]= prog;
+    if (_spawnvp(_P_WAIT,prog,argv)<0)
+    { MessageBox(NULL,"Unable to execute command",command[file_no],MB_OK);
+      execution_ok=0;
+    }
+  }
+#else
+  argv[0]="cmd";
+  argv[1]="/K";
+  argv[2]=command[file_no];
+  argv[3]=NULL;
+  _spawnvp(_P_WAIT,argv[0],argv);
+#endif
+}
+
+
+int execute_commands(void)
+{ execution_ok=1;
+  for_all_files(execute_file_command);
+  return execution_ok;
 }
 
 void new_errorlist(void)
