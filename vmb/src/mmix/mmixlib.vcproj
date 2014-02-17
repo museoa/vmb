@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Ctangle mmix-vmb.c and mmix-arith.c"
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;ctangle mmotype.w mmoimg.ch libmmoimg.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -92,7 +92,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Ctangle mmix-vmb.c and mmix-arith.c"
-				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-sim.w vmb.ch mmix-vmb.c&#x0D;&#x0A;ctangle mmix-arith.w arith-win.ch libarith.c&#x0D;&#x0A;ctangle mmixal.w mmixal.ch libmmixal.c&#x0D;&#x0A;ctangle mmotype.w mmoimg.ch libmmoimg.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -227,6 +227,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\libmmoimg.c"
+				>
+			</File>
+			<File
 				RelativePath=".\libmmput.c"
 				>
 			</File>
@@ -288,6 +292,14 @@
 			</File>
 			<File
 				RelativePath=".\mmixal.w"
+				>
+			</File>
+			<File
+				RelativePath=".\mmoimg.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\mmotype.w"
 				>
 			</File>
 			<File

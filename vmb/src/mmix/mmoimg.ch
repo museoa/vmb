@@ -28,19 +28,78 @@ address is 8000 0000 0000 0000 creating an image of the operating system memory.
 This program was written by Martin Ruckert as a change file 
 to the mmotype program of Donald E. Knuth.
 @z
-#include <string.h>
+
 @x
 #include <string.h>
 @y
 #include <string.h>
 #include <ctype.h>
+
+#ifdef MMIX_PRINT
+extern int mmix_printf(char *format,...);
+#define printf(...) mmix_printf(__VA_ARGS__)
+#define fprintf(file,...) mmix_printf(__VA_ARGS__)
+#endif
+
+#pragma warning(disable : 4996)
+
+#ifdef MMIXLIB
+#define yz yzbytes
+#define exit(returncode) mmoimg_exit(returncode)
+
+#include <setjmp.h>
+static jmp_buf error_exit;
+
+static void mmoimg_exit(int exit_code)
+{ longjmp(error_exit, exit_code);
+}
+
+#endif
 @z
 
 @x
+int main(argc,argv)
+  int argc;@+char*argv[];
+{
+  register int j,delta,postamble=0;
+  register char *p;
+@y
+#ifdef MMIXLIB
+int mmoimg_main(int argc, char *argv[])
+{ 
+  register int j,delta,postamble=0;
+  register char *p;
+  int exit_code;
+  exit_code= setjmp(error_exit);
+  if (exit_code!=0) goto done;
+#else
+int main(argc,argv)
+  int argc;@+char*argv[];
+{
+  register int j,delta,postamble=0;
+  register char *p;
+#endif
+@z
+
+
+@x
   @<List the symbol table@>;
+  return 0;
 @y
   if (listing) { @<List the symbol table@>; }
   @<Write the image file@>;
+done: 
+  if (mmo_file!=NULL) fclose(mmo_file);
+  for(j=0;j<256;j++) 
+    if (file_name[j]!=NULL) 
+    { free(file_name[j]);
+      file_name[j]=NULL;
+    }
+  if (image_file_name!=NULL)
+  { free(image_file_name);
+      image_file_name=NULL;
+    }
+  return exit_code; 
 @z
 
 @x
@@ -117,6 +176,139 @@ char *image_file_name;
 @z
 
 @x
+@<Sub...@>=
+octa incr @,@,@[ARGS((octa,int))@];
+octa incr(o,delta)
+  octa o;
+  int delta;
+{
+  register tetra t;
+  octa x;
+  if (delta>=0) {
+    t=0xffffffff-delta;
+    if (o.l<=t) x.l=o.l+delta, x.h=o.h;
+    else x.l=o.l-t-1, x.h=o.h+1;
+  } else {
+    t=-delta;
+    if (o.l>=t) x.l=o.l-t, x.h=o.h;
+    else x.l=o.l+(0xffffffff+delta)+1, x.h=o.h-1;
+  }
+  return x;
+}
+@y
+@<Sub...@>=
+#ifdef MMIXLIB
+extern octa incr(octa o, int delta);
+#else
+octa incr @,@,@[ARGS((octa,int))@];
+octa incr(o,delta)
+  octa o;
+  int delta;
+{
+  register tetra t;
+  octa x;
+  if (delta>=0) {
+    t=0xffffffff-delta;
+    if (o.l<=t) x.l=o.l+delta, x.h=o.h;
+    else x.l=o.l-t-1, x.h=o.h+1;
+  } else {
+    t=-delta;
+    if (o.l>=t) x.l=o.l-t, x.h=o.h;
+    else x.l=o.l+(0xffffffff+delta)+1, x.h=o.h-1;
+  }
+  return x;
+}
+#endif
+@z
+
+if generating a library,
+for reading tetras we reuse the routines from mmix-sim
+
+@x
+@<Sub...@>=
+void read_tet @,@,@[ARGS((void))@];
+void read_tet()
+{
+  if (fread(buf,1,4,mmo_file)!=4) {
+    fprintf(stderr,"Unexpected end of file after %d tetras!\n",count);
+@.Unexpected end of file...@>
+    exit(-3);
+  }
+  yz=(buf[2]<<8)+buf[3];
+  tet=(((buf[0]<<8)+buf[1])<<16)+yz;
+  if (verbose) printf("  %08x\n",tet);
+  count++;
+}
+
+@ @<Sub...@>=
+byte read_byte @,@,@[ARGS((void))@];
+byte read_byte()
+{
+  register byte b;
+  if (!byte_count) read_tet();
+  b=buf[byte_count];
+  byte_count=(byte_count+1)&3;
+  return b;
+}
+@y
+@<Sub...@>=
+#ifdef MMIXLIB
+extern void read_tet(void);
+#else
+void read_tet @,@,@[ARGS((void))@];
+void read_tet()
+{
+  if (fread(buf,1,4,mmo_file)!=4) {
+    fprintf(stderr,"Unexpected end of file after %d tetras!\n",count);
+@.Unexpected end of file...@>
+    exit(-3);
+  }
+  yz=(buf[2]<<8)+buf[3];
+  tet=(((buf[0]<<8)+buf[1])<<16)+yz;
+  if (verbose) printf("  %08x\n",tet);
+  count++;
+}
+#endif
+
+@ @<Sub...@>=
+#ifdef MMIXLIB
+extern byte read_byte(void);
+#else
+byte read_byte @,@,@[ARGS((void))@];
+byte read_byte()
+{
+  register byte b;
+  if (!byte_count) read_tet();
+  b=buf[byte_count];
+  byte_count=(byte_count+1)&3;
+  return b;
+}
+#endif
+@z
+
+@x
+int byte_count; /* index of the next-to-be-read byte */
+byte buf[4]; /* the most recently read bytes */
+int yz; /* the two least significant bytes */
+tetra tet; /* |buf| bytes packed big-endianwise */
+@y
+#ifdef MMIXLIB
+extern int byte_count; /* index of the next-to-be-read byte */
+extern byte buf[4]; /* the most recently read bytes */
+extern int yzbytes; /* the two least significant bytes */
+extern tetra tet; /* |buf| bytes packed big-endianwise */
+#else
+int byte_count; /* index of the next-to-be-read byte */
+byte buf[4]; /* the most recently read bytes */
+int yz; /* the two least significant bytes */
+tetra tet; /* |buf| bytes packed big-endianwise */
+#endif
+@z
+
+
+
+
+@x
   if (listing) @<List |tet| as a normal item@>;
 @y
   store_image(cur_loc,tet);
@@ -164,6 +356,12 @@ of the highest index we used in writing.
 @<Glob...@>=
 tetra image[max_image_tetras];
 int image_tetras = 0;
+
+@ @<Initialize everything@>=
+memset(image,0,sizeof(image));
+image_tetras=0;
+memset(file_name,0,sizeof(file_name));
+
 
 @ We fill the array using this function. It checks that the 
 location is greater or equal to base and less than the upper bound.
@@ -213,7 +411,7 @@ tetra tet;
       strcat(image_file_name,".img");
     image_file=fopen(image_file_name,"wb");
     if (!image_file) 
-    { fprintf(stderr,"Can't open file %s!\n","bios.img");
+    { fprintf(stderr,"Can't open file %s!\n",image_file_name);
       exit(-3);
     }
   }

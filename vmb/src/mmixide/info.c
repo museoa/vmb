@@ -21,15 +21,17 @@
 char *fullname[MAX_FILES+1] = {NULL};	/* the full filenames */
 char *shortname[MAX_FILES+1] = {NULL};	/* pointers to the tail of the fullname */
 extern char *command[MAX_FILES+1]={NULL};
+extern char execute[MAX_FILES+1]={0};
 static trie_node* symbols[MAX_FILES+1] = {NULL}; /* pointer to pruned symbol table */
 void *doc[MAX_FILES+1] = {NULL};		/* pointer to scintilla documents */
 char doc_dirty[MAX_FILES+1] ={0};		/* records whether the doc is dirty, but not for the edit_file */
 char has_debug_info[MAX_FILES+1] ={0};	/* is debug information available */
 char needs_assembly[MAX_FILES+1] ={0};			/* does this file need needs_assembly */
+char needs_image[MAX_FILES+1] ={0};			/* does this file need needs_immage file */
+char needs_loading[MAX_FILES+1] ={0};			/* does this file need needs_loading */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
-int application_file_no = -1; /* the main application for debugging and running */
 
 
 /* file numbers get allocated together with documents 
@@ -51,13 +53,6 @@ int file_dirty(int file_no)
 	return file2dirty(file_no);
 }
 
-void set_application(int file_no)
-{ application_file_no = file_no;
-  if (application_file_no<0) 
-	  SetWindowText(hMainWnd,"VMB MMIX IDE");
-  else
-	  SetWindowText(hMainWnd,unique_name(file_no));
-}
 
 static int alloc_file_no(void)
 /* return -1 on failure, otherwise an available file number 
@@ -75,6 +70,9 @@ static int alloc_file_no(void)
         doc_dirty[file_no]=0;
         has_debug_info[file_no]=0;
         needs_assembly[file_no]=0;
+        needs_image[file_no]=0;
+		execute[file_no]=0;
+        needs_loading[file_no]=0;
 		ed_add_tab(file_no);
 		if (file_no>=next_file_no) next_file_no = file_no+1;
         return file_no;
@@ -91,8 +89,7 @@ static void release_file_no(int file_no)
     free(fullname[file_no]);
   fullname[file_no]=shortname[file_no]=NULL;
   needs_reading[file_no]=0;
-  ed_release_document(doc[file_no]);
-  doc[file_no]=NULL;
+  ed_release_document(file_no);
   // symbols[file_no]=NULL; needs freeing 
   count_file_no--;
   while(next_file_no>0 && available(next_file_no-1)) next_file_no--;
@@ -156,6 +153,19 @@ static int find_file(char *name)
   return -1;
 }
 
+static void set_filename(int file_no,char *head, char * tail)
+{ static int first_name=1;
+  fullname[file_no]=head;
+  shortname[file_no]=tail;
+  needs_reading[file_no]=1;
+  ed_add_tab(file_no);
+  if (first_name)
+  { file2loading(file_no)=1;
+	file2assembly(file_no)=1;
+	first_name=0;
+  }
+}
+
 int filename2file(char *filename,char c)
 /* return file_no for this file, allocate file_no if needed */
 { int file_no;
@@ -175,30 +185,21 @@ int filename2file(char *filename,char c)
 	  file_no=0;
   else
       file_no = alloc_file_no();
-  fullname[file_no]=head;
-  shortname[file_no]=tail;
-  needs_reading[file_no]=1;
-  ed_add_tab(file_no); /* name has changed */
-  if (application_file_no<0||application_file_no==file_no) set_application(file_no); /* the first filename is the application */
+  set_filename(file_no,head,tail);
   return file_no;
 }
 
 
 void file_set_name(int file_no, char *filename)
 /* function to compute full and short name and set them */
-{ char *head, *tail;
+{ 
+  char *head, *tail;
   head = full_filename(filename, &tail);
   if (fullname[file_no]!=NULL) free(fullname[file_no]);
   fullname[file_no]=NULL;
   shortname[file_no]=NULL;
   needs_reading[file_no]=0;
-  if (head!=NULL)
-  { fullname[file_no]=head;
-    shortname[file_no]=tail;
-    needs_reading[file_no]=1;
-	ed_add_tab(file_no);
-	if (application_file_no<0||application_file_no==file_no) set_application(file_no); /* the first filename is the application */
-  }
+  set_filename(file_no,head,tail);
 }
 
 
@@ -222,6 +223,7 @@ static void clear_symbols(int file_no)
 { 
   free_tree(symbols[file_no]);
   symbols[file_no]=NULL;
+  has_debug_info[file_no]=0;
 }
 
 
@@ -231,7 +233,6 @@ void clear_file_info(int file_no)
 /* remove all data about file */
 {   mem_clear_breaks(file_no);
     clear_symbols(file_no);
-	has_debug_info[file_no]=0;
 }
 
 void clear_all_info(void)
@@ -313,7 +314,6 @@ void close_file(int file_no)
 /* remove a file from the database */
 { release_file_no(file_no);
   clear_symbols(file_no);
-  has_debug_info[file_no]=0;
 }
 
 int get_inuse_file(void)

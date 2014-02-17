@@ -30,7 +30,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.27 $ $Date: 2014-02-14 08:09:37 $";
+char version[]="$Revision: 1.28 $ $Date: 2014-02-17 17:08:50 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -116,6 +116,7 @@ int ide_prepare_mmix(void)
   }
   if (!ed_save_all(1)) return 0;
   if (!assemble_all_needed()) return 0;
+  if (!check_load_count()) return 0;
   if (!execute_commands()) return 0;
   if (!ide_connect()) return 0;
   bb_set_group(hButtonBar,BG_DEBUG,1,1);
@@ -291,7 +292,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  { mmix_continue('c');
 		  }
 		  else 
-		  { if (!ide_prepare_mmix()) return 0;
+		  { if (show_trace) show_trace_window();
+			if (!ide_prepare_mmix()) return 0;
 		    set_debug_windows();
 		    mmix_debug();
 		  }
@@ -304,7 +306,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  if (mmix_assemble(edit_file_no)==0 && edit_file_no==application_file_no && mmix_active() && vmb.power)
+		  if (mmix_assemble(edit_file_no)==0 && file2loading(edit_file_no) && mmix_active() && vmb.power)
 		  { MessageBox(hWnd,"mmo file already running! Reset to reload file.", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
@@ -520,14 +522,14 @@ BOOL InitInstance(HINSTANCE hInstance)
 }
 
 
-
+static void break_main(int file_no)
+{ break_at_symbol(file_no,":Main");
+}
 
 void update_breakpoints(void)
 { int line = -1;
-  if (application_file_no<0) return;
-  if (break_at_Main) break_at_symbol(application_file_no,":Main");
-  if (hEdit==NULL) return;
-  set_edit_file(application_file_no);
+  if (break_at_Main) 
+	  for_all_files(break_main);
   ed_refresh_breaks();
 }
 
@@ -592,27 +594,55 @@ int assemble_if_needed(int file_no)
   return 1;
 }
 
+static int load_count=0;
+
+static void count_load_files(int file_no)
+{ if (file2loading(file_no)) load_count++;
+}
+static int check_load_count(void)
+{ load_count = 0;
+  if (load_multiple) return 1;
+  load_count = 0;
+  for_all_files(count_load_files);
+  if (load_count==0)
+  { MessageBox(hMainWnd, "No mms file selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
+    return 0;
+  }
+  return 1;
+}
+
 static int assembly_ok=0;
 
-static void assemble_loading_files(int file_no)
+static void assemble_files(int file_no)
 { if (!assembly_ok) return;
   if (!file2assembly(file_no)) return;
-  if (file_no==application_file_no) return;
-  if (!assemble_if_needed(file_no)) assembly_ok=0;
+  if (!assemble_if_needed(file_no))
+    assembly_ok=0;
 }
 
 int assemble_all_needed(void)
-{ if (application_file_no<0&& missing_app)
-  { MessageBox(hMainWnd, "No mms file selected as application.", "Warning", MB_ICONEXCLAMATION|MB_OK);
-  }
+{ 
   assembly_ok=1;
-  for_all_files(assemble_loading_files);
-  return assembly_ok && assemble_if_needed(application_file_no);
+  for_all_files(assemble_files); 
+  return assembly_ok;
 }
+
+
 
 #define MAXPROG 512
 
 static int execution_ok=0;
+static void create_image_file(int file_no)
+{ char *argv[3];
+  if (!execution_ok) return;
+  if (!needs_image[file_no]) return;
+  argv[0]="mmoimg";
+  argv[1]=get_mmo_name(file2fullname(file_no));
+  argv[2]=NULL;
+  mmoimg_main(2,argv);
+}
+
+
 static void execute_file_command(int file_no)
 { 
 #if 0  
@@ -624,6 +654,7 @@ static void execute_file_command(int file_no)
   char *argv[4];
 #endif
   if (!execution_ok) return;
+  if (!execute[file_no]) return;
   if (command[file_no]==NULL) return;
 #if 0
   strncpy_s(cmd,MAXPROG,command[file_no],MAXPROG);
@@ -654,6 +685,9 @@ static void execute_file_command(int file_no)
 
 int execute_commands(void)
 { execution_ok=1;
+  for_all_files(create_image_file);
+  if (!execution_ok) return execution_ok;
+  execution_ok=1;
   for_all_files(execute_file_command);
   return execution_ok;
 }

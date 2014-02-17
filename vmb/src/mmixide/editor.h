@@ -22,7 +22,7 @@ extern void ed_refresh_breaks(void);
 
 extern int ed_operation(unsigned int op);
 extern void *ed_create_document(void);
-extern void ed_release_document(void * doc);
+extern void ed_release_document(int file_no);
 extern void ed_get_document(void);
 extern int ed_open(void);
 

@@ -9,43 +9,22 @@
 
 static HWND hSourceDlg;
 static HWND hFileTab;
+static HIMAGELIST hFileMarkers=NULL;
 static int current_tab;
-
-
 static int application_index;
+int load_multiple=0;
 
-static void add_application(int file_no)
-{  HWND hSources=GetDlgItem(hSourceDlg,IDC_APPLICATION);
-   int i=(int)SendMessage(hSources,CB_ADDSTRING,0,(LPARAM)unique_name(file_no));
-   SendMessage(hSources,CB_SETITEMDATA,i,(LPARAM)file_no);
-   if (file_no==application_file_no) application_index=i;
+static void init_filemarkers(void)
+{ HICON hIcon;
+  if (hFileMarkers!=NULL) return;
+  hFileMarkers=ImageList_Create(16,16,ILC_COLOR|ILC_MASK,1,1);
+  hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOAD_FILE));
+  ImageList_AddIcon(hFileMarkers, hIcon);
 }
 
 #define MAX_CMD 512
-static void save_file(void)
-/* call before changing current_tab */
-{ int file_no;
-  TCITEM tie;
-  tie.mask=TCIF_PARAM;
-  TabCtrl_GetItem(hFileTab,current_tab,&tie);
-  file_no=(int)tie.lParam;
-  file2assembly(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_SYMBOLS);
-  if (IsDlgButtonChecked(hSourceDlg,IDC_CHECK_EXECUTE))
-  { char cmd[MAX_CMD+1];
-    int n;
-	n= GetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,cmd,MAX_CMD);
-	if (n>=MAX_CMD) MessageBox(hSourceDlg,"Command too long, truncated","Warning",MB_ICONWARNING|MB_OK);
-    command[file_no]=realloc(command[file_no],n+1);
-	if (command[file_no]==NULL)
-	{ MessageBox(hSourceDlg,"Out of memmory","Error",MB_ICONWARNING|MB_OK);
-	  return;
-	}
-	strncpy_s(command[file_no],n+1,cmd,n+1);
-  }
-  else if (command[file_no]!=NULL)
-  { free(command[file_no]);
-    command[file_no]=NULL;
-  }
+static void no_loading(int file_no)
+{ file2loading(file_no)=0;
 }
 
 static void show_file(void)
@@ -60,27 +39,23 @@ static void show_file(void)
   if (name==NULL) name = unique_name(file_no);
   SetDlgItemText(hSourceDlg,IDC_TAB_FULLNAME,name);
   CheckDlgButton(hSourceDlg,IDC_CHECK_SYMBOLS,file2assembly(file_no)?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hSourceDlg,IDC_CHECK_IMAGEFILE,file2image(file_no)?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hSourceDlg,IDC_CHECK_LOADMMO,file2loading(file_no)?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hSourceDlg,IDC_CHECK_EXECUTE,file2execute(file_no)?BST_CHECKED:BST_UNCHECKED);
+  EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),file2execute(file_no));
   if (command[file_no]!=NULL)
-  {   CheckDlgButton(hSourceDlg,IDC_CHECK_EXECUTE,BST_CHECKED);
-      SetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,command[file_no]);
-	  EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),TRUE);
+  {   SetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,command[file_no]);
   }
   else
-  {   CheckDlgButton(hSourceDlg,IDC_CHECK_EXECUTE,BST_UNCHECKED);
-      SetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,"");
-	  EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),FALSE);
+  {  SetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,"");
   }
 
 }
 
 
-
-
 static void select_tab(int index)
 /* call to change current_tab */
 { if (index<0) return;
-  if (current_tab>=0) 
-	save_file();
   current_tab=index;
   TabCtrl_SetCurSel (hFileTab, current_tab);
   show_file();
@@ -92,9 +67,10 @@ static void add_file(int file_no)
   if (hFileTab==NULL) return;
   if (file_no<0) return;
   index = TabCtrl_GetItemCount(hFileTab);
-  tie.mask = TCIF_TEXT|TCIF_PARAM;
+  tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
   tie.pszText = unique_name(file_no);
   tie.lParam=file_no;
+  if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
   current_tab=TabCtrl_InsertItem (hFileTab, index, &tie);
 }
 
@@ -106,12 +82,13 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       { hSourceDlg=hDlg;
 	    hFileTab=GetDlgItem(hDlg,IDC_TAB_FILES);
+		init_filemarkers();
+		TabCtrl_SetImageList(hFileTab,hFileMarkers);
 		for_all_files(add_file);
 		current_tab=0;
 		TabCtrl_SetCurSel (hFileTab, current_tab);
         show_file();
-		for_all_files(add_application);
-        SendMessage(GetDlgItem(hDlg,IDC_APPLICATION),CB_SETCURSEL,application_index,0);
+		CheckDlgButton(hSourceDlg,IDC_CHECK_MULTIPLEFILES,load_multiple?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -122,10 +99,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { save_file();
-		application_index = (int)SendMessage(GetDlgItem(hDlg,IDC_APPLICATION),CB_GETCURSEL,0,0);
-		if (application_index!=CB_ERR)
-			set_application((int)SendMessage(GetDlgItem(hDlg,IDC_APPLICATION),CB_GETITEMDATA,application_index,0));
+      { load_multiple=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_MULTIPLEFILES);
         hSourceDlg=NULL;
 		hFileTab=NULL;
 		EndDialog(hDlg, TRUE);
@@ -140,15 +114,95 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         return TRUE;
 	  } 
 	  else if (wparam==IDC_CHECK_EXECUTE)
-	  { EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),IsDlgButtonChecked(hSourceDlg,IDC_CHECK_EXECUTE));
+	  { int file_no;
+        TCITEM tie;
+        tie.mask=TCIF_PARAM;
+        TabCtrl_GetItem(hFileTab,current_tab,&tie);
+        file_no=(int)tie.lParam;
+        file2execute(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_EXECUTE);
+	    EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),file2execute(file_no));
         return TRUE;
 	  }
+	  else if (wparam==IDC_CHECK_LOADMMO)
+	  { int file_no;
+        TCITEM tie;
+        tie.mask=TCIF_PARAM;
+        TabCtrl_GetItem(hFileTab,current_tab,&tie);
+        file_no=(int)tie.lParam;
+        if (IsDlgButtonChecked(hSourceDlg,IDC_CHECK_LOADMMO))
+        { if (!load_multiple) 
+		  { int index, count = TabCtrl_GetItemCount(hFileTab);
+		    for(index=0; index<count;index++)
+			{ tie.mask = TCIF_PARAM|TCIF_IMAGE;
+  	          TabCtrl_GetItem(hFileTab,current_tab,&tie);
+			  if (index!=current_tab && file2loading((int)tie.lParam)!=0)
+			  { file2loading((int)tie.lParam)=0;
+			    tie.iImage=-1;
+			    tie.mask=TCIF_IMAGE;
+				TabCtrl_SetItem(hFileTab,current_tab,&tie);
+			  }
+		    }
+		  }
+          file2loading(file_no)=1;
+	      tie.mask=TCIF_IMAGE;
+	      tie.iImage=0;
+	      TabCtrl_SetItem(hFileTab,current_tab,&tie);
+		}
+        else
+        { file2loading(file_no)=0;
+          tie.mask=TCIF_IMAGE;
+	      tie.iImage=-1;
+	      TabCtrl_SetItem(hFileTab,current_tab,&tie);
+        }
+		return TRUE;
+	  }
+	  else if (wparam==IDC_CHECK_SYMBOLS)
+      { int file_no;
+        TCITEM tie;
+        tie.mask=TCIF_PARAM;
+        TabCtrl_GetItem(hFileTab,current_tab,&tie);
+        file_no=(int)tie.lParam;
+        file2assembly(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_SYMBOLS);
+	  	return TRUE;
+	  }
+	  else if (wparam==IDC_CHECK_IMAGEFILE)
+      { int file_no;
+        TCITEM tie;
+        tie.mask=TCIF_PARAM;
+        TabCtrl_GetItem(hFileTab,current_tab,&tie);
+        file_no=(int)tie.lParam;
+        file2image(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_IMAGEFILE);
+	  	return TRUE;
+	  }
+	  else if (HIWORD(wparam)==EN_CHANGE && LOWORD(wparam)==IDC_EDIT_COMMAND)
+      { int file_no;
+        TCITEM tie;
+        tie.mask=TCIF_PARAM;
+        TabCtrl_GetItem(hFileTab,current_tab,&tie);
+        file_no=(int)tie.lParam;
+        if (IsDlgButtonChecked(hSourceDlg,IDC_CHECK_EXECUTE))
+        { char cmd[MAX_CMD+1];
+          int n;
+	      n= GetDlgItemText(hSourceDlg,IDC_EDIT_COMMAND,cmd,MAX_CMD);
+	      if (n>=MAX_CMD) MessageBox(hSourceDlg,"Command too long, truncated","Warning",MB_ICONWARNING|MB_OK);
+          command[file_no]=realloc(command[file_no],n+1);
+	      if (command[file_no]==NULL)
+	      { MessageBox(hSourceDlg,"Out of memmory","Error",MB_ICONWARNING|MB_OK);
+	        return TRUE;
+	      }
+	      strncpy_s(command[file_no],n+1,cmd,n+1);
+        }
+        else if (command[file_no]!=NULL)
+       { free(command[file_no]);
+         command[file_no]=NULL;
+       }
+	   return TRUE;
+     }
      break;
 	 case WM_NOTIFY:
 	  { NMHDR *n = (NMHDR*)lparam;
 	    if (n->hwndFrom==hFileTab)
 		{ if (n->code == TCN_SELCHANGE){ 
-			save_file();
 			current_tab = TabCtrl_GetCurSel(hFileTab);
 			show_file();
 		  }

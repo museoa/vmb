@@ -142,16 +142,13 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 #else
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int returncode;
-  char *mmo_name=NULL;
 
   if (hInteract==NULL)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
  
   vmb_exit_hook = mmix_exit;
-  if (application_file_no>=0)
-	  mmo_name=get_mmo_name(file2fullname(application_file_no));
-  returncode = mmix_main(0,NULL,mmo_name);
+  returncode = mmix_main(0,NULL,NULL);
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
 
@@ -232,7 +229,6 @@ void mmix_debug(void)
 		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  update_symtab();
-		  if (show_trace) show_trace_window();
 		  MMIXThread();
 }
 
@@ -257,7 +253,7 @@ void mmix_stopped(octa loc)
 
 }
 
-jmp_buf error_exit;
+static jmp_buf error_exit;
 device_info vmb;
 
 #define panic(m) vmb_fatal_error(__LINE__,m)
@@ -325,7 +321,10 @@ static int check_interact(bool after)
 #define RESUME_TRANS 3 
 
 
-
+static void mmix_load(int file_no)
+{ if (!file2loading(file_no)) return;
+  mmix_load_file(get_mmo_name(file2fullname(file_no)));
+}
 
 
 
@@ -348,7 +347,7 @@ boot:
      if (!vmb.connected) panic("Power but not connected");
   }
   win32_log("ON\n");
-  if (mmo_name!=NULL) mmix_load_file(mmo_name);
+  for_all_files(mmix_load);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
   while (vmb.connected&!halted) {

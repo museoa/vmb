@@ -13,13 +13,12 @@ extern void ide_clear_error_list(void);
 extern void update_breakpoints(void);
 extern int assemble_if_needed(int file_no);
 extern int assemble_all_needed(void);
+extern int check_load_count(void);
 extern int execute_commands(void);
 extern void new_errorlist(void);
 
 extern void new_edit(void);
 extern void ide_exit_ignore(int returncode);
-
-extern void set_application(int file_no);
 
 extern void clear_stop_marker(void);
 extern void set_edit_file(int file_no);

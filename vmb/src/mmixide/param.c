@@ -72,7 +72,6 @@ void do_argument(int pos, char * arg)
   if (file_no<0) return;
   if (edit_file_no>=0) return;
   set_edit_file(file_no);
-  set_application(file_no);
 }
 
 int do_define(char *arg)

@@ -478,8 +478,6 @@ int ed_close(void)
 { int file_no;
   if (!ed_save_changes(1)) return 0;
   close_file(edit_file_no);
-  if (edit_file_no==application_file_no) 
-	set_application(-1);
   edit_file_no=-1; /* no edit file yet */
   file_no=get_inuse_file();
   if (file_no>=0) set_edit_file(file_no);
@@ -499,7 +497,6 @@ int ed_close_all(int cancel)
     if (file_no>=0) set_edit_file(file_no);
   }
   ed_new();
-  set_application(-1);
   return 1;
 }
 
@@ -699,6 +696,7 @@ void set_whitespace(int ws)
 
 void ed_refresh_breaks(void)
 { int line=-1;
+  if (hEdit==NULL) return;  
   mem_clear_breaks(edit_file_no);
   while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,
 	                           (1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)|
@@ -737,8 +735,11 @@ void *ed_create_document(void)
 { return (void *)ed_send(SCI_CREATEDOCUMENT,0,0);
 }
 
-void ed_release_document(void * doc)
-{ if (doc!=NULL) ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc);
+void ed_release_document(int file_no)
+{ if (doc[file_no]!=NULL) 
+  {	ed_send(SCI_RELEASEDOCUMENT,0,(LONG_PTR)doc[file_no]);
+    doc[file_no]=NULL;
+  }
 }
 
 
@@ -786,7 +787,7 @@ void ed_add_tab(int file_no)
   { tie.mask = TCIF_TEXT|TCIF_PARAM;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
-    TabCtrl_SetItem (hTabs, file_no, &tie);
+    TabCtrl_SetItem (hTabs, index, &tie);
   }
   else
   { index = TabCtrl_GetItemCount(hTabs);

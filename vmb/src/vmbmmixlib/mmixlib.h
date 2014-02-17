@@ -119,3 +119,5 @@ extern void mmixal_error(char *message, int file_no, int line_no, int status);
 
 extern void add_line_loc(int file_no, int line_no, octa loc);
 /* report the association of a file/line with a location */
+
+extern int mmoimg_main(int argc, char *argv[]);

@@ -105,9 +105,11 @@ static void enumerate_symtab(trie_node *t, char *sym_ptr)
   if (t->right) enumerate_symtab(t->right,sym_ptr);
 }
 
-static symtab_add_file_no(int file_no)
-{ trie_node *t = file2symbols(file_no);
-   if (t!=NULL)
+static void symtab_add_file_no(int file_no)
+{ trie_node *t;
+  if (!file2assembly(file_no)) return;
+  t= file2symbols(file_no);
+  if (t!=NULL)
      enumerate_symtab(t, symtab_buf);
 }
 
@@ -115,10 +117,7 @@ static symtab_add_file_no(int file_no)
 void update_symtab(void)
 { 
   symtab_reset();
-  if (application_file_no>=0)
-	symtab_add_file_no(application_file_no);
-  else if (edit_file_no>=0)
-	symtab_add_file_no(edit_file_no);
+  for_all_files(symtab_add_file_no);
 }
 void create_symtab(void)
 { sp_create_options(1,1,0.15,0,hEdit);

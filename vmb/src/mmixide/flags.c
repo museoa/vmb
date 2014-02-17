@@ -6,6 +6,7 @@
 #include "edit.h"
 #include "assembler.h"
 #include "debug.h"
+#include "sources.h"
 #include "mmix-internals.h"
 #include "symtab.h"
 #define STATIC_BUILD
@@ -58,6 +59,7 @@ regtable regtab= {
 	{KEY_FLAGS,&symtab_small,24},
 
 	{KEY_FLAGS,&missing_app,25},
+	{KEY_FLAGS,&load_multiple,26},
 
 
 	{NULL,NULL,0}};

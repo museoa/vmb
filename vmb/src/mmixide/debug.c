@@ -464,7 +464,7 @@ void set_register_inspectors(void)
 	opt=0;
 	for (r=L-1,i=n-1;i>=0;i--,r--)/* registerstack */
 	{ char *name;
-	  static char empty[]="";
+	  static char empty[]="- ";
 	  if (r<0) 
 	  { r=l[(b+i)&lring_mask].l;
 	    name = empty;

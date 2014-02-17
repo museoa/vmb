@@ -104,9 +104,11 @@ void vmb_debug(int level, char *msg)
   if (!vmb_debug_flag) return;
   if ((level&~vmb_debug_mask)==0) return;
   if (vmb_debug_hook == NULL)
-	fprintf(stderr,"DEBUG (%s): %s\r\n",vmb_program_name, msg);
+	fprintf(stderr,"DEBUG (%s): %s\n",vmb_program_name, msg);
   else  
-	vmb_debug_hook(msg);
+  { vmb_debug_hook(msg);
+    vmb_debug_hook("\n");
+  }
 }
 
 void vmb_debugi(int level, char *msg, int i)
