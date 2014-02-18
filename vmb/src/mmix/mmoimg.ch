@@ -78,6 +78,7 @@ int main(argc,argv)
 {
   register int j,delta,postamble=0;
   register char *p;
+  int exit_code=0;
 #endif
 @z
 
