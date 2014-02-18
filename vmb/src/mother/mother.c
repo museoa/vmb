@@ -73,7 +73,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=5;
-char version[] = "$Revision: 1.46 $ $Date: 2014-02-10 14:05:42 $";
+char version[] = "$Revision: 1.47 $ $Date: 2014-02-18 12:19:27 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -114,6 +114,7 @@ static struct
   unsigned int hi_mask, low_mask;	/* Enabled for interrupts */
   struct sockaddr addr;		/* Network Address */
   int answers_pending;
+  int has_power;
 } slot[SLOTS];
 
 static int exitflag = 0;
@@ -219,13 +220,10 @@ create_server ()
 void
 remove_slot (int slotnr)
 {
- 
-  slot[slotnr].fd = INVALID_SOCKET;
   if (slot[slotnr].name != NULL)
-  {
     free (slot[slotnr].name);
-    slot[slotnr].name = NULL;
-  }
+  memset(&slot[slotnr],0,sizeof(slot[slotnr]));
+  slot[slotnr].fd = INVALID_SOCKET;
   while (max_slot > 0 && !valid_socket (slot[max_slot - 1].fd))
     max_slot--;
   vmb_debugi(VMB_DEBUG_INFO,"Removed Slot %d", slotnr);
@@ -261,7 +259,9 @@ static void
 power_on (int i)
 {
   if (!bus_msg (ID_POWERON, i))
-    vmb_debugi(VMB_DEBUG_INFO,"Sent Power On to Slot %d", i);
+  {  vmb_debugi(VMB_DEBUG_INFO,"Sent Power On to Slot %d", i);
+     slot[i].has_power=1;
+  }
   else
 	  vmb_error(__LINE__,"Power On was not sent");
 }
@@ -270,7 +270,9 @@ static void
 power_off (int i)
 {
   if (!bus_msg (ID_POWEROFF, i))
-    vmb_debugi(VMB_DEBUG_INFO,"Sent Power Off to Slot %d", i);
+  {  vmb_debugi(VMB_DEBUG_INFO,"Sent Power Off to Slot %d", i);
+       slot[i].has_power=0;
+  }
   else if (!server_terminating)
     vmb_error(__LINE__,"Power Off was not sent");
 }
@@ -314,7 +316,7 @@ disconnect_device (int slotnr)
     vmb_debugi(VMB_DEBUG_NOTIFY,"\tpending answers:    %d", slot[slotnr].answers_pending);
     send_dummy_answer (ID_NOREPLY, slotnr);
   }
-  if (powerflag)
+  if (powerflag&& slot[slotnr].has_power)
     power_off (slotnr);
   terminate(slotnr);
   Sleep(50);
@@ -482,6 +484,7 @@ interpret_message (int source_slot)
       {	int n;
 	    n = (int)strlen((char *)mpayload + 24) + 1;
 		i=(n+7)/8; /* number of octas used by name */
+		if (slot[source_slot].name!=NULL) free(slot[source_slot].name);
 	    slot[source_slot].name = malloc (n);
 	    if (slot[source_slot].name == NULL)
 	      vmb_error(__LINE__,"Out of memory");
@@ -493,7 +496,7 @@ interpret_message (int source_slot)
 	    slot[source_slot].minor_version = chartoint (&mpayload[24+i*8+4]);
 	  }
 	}
-      if (powerflag)
+      if (powerflag&&!slot[source_slot].has_power)
 	    power_on (source_slot);
       break;
     default:
@@ -606,6 +609,7 @@ connect_new_device (void)
 	  vmb_debugi(VMB_DEBUG_PROGRESS,"Got new device on fd %d",fd);
 	  slot[i].fd = fd; 
 	  slot[i].answers_pending = 0;
+	  slot[i].has_power = 0;
       if (i >= max_slot)
 	     max_slot = i + 1;
       if (slot[i].fd > max_fd)

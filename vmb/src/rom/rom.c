@@ -45,7 +45,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.21 $ $Date: 2013-09-05 06:50:57 $";
+char version[]="$Revision: 1.22 $ $Date: 2014-02-18 12:19:27 $";
 
 char howto[] =
 "\n"
@@ -56,6 +56,8 @@ char howto[] =
 ;
 
 static unsigned char *rom=NULL;
+static unsigned int registered_size=0;
+static uint64_t registered_address;
 typedef unsigned long Word;
 
 #define PAGESIZE (1<<13) /* eight kbyte */
@@ -181,6 +183,11 @@ void open_file(void)
 	inspector[0].size=vmb_size;
 	mem_update(0,vmb_size);
 	vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
+	if ((vmb_size!=registered_size || vmb_address!=registered_address)&& vmb.connected && vmb.power)
+	{ 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
+        registered_size=vmb_size;
+		registered_address=vmb_address;
+	}
 }
 
 
@@ -226,7 +233,5 @@ void init_device(device_info *vmb)
    vmb->reset=open_file;
    vmb->terminate=vmb_terminate;
    vmb->get_payload=rom_get_payload;
-   open_file();
-   vmb_debugi(VMB_DEBUG_INFO, "size: %d",vmb_size);
    close(0);
 }
