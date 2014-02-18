@@ -280,9 +280,11 @@ void de_save(HWND hDlg)
 
 static INT_PTR CALLBACK   
 DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ switch ( message )
+{ static int min_w, min_h;
+  switch ( message )
   { case WM_INITDIALOG :
-      { dataedit *de = new_dataedit();
+      { RECT rect;
+	    dataedit *de = new_dataedit();
 	    SetWindowLongPtr(hDlg,DWLP_USER,(LONG)(LONG_PTR)de);
 	    de->hWnd=hDlg;
 	    SetDlgItemText(hDlg,IDC_FORMAT,format_names[de->format]);
@@ -291,6 +293,9 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_edit_mem(de);
 		show_edit_windows(de);
 	    SetFocus(GetDlgItem(hDlg,IDC_LOAD));
+		GetClientRect(hDlg,&rect);
+	    min_w = rect.right-rect.left;
+	    min_h = rect.bottom-rect.top;
 	    //get_font_metrics(hDlg);
 	  }
 	  return FALSE;
@@ -330,6 +335,14 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	case WM_SIZE:
 		InvalidateRect(hDlg,NULL,TRUE);
 		return FALSE;
+	case WM_GETMINMAXINFO:
+	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
+	  p->ptMinTrackSize.x = min_w;
+      p->ptMinTrackSize.y = min_h;
+	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
+	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
+	}
+	return 0;
 
  }
   return FALSE;

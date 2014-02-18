@@ -1,5 +1,4 @@
-Marker in multiple files
-cmds do not work as expected
+
 
 
 Breakpoints window
@@ -12,11 +11,9 @@ give the register windows a minimum width
 
 Ask for reset/reload after assembly while debugging
 
-integrate the generation of image files or other postprocessing
 
 Add help for the ide
 
-Add button for build/assemble
 
 Other Ideas:
 

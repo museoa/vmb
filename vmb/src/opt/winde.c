@@ -12,15 +12,17 @@ HWND hDataEditParent=0;
 
 
 static LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{ switch ( message )
+{ static int min_w, min_h;
+  switch ( message )
   { case WM_CREATE :
     { RECT rect;
 	  HWND hDataEdit = CreateDataEdit(hDataEditInstance,hWnd);
 	  SetWindowLongPtr(hWnd,GWLP_USERDATA,(LONG)(LONG_PTR)hDataEdit);
       GetWindowRect(hDataEdit,&rect);
 	  AdjustWindowRect(&rect,WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,FALSE);
-	  SetWindowPos(hWnd,HWND_TOP,0,0,rect.right-rect.left,rect.bottom-rect.top,
-		  SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	  min_w = rect.right-rect.left;
+	  min_h = rect.bottom-rect.top;
+	  SetWindowPos(hWnd,HWND_TOP,0,0,min_w,min_h,SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
       UpdateWindow(hWnd);
 	}
   	 return 0;
@@ -34,6 +36,14 @@ static LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPA
       }
 	  DestroyWindow(hWnd);
 	  return 0;
+	case WM_GETMINMAXINFO:
+	{ MINMAXINFO *p = (MINMAXINFO *)lParam;
+	  p->ptMinTrackSize.x = min_w;
+      p->ptMinTrackSize.y = min_h;
+	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
+	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
+	}
+	return 0;
  }
   return DefWindowProc(hWnd, message, wParam, lParam);
 }

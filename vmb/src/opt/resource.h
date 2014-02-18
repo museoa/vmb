@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32connect.rc
+// Used by win32dedit.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1

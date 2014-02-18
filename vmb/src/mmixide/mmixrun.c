@@ -347,6 +347,7 @@ boot:
      if (!vmb.connected) panic("Power but not connected");
   }
   win32_log("ON\n");
+  Sleep(50); /* give all devices some time to power up before loading the application */
   for_all_files(mmix_load);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);

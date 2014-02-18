@@ -2326,7 +2326,7 @@ boot:
      if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  
+  Sleep(50);
   mmix_load_file(*cur_arg);
   mmix_commandline(argc, argv);
   while (vmb.connected) {

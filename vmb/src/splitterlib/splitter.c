@@ -3,6 +3,9 @@
 #include "error.h"
 #include "splitter.h"
 
+
+#define SP_LAYOUT (WM_USER+1)
+
 static HINSTANCE hSplitterInst;
 static const char  sp_bar_class_name[] = "SplitterBarClass";
 static const char  sp_class_name[] = "SplitterClass";
@@ -153,7 +156,7 @@ static void release_layout(void)
 #define FILL (1<<((sizeof(int)*8)/4))
 typedef struct split {
   int x, y,w,h;
-  int min_w,min_h,stretch_w,stretch_h;
+  int min_w,min_h;
   struct split *Parent;
   enum {leaf=0, branch=1} tag;
   union {
@@ -179,26 +182,45 @@ static split *new_split(void)
 
 static void sp_resize(split *sp);
 
-#define get_split(ratio, vertical, w, h, sep) ((vertical)?((int)(((w)-(sep))*ratio)):((int)(((h)-(sep))*ratio)))
+static int get_split(double ratio, int vertical, int w, int h, int sep)
+/* primitive splitting based on ratio */
+{ if(vertical)
+    return (int)((w-sep)*ratio);
+  else
+    return (int)((h-sep)*ratio);
+}
 
 
 static int get_split_width(split *sp)
-/* return the size of the top/left part */
-{ return get_split(sp->o.sp.ratio, sp->o.sp.vertical,sp->w,sp->h,SPLITWIDTH);
-#if 0
- if (sp->o.sp.vertical) /* return left part */
-  { int d = sp->w-sp->min_w;
-	if (sp->o.sp.BottomRight->stretch_w!=0)
-	  d = (d * sp->o.sp.TopLeft->stretch_w)/(sp->o.sp.TopLeft->stretch_w+sp->o.sp.BottomRight->stretch_w);
-    return sp->o.sp.TopLeft->min_w+d;
+/* actual splitting including min_w and min_h 
+   return the size of the top/left part */
+{ int tl = get_split(sp->o.sp.ratio, sp->o.sp.vertical,sp->w,sp->h,SPLITWIDTH);
+  int br,space;
+
+  if (sp->o.sp.vertical)
+  { br = sp->w-SPLITWIDTH-tl;
+    if (tl >= sp->o.sp.TopLeft->min_w && br >=sp->o.sp.BottomRight->min_w) return tl; /*both fine */
+	space = sp->o.sp.TopLeft->min_w + sp->o.sp.BottomRight->min_w;
+	if (space>sp->w)
+	{ double ratio = (double)sp->o.sp.TopLeft->min_w/(double)space;
+	  return (int)(sp->w*ratio);
+	}
+	else if (tl<sp->o.sp.TopLeft->min_w) return sp->o.sp.TopLeft->min_w;
+	else return sp->w-SPLITWIDTH-sp->o.sp.BottomRight->min_w;
   }
   else
-  { int d = sp->h-sp->min_h;
-	if (sp->o.sp.BottomRight->stretch_h!=0)
-	  d = (d * sp->o.sp.TopLeft->stretch_h)/(sp->o.sp.TopLeft->stretch_h+sp->o.sp.BottomRight->stretch_h);
-    return sp->o.sp.TopLeft->min_h+d;
+  { br = sp->h-SPLITWIDTH-tl;
+    if (tl >= sp->o.sp.TopLeft->min_h && br >=sp->o.sp.BottomRight->min_h) return tl; /*both fine */
+	space = sp->o.sp.TopLeft->min_h + sp->o.sp.BottomRight->min_h;
+	if (space>sp->h)
+	{ double ratio = (double)sp->o.sp.TopLeft->min_h/(double)space;
+	  return (int)(sp->h*ratio);
+	}
+	else 	if (tl<sp->o.sp.TopLeft->min_h) return sp->o.sp.TopLeft->min_h;
+	else return sp->h-SPLITWIDTH-sp->o.sp.BottomRight->min_h;
   }
-#endif
+
+  
 }
 
 static void set_split_ratio(split *sp, int w, int h)
@@ -224,7 +246,7 @@ static void sp_setsize(split *sp, int x, int y, int w, int h)
 }
 
 static void sp_propagate_layout(split *sp)
-/* call to determine minimum sizes and strechability at and below sp 
+/* call to determine minimum sizes at and below sp 
    should be called only by sp_layout
 */
 { if (sp->tag==leaf)
@@ -233,18 +255,9 @@ static void sp_propagate_layout(split *sp)
   if (SendMessage(sp->o.hWnd,WM_GETMINMAXINFO,0,(LPARAM)&mmi)==0)
 	{ sp->min_w=mmi.ptMinTrackSize.x;
 	  sp->min_h=mmi.ptMinTrackSize.y;
-	  if (mmi.ptMaxTrackSize.x>mmi.ptMinTrackSize.x) 
-		sp->stretch_w=1*FILL;
-	  else
-		sp->stretch_w=0;
-	  if (mmi.ptMaxTrackSize.x>mmi.ptMinTrackSize.x) 
-		sp->stretch_h=1*FILL;
-	  else
-		sp->stretch_h=0;
 	}
 	else
 	{ sp->min_h=sp->min_w=0;
-	  sp->stretch_h=sp->stretch_w=1*FILL;
 	}
   }
   else if (sp->tag==branch)
@@ -253,14 +266,10 @@ static void sp_propagate_layout(split *sp)
 	if (sp->o.sp.vertical)
 	{ sp->min_w= sp->o.sp.TopLeft->min_w + sp->o.sp.BottomRight->min_w+SPLITWIDTH;
 	  sp->min_h= max(sp->o.sp.TopLeft->min_h, sp->o.sp.BottomRight->min_h);
-      sp->stretch_w= sp->o.sp.TopLeft->stretch_w + sp->o.sp.BottomRight->stretch_w;
-	  sp->stretch_h= min(sp->o.sp.TopLeft->stretch_h, sp->o.sp.BottomRight->stretch_h);
 	}
 	else
 	{ sp->min_h= sp->o.sp.TopLeft->min_h + sp->o.sp.BottomRight->min_h+SPLITWIDTH;
 	  sp->min_w= max(sp->o.sp.TopLeft->min_w, sp->o.sp.BottomRight->min_w);
-      sp->stretch_h= sp->o.sp.TopLeft->stretch_h+ sp->o.sp.BottomRight->stretch_h;
-	  sp->stretch_w= min(sp->o.sp.TopLeft->stretch_w, sp->o.sp.BottomRight->stretch_w);
 	}
   }
 }
@@ -335,6 +344,7 @@ static split *sp_unlink(split *me)
     else
   	  grandparent->o.sp.BottomRight=sibling;
   }
+  sp_layout();
   sp_resize(grandparent);
   return parent;
 }
@@ -404,7 +414,6 @@ static split *sp_add_leaf(HWND hWnd, double ratio, int vertical, int left,split 
   }
   sp->tag=leaf;
   sp->o.hWnd=hWnd;
-  sp_resize(top);
   return sp;
 }
 static void release_tree(split *sp)
@@ -646,9 +655,14 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			  if (!create_left) create_ratio=1.0-create_ratio;
      		}
 			sp_add_leaf(hChildWnd,create_ratio,create_vertical,create_left,entry);
+			PostMessage(hSpliterBase,SP_LAYOUT,0,0);
 		  }
-     	  InvalidateRect(hSpliterBase,NULL,FALSE);
 		}
+		return 0;
+	case SP_LAYOUT:
+        sp_layout();
+        sp_resize(NULL);
+     	InvalidateRect(hSpliterBase,NULL,FALSE);
 		return 0;
 	case WM_COMMAND:
 	case WM_NOTIFY:
@@ -828,6 +842,7 @@ static LRESULT CALLBACK SplitterBarProc(HWND hWnd, UINT message, WPARAM wParam, 
 			move_branch->o.sp.BottomRight->Parent=move_branch;
 			ShowWindow(move_leaf->o.hWnd,SW_SHOW);
 			ShowWindow(move_branch->o.sp.hSplit,SW_SHOW);
+			sp_layout();
 			sp_resize(NULL);
 			InvalidateRect(hSpliterBase,NULL,FALSE);
 		  }
@@ -847,6 +862,7 @@ static LRESULT CALLBACK SplitterBarProc(HWND hWnd, UINT message, WPARAM wParam, 
 		  else
 		  { sp->o.sp.vertical = 1;
 		  }
+		  sp_layout();
 		  sp_resize(sp);
 		  rect.left=sp->x; rect.top=sp->y; rect.right=rect.left+sp->w; rect.bottom=rect.top+sp->h;
 		  InvalidateRect(hSpliterBase,&rect,FALSE);

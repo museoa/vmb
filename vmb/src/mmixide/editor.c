@@ -198,6 +198,14 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		   }
 		}
 		break;
+	case WM_GETMINMAXINFO:
+	{ MINMAXINFO *p = (MINMAXINFO *)lParam;
+	  p->ptMinTrackSize.x  = 200;
+      p->ptMinTrackSize.y = 50;
+	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
+	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
+	}
+	return 0;
 	case WM_CLOSE:
 		ed_close();		  
 		return 0;
