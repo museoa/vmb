@@ -101,7 +101,11 @@ void set_edit_file(int file_no)
   ide_clear_error_marker();
   clear_stop_marker();
   if (edit_file_no>=0)
-    file2dirty(edit_file_no)=(int)ed_send(SCI_GETMODIFY,0,0);
+  {  file2dirty(edit_file_no)=(int)ed_send(SCI_GETMODIFY,0,0);
+     curPos[edit_file_no]=(int)ed_send(SCI_GETCURRENTPOS,0,0);
+     curAnchor[edit_file_no]=(int)ed_send(SCI_GETANCHOR,0,0);
+     firstLine[edit_file_no]=(int)ed_send(SCI_GETFIRSTVISIBLELINE,0,0);
+  }
   edit_file_no = file_no;
   ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
   if (fullname[edit_file_no]!=NULL && file2reading(edit_file_no)) ed_read_file();
@@ -109,6 +113,8 @@ void set_edit_file(int file_no)
   set_text_style();
   set_whitespace(show_whitespace);
   ed_send(SCI_SETCODEPAGE,codepage,0);
+  ed_send(SCI_SETFIRSTVISIBLELINE,firstLine[edit_file_no],0);
+  ed_send(SCI_SETSEL,curPos[edit_file_no],curAnchor[edit_file_no]);
   ed_tab_select(edit_file_no);
   update_symtab();
 }
@@ -662,7 +668,7 @@ static int previous_mmix_line_no = -1;
 
 void clear_stop_marker(void)
 { if (previous_mmix_line_no > 0)
-  {  SendMessage(hSCe,SCI_MARKERDELETEALL,MMIX_TRACE_MARKER,0);  
+  {  ed_send(SCI_MARKERDELETEALL,MMIX_TRACE_MARKER,0);  
      previous_mmix_line_no= -1;
   }
 }

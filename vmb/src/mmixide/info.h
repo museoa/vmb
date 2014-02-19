@@ -11,7 +11,10 @@ extern char execute[MAX_FILES+1];
 extern char needs_loading[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];
 extern char needs_reading[MAX_FILES+1];
-extern void *doc[257]; /* pointer to scintilla documents */
+extern void *doc[MAX_FILES+1]; /* pointer to scintilla documents */
+extern int curPos[MAX_FILES+1];
+extern int curAnchor[MAX_FILES+1];
+extern int firstLine[MAX_FILES+1];
 
 #define file2shortname(file_no) (shortname[file_no])
 #define file2fullname(file_no)  (fullname[file_no])
