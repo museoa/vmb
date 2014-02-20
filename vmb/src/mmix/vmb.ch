@@ -2315,18 +2315,18 @@ int main(argc,argv)
   mmix_initialize();
 
 boot:
-
-  argc = boot_argc;
-  cur_arg = boot_cur_arg;
-  mmix_boot();
-     
+  vmb.reset_flag=0;
   fprintf(stderr,"Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
      if (!vmb.connected) goto end_simulation;
   }
   fprintf(stderr,"ON\n");
-  Sleep(50);
+  Sleep(50); /* let the devices initialize */
+  argc = boot_argc;
+  cur_arg = boot_cur_arg;
+  mmix_boot();
+  
   mmix_load_file(*cur_arg);
   mmix_commandline(argc, argv);
   while (vmb.connected) {

@@ -339,8 +339,7 @@ int mmix_main(int argc, char *argv[],char *mmo_name)
     vmb_raise_reset(&vmb);
   mmix_initialize();
 boot:
-  vmb.reset_flag=0; 
-  mmix_boot(); 
+  vmb.reset_flag=0;
   win32_log("Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
@@ -348,6 +347,7 @@ boot:
   }
   win32_log("ON\n");
   Sleep(50); /* give all devices some time to power up before loading the application */
+  mmix_boot(); 
   for_all_files(mmix_load);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
