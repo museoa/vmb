@@ -7,7 +7,6 @@ Be able to manage breakpoints even without source code.
 
 Statistics line im Trace window
 
-give the register windows a minimum width
 
 Ask for reset/reload after assembly while debugging
 

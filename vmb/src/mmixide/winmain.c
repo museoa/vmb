@@ -30,7 +30,7 @@
 #include "../scintilla/include/scintilla.h"
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.28 $ $Date: 2014-02-17 17:08:50 $";
+char version[]="$Revision: 1.29 $ $Date: 2014-02-24 12:20:31 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -779,7 +779,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	read_regtab(defined);
 	get_xypos();
 	CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|(show_whitespace?MF_CHECKED:MF_UNCHECKED));
+	set_whitespace(show_whitespace);
 	CheckMenuItem(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND|(syntax_highlighting?MF_CHECKED:MF_UNCHECKED));
+    set_text_style();
 
     SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 

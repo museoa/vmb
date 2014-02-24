@@ -184,7 +184,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
 		       0,0,0,0,hWnd,NULL,hInst,NULL);
          SendMessage(hTabs,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
-		 
+		 DragAcceptFiles(hWnd,TRUE);
 	     return 0;
     case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
@@ -212,6 +212,14 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
 	}
 	return 0;
+	case WM_DROPFILES:
+	  { HDROP hDrop = (HDROP)wParam;
+	    char name[MAX_PATH+1];
+		DragQueryFile(hDrop,0,name,MAX_PATH);
+		set_edit_file(filename2file(name,0));
+		DragFinish(hDrop);
+	  }
+	  return 0;
 	case WM_CLOSE:
 		ed_close();		  
 		return 0;
@@ -306,7 +314,7 @@ COLORREF syntax_color[MMIXAL_COLORS] =
 };
 
 
-void mms_style(void)
+static void mms_style(void)
 /* configure the MMIXAL lexer */
 {  int stylebits;  
    ed_send(SCI_SETLEXER,SCLEX_MMIXAL,0);
@@ -324,10 +332,9 @@ void mms_style(void)
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_SYMBOL,syntax_color[SCE_MMIXAL_SYMBOL]);
 
    ed_send(SCI_STYLESETFORE,SCE_MMIXAL_COMMENT,syntax_color[SCE_MMIXAL_COMMENT]);
-   syntax_highlighting = 1;
 }
 
-void txt_style(void)
+static void txt_style(void)
 /* configure the NULL lexer */
 {  int stylebits;  
    ed_send(SCI_SETLEXER,SCLEX_NULL,0);
@@ -336,7 +343,6 @@ void txt_style(void)
    ed_send(SCI_STYLESETFORE,0,RGB(0x0,0x0,0x0));
    ed_send(SCI_STYLESETBACK,0,RGB(0xFF,0xFF,0xFF));
    ed_send(SCI_COLOURISE,0,-1);
-   syntax_highlighting = 0;
 }
 
 void set_lineno_width(void)
@@ -735,11 +741,19 @@ void  ed_show_line(int line_no)
    SetFocus(hSCe);
 }
 
-void mms_style(void);
-void txt_style(void);
+static is_mms_file(void)
+{ char *name=file2shortname(edit_file_no);
+  size_t n; 
+  if (name==NULL) return 1;
+  n = strlen(name);
+  if (n>4 && strncmp(name+n-4,".mms",4)==0) return 1;
+  if (n>4 && strncmp(name+n-4,".MMS",4)==0) return 1;
+  return 0;
+}
+
 
 void set_text_style(void)
-{ if (syntax_highlighting)
+{ if (syntax_highlighting && is_mms_file())
      mms_style();
   else
      txt_style();
