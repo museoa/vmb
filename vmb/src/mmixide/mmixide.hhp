@@ -18,14 +18,32 @@ help\instructions.html
 help\integer.html
 help\signed.html
 help\unsigned.html
-help\compare.html
 help\neg.html
+help\compare.html
 help\float.html
 help\flot.html
 help\farith.html
-help\shortfloat.html
 help\fcmp.html
-
+help\shortfloat.html
+help\bits.html
+help\mor.html
+help\bdif.html
+help\orh.html
+help\sadd.html
+help\mux.html
+help\address.html
+help\lda.html
+help\geta.html
+help\2addu.html
+help\seth.html
+help\inch.html
+help\loadstore.html
+help\ldb.html
+help\stb.html
+help\stco.html
+help\ldbu.html
+help\stbu.html
+help\stht.html
 
 [INFOTYPES]
 
