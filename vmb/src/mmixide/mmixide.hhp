@@ -26,6 +26,8 @@ help\farith.html
 help\fcmp.html
 help\shortfloat.html
 help\bits.html
+help\logic.html
+help\shift.html
 help\mor.html
 help\bdif.html
 help\orh.html
@@ -44,6 +46,38 @@ help\stco.html
 help\ldbu.html
 help\stbu.html
 help\stht.html
+help\ldsf.html
+help\control.html
+help\jmp.html
+help\go.html
+help\branch.html
+help\cset.html
+help\subroutine.html
+help\pushj.html
+help\pop.html
+help\save.html
+help\cswap.html
+help\special.html
+help\put.html
+help\trip.html
+help\trap.html
+help\resume.html
+help\ldunc.html
+help\preld.html
+help\sync.html
+help\syncid.html
+help\syncd.html
+help\ldvts.html
+help\swym.html
+help\assembler.html
+help\is.html
+help\loc.html
+help\byte.html
+help\greg.html
+help\loc.html
+help\local.html
+help\bspec.html
+
 
 [INFOTYPES]
 
