@@ -272,16 +272,16 @@
 					<param name="Local" value="help/greg.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Defining Namespaces with PREFIX">
+					<param name="Local" value="help/prefix.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The LOCAL Instruction">
 					<param name="Local" value="help/local.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="BSPEC and ESPEC">
 					<param name="Local" value="help/bspec.html">
-					</OBJECT>
-				<LI> <OBJECT type="text/sitemap">
-					<param name="Name" value="Defining Namespaces with PREFIX">
-					<param name="Local" value="help/prefix.html">
 					</OBJECT>
 			</UL>
 		</UL>
