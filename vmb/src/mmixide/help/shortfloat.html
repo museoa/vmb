@@ -1,0 +1,37 @@
+
+
+
+<h4>Conversion of Short Floats</h4>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+  <B>Name:</B>
+<p>
+     <a name="SFLOT" id="SFLOT">SFLOT</a> $X,$Z or SFLOT $X,Z
+ <br><a name="SFLOTU" id="SFLOTU">SFLOTU</a> $X,$Z or SFLOTU $X,Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>SFLOT:  <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; s($Z)
+<tr><td>SFLOTU: <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; u($Z)
+    </table><p>
+<B>Timing:</B>
+<p>
+4&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Converts an integer number to 32-bit IEEE floating point format.
+The number is first converted to T, a 32-bit intermediate value.
+This conversion might cause rounding. After this conversion, the
+number T is extended to a 64-bit floating point number.
+The Y-operand may contain a rounding mode similar to the FLOT instruction.
+  <p>
+<B>See also:</B>
+<p>
+<a href="#FLOT">FLOT</a> and <a href="#FLOTU">FLOTU</a>.
+                                                                                                    
+
+   </td></tr>
+</table><p>

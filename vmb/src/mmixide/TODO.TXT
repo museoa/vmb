@@ -13,6 +13,8 @@ Ask for reset/reload after assembly while debugging
 
 Add help for the ide
 
+currently step out will not stop at breakpoints inside the routine. This should be changed.
+It needs reworking the whole debug interface of MMIX.
 
 Other Ideas:
 

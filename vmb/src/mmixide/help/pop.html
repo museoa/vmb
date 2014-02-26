@@ -1,0 +1,51 @@
+
+<h2>The POP Instruction</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+  <B>Name:</B>
+<p>
+<a name="POP" id="POP">POP</a> X,YZ
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<p>
+If X &#x003E; rL, then first replace X by rL + 1.
+  <p>
+The register stack S[0],&#x2026;,S[&#x03C4; - 1] is changed as follows:
+<br>
+<table cellspacing=5>
+<tr><td>x  </td><td> &larr; S[&#x03C4; - 1]mod256 (size of the callee's stack frame),
+  <tr><td>S[&#x03C4; - 1]  </td><td> &larr; $(X - 1) (main return value),
+  <tr><td>rL  </td><td> &larr; min(x + X,rG),
+  <tr><td>$(rL - 1)  </td><td> &larr; $(rL - x - 2)
+  <tr><td>&#x2026;
+  <tr><td>$(x + 1)  </td><td> &larr; $0,
+  <tr><td>$x  </td><td> &larr; S[&#x03C4; - 1]
+  <tr><td>&#x2026;
+  <tr><td>$0  </td><td> &larr; S[&#x03C4; - x - 1],
+  <tr><td>&#x03C4;  </td><td> &larr; &#x03C4; - x - 1
+  <tr><td>@  </td><td> &larr; rJ + 4YZ
+    </table><p>
+<B>Timing:</B>
+<p>
+3&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+The  POP instruction undoes the effect of a previous PUSHJ Instruction.
+X indicates the number of return values in registers  $0 to  $(X-1),
+where $(X-1) contains the main return value.
+Initially, the size x of the callee's stack frame (the number of its local registers)
+is directly below $0 on the register stack. This value is replaced by the main
+return value. After that, the registers are renumbered such that the callee's
+local registers are again $0, $1, ... and the return values are in
+registers $X and following (where the $X here is from the previous PUSHJ
+instruction).
+  <p>
+<B>See also:</B>
+<p>
+<a href="#PUSHJ">PUSHJ</a> 
+
+   </td></tr>
+</table><p>

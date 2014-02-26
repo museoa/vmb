@@ -1,0 +1,31 @@
+
+
+<h2>Get Address (GETA)</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+
+
+  <B>Name:</B>
+<p>
+<a name="GETA" id="GETA">GETA</a> $X,Label
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>u($X)  </td><td> &larr; RA, with
+  <tr><td>RA </td><td> &larr; @+ 4*YZ with forward references
+  <tr><td>RA </td><td> &larr; @+4*(YZ-2<sup>16</sup>) for backward references
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Stores an address in register $X using relative addressing.
+The assembler is able to resolve forward references and will
+automatically choose the appropriate opcode.
+
+   </td></tr>
+</table><p>

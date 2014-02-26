@@ -1,0 +1,32 @@
+
+<h4>Floating Point Conversion</h4>
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="FLOT" id="FLOT">FLOT</a> $X,$Z </td><td>FLOT $X,Z </td></tr>
+<tr><td><a name="FLOTU" id="FLOTU">FLOTU</a> $X,$Z</td><td>FLOTU $X,Z</td></tr>
+<tr><td><a name="FIX" id="FIX">FIX</a> $X,$Z  </td><td><a name="FIXU" id="FIXU">FIXU</a> $X,$Z</td></tr>
+<tr><td>           </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>FLOT: <td> f($X)  </td><td> &larr; s($Z)
+  <tr><td>FLOTU: <td> f($X)  </td><td> &larr; u($Z)
+  <tr><td>FIX: <td> s($X)  </td><td> &larr; int(f($Z))
+  <tr><td>FIXU:<td> u($X)  </td><td> &larr; (int(f($Z)))mod2<sup>64</sup>
+    </table><p>
+<B>Timing:</B>
+<p>
+4&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Converts numbers from integer representation to floating point representation
+and vice versa.
+An optional Y-Operand can be used to specify one of the following
+rounding modes:
+  ROUND_OFF, ROUND_UP, ROUND_DOWN, or  ROUND_NEAR.
+
+

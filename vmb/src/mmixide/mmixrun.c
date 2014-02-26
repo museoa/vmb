@@ -66,7 +66,6 @@ int mmix_continue(unsigned char command)
        interacting=breakpoint=tracing=true; /* trace one inst and break */
        break;
 	 case 'o': /* step out */
-		 rOlimit=g[rO];
          rOlimit=incr(g[rO],-1);
        interacting=breakpoint=tracing=true; /* trace one inst and break */
        break;

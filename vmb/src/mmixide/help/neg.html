@@ -1,0 +1,27 @@
+
+<h4>NEG and NEGU</h4>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+  <B>Name:</B>
+<table cellspacing=5 >
+<tr>
+<td><a name="NEG" id="NEG">NEG</a> $X,Y,$Z </td><td>NEG $X,Y,Z </td></tr>
+<tr><td><a name="NEGU" id="NEGU">NEGU</a> $X,Y,$Z</td><td>NEGU $X,Y,Z</td></tr>
+<tr><td>            </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+  <tr><td>NEG: s($X)  </td><td> &larr; Y - s($Z)
+  <tr><td>NEGU: u($X)  </td><td> &larr; (Y - u($Z))mod2<sup>64</sup>
+</table><p>
+<B>Timing:</B>
+<br>1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Y is a nonnegative constant, usually zero. If Y has the value zero, it can be omitted.
+The instruction is used to negate $Z. 
+   </td></tr>
+</table><p>

@@ -1,0 +1,33 @@
+
+<h2>The LDHT Instruction</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="LDHT" id="LDHT">LDHT</a> $X,$Y,$Z</td><td>LDHT $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>u($X)  </td><td> &larr; u(M<sub>4</sub>[$Y + $Z]) &#x00D7; 2<sup>32</sup>
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon; + 1&mu;
+  <p>
+<B>Description:</B>
+<p>
+Loads one tetrabyte from main memory into the high-tetra (the 4 most significant byte)
+of $X. The low tetra of $X is filled with zeros.
+  <p>
+The address A is rounded down, if necessary, to be a multiple of 4.
+<p>
+<B>See also:</B>
+<p>
+<a href="#STHT">STHT</a> and <a href="#LDT">LDT</a>.
+
+   </td></tr>
+</table><p>

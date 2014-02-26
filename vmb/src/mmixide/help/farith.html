@@ -1,0 +1,45 @@
+
+
+<h4>Floating Point Arithmetic</h4>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+
+
+  <B>Name:</B>
+<p><a name="FADD" id="FADD">FADD</a> $X,$Y,$Z
+ <br><a name="FSUB" id="FSUB">FSUB</a> $X,$Y,$Z
+ <br><a name="FMUL" id="FMUL">FMUL</a> $X,$Y,$Z
+ <br><a name="FDIV" id="FDIV">FDIV</a> $X,$Y,$Z
+ <br><a name="FREM" id="FREM">FREM</a> $X,$Y,$Z
+ <br><a name="FSQRT" id="FSQRT">FSQRT</a> $X,$Z
+ <br><a name="FINT" id="FINT">FINT</a> $X,$Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+<tr><td>FDIV: <td> f($X)  </td><td> &larr; f($Y) &#x2215; f($Z)
+<tr><td>FREM: <td> f($X)  </td><td> &larr; f($Y) rem f($Z)
+<tr><td><td><td> y rem z is defined as y-nz, where n
+  is the integer number closest to y&#x2215;z, or the closest even number
+  in case of multiple closest integers.
+
+<tr><td>FINT: <td> f($X)  </td><td> &larr; f(int(f($Z)))
+<tr><td>FSQRT: <td> f($X)  </td><td> &larr; f($Z)<sup>1<I>&#x2215;</I>2</sup>
+</table><p>
+<B>Timing:</B>
+<p>
+4&upsilon; for FADD, FSUB, FMUL, FREM and FINT
+ <br>40&upsilon; for FDIV and FSQRT
+ <p>
+<B>Description:</B>
+<p>
+FADD, FSUB, FMUL, and FDIV perform arithmetic on floating point numbers.
+
+  FINT rounds a floating point number to the nearest integer number using
+  the current rounding mode. Unlike FIX, the result is still in floating point format.
+  The instructions FINT and FSQRT can use the optional Y-Operand
+  to specify a rounding mode: ROUND_OFF, ROUND_UP,
+  ROUND_DOWN, or ROUND_NEAR.                        
+
+   </td></tr>
+</table><p>

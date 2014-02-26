@@ -1,0 +1,33 @@
+
+<h2>The STHT Instruction</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+ <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="STHT" id="STHT">STHT</a> $X,$Y,$Z</td><td>STHT $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5>
+<tr><td>u(M<sub>4</sub>[$Y + $Z])</td>
+    <td> &larr; &lfloor;u($X)&#x2215;2<sup>32</sup>&rfloor;
+   </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon; + 1&mu;
+  <p>
+<B>Description:</B>
+<p>
+Store the High-Tetra (the four most significant byte) of $X to main memory.
+  <p>
+The address A is rounded down, if necessary, to be a multiple of 4.
+  <p>
+<B>See also:</B>
+<p>
+<a href="#LDHT">LDHT</a> and
+<a href="#STT">STT</a>.
+
+   </td></tr>
+</table><p>

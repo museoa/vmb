@@ -1,0 +1,30 @@
+<h2>Jumps with Relative Addresses</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+  <B>Name:</B>
+<p>
+<table cellspacing=5 >
+<tr><td><a name="JMP" id="JMP">JMP</a> XYZ
+</table>
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>@ </td><td> &larr; RA with
+  <tr><td>RA </td><td> &larr; @+4*XYZ for a jump forward,
+  <tr><td>RA </td><td> &larr; @+4*(XYZ-2<sup>24</sup>) for a jump backward.
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Executes an unconditional jump.
+Usually, a label is used to specify the jump target. The assembler will
+automatically determine whether it is a jump forward or backward and
+selects the appropriate instruction.
+   </td></tr>
+</table><p>
+

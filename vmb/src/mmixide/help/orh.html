@@ -1,0 +1,36 @@
+
+
+<h2><a name="16Bit_Immediate" id ="16Bit_Immediate">Bitwise Operations with 16-Bit Immediate values</a></h2>
+
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+ <B>Name:</B>
+<table cellspacing=5 
+><tr>
+<td><a name="ORH" id="ORH">ORH</a> $X,YZ,   </td><td name="ORMH" id="ORMH">ORMH</a> $X,YZ,   </td><td><a name="ORML" id="ORML">ORML</a> $X,YZ,   </td><td><a name="ORL" id="ORL">ORL</a> $X,YZ  </td></tr>
+<tr><td><a name="ANDNH" id="ANDNH">ANDNH</a> $X,YZ,</td><td><a name="ANDNMH" id="ANDNMH">ANDNMH</a> $X,YZ,</td><td><a name="ANDNML" id="ANDNML">ANDNML</a> $X,YZ,</td><td><a name="ANDNL" id="ANDNL">ANDNL</a> $X,YZ</td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+Below, operator &#x2299; stands either for the 
+And-Not (\) operation or the Or (|) operation:
+<table cellspacing=5 >
+<tr><td>ANDNH  </td><td>or ORH: $X   </td><td> &larr; $X &#x2299; YZ&#x00D7;2<sup>48</sup>
+<tr><td>ANDNMH </td><td>or ORMH: $X  </td><td> &larr; $X &#x2299; YZ&#x00D7;2<sup>32</sup>
+<tr><td>ANDNML </td><td>or ORML: $X  </td><td> &larr; $X &#x2299; YZ&#x00D7;2<sup>16</sup>
+<tr><td>ANDNL  </td><td>or ORL: $X   </td><td> &larr; $X &#x2299; YZ
+</table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Bitwise operation on a 16-bit immediate value.
+Before the immediate wyde operand is used, it is shifted into one of the four
+possible positions of an octabyte.
+
+   </td></tr>
+</table><p>
+

@@ -1,0 +1,28 @@
+
+
+<h2>The MUX Instruction</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+  <B>Name:</B>
+<p>
+<a name="MUX" id="MUX">MUX</a> $X,$Y,$Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>v($X)  </td><td> &larr; (v($Y) &#x2227; v(rM)) &#x2228; (v($Z) &#x2227;<span class="overline">v(rM))
+    </table><p>
+<B>Timing:</B>
+<p>
+MUX: &upsilon;
+  <p>
+<B>Description:</B>
+<p>
+(Bitwise  Multiplex) 
+This instruction combines two bit pattern using the
+Multiplex-Mask-Registers rM. 
+The bits in the result are taken from $Y, when the corresponding bit in rM is 1
+and from $Z if the bit in rM is 0.
+
+   </td></tr>
+</table><p>

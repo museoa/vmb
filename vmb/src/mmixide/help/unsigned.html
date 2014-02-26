@@ -1,0 +1,71 @@
+<h4><a name="Unsigned_Arithmetic" id="Unsigned_Arithmetic"><Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Unsigned Arithmetic">
+</OBJECT>Unsigned Arithmetic</a></h4>
+
+
+<B>Name:</B>
+<table cellspacing=5>
+<tr><td><a name="ADDU" id="ADDU">ADDU</a> $X,$Y,$Z</td><td>ADDU $X,$Y,Z</td></tr>
+<tr><td><a name="SUBU" id="SUBU">SUBU</a> $X,$Y,$Z</td><td>SUBU $X,$Y,Z</td></tr>
+<tr><td><a name="MULU" id="MULU">MULU</a> $X,$Y,$Z</td><td>MULU $X,$Y,Z</td></tr>
+<tr><td><a name="DIVU" id="DIVU">DIVU</a> $X,$Y,$Z</td><td>DIVU $X,$Y,Z</td></tr>
+</table> 
+ <p>
+
+<B>Specification:</B>
+<p>
+<table cellspacing=5>
+<tr><td>ADDU: u($X)  </td><td> &larr; (u($Y) + u($Z)) mod 2<sup>64</sup>
+<tr><td>SUBU: u($X)  </td><td> &larr; (u($Y) -u($Z)) mod 2<sup>64</sup>
+<tr><td>MULU: u(rH $X)  </td><td> &larr; u($Y) * u($Z) 
+<tr><td valign="top">DIVU:</td><td>
+<table>
+<tr> <td rowspan=2 valign="middle"> u($X)  &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="../image/brace.png" alt="{">
+    <td> &lfloor;u(rD $Y) / u($Z)&rfloor; <td> if   u($Z) &#x003E; u(rD) 
+<tr><td> u(rD)                            <td> otherwise
+</table>
+<p>
+<table>
+<tr><td rowspan=2 valign="middle"> u(rR)  &larr; 
+    <td rowspan=2 valign="middle"> 
+      <img src="../image/brace.png" alt="{">
+    <td> u(rD $Y) mod u($Z)  <td> if   u($Z) &#x003E; u(rD)
+<tr><td> u($Y)            <td> otherwise 
+</table>
+The special register rD is prepended to the register $Y to form a 128 bit number.
+This number is divided by $Z and the result is stored in $X. The remainder is
+stored in special register rR.
+<p>
+If, however, rD &ge; $Z, then the result of the division would be
+greater than 2<sup>64</sup>
+and the quotient will not be computed. 
+Instead, rD is stored in $X and $Y is stored in rR.
+In Donald Knuth's "The Art of Computer Programming", Volume 2, 
+"Seminumerical Algorithms", Chapter 4.3.1
+will explain how to use this instruction to implement division of
+high-precision numbers with 128 bit or more.
+<p>
+<tr><td> 
+</table>
+<p>
+All instructions exist in two variants. The second operand can either be a
+register $Z or an immediate value Z.
+  <p>
+  <p>
+<B>Timing:</B>
+<br>ADDU: 1&upsilon;
+  <br>SUBU: 1&upsilon;
+  <br>MULU: 10&upsilon;
+  <br>DIVU: 60&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+These instructions perform arithmetic operations on unsigned numbers.
+They <I>never</I> cause overflow or other exceptions, not even if dividing by zero.
+<p>
+<B>See also:</B>
+<p>
+<a href=signed.html>Signed Arithmetic</a>.
+

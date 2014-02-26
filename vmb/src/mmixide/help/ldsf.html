@@ -1,0 +1,34 @@
+
+<h2>Loading and Storing of Short Floats</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+ <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="LDSF" id="LDSF">LDSF</a> $X,$Y,$Z</td><td>LDSF $X,$Y,Z</td></tr>
+<tr><td><a name="STSF" id="STSF">STSF</a> $X,$Y,$Z</td><td>STSF $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>LDSF: f($X)  </td><td> &larr; f(M<sub>4</sub>[$Y + $Z])
+  <tr><td>STSF: f(M<sub>4</sub>[$Y + $Z])  </td><td> &larr; f($X)
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon; + 1&mu;
+  <p>
+<B>Description:</B>
+<p>
+Loads respectively stores a 32-bit floating point number. Before storing,
+respectively after loading, a conversion from, respectively to,
+the 64-bit floating point format is done.
+  <p>
+<B>See also:</B>
+<p>
+<a href="#LDT">LDT</a> and <a href="#STT">STT</a> (for 32-bit fixed point numbers).
+
+   </td></tr>
+</table><p>

@@ -29,8 +29,9 @@
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 
+
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.29 $ $Date: 2014-02-24 12:20:31 $";
+char version[]="$Revision: 1.30 $ $Date: 2014-02-26 10:51:04 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */

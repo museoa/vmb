@@ -1,0 +1,44 @@
+
+<h2>Mix and Match</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+
+
+ <B>Name:</B>
+<p>
+     <a name="MOR" id="MOR">MOR</a> $X,$Y,$Z
+ <br><a name="MXOR" id="MXOR">MXOR</a> $X,$Y,$Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<p>
+Assume that the 64 bits in $Y are numbered as follows 
+(and similar for the bits in register $Z and $X):
+<p>
+  y<sub>00</sub>y<sub>01</sub>...y<sub>07</sub> y<sub>10</sub>y<sub>11</sub>...y<sub>17</sub> ... y<sub>70</sub>y<sub>71</sub>...y<sub>77</sub>
+<p>
+ Now bit x<sub><I>ij</I></sub> in register register $X is computed as follows:
+ <p>
+<table cellspacing=5>
+<tr><td>MOR:<td>
+  x<sub>ij</sub> = y<sub>0j</sub>&amp; z<sub>i0</sub> | y<sub>1j</sub>&amp; z<sub>i1</sub>  |  ...  | y<sub>7j</sub>&amp; z<sub>i7</sub>
+<tr><td>MXOR:<td>
+
+  x<sub>ij</sub> = y<sub>0j</sub> &amp; z<sub>i0</sub> &#x02C6; y<sub>1j</sub> &amp; z<sub>i1</sub>  &#x02C6; ...  &#x02C6; y<sub>7j</sub> &amp; z<sub>i7</sub>
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+These instructions regard the 8 Byte of a register as a  8&#x00D7;8-Matrix
+and compute the result as a matrix multiplication,  where in MOR, Addition is replaced by
+  OR (logical or (|))  and in MXOR, Addition is replaced by XOR
+  (exclusive or (&#x02C6;)). In both cases the AND operation (&amp;) is used 
+  instead of multiplication.
+
+   </td></tr>
+</table><p>

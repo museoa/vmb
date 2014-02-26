@@ -1,0 +1,36 @@
+
+<h2>2ADDU, 4ADDU, 8ADDU and 16ADDU</h2>
+
+
+ <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="2ADDU" id="2ADDU">2ADDU</a> $X,$Y,$Z </td><td>2ADDU $X,$Y,Z </td></tr>
+<tr><td><a name="4ADDU" id="4ADDU">4ADDU</a> $X,$Y,$Z </td><td>4ADDU $X,$Y,Z </td></tr>
+<tr><td><a name="8ADDU" id="8ADDU">8ADDU</a> $X,$Y,$Z </td><td>8ADDU $X,$Y,Z </td></tr>
+<tr><td><a name="16ADDU" id="16ADDU">16ADDU</a> $X,$Y,$Z</td><td>16ADDU $X,$Y,Z</td></tr>
+<tr><td>               </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+<table cellspacing=5 >
+<tr><td>u($X)  </td><td> &larr; u($Y) &#x00D7; s + u($Z) or
+  <tr><td>u($X)  </td><td> &larr; u($Y) &#x00D7; s + u(Z)
+</table>
+<br>
+were s = 2, 4, 8 or 16, depending on the instruction.
+<p>
+<B>Timing:</B>
+<p>
+sADDU: 1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+The instructions sADDU are handy for address calculations with arrays of elements
+of size 2, 4, 8 or 16 byte.
+
+  <p>
+<B>See also:</B>
+<p>
+ADDU  and LDA..
+

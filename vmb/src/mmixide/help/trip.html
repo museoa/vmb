@@ -1,0 +1,36 @@
+
+<h2>TRIP</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+  <B>Name:</B>
+<p>
+ 
+  
+  <a name="TRIP" id="TRIP">TRIP</a> X,Y,Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>rB </td><td> &larr; $255
+ <tr><td>$255 </td><td> &larr; rJ
+ <tr><td>rW </td><td> &larr; @+4
+  <tr><td>rX </td><td> &larr; #8000 0000&#x226A; 32&#x2225;#FF X Y Z
+ <tr><td>rY </td><td> &larr; $Y
+ <tr><td>rZ </td><td> &larr; $Z
+   </table><p>
+<B>Timing:</B>
+<p>
+5&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Causes a Trip interrupt and jumps to the Trip handler at address #00.
+  <p>
+<B>See also:</B>
+<p>
+<a href="#TRAP">TRAP</a> and <a href="#RESUME">RESUME</a>
+                                                               
+
+   </td></tr>
+</table><p>

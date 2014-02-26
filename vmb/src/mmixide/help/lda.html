@@ -1,0 +1,39 @@
+
+<h2>The Pseudo Instruction LDA</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+
+
+
+  <B>Name:</B>
+<p>
+<table cellspacing=5 >
+<tr>
+<td><a name="LDA" id="LDA">LDA</a> $X,Label
+</table><p>
+<B>Specification:</B>
+<p>
+<table cellspacing=5 >
+<tr><td>LDA: u($X) </td><td> &larr; Label
+</table><p>
+
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Stores the address indicated by the label in register $X.
+This instruction is assembled as an ADDUI instruction
+using a suitable global register or, with the -x option of mmixal
+it is assembled into a sequence of four instructions using 16-bit immediate
+operands.
+
+  <p>
+<B>See also:</B>
+<a href="#ADDU">ADDU</a>,
+<a href="#16Bit_Immediate">Bitwise Operations with 16-Bit Immediate Values</a>.
+
+   </td></tr>
+</table><p>
+

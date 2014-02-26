@@ -1,0 +1,31 @@
+[OPTIONS]
+Auto Index=Yes
+Auto TOC=5
+Compatibility=1.1 or later
+Compiled file=mmixide.chm
+Contents file=mmixide.hhc
+Default topic=help\mmixide.html
+Display compile progress=Yes
+Full-text search=Yes
+Index file=mmixide.hhk
+Language=0x409 English (United States)
+Title=MMIX Instructions
+
+
+[FILES]
+help\mmixide.html
+help\instructions.html
+help\integer.html
+help\signed.html
+help\unsigned.html
+help\compare.html
+help\neg.html
+help\float.html
+help\flot.html
+help\farith.html
+help\shortfloat.html
+help\fcmp.html
+
+
+[INFOTYPES]
+

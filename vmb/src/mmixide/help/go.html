@@ -1,0 +1,34 @@
+
+<h2>Jumps with Absolute Addresses</h2>
+
+<table width="100%" border=2 cellpadding=5><tr><td>
+  <B>Name:</B>
+<p>
+<table cellspacing=5 >
+<tr><td><a name="GO" id="GO">GO</a> $X,$Y,Z
+ <tr><td>GO $X,$Y,$Z
+</table>
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>u($X) </td><td> &larr; @+4
+  <tr><td>@  </td><td> &larr; $Y + Z
+    </table><p>
+<B>Timing:</B>
+<p>
+3&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Unconditional jump to Address $Y+$Z, respectively $Y+Z.
+The target address is rounded down to a multiple of 4.
+The address of the next instruction is stored as return address in $X.
+The instruction can be used to link subroutines or coroutines.
+  <p>
+<B>See also:</B>
+<p><a href="#PUSHGO">PUSHGO</a>, <a href="#GETA">GETA</a>,
+<a href="#LDA">LDA</a>, <a href="#PREGO">PREGO</a>
+                                                               
+   </td></tr>
+</table><p>
