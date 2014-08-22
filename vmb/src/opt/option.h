@@ -46,6 +46,7 @@ extern void uint64tohex(uint64_t u, char *c);
 extern uint64_t strtouint64(char *arg);
 /* strings with the program path  and program name */
 extern char *programpath;
+extern char *programhelpfile;
 extern char *vmb_program_name;
 extern char *vmb_cwd;
 

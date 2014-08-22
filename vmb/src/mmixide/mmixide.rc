@@ -450,6 +450,8 @@ BEGIN
     POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
     BEGIN
         MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Content",                     ID_HELP_CONTENT,MFT_STRING,MFS_ENABLED
+        MENUITEM "Instructions",                ID_HELP_INSTRUCTIONS,MFT_STRING,MFS_ENABLED
     END
 END
 

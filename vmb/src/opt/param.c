@@ -41,10 +41,6 @@
 #include "bus-arith.h"
 
 
-#ifdef WIN32
-char *programhelpfile = NULL;
-#endif
-
 char *host=NULL;
 char *vmb_filename=NULL;
 int port = 9002;

@@ -42,7 +42,6 @@
 #include "winmain.h"
 
 
-char *programhelpfile = NULL;
 char *host=NULL;
 int port = 9002;
 int xpos=0, ypos=0; /* Window position */

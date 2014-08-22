@@ -42,7 +42,6 @@
 #define DIRSTR  ("/")
 #endif
 #include "vmb.h"
-// include "param.h"
 #include "option.h"
 
 
@@ -52,6 +51,7 @@
 
 char tmp_option[MAXTMPOPTION]= {0};
 char *programpath = NULL;
+char *programhelpfile = NULL;
 char *defined=NULL;
 static char * configFILE=NULL;
 static char * configPATH=NULL;
@@ -757,6 +757,17 @@ static void do_program(char * arg)
 	  defined[i-5]=0;
 #endif 
   vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s\n", defined);
+
+#ifdef WIN32
+	programhelpfile = malloc(n  + strlen(defined) + 5); /* path  + defined.chm  + '0'*/
+    if (programhelpfile==NULL) 
+    { vmb_fatal_error(__LINE__,"Out of memory");
+	  return;
+	}
+    strcpy(programhelpfile,programpath);
+	strcat(programhelpfile,defined);
+	strcat(programhelpfile,".chm");
+#endif
 }
 
 

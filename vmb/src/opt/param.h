@@ -45,7 +45,6 @@ extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 
 #ifdef WIN32
 extern void param_init(void);
-extern char *programhelpfile;
 #else
 extern void param_init(int argc, char *argv[]);
 #endif

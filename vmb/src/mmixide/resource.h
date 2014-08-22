@@ -203,13 +203,15 @@
 #define ID_MMIX_BREAKR                  40098
 #define ID_MMIX_BREAKW                  40099
 #define ID_MMIX_BREAKT                  40100
+#define ID_HELP_CONTENT                 40101
+#define ID_HELP_INSTRUCTIONS            40102
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
-#define _APS_NEXT_COMMAND_VALUE         40101
+#define _APS_NEXT_COMMAND_VALUE         40103
 #define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

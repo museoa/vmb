@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -301,15 +301,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
-				>
-			</File>
-			<File
 				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
@@ -392,6 +392,10 @@
 			</File>
 			<File
 				RelativePath=".\mmixide.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixide16.ico"
 				>
 			</File>
 			<File

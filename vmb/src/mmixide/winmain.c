@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <afxres.h>
+#include <htmlhelp.h> 
 #include <stdio.h>
 #include <process.h>
 #include "winopt.h"
@@ -31,7 +32,7 @@
 
 
 int major_version=1, minor_version=0;
-char version[]="$Revision: 1.30 $ $Date: 2014-02-26 10:51:04 $";
+char version[]="$Revision: 1.31 $ $Date: 2014-08-22 10:07:24 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -53,7 +54,7 @@ HWND      hStatus;
 HWND	  hError=NULL;
 HWND	  hSymbolTable=NULL;
 
-#define S_WIDTH 200
+#define S_WIDTH 400
 
 void ide_status(char *message)
 { SendMessage(hStatus, WM_SETTEXT,0,(LPARAM)message);
@@ -382,6 +383,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case ID_HELP_ABOUT:
 	      DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
 	      return 0; 
+
+		case ID_HELP_CONTENT:
+		  { HWND hh; 
+		    if (programhelpfile==NULL)
+              hh = HtmlHelp(hWnd,"mmixide.chm",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+		    else
+				hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+			/* this will search for the given topic file */
+			hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,"help\\instructions.html") ;
+
+		  }
+		  return 0;
+		case ID_HELP_INSTRUCTIONS:
+		  { HWND hh;
+		    HH_AKLINK link; 
+		    if (programhelpfile==NULL)
+              hh = HtmlHelp(hWnd,"mmixide.chm",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+		    else
+              hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+            /* this will search for the given keyword */
+            link.cbStruct =     sizeof(HH_AKLINK) ;
+            link.fReserved =    FALSE ;
+            link.pszKeywords =  "LDA" ;
+            link.pszUrl =       NULL ;
+            link.pszMsgText =   NULL ;
+            link.pszMsgTitle =  NULL ;
+            link.pszWindow =    NULL ;
+            link.fIndexOnFail = TRUE ;
+		    if (programhelpfile==NULL)
+              hh = HtmlHelp(hWnd,"mmixide.chm", HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+		    else
+              hh = HtmlHelp(hWnd,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+		  }
+		  return 0;
 	  }
 	  /* else if (HIWORD(wParam)==1) break; Accellerator */
 	}
@@ -787,17 +822,17 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 	if (edit_file_no<0) ed_new();
-	hStatus = CreateWindow("STATIC", version ,
-				WS_CHILD|WS_VISIBLE|SS_CENTER,
+	hStatus = CreateWindow("STATIC", "Status" ,
+				WS_CHILD|WS_VISIBLE|SS_RIGHT,
                 r.right-r.left-S_WIDTH,0, S_WIDTH,BB_HEIGHT,
 	            hMainWnd, NULL, hInstance, NULL);
-
+	SendMessage(hStatus,WM_SETFONT,(WPARAM)GetStockObject(ANSI_FIXED_FONT),0);
+    ide_status(version);
 	vmb_program_name="mmixide";
     vmb_message_hook = win32_message;
 	vmb_debug_hook = NULL;
 	vmb_error_init_hook = NULL;
     vmb_exit_hook=ide_exit_ignore;
-    programhelpfile="mmixide.hlp";
 	/* normal vmb processing */
 	
 
