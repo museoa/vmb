@@ -61,13 +61,27 @@ static char *get_mml_name(char *full_mms_name)
 }
 
 
-void mmixal_error(char *message, int file_no, int line_no, int status)
-/* status = 0 normal, 1 warning, -1 fatal */
-{ if (status<0) 
-    ide_status(message);
-  else
+void report_error(char*message,char*filename,int line_no)
+{ int file_no=filename2file(filename,0);
+  if(message[0]=='!') /* fatal error */
+    ide_status(message+1);
+  else if(message[0]=='*') /* warning */
 	ide_add_error(message,file_no,line_no);
+  else /* error */
+	ide_add_error(message,file_no,line_no);
+  err_count++;
+  if(listing_file){
+    if(!line_listed)flush_listing_line("****************** ");
+    if(message[0]=='*')fprintf(listing_file,
+       "************ warning: %s\n",message+1);
+    else if(message[0]=='!')fprintf(listing_file,
+       "******** fatal error: %s!\n",message+1);
+    else fprintf(listing_file,
+       "********** error: %s!\n",message);
+  }
 }
+
+
 
 int mmix_assemble(int file_no)
 { int err_count;

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../util;../opt;../mmix;../vmbmmixlib;../splitterlib"
+				AdditionalIncludeDirectories="../util;../opt;mmixlib;../vmbmmixlib;../splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib Htmlhelp.lib"
+				AdditionalDependencies="$(ConfigurationName)\mmixlib.lib Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../util;../opt;../mmix;../vmbmmixlib;../splitterlib"
+				AdditionalIncludeDirectories="../util;../opt;mmixlib;../vmbmmixlib;../splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib  Imm32.lib comctl32.lib Htmlhelp.lib"
+				AdditionalDependencies="$(ConfigurationName)\mmixlib.lib Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -301,15 +301,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\opt\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\scintilla\win32\resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File

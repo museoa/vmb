@@ -78,67 +78,22 @@ int mmix_continue(unsigned char command)
      SetEvent (hInteract);
    return 1;
 }
-#ifdef MMIX_CONSOLE
-static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
-{ int hConHandle;
-  HANDLE lStdHandle;
-  CONSOLE_SCREEN_BUFFER_INFO coninfo;
-  FILE *fp;
-  FILE stdoutOld, stdinOld, stderrOld;
-  int returncode;
 
-  if (AllocConsole()==0)
-    vmb_debugi(VMB_DEBUG_FATAL,"Unable to allocate Console (%X)\n",GetLastError());
-  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&coninfo);
-  coninfo.dwSize.Y = MAX_CONSOLE_LINES;
-  SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE),coninfo.dwSize);
 
-  lStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)lStdHandle, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  stdoutOld=*stdout;
-  *stdout = *fp;
-  setvbuf( stdout, NULL, _IONBF, 0 );
+extern jmp_buf mmix_exit;
+device_info vmb;
 
-  lStdHandle = GetStdHandle(STD_INPUT_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)lStdHandle, _O_TEXT);
-  fp = _fdopen( hConHandle, "r" );
-  stdinOld=*stdin;
-  *stdin = *fp;
-  setvbuf( stdin, NULL, _IONBF, 0 );
+#define panic(m) vmb_fatal_error(__LINE__,m)
+#define sign_bit ((unsigned)0x80000000)
 
-  lStdHandle =  GetStdHandle(STD_ERROR_HANDLE);
-  hConHandle = _open_osfhandle((intptr_t)lStdHandle, _O_TEXT);
-  fp = _fdopen( hConHandle, "w" );
-  stderrOld=*stderr;
-  *stderr = *fp;
-  setvbuf( stderr, NULL, _IONBF, 0 );
 
-  if (hInteract==NULL)
-    hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
-  vmb_exit_hook = mmix_exit;
-  returncode = mmix_main(0,NULL,get_mmo_name(file2fullname(running_file_no)));
-  running_file_no=-1;
-  vmb_atexit();
-  vmb_exit_hook = ide_exit_ignore;
-
-  PostMessage(hMainWnd,WM_MMIX_STOPPED,0,(LPARAM)-1); 
- 
-  if (hInteract!=NULL)
-   { CloseHandle(hInteract); 
-     hInteract=NULL;
-   }
-
-  *stderr=stderrOld;
-  *stdin=stdinOld;
-  *stdout=stdoutOld;
-
-  FreeConsole();
-  dwMMIXThreadId=0;
-  return returncode;
+void mmix_exit_hook(int returncode)
+{ longjmp(mmix_exit, returncode);
 }
-#else
+
+
+
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int returncode;
 
@@ -146,7 +101,7 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
  
-  vmb_exit_hook = mmix_exit;
+  vmb_exit_hook = mmix_exit_hook;
   returncode = mmix_main(0,NULL,NULL);
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
@@ -161,7 +116,6 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
   dwMMIXThreadId=0;
   return returncode;
 }
-#endif
 
 
 int mmix_active(void)
@@ -252,18 +206,6 @@ void mmix_stopped(octa loc)
 
 }
 
-static jmp_buf error_exit;
-device_info vmb;
-
-#define panic(m) vmb_fatal_error(__LINE__,m)
-#define sign_bit ((unsigned)0x80000000)
-
-
-
-void mmix_exit(int returncode)
-{ longjmp(error_exit, returncode);
-}
-
 /* this is the plain vmb version of mmix main() */
 
 static int check_rO(void)
@@ -329,7 +271,7 @@ static void mmix_load(int file_no)
 
 int mmix_main(int argc, char *argv[],char *mmo_name)
 { g[255].h=0;
-  g[255].l=setjmp(error_exit);
+  g[255].l=setjmp(mmix_exit);
   if (g[255].l!=0)
    goto end_simulation;
  

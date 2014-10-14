@@ -31,8 +31,8 @@
 #include "../scintilla/include/scintilla.h"
 
 
-int major_version=1, minor_version=0;
-char version[]="$Revision: 1.31 $ $Date: 2014-08-22 10:07:24 $";
+int major_version=1, minor_version=5;
+char version[]="$Revision: 1.32 $ $Date: 2014-10-14 15:59:19 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */

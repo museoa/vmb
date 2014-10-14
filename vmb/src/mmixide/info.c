@@ -36,6 +36,12 @@ char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename c
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
 
+static int ybyte2file_no[256];
+/* convert a ybyte to a valid index into file_info,
+   return -1; if there is no valid file_info entry for this ybyte */
+int ybyte2file(int c)
+{ return ybyte2file_no[256];
+}
 
 /* file numbers get allocated together with documents 
    setting a filename must be followed by reading the file
@@ -176,11 +182,13 @@ int filename2file(char *filename,char c)
   head = full_filename(filename, &tail);
   if (head==NULL)
   { file_no = alloc_file_no();
+    ybyte2file_no[c]=file_no;
     return file_no;
   }
   file_no=find_file(head);
   if (file_no>=0) 
   { free(head);
+    ybyte2file_no[c]=file_no;
 	return file_no;
   }
   /* at this point we might reuse file number 0 if it is unnamed, in use, and not dirty */
@@ -189,6 +197,7 @@ int filename2file(char *filename,char c)
   else
       file_no = alloc_file_no();
   set_filename(file_no,head,tail);
+  ybyte2file_no[c]=file_no;
   return file_no;
 }
 
