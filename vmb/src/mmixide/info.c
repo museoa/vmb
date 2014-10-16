@@ -36,6 +36,9 @@ char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename c
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
 
+extern void free_tree(trie_node *root);
+
+
 static int ybyte2file_no[256];
 /* convert a ybyte to a valid index into file_info,
    return -1; if there is no valid file_info entry for this ybyte */
