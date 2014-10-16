@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="vmbwinopt"
+	Name="winopt"
 	ProjectGUID="{5A384688-86B5-439D-B700-C52330851681}"
-	RootNamespace="vmbwinopt"
+	RootNamespace="winopt"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -164,39 +164,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\option.c"
-				>
-			</File>
-			<File
-				RelativePath=".\optiontab.c"
-				>
-			</File>
-			<File
-				RelativePath=".\param.c"
-				>
-			</File>
-			<File
 				RelativePath=".\winabout.c"
 				>
 			</File>
 			<File
-				RelativePath=".\winbitmap.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winconfig.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winconnect.c"
-				>
-			</File>
-			<File
 				RelativePath=".\winde.c"
-				>
-			</File>
-			<File
-				RelativePath=".\windebug.c"
 				>
 			</File>
 			<File
@@ -212,19 +184,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winmain.c"
-				>
-			</File>
-			<File
 				RelativePath=".\winmem.c"
 				>
 			</File>
 			<File
 				RelativePath=".\winpos.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winproc.c"
 				>
 			</File>
 			<File
@@ -254,14 +218,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\option.h"
-				>
-			</File>
-			<File
-				RelativePath=".\param.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -288,10 +244,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
