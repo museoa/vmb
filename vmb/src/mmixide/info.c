@@ -30,7 +30,9 @@ int firstLine[MAX_FILES+1] ={0};
 char doc_dirty[MAX_FILES+1] ={0};		/* records whether the doc is dirty, but not for the edit_file */
 char has_debug_info[MAX_FILES+1] ={0};	/* is debug information available */
 char needs_assembly[MAX_FILES+1] ={0};			/* does this file need needs_assembly */
+#ifdef VMB
 char needs_image[MAX_FILES+1] ={0};			/* does this file need needs_immage file */
+#endif
 char needs_loading[MAX_FILES+1] ={0};			/* does this file need needs_loading */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
@@ -82,7 +84,9 @@ static int alloc_file_no(void)
         doc_dirty[file_no]=0;
         has_debug_info[file_no]=0;
         needs_assembly[file_no]=0;
+#ifdef VMB
         needs_image[file_no]=0;
+#endif
 		execute[file_no]=0;
         needs_loading[file_no]=0;
 		ed_add_tab(file_no);

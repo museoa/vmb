@@ -6,7 +6,10 @@ extern char *shortname[MAX_FILES+1]; /* pointers to the tail of the full name */
 extern char *command[MAX_FILES+1];
 extern char has_debug_info[MAX_FILES+1];
 extern char needs_assembly[MAX_FILES+1];
+#ifdef VMB
 extern char needs_image[MAX_FILES+1];
+#define file2image(file_no) (needs_image[file_no])
+#endif
 extern char execute[MAX_FILES+1];
 extern char needs_loading[MAX_FILES+1];
 extern char doc_dirty[MAX_FILES+1];
@@ -20,7 +23,6 @@ extern int firstLine[MAX_FILES+1];
 #define file2fullname(file_no)  (fullname[file_no])
 #define file2debuginfo(file_no) (has_debug_info[file_no])
 #define file2assembly(file_no) (needs_assembly[file_no])
-#define file2image(file_no) (needs_image[file_no])
 #define file2execute(file_no) (execute[file_no])
 #define file2loading(file_no) (needs_loading[file_no])
 #define file2dirty(file_no) (doc_dirty[file_no])

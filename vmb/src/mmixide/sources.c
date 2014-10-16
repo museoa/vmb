@@ -39,7 +39,9 @@ static void show_file(void)
   if (name==NULL) name = unique_name(file_no);
   SetDlgItemText(hSourceDlg,IDC_TAB_FULLNAME,name);
   CheckDlgButton(hSourceDlg,IDC_CHECK_SYMBOLS,file2assembly(file_no)?BST_CHECKED:BST_UNCHECKED);
+#ifdef VMB
   CheckDlgButton(hSourceDlg,IDC_CHECK_IMAGEFILE,file2image(file_no)?BST_CHECKED:BST_UNCHECKED);
+#endif
   CheckDlgButton(hSourceDlg,IDC_CHECK_LOADMMO,file2loading(file_no)?BST_CHECKED:BST_UNCHECKED);
   CheckDlgButton(hSourceDlg,IDC_CHECK_EXECUTE,file2execute(file_no)?BST_CHECKED:BST_UNCHECKED);
   EnableWindow(GetDlgItem(hSourceDlg,IDC_EDIT_COMMAND),file2execute(file_no));
@@ -165,6 +167,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         file2assembly(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_SYMBOLS);
 	  	return TRUE;
 	  }
+#ifdef VMB
 	  else if (wparam==IDC_CHECK_IMAGEFILE)
       { int file_no;
         TCITEM tie;
@@ -174,6 +177,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         file2image(file_no)=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_IMAGEFILE);
 	  	return TRUE;
 	  }
+#endif
 	  else if (HIWORD(wparam)==EN_CHANGE && LOWORD(wparam)==IDC_EDIT_COMMAND)
       { int file_no;
         TCITEM tie;

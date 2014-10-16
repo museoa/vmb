@@ -32,7 +32,7 @@
 
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.32 $ $Date: 2014-10-14 15:59:19 $";
+char version[]="$Revision: 1.33 $ $Date: 2014-10-16 12:56:35 $";
 char title[] ="VMB MMIX IDE";
 
 /* Button groups for the button bar */
@@ -391,7 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		    else
 				hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
 			/* this will search for the given topic file */
-			hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,"help\\instructions.html") ;
+			hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
 
 		  }
 		  return 0;
@@ -668,6 +668,7 @@ int assemble_all_needed(void)
 #define MAXPROG 512
 
 static int execution_ok=0;
+#ifdef VMB
 static void create_image_file(int file_no)
 { char *argv[3];
   if (!execution_ok) return;
@@ -677,6 +678,7 @@ static void create_image_file(int file_no)
   argv[2]=NULL;
   mmoimg_main(2,argv);
 }
+#endif
 
 
 static void execute_file_command(int file_no)
@@ -720,9 +722,12 @@ static void execute_file_command(int file_no)
 
 
 int execute_commands(void)
-{ execution_ok=1;
+{ 
+#ifdef VMB
+  execution_ok=1;
   for_all_files(create_image_file);
   if (!execution_ok) return execution_ok;
+#endif
   execution_ok=1;
   for_all_files(execute_file_command);
   return execution_ok;
