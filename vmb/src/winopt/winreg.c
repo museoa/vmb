@@ -1,12 +1,10 @@
-#include <windows.h>
-#include "vmb.h"
-#include "option.h"
 #include "winopt.h"
 
 void write_regtab(char *program)
 { HKEY p=0, vmbkey=0, s=0;
   LONG r;
   int success=0;
+  if (program==NULL) return;
   r = RegOpenKeyEx(HKEY_CURRENT_USER,"Software",0,KEY_ALL_ACCESS,&s);
   if (r==ERROR_SUCCESS)
   {  DWORD n;
@@ -49,6 +47,7 @@ void write_regtab(char *program)
 void read_regtab(char *program)
 { HKEY p=0,vmbkey=0, s=0;
   LONG r;  /* get values from the registry */
+  if (program==NULL) return;
   r = RegOpenKeyEx(HKEY_CURRENT_USER,"Software",0,KEY_ALL_ACCESS,&s);
   if (r==ERROR_SUCCESS)
   {  DWORD n;
@@ -73,13 +72,17 @@ void read_regtab(char *program)
 			    *(int*)regtab[i].value=tmp;
 		    }
 		    else if (regtab[i].type==TYPE_STRING)
-		    { char *tmp=(char*)regtab[i].value;
-		      bc=MAXTMPOPTION;
-		  	  r = RegQueryValueEx(p,regtab[i].key,0,NULL,(LPBYTE)&tmp_option,&bc);
+		    { 
+#define		  MAXVALUE 521
+			  char value[MAXVALUE];
+		      bc=MAXVALUE-1;
+		  	  r = RegQueryValueEx(p,regtab[i].key,0,NULL,(LPBYTE)&value,&bc);
 			  if (r==ERROR_SUCCESS)
-			  { tmp_option[MAXTMPOPTION-1]=0;
-			    set_option((char**)regtab[i].value, tmp_option);
+			  { value[bc]=0;
+			    set_option((char**)regtab[i].value, value);
 			  }
+			  else
+				  win32_error(__LINE__,"Registry entry too big (>521 byte)");
 		    } 
 		    else if (has_flags && 0<=regtab[i].type && regtab[i].type<32)
 		    { *(int*)regtab[i].value = ((flags&(1<<regtab[i].type))!=0);

@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <windows.h>
-#include "vmb.h"
 #include "error.h"
 #include "splitter.h"
 #include "winmain.h"
-#include "info.h"
 #include "resource.h"
 #include "breakpoints.h"
 
@@ -88,7 +86,7 @@ extern int breaks_list_drawitem(LPDRAWITEMSTRUCT di)
       len = (int)SendMessage(di->hwndItem, LB_GETTEXTLEN, di->itemID, 0); 
 	  str = malloc(len+1);
 	  if (str==NULL) 
-	  { vmb_error(__LINE__,"Out of memory");
+	  { win32_error(__LINE__,"Out of memory");
 	    return 0;
 	  }
       SendMessage(di->hwndItem, LB_GETTEXT, di->itemID, (LPARAM)str); 

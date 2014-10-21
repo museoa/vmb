@@ -1,6 +1,7 @@
-#include "option.h"
+//include "option.h"
 #ifndef INSPECT_H
 #define INSPECT_H
+#include "float.h"
 
 extern int mem_min_width,mem_min_height;
 extern void set_mem_font_metrics(void);

@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "mmixlib.h"
 #include "winmain.h"
 #include "dedit.h"
 #include "mmixwinde.h"
@@ -14,7 +15,7 @@ HWND hDataEditParent=0;
 
 HWND GetDataEdit(int id, HWND hMemory)
 { if (id <0 || id>=MAXDATAEDIT) 
-  { vmb_error(__LINE__,"ID out of range in GetDataEdit");
+  { win32_error(__LINE__,"ID out of range in GetDataEdit");
     id = 0;
   }
   if (hDataEdit[id]!=NULL)
@@ -22,13 +23,13 @@ HWND GetDataEdit(int id, HWND hMemory)
   sp_create_options(0, 0, 0.2, mem_min_height,hMemory);
   hDataEdit[id] = CreateDataEdit(hInst,hSplitter);
   if (hDataEdit[id]==NULL)
-    vmb_error(__LINE__,"Unable to create Data Editor");
+    win32_error(__LINE__,"Unable to create Data Editor");
   return hDataEdit[id];
 }
 
 void DestroyDataEdit(int id)
 {   if (id <0 || id>=MAXDATAEDIT) 
-  { vmb_error(__LINE__,"ID out of range in GetDataEdit");
+  { win32_error(__LINE__,"ID out of range in GetDataEdit");
     return;
   }	  
   if (hDataEdit[id]==NULL)

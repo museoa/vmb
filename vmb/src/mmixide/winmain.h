@@ -5,6 +5,10 @@ extern HWND	  hSplitter;
 extern HWND      hButtonBar;
 extern HWND hSymbolTable;
 extern HWND	  hEdit;
+extern int major_version, minor_version;
+extern char version[];
+extern char title[];
+extern char *program_name;
 
 extern void ide_status(char *message);
 extern void ide_add_error(char *message, int file_no, int line_no);
@@ -57,3 +61,8 @@ extern int syntax_highlighting;
 extern int show_whitespace;
 extern int fontsize;
 extern int codepage;
+
+
+extern void win32_message(char *msg);
+extern void win32_error(int line, char *message);
+extern void win32_fatal_error(int line, char *message);

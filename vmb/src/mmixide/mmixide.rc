@@ -429,7 +429,9 @@ BEGIN
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
+#ifdef VMB
         MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
+#endif
         MENUITEM "Set E&xecute Breakpoint",     ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
         MENUITEM "Set &Tracepoint",             ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
         MENUITEM "Set &Read Breakpoint",        ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
@@ -440,7 +442,9 @@ BEGIN
         MENUITEM "&Editor ...",                 ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
         MENUITEM "&Assembler ...",              ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
         MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
+#ifdef VMB
         MENUITEM "&Motherboard ...",            ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
+#endif
         MENUITEM "Symbol &table  ...",          ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
         MENUITEM "&Build ...",                  ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
         POPUP "Encoding",                       65535,MFT_STRING,MFS_ENABLED

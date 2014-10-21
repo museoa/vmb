@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "winopt.h"
 #include "float.h"
 #pragma warning(disable : 4996)
 

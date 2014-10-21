@@ -1,10 +1,9 @@
-#include <stdio.h>
 #include <windows.h>
+#include <stdio.h>
 #include "winopt.h"
 #include "resource.h"
-#include "param.h"
 
-
+#pragma warning(disable : 4996)
 
 INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )

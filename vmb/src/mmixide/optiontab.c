@@ -21,14 +21,19 @@
 
 */
 
+
 #include "option.h"
 #include "param.h"
+#ifdef VMB
 #include "vmb.h"
+#endif
 
 option_spec options[] = {
 /* description short long kind default handler */
+#ifdef VMB
 {"the host where the bus is located", 'h',   "host",    "host",          str_arg, "localhost", {&host}},
 {"the port where the bus is located",   'p', "port",    "port",          int_arg, "9002", {&port}},
+#endif
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
 {"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},

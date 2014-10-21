@@ -33,28 +33,33 @@
 #include <windows.h>
 #pragma warning(disable : 4996)
 #include "winopt.h"
+#ifdef VMB
 #include "vmb.h"
 #include "param.h"
 #include "option.h"
 #include "bus-arith.h"
+#else
+#endif
+#include "winopt.h"
 #include "info.h"
 #include "editor.h"
 #include "winmain.h"
 
-
+#ifdef VMB
 char *host=NULL;
 int port = 9002;
+uint64_t vmb_address;
+unsigned int vmb_size;
+extern option_spec options[];
+#endif
 int xpos=0, ypos=0; /* Window position */
 int minimized = 0;  /* start the window minimized */
 
 
-uint64_t vmb_address;
-unsigned int vmb_size;
 
 
 
 
-extern option_spec options[];
 extern HWND hMainWnd;
 
 void usage(char *message)
@@ -73,13 +78,20 @@ void do_argument(int pos, char * arg)
   set_edit_file(file_no);
 }
 
+
 int do_define(char *arg)
 { 
- set_option(&defined,"mmixide");
+ set_option(&defined,
+#ifdef VMB
+	 "mmixide"
+#else
+	 "mmixvd"
+#endif
+	 );
  return 0;
 }
 
-
+#define MAXARG 256
 int mk_argv(char *argv[MAXARG],char *command, int unquote)
 /* splits command into arguments, knows how to handle strings.
    if unquote is true, double-quote characters are removed
@@ -122,12 +134,12 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
   return argc;
 }
 
-
-
 void param_init(void)
 { int argc;
   char *argv[MAXARG];
+#ifdef VMB
   option_defaults();
+#endif
   argc=mk_argv(argv,GetCommandLine(),TRUE);
   parse_commandline(argc, argv);
 }

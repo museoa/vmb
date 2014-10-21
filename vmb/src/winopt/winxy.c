@@ -1,13 +1,12 @@
 #include <windows.h>
-#include "vmb.h"
-#include "param.h"
+#include "winopt.h"
+
 
 void set_xypos(HWND hWnd)
 { WINDOWPLACEMENT wndpl;
   wndpl.length=sizeof(WINDOWPLACEMENT);
   if(!GetWindowPlacement(hWnd,&wndpl))
-  { DWORD e = GetLastError();
-      vmb_errori(__LINE__,"could not get window placement",e);
+  {   win32_error(__LINE__,"could not get window placement");
 	  return;
   }
   xpos=wndpl.rcNormalPosition.left;

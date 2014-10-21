@@ -1,3 +1,4 @@
+#include "libmmixal.h"
 
 extern void create_symtab(void);
 extern void symtab_reset(void);

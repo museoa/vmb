@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include "resource.h"
-#include "vmb.h"
-#include "mmix-internals.h"
+#include "libmmixal.h"
 #include "error.h"
 #include "splitter.h"
 #include "winmain.h"
@@ -14,6 +13,8 @@
 int symtab_locals=0;
 int symtab_registers=0;
 int symtab_small=0;
+
+
 
 INT_PTR CALLBACK    
 OptionSymtabDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -77,7 +78,7 @@ sym_node *find_symbol(char *symbol,int file_no)
 { trie_node *t;
   if (symbol==NULL || *symbol==0) return NULL;
   if (file_no<0) return NULL;
-  t=file2symbols(file_no);
+  t=(trie_node*)file2symbols(file_no);
   while(t!=NULL) 
   { if (*symbol==t->ch) 
 	{ symbol++; 
@@ -108,7 +109,7 @@ static void enumerate_symtab(trie_node *t, char *sym_ptr)
 static void symtab_add_file_no(int file_no)
 { trie_node *t;
   if (!file2assembly(file_no)) return;
-  t= file2symbols(file_no);
+  t= (trie_node*)file2symbols(file_no);
   if (t!=NULL)
      enumerate_symtab(t, symtab_buf);
 }
@@ -146,7 +147,7 @@ extern int symtab_drawitem(LPDRAWITEMSTRUCT di)
       len = (int)SendMessage(di->hwndItem, LB_GETTEXTLEN, di->itemID, 0); 
 	  str = malloc(len+1);
 	  if (str==NULL) 
-	  { vmb_error(__LINE__,"Out of memory");
+	  { win32_error(__LINE__,"Out of memory");
 	    return 0;
 	  }
       SendMessage(di->hwndItem, LB_GETTEXT, di->itemID, (LPARAM)str); 

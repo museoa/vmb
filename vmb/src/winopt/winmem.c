@@ -1,17 +1,14 @@
 #include <windows.h>
 #include <string.h>
-#include "vmb.h"
+#include <stdio.h>
 #include "resource.h"
 #include "winopt.h"
-#include "option.h"
-#include "param.h"
-#include "error.h"
-#include "bus-arith.h"
-#include "float.h"
+//include "float.h"
 #include "inspect.h"
 #include "dedit.h"
 #include "winde.h"
 
+#pragma warning(disable : 4996)
 
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
@@ -81,7 +78,7 @@ static void sb_range(inspector_def *insp)
   if (mem_size>insp->mem_size)
   { insp->mem_buf=realloc(insp->mem_buf,mem_size);
     if (insp->mem_buf==NULL)
-		vmb_fatal_error(__LINE__,"Out of memory");
+		win32_fatal_error(__LINE__,"Out of memory");
 	memset(insp->mem_buf+insp->mem_size,0,mem_size-insp->mem_size);
   }
   insp->mem_size=mem_size;
@@ -129,7 +126,8 @@ static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 
 
 static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto_addr)
-{   if (!insp->change_address)
+{  char hexstr[20];
+	if (!insp->change_address)
     { if (goto_addr<insp->address)
       { goto_addr=insp->address;
       }
@@ -137,8 +135,8 @@ static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto
       { goto_addr=insp->address+(insp->size-1);
       }
     }
-    uint64tohex(goto_addr,tmp_option);
-    SetDlgItemText(hMemory,IDC_GOTO,tmp_option);
+    uint64tohex(goto_addr,hexstr);
+    SetDlgItemText(hMemory,IDC_GOTO,hexstr);
 	return goto_addr;
 }
 
@@ -149,7 +147,7 @@ static void refresh_old_mem(inspector_def *insp)
 { if (insp->old_size<insp->mem_size)
   { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
     if (insp->old_mem==NULL)
-		vmb_fatal_error(__LINE__,"Out of memory");
+		win32_fatal_error(__LINE__,"Out of memory");
   }
   memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
   insp->old_base=insp->mem_base;
@@ -263,7 +261,7 @@ void update_old_mem(inspector_def *insp)
 { if (insp->old_size<insp->mem_size)
   { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
     if (insp->old_mem==NULL)
-		vmb_fatal_error(__LINE__,"Out of memory");
+		win32_fatal_error(__LINE__,"Out of memory");
   }
    /* newly displayed memory contents is cold, (copy from insp->mem_buf)
       only previously displayed content that has changed is hot */
@@ -308,6 +306,9 @@ static int different(inspector_def *insp,int offset, int size)
   return 0;
 }
 
+#define GET2(a)   ((unsigned int)(((a)[0]<<8)+(a)[1]))
+#define GET4(a)   ((unsigned int)(((a)[0]<<24)+((a)[1]<<16)+((a)[2]<<8)+(a)[3]))
+#define GET8(a)   ((uint64_t)((((uint64_t)GET4(a))<<32)+GET4((a)+4)))
 
 int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, 
 						int chunk_size, int column_digits)
@@ -624,8 +625,10 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		if (insp==NULL) return FALSE;
 	    if (GetFocus()==GetDlgItem(hDlg,IDC_GOTO))
         { uint64_t goto_addr;
-          GetDlgItemText(hDlg,IDC_GOTO,tmp_option,MAXTMPOPTION);
-    	  goto_addr = strtouint64(tmp_option);
+#define   MAXVALUE 32
+		  char value[MAXVALUE];
+          GetDlgItemText(hDlg,IDC_GOTO,value,MAXVALUE);
+    	  goto_addr = strtouint64(value);
 		  goto_addr=adjust_goto_addr(hDlg,insp,goto_addr);
 		  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
 		    insp->sb_base = (unsigned int)(goto_addr-insp->address);

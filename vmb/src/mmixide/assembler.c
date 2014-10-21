@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include "resource.h"
 #include "winmain.h"
-#include "info.h"
 #define _MMIXAL_
 #include "mmixlib.h"
+#include "info.h"
 #include "assembler.h"
 
 int x_option = 0;

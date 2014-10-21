@@ -7,13 +7,14 @@
 #include "resource.h"
 #include "splitter.h"
 #include "buttonbar.h"
-#include "mmix-internals.h"
 #include "debug.h"
 #include "option.h"
 #include "param.h"
-#include "mmixrun.h"
 #include "mmixlib.h"
+#include "mmixrun.h"
+#ifdef VMB
 #include "mmix-bus.h"
+#endif
 #include "findreplace.h"
 #include "print.h"
 #include "info.h"
@@ -30,10 +31,17 @@
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
 
+#pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.33 $ $Date: 2014-10-16 12:56:35 $";
+<<<<<<< winmain.c
+char version[]="$Revision: 1.34 $ $Date: 2014-10-21 05:57:39 $";
+#ifdef VMB
 char title[] ="VMB MMIX IDE";
+#else
+char title[] ="MMIX Visual Debugger";
+#endif
+char *program_name=NULL;
 
 /* Button groups for the button bar */
 #define BG_FILE 0
@@ -80,7 +88,7 @@ void ide_clear_error_list(void)
 	ide_clear_error_marker();
 }
 
-
+#ifdef VMB
 extern int auto_connect;
 
 int ide_connect(void)
@@ -94,6 +102,9 @@ int ide_connect(void)
   }
   return vmb.connected;
 }
+#else
+#define ide_connect() true
+#endif
 
 static int menu_toggle(int id)
 /* toggle the menu id and return its new status */
@@ -120,7 +131,9 @@ int ide_prepare_mmix(void)
   if (!assemble_all_needed()) return 0;
   if (!check_load_count()) return 0;
   if (!execute_commands()) return 0;
+#ifdef VMB
   if (!ide_connect()) return 0;
+#endif
   bb_set_group(hButtonBar,BG_DEBUG,1,1);
   return 1;
 }
@@ -308,10 +321,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  if (mmix_assemble(edit_file_no)==0 && file2loading(edit_file_no) && mmix_active() && vmb.power)
+		  if (mmix_assemble(edit_file_no)==0 && file2loading(edit_file_no) && mmix_active() 
+#ifdef VMB
+			  && vmb.power
+#endif
+			  )
 		  { MessageBox(hWnd,"mmo file already running! Reset to reload file.", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
+#ifdef VMB
 	    case ID_MMIX_CONNECT:
 		  if (menu_toggle(ID_MMIX_CONNECT))
 		  { if (!vmb.connected)
@@ -325,6 +343,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  else mmix_status(MMIX_DISCONNECTED);
 		  CheckMenuItem(hMenu,ID_MMIX_CONNECT,MF_BYCOMMAND|(vmb.connected?MF_CHECKED:MF_UNCHECKED));
 	      return 0;
+#endif
 	    case ID_MEM_TEXTSEGMENT:
 		  if (!ide_connect()) return 0;
 		  new_memory_view(0);
@@ -376,10 +395,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_OPTIONS_SOURCES:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_SOURCES),hWnd,OptionSourcesDialogProc);
 		  return 0;
+#ifdef VMB
 		case ID_OPTIONS_VMB:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_CONNECT),hWnd,ConnectDialogProc);
 		  return 0;
-
+#endif
 	    case ID_HELP_ABOUT:
 	      DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),hWnd,AboutDialogProc);
 	      return 0; 
@@ -833,24 +853,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	            hMainWnd, NULL, hInstance, NULL);
 	SendMessage(hStatus,WM_SETFONT,(WPARAM)GetStockObject(ANSI_FIXED_FONT),0);
     ide_status(version);
-	vmb_program_name="mmixide";
-    vmb_message_hook = win32_message;
-	vmb_debug_hook = NULL;
-	vmb_error_init_hook = NULL;
-    vmb_exit_hook=ide_exit_ignore;
-	/* normal vmb processing */
-	
-
-
-
 
     ShowWindow(hMainWnd, SW_SHOW);
 	if (minimized)CloseWindow(hMainWnd); 
     
 	UpdateWindow(hMainWnd);
-
-
-
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	  if (!TranslateAccelerator(hMainWnd, hAccelTable, &msg) &&
@@ -859,11 +866,36 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	    DispatchMessage(&msg);
 	  }
 	Scintilla_ReleaseResources();
+#ifdef VMB
 	if (vmb.connected) vmb_atexit();
+#endif
 	return (int)msg.wParam;
 }
 
-void  ide_exit_ignore(int returncode)
+
+
+void win32_message(char *msg)
 {
-;
+	MessageBox(hMainWnd,msg,"Message",MB_OK);
+}
+
+
+void win32_error(int line, char *message)
+{ static char tmp[1000];
+  sprintf(tmp,"ERROR (%s, %d): %s\r\n",program_name,line,message);
+  win32_message(tmp);
+}
+
+
+void win32_error2(int line, char *message, char *info)
+{ static char tmp[1000];
+  sprintf(tmp,"ERROR (%s, %d): %s\r\n%s\r\n",program_name,line,message,info);
+  win32_message(tmp);
+}
+
+
+void win32_fatal_error(int line, char *message)
+{   win32_error(line, message);
+	SendMessage(hMainWnd,WM_COMMAND,0,ID_FILE_EXIT);
+	exit(1);
 }

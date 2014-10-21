@@ -1,66 +1,62 @@
-#include "vmb.h"
-#include "winres.h"
+#ifndef _WINOPT_H_
+#define _WINOPT_H_
+
+#include <windows.h>
+
+/* Sybols needed by winopt */
 
 extern HWND hMainWnd;
 extern HINSTANCE hInst;
-extern HBITMAP hBmp;
-extern HMENU hMenu;
-extern HBITMAP hon,hoff,hconnect;
-extern HWND hpower;
-extern device_info vmb;
+extern int major_version, minor_version;
+extern char version[];
+extern char title[];
+extern char *program_name;
+extern char *defined;
+extern char *programhelpfile;
 
 extern void win32_message(char *msg);
-extern void win32_log(char *msg);
-extern void win32_error_init(int i);
-extern void mem_update(unsigned int offset, int size);
-/* call this function to tell a specific memory inspector i that an update is due */
-extern void mem_update_i(int i, unsigned int offset, int size);
+extern void win32_error(int line, char *message);
+extern void win32_error2(int line, char *message, char *info);
 
-extern HWND hDebug;
-extern void init_device(device_info *vmb);
-extern INT_PTR CALLBACK   
-DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+extern void win32_fatal_error(int line, char *message);
+extern int xpos, ypos; /* Window position */
 
-extern HRGN BitmapToRegion (HBITMAP hBmp);
+extern void set_option(char **option, char *str);
 
+/* Symbols provided by winopt */
 
-extern int APIENTRY WinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPSTR     lpCmdLine,
-                     int       nCmdShow);
-                     
-extern LRESULT CALLBACK 
-WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /*needed */
+typedef INT8 int8_t;
+typedef INT16 int16_t;
+typedef INT32 int32_t;
+typedef INT64 int64_t;
+typedef UINT8 uint8_t;
+typedef UINT16 uint16_t;
+typedef UINT32 uint32_t;
+typedef UINT64 uint64_t;
 
-extern INT_PTR CALLBACK   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam ); /*needed */
+/* in util.c */
+extern void uint64tohex(uint64_t u, char *c);
+extern uint64_t strtouint64(char *arg);
 
-
-extern LRESULT CALLBACK 
-OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
-
-extern INT_PTR CALLBACK    
-ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
-                     
-
-
+/* in winabout.c */
 extern INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
-extern INT_PTR CALLBACK    
-ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
-                  
-extern int set_reg_DWORD(char *program, char *name, DWORD value);
-extern DWORD get_reg_DWORD(char *program, char *name);
-
-extern void set_xypos(HWND hWnd);
-extern void get_xypos(void);
-extern void set_pos_key(HWND hWnd, char *name);
-extern void get_pos_key(int *Xpos, int *Ypos, char *name);
-
+/* in windialog.c */
 extern void register_subwindow(HWND h);
 extern void unregister_subwindow(HWND h);
 extern BOOL do_subwindow_msg(MSG *msg);
+
+ 
+/* from winxy.c */
+extern void set_xypos(HWND hWnd);
+extern void get_xypos(void);
+
+/* from winpos.c */
+extern void set_pos_key(HWND hWnd, char *name);
+extern void get_pos_key(int *Xpos, int *Ypos, char *name);
+
+
 
 /* table of key value pairs to store in the registry terminated by a NULL key */
 
@@ -78,5 +74,36 @@ typedef struct {
 
 extern regtable regtab;
 
+/* from winreg.c */
 extern void write_regtab(char *program);
 extern void read_regtab(char * program);
+extern void parse_commandline(int argc, char *argv[]);
+
+
+#if 0
+extern void win32_log(char *msg);
+
+extern void mem_update(unsigned int offset, int size);
+/* call this function to tell a specific memory inspector i that an update is due */
+extern void mem_update_i(int i, unsigned int offset, int size);
+
+extern HWND hDebug;
+extern INT_PTR CALLBACK   
+DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+
+extern INT_PTR CALLBACK   
+SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam ); /*needed */
+
+
+extern LRESULT CALLBACK 
+OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
+
+              
+extern int set_reg_DWORD(char *program, char *name, DWORD value);
+extern DWORD get_reg_DWORD(char *program, char *name);
+
+
+
+#endif
+
+#endif

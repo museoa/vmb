@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "winopt.h"
 #include "dedit.h"
 #include "winde.h"
 
@@ -71,7 +72,7 @@ HWND GetDataEdit(int id, HWND hMemory)
 { HWND h;
   RECT rect;
   if (id <0 || id>=MAXDATAEDIT) 
-  { vmb_error(__LINE__,"ID out of range in GetDataEdit");
+  { win32_error(__LINE__,"ID out of range in GetDataEdit");
     id = 0;
   }
   if (hDataEdit[id]!=NULL)
@@ -88,7 +89,7 @@ HWND GetDataEdit(int id, HWND hMemory)
   if (h!=NULL)
     hDataEdit[id]=(HWND)(LONG_PTR)GetWindowLongPtr(h,GWLP_USERDATA);
   if (hDataEdit[id]==NULL)
-    vmb_fatal_error(__LINE__,"Unable to create Data Editor");
+    win32_fatal_error(__LINE__,"Unable to create Data Editor");
   return hDataEdit[id];
 }
 

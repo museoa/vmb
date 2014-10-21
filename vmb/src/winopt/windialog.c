@@ -12,7 +12,7 @@ void register_subwindow(HWND h)
 	subwindow_num++;
   }
   else
-    vmb_error(__LINE__,"Too many subwindows, limited functionality");
+    win32_error(__LINE__,"Too many subwindows, limited functionality");
 }
 
 void unregister_subwindow(HWND h)
@@ -26,7 +26,7 @@ void unregister_subwindow(HWND h)
 	  }
       return;
 	}
-    vmb_error(__LINE__,"Unregistering an unregistered window");
+    win32_error(__LINE__,"Unregistering an unregistered window");
 }
 
 BOOL do_subwindow_msg(MSG *msg)

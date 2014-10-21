@@ -1,4 +1,6 @@
-#include "mmix-internals.h"
+
+#include "mmixlib.h"
+#include "libmmixal.h"
 
 #define MAX_FILES 0x100
 extern char *fullname[MAX_FILES+1]; /* the full filenames */
@@ -33,10 +35,10 @@ extern int file_dirty(int file_no);
 extern char *unique_name(int file_no);
 /* return a unique short name for the file */
 
-extern trie_node *file2symbols(int file_no);
-/* return symbol trie for file */
+extern void *file2symbols(int file_no);
+/* return symbol trie for file actually returns a trie_node* */
 
-extern int filename2file(char *filename, char c);
+extern int filename2file(char *filename, int c);
 /* return file_no for this file, allocate fullname as needed */
 
 extern void file_set_name(int file_no, char *filename);

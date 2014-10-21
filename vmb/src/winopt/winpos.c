@@ -1,5 +1,4 @@
 #include <windows.h>
-#include "vmb.h"
 #include "winopt.h"
 
 extern int xpos, ypos;

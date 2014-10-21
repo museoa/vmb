@@ -4,13 +4,16 @@
 #include <io.h>
 #include <setjmp.h>
 #include "splitter.h"
+#ifdef VMB
 #include "vmb.h"
 #include "error.h"
 #include "winopt.h"
+#endif
 #include "winmain.h"
-#include "mmix-internals.h"
 #include "mmixlib.h"
+#ifdef VMB
 #include "mmix-bus.h"
+#endif
 #include "info.h"
 #include "symtab.h"
 #include "debug.h"
@@ -21,7 +24,8 @@
 /* Running MMIX */
 // maximum mumber of lines the output console should have
 
-static const WORD MAX_CONSOLE_LINES = 500;
+#pragma warning(disable : 4996)
+
 extern void vmb_atexit(void);
 void mmix_run_init(void);
 
@@ -38,8 +42,10 @@ int mmix_interact(void)
   mmix_waiting = 1;
   w = WaitForSingleObject(hInteract,INFINITE);
   mmix_waiting = 0;
+#ifdef VMB
   if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
   { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
+#endif
   return 1;
 }
 
@@ -81,9 +87,8 @@ int mmix_continue(unsigned char command)
 
 
 extern jmp_buf mmix_exit;
-device_info vmb;
 
-#define panic(m) vmb_fatal_error(__LINE__,m)
+
 #define sign_bit ((unsigned)0x80000000)
 
 
@@ -100,12 +105,14 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
   if (hInteract==NULL)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
- 
+#ifdef VMB 
   vmb_exit_hook = mmix_exit_hook;
+#endif
   returncode = mmix_main(0,NULL,NULL);
+#ifdef VMB
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
-
+#endif
   PostMessage(hMainWnd,WM_MMIX_STOPPED,0,(LPARAM)-1); 
  
   if (hInteract!=NULL)
@@ -255,11 +262,6 @@ static int check_interact(bool after)
     return 1;
 }
 
-#include "libglobals.h"
-#define RESUME_AGAIN 0
-#define RESUME_CONT 1
-#define RESUME_SET 2
-#define RESUME_TRANS 3 
 
 
 static void mmix_load(int file_no)
@@ -274,25 +276,31 @@ int mmix_main(int argc, char *argv[],char *mmo_name)
   g[255].l=setjmp(mmix_exit);
   if (g[255].l!=0)
    goto end_simulation;
- 
-  if (!vmb.connected) panic("Not connected");
-  if (vmb.power)  
-    vmb_raise_reset(&vmb);
+#ifdef VMB 
+  if (!vmb.connected) {win32_message("Not connected") return 0;}
+  if (vmb.power) vmb_raise_reset(&vmb);
+#endif
   mmix_initialize();
 boot:
+#ifdef VMB
   vmb.reset_flag=0;
   win32_log("Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
-     if (!vmb.connected) panic("Power but not connected");
+     if (!vmb.connected){win32_message("Power but not connected") return 0;}
   }
   win32_log("ON\n");
   Sleep(50); /* give all devices some time to power up before loading the application */
+#endif
   mmix_boot(); 
   for_all_files(mmix_load);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
-  while (vmb.connected&!halted) {
+  while (
+#ifdef VMB
+	  vmb.connected && 
+#endif
+	  !halted) {
 	mmix_fetch_instruction();
     if (!check_interact(false)) goto end_simulation;
 resume:
@@ -305,7 +313,11 @@ resume:
 	  else
 	    resuming=false;
 	}
-    if (!vmb.power|| vmb.reset_flag)
+    if (
+#ifdef VMB
+		!vmb.power || vmb.reset_flag ||
+#endif
+		(g[rQ].l&g[rK].l&RE_BIT))
     { breakpoint=true; 
       goto boot;
     }

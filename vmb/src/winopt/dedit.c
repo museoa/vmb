@@ -1,7 +1,6 @@
 #include <windows.h>
+#include "winopt.h"
 #include "resource.h"
-#include "float.h"
-#include "inspect.h"
 #include "dedit.h"
 
 
@@ -22,7 +21,9 @@ static dataedit *new_dataedit(void)
 { dataedit *de;
   de = (dataedit*)malloc(sizeof(dataedit));
   if (de == NULL)
-    vmb_fatal_error(__LINE__,"Out of Memory for data editor");
+  { win32_error(__LINE__,"Out of Memory for data editor");
+    return NULL;
+  }
   memset(de,0,sizeof(dataedit));
   return de;
 }
@@ -285,6 +286,10 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG :
       { RECT rect;
 	    dataedit *de = new_dataedit();
+		if (de==NULL) 
+		{ DestroyWindow(hDlg);
+		  return FALSE;
+		}
 	    SetWindowLongPtr(hDlg,DWLP_USER,(LONG)(LONG_PTR)de);
 	    de->hWnd=hDlg;
 	    SetDlgItemText(hDlg,IDC_FORMAT,format_names[de->format]);

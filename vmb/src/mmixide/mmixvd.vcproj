@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../vmb/src/util;../vmb/src/opt;mmixlib;../vmb/src/vmbmmixlib;../splitterlib"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../vmb/src/util;../vmb/src/opt;mmixlib;../vmb/src/vmbmmixlib;../splitterlib"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -312,14 +312,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\vmb\src\opt\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\scintilla\win32\resource.h"
-				>
-			</File>
-			<File
 				RelativePath=".\sources.h"
 				>
 			</File>
@@ -466,15 +458,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\vmb\src\opt\win32about.rc"
+				RelativePath=".\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\vmb\src\opt\win32connect.rc"
-				>
-			</File>
-			<File
-				RelativePath="..\vmb\src\opt\win32dedit.rc"
+				RelativePath=".\winopt\win32dedit.rc"
 				>
 			</File>
 			<File

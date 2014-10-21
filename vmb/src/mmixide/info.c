@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
-#include "vmb.h"
 #include "error.h"
-#include "mmix-internals.h"
 #include "mmixlib.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
@@ -11,7 +9,7 @@
 #include "symtab.h"
 #include "editor.h"
 #include "info.h"
-
+#pragma warning(disable : 4996)
 
 /* we maintain files as file numbers in the range 0 to 255
 */
@@ -94,7 +92,7 @@ static int alloc_file_no(void)
         return file_no;
       }
   }
-  vmb_error(__LINE__,"Too many files");
+  win32_error(__LINE__,"Too many files");
   return 0; /* we should never get here */
 }
 
@@ -144,12 +142,12 @@ static char *full_filename(char *filename, char **tail)
   if (filename==NULL) return NULL;
   n = GetFullPathName(filename,MAX_PATH,name,tail);
   if (n<=0)
-  { vmb_error(__LINE__,"Illegal file name");
+  { win32_error(__LINE__,"Illegal file name");
     return NULL;
   }
   head =malloc(n+1);
   if (head ==NULL)
-  { vmb_error(__LINE__,"Out of memory");
+  { win32_error(__LINE__,"Out of memory");
     return NULL;
   }
   if (n>MAX_PATH)
@@ -182,7 +180,7 @@ static void set_filename(int file_no,char *head, char * tail)
   }
 }
 
-int filename2file(char *filename,char c)
+int filename2file(char *filename,int c)
 /* return file_no for this file, allocate file_no if needed */
 { int file_no;
   char *head, *tail;
@@ -324,9 +322,9 @@ void symtab_add_file(int file_no,trie_node *t)
   update_symtab();
 }
 
-trie_node *file2symbols(int file_no)
+void *file2symbols(int file_no)
 { if (file_no<0 || file_no>=next_file_no) return NULL;
-  return symbols[file_no];
+  return (void*)symbols[file_no];
 }
 
 void close_file(int file_no)

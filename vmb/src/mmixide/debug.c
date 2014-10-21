@@ -1,16 +1,15 @@
 #include <windows.h>
 #include "splitter.h"
-#include "vmb.h"
 #include "winmain.h"
+#include "winopt.h"
 #include "error.h"
 #include "inspect.h"
-#include "bus-arith.h"
-#include "mmix-internals.h"
 #include "mmixlib.h"
 #include "info.h"
 #include "debug.h"
 #include "resource.h"
 #include "mmixrun.h"
+#include "util.h"
 
 
 
@@ -491,7 +490,7 @@ void set_register_inspectors(void)
 void debug_init(void)
 { 	if (local_mem!=NULL) free(local_mem);
     local_mem=calloc(lring_size,8);
-	if (local_mem==NULL)  vmb_fatal_error(__LINE__,"Out of Memory for local_mem");
+	if (local_mem==NULL)  win32_fatal_error(__LINE__,"Out of Memory for local_mem");
 	reg_names_init();
 	set_special_reg_name();
 	set_mem_font_metrics();

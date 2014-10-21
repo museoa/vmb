@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <commctrl.h>
-#include "vmb.h"
 #include "resource.h"
 #include "winopt.h"
 #include "inspect.h"
