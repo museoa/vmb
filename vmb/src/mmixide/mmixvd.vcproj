@@ -304,6 +304,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\param.h"
+				>
+			</File>
+			<File
 				RelativePath=".\print.h"
 				>
 			</File>

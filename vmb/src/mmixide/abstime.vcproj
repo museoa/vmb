@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="winopt"
-	ProjectGUID="{5A384688-86B5-439D-B700-C52330851681}"
-	RootNamespace="winopt"
+	Name="abstime"
+	ProjectGUID="{D49D454B-0839-4606-850D-03A6231DB2DA}"
+	RootNamespace="abstime"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -19,11 +19,12 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="0"
+			ConfigurationType="1"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -39,19 +40,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CallingConvention="0"
-				CompileAs="1"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -63,10 +60,17 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				LinkIncremental="2"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -78,19 +82,28 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Generate abstime.h"
+				CommandLine="$(OutDir)\abstime.exe &gt; $(SolutionDir)\abstime.h"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="0"
+			ConfigurationType="1"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -106,17 +119,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				UseUnicodeResponseFiles="false"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
-				CallingConvention="0"
-				CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -128,10 +136,19 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				LinkIncremental="1"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -143,7 +160,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Generate abstime.h"
+				CommandLine="$(OutDir)\abstime.exe &gt; abstime.h"
 			/>
 		</Configuration>
 	</Configurations>
@@ -156,52 +181,32 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dedit.c"
+				RelativePath=".\abstime.c"
 				>
 			</File>
 			<File
-				RelativePath=".\float.c"
+				RelativePath=".\mmixlib\mmixware\abstime.w"
 				>
-			</File>
-			<File
-				RelativePath=".\option.c"
-				>
-			</File>
-			<File
-				RelativePath=".\util.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winabout.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winde.c"
-				>
-			</File>
-			<File
-				RelativePath=".\windialog.c"
-				>
-			</File>
-			<File
-				RelativePath=".\wininspect.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winlog.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winmem.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winreg.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winxy.c"
-				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="generating abstime.h"
+						CommandLine="ctangle &quot;mmixlib/mmixware/abstime.w&quot;"
+						Outputs="abstime.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="generating abstime.h"
+						CommandLine="ctangle &quot;mmixware\abstime.w&quot;"
+						Outputs="abstime.c"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -210,47 +215,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\dedit.h"
-				>
-			</File>
-			<File
-				RelativePath=".\float.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inspect.h"
-				>
-			</File>
-			<File
-				RelativePath=".\option.h"
-				>
-			</File>
-			<File
-				RelativePath=".\param.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\util.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winde.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winlog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winopt.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winres.h"
+				RelativePath=".\abstime.h"
 				>
 			</File>
 		</Filter>

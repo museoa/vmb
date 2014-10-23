@@ -9,7 +9,6 @@
 #include "buttonbar.h"
 #include "debug.h"
 #include "option.h"
-#include "param.h"
 #include "mmixlib.h"
 #include "mmixrun.h"
 #ifdef VMB
@@ -18,6 +17,7 @@
 #include "findreplace.h"
 #include "print.h"
 #include "info.h"
+#include "param.h"
 #include "symtab.h"
 #include "mmixdata.h"
 #include "edit.h"
@@ -34,7 +34,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.35 $ $Date: 2014-10-23 14:48:47 $";
+char version[]="$Revision: 1.36 $ $Date: 2014-10-23 15:01:30 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
