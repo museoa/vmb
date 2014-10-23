@@ -34,8 +34,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-<<<<<<< winmain.c
-char version[]="$Revision: 1.34 $ $Date: 2014-10-21 05:57:39 $";
+char version[]="$Revision: 1.35 $ $Date: 2014-10-23 14:48:47 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else

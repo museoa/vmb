@@ -224,9 +224,10 @@ static int check_interact(bool after)
 {   if (!interrupt && !breakpoint) return 1;
 	if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
 	if (!interacting) { breakpoint=false; return 1; }
+#ifdef VMB
 	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
 	    return mmix_interact();
-
+#endif
     if (break_after||rw_break)
 	{ rw_break=false;
 	  if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
@@ -269,8 +270,15 @@ static void mmix_load(int file_no)
   mmix_load_file(get_mmo_name(file2fullname(file_no)));
 }
 
-
-
+#ifndef VMB
+void mmix_zero_memory(mem_node *p)
+{ int j;
+  if (p->left) mmix_zero_memory(p->left);
+  if (p->right) mmix_zero_memory(p->right);
+  for (j=0;j<512;j++) 
+	  p->dat[j].freq=p->dat[j].tet=0;
+}
+#endif
 int mmix_main(int argc, char *argv[],char *mmo_name)
 { g[255].h=0;
   g[255].l=setjmp(mmix_exit);
@@ -291,17 +299,25 @@ boot:
   }
   win32_log("ON\n");
   Sleep(50); /* give all devices some time to power up before loading the application */
+#else
+  mmix_zero_memory(mem_root);
 #endif
   mmix_boot(); 
   for_all_files(mmix_load);
   PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
   mmix_commandline(argc, argv);
+#ifndef VMB
+  goto interact;
+#endif
   while (
 #ifdef VMB
 	  vmb.connected && 
 #endif
 	  !halted) {
 	mmix_fetch_instruction();
+#ifndef VMB
+interact:
+#endif
     if (!check_interact(false)) goto end_simulation;
 resume:
     mmix_perform_instruction(); 
@@ -332,13 +348,18 @@ resume:
 
 static char logstr[512];
 
-int mmix_printf(char *format,...)
+int mmix_printf(FILE *f, char *format, ...)
 { va_list vargs;
   char logstr[512];
   int n; 
   va_start(vargs,format);	
-  n = vsprintf(logstr,format, vargs);
-  win32_log(logstr);
+  if (f==stdout||f==stderr)  
+  { n = vsprintf(logstr,format, vargs);
+    win32_log(logstr);
+  }
+  else
+	n=vfprintf(f,format,vargs);
+
   return n;
 }
 

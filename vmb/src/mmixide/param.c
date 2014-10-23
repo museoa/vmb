@@ -72,7 +72,7 @@ void usage(char *message)
 
 
 void do_argument(int pos, char * arg)
-{ int file_no=filename2file(arg,0);
+{ int file_no=filename2file(arg);
   if (file_no<0) return;
   if (edit_file_no>=0) return;
   set_edit_file(file_no);

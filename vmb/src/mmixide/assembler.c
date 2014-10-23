@@ -61,9 +61,8 @@ static char *get_mml_name(char *full_mms_name)
 }
 
 
-void report_error(char*message,char*filename,int line_no)
-{ int file_no=filename2file(filename,0);
-  if(message[0]=='!') /* fatal error */
+void report_error(char*message,int file_no,int line_no)
+{ if(message[0]=='!') /* fatal error */
     ide_status(message+1);
   else if(message[0]=='*') /* warning */
 	ide_add_error(message,file_no,line_no);

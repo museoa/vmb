@@ -38,8 +38,10 @@ extern char *unique_name(int file_no);
 extern void *file2symbols(int file_no);
 /* return symbol trie for file actually returns a trie_node* */
 
-extern int filename2file(char *filename, int c);
+extern int filename2file(char *filename);
 /* return file_no for this file, allocate fullname as needed */
+extern char *file2filename(int file_no);
+/* return filename for this file */
 
 extern void file_set_name(int file_no, char *filename);
 /* function to compute full and short name and set them */

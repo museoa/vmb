@@ -39,13 +39,6 @@ static int count_file_no=0;				/* number of used file numbers */
 extern void free_tree(trie_node *root);
 
 
-static int ybyte2file_no[256];
-/* convert a ybyte to a valid index into file_info,
-   return -1; if there is no valid file_info entry for this ybyte */
-int ybyte2file(int c)
-{ return ybyte2file_no[256];
-}
-
 /* file numbers get allocated together with documents 
    setting a filename must be followed by reading the file
    the dirty flag is valid only if the file is currently not in the editor
@@ -180,20 +173,18 @@ static void set_filename(int file_no,char *head, char * tail)
   }
 }
 
-int filename2file(char *filename,int c)
+int filename2file(char *filename)
 /* return file_no for this file, allocate file_no if needed */
 { int file_no;
   char *head, *tail;
   head = full_filename(filename, &tail);
   if (head==NULL)
   { file_no = alloc_file_no();
-    ybyte2file_no[c]=file_no;
     return file_no;
   }
   file_no=find_file(head);
   if (file_no>=0) 
   { free(head);
-    ybyte2file_no[c]=file_no;
 	return file_no;
   }
   /* at this point we might reuse file number 0 if it is unnamed, in use, and not dirty */
@@ -202,10 +193,16 @@ int filename2file(char *filename,int c)
   else
       file_no = alloc_file_no();
   set_filename(file_no,head,tail);
-  ybyte2file_no[c]=file_no;
   return file_no;
 }
 
+char *file2filename(int file_no)
+{ 
+  if (file_no<0 || file_no>=MAX_FILES) 
+	   return NULL;
+   else
+	   return fullname[file_no];
+}
 
 void file_set_name(int file_no, char *filename)
 /* function to compute full and short name and set them */

@@ -216,7 +216,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	  { HDROP hDrop = (HDROP)wParam;
 	    char name[MAX_PATH+1];
 		DragQueryFile(hDrop,0,name,MAX_PATH);
-		set_edit_file(filename2file(name,0));
+		set_edit_file(filename2file(name));
 		DragFinish(hDrop);
 	  }
 	  return 0;
@@ -486,7 +486,7 @@ void new_edit(void)
 void ed_new(void)
 { int file_no;
   if (hEdit==NULL) new_edit();
-  file_no = filename2file(NULL,0);
+  file_no = filename2file(NULL);
   set_edit_file(file_no);
 /*	ed_send(SCI_SETSAVEPOINT,0,0);
 	ed_send(SCI_CANCEL,0,0);
@@ -538,7 +538,7 @@ int ed_open(void)
 	ofn.lpstrTitle = "Open File";
 	ofn.Flags = OFN_HIDEREADONLY;
     if (GetOpenFileName(&ofn)) 
-      return filename2file(name,0);
+      return filename2file(name);
 	else
       return -1;
 }
