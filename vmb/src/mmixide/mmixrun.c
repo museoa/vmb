@@ -40,6 +40,7 @@ int mmix_interact(void)
 { DWORD w;
   breakpoint=false;
   mmix_waiting = 1;
+  PostMessage(hMainWnd,WM_MMIX_INTERACT,0,0); 
   w = WaitForSingleObject(hInteract,INFINITE);
   mmix_waiting = 0;
 #ifdef VMB

@@ -36,6 +36,7 @@ extern void set_tabwidth(void);
 #define WM_MMIX_STOPPED (WM_USER+1)
 #define WM_MMIX_RESET (WM_USER+2)
 #define WM_MMIX_LOAD (WM_USER+3)
+#define WM_MMIX_INTERACT (WM_USER+4)
 
 #define MMIX_LINE_MARGIN 0
 #define MMIX_PROFILE_MARGIN 1

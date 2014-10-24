@@ -82,13 +82,18 @@ static void sb_range(inspector_def *insp)
 	memset(insp->mem_buf+insp->mem_size,0,mem_size-insp->mem_size);
   }
   insp->mem_size=mem_size;
-  si.cbSize=sizeof(si);
-  si.fMask=SIF_PAGE|SIF_POS|SIF_RANGE;
-  si.nMin=0;
-  si.nMax=insp->sb_rng;
-  si.nPage=insp->lines;
-  si.nPos=insp->sb_cur;
-  SetScrollInfo(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
+  if (insp->sb_rng<insp->lines)
+	  ShowScrollBar(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,FALSE);
+  else
+  { si.cbSize=sizeof(si);
+    si.fMask=SIF_PAGE|SIF_POS|SIF_RANGE;
+    si.nMin=0;
+    si.nMax=insp->sb_rng;
+    si.nPage=insp->lines;
+    si.nPos=insp->sb_cur;
+	ShowScrollBar(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,TRUE);
+    SetScrollInfo(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,&si,TRUE);
+  }
 }
 
 
@@ -190,7 +195,7 @@ void set_mem_font_metrics(void)
   separator_width = digit_width/2;
   GetTextExtentPoint32(hDC,"0x0000000000000000:",19,&size);
   address_width=size.cx;
-  top_width=28;
+  top_width=2*(line_height+separator_height);
   SelectObject(hDC,holdfnt);
   ReleaseDC(NULL,hDC);
   mem_min_width=25*digit_width+separator_width;

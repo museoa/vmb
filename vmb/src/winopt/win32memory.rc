@@ -1,0 +1,86 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+
+IDD_MEMORY DIALOGEX 0, 0, 204, 133
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
+EXSTYLE WS_EX_APPWINDOW
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    SCROLLBAR       IDC_MEM_SCROLLBAR,185,18,12,109,SBS_VERT
+    EDITTEXT        IDC_GOTO,24,2,85,12,ES_AUTOHSCROLL | NOT WS_BORDER | WS_GROUP,WS_EX_CLIENTEDGE
+    LTEXT           "Go to:",IDC_GOTO_PROMPT,2,2,21,8
+    PUSHBUTTON      "Format",IDC_FORMAT,116,0,39,14
+    PUSHBUTTON      "Size",IDC_CHUNK,158,0,39,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DEBUG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 209
+        VERTGUIDE, 209
+        HORZGUIDE, 120
+    END
+
+    IDD_FILTER, DIALOG
+    BEGIN
+        RIGHTMARGIN, 188
+        BOTTOMMARGIN, 92
+    END
+
+    IDD_MEMORY, DIALOG
+    BEGIN
+        RIGHTMARGIN, 197
+        BOTTOMMARGIN, 127
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

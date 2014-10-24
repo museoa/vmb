@@ -34,7 +34,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.36 $ $Date: 2014-10-23 15:01:30 $";
+char version[]="$Revision: 1.37 $ $Date: 2014-10-24 13:24:20 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -502,6 +502,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ mmix_status(MMIX_STOPPED);
 	  show_stop_marker(item_file_no(lParam),item_line_no(lParam));
 	}
+	return 0;
+  case WM_MMIX_INTERACT:
 	display_profile();
 	memory_update();
 	return 0;

@@ -470,6 +470,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winopt\win32memory.rc"
+				>
+			</File>
+			<File
 				RelativePath=".\Icons\zoomin.ico"
 				>
 			</File>
