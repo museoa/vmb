@@ -331,8 +331,8 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 	    w=chunk_size*2;
 	  break;
     case ascii_format:
-	  memmove(str,buf,chunk_size);
-	  str[chunk_size]=0;
+      for (j=0;j<chunk_size;j++)
+        if (buf[j]>0x1F && buf[j]<0x7F) str[j]=buf[j]; else str[j]=0x7F;
 	  w=chunk_size;
 	  break;
 	case unsigned_format:
