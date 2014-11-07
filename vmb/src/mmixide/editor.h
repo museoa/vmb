@@ -1,3 +1,5 @@
+extern HIMAGELIST hFileMarkers;
+
 extern int edit_file_no; /* the file currently in the editor */
 
 extern void init_edit(HINSTANCE hInstance);

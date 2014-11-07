@@ -22,6 +22,8 @@ extern void win32_fatal_error(int line, char *message);
 extern int xpos, ypos; /* Window position */
 
 extern void set_option(char **option, char *str);
+#define MAXARG 256
+extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 
 /* Symbols provided by winopt */
 

@@ -31,6 +31,7 @@
 
 
 #include <windows.h>
+#include <commctrl.h>
 #pragma warning(disable : 4996)
 #include "winopt.h"
 #ifdef VMB
@@ -91,11 +92,10 @@ int do_define(char *arg)
  return 0;
 }
 
-#define MAXARG 256
 int mk_argv(char *argv[MAXARG],char *command, int unquote)
 /* splits command into arguments, knows how to handle strings.
    if unquote is true, double-quote characters are removed
-   before putting them im the vector
+   before putting them in the vector
    returns argc.
 */
 

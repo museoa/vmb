@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <io.h>
@@ -7,8 +8,8 @@
 #ifdef VMB
 #include "vmb.h"
 #include "error.h"
-#include "winopt.h"
 #endif
+#include "winopt.h"
 #include "winmain.h"
 #include "mmixlib.h"
 #ifdef VMB
@@ -20,6 +21,8 @@
 #include "assembler.h"
 #include "winlog.h"
 #include "editor.h"
+#include "option.h"
+#include "runoptions.h"
 #include "mmixrun.h"
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -102,14 +105,25 @@ void mmix_exit_hook(int returncode)
 
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int returncode;
-
+  int argc;
+  static char *argv[MAXARG];
+  static char command[MAXTMPOPTION];
   if (hInteract==NULL)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
+
+  if (run_args!=NULL && run_args[0]!=0)
+  { strncpy(command,run_args,MAXTMPOPTION);
+	argc=mk_argv(argv,command, TRUE);
+  }
+  else
+  { argc=0;
+    argv[0]=NULL;
+  }
 
 #ifdef VMB 
   vmb_exit_hook = mmix_exit_hook;
 #endif
-  returncode = mmix_main(0,NULL,NULL);
+  returncode = mmix_main(argc,argv,NULL);
 #ifdef VMB
   vmb_atexit();
   vmb_exit_hook = ide_exit_ignore;
@@ -155,6 +169,16 @@ char *get_mmo_name(char *full_mms_name)
    return full_mmo_name;
 }
 
+static void init_fake_stdin(void)
+{ if (fake_stdin) fclose(fake_stdin);
+  mmix_fake_stdin(stdin);
+  if (stdin_file!=NULL && stdin_file[0]!=0)
+  { fake_stdin=fopen(stdin_file,"r");
+    if (!fake_stdin) win32_error2(__LINE__,"Sorry, I can't open file!\n",stdin_file);
+    else mmix_fake_stdin(fake_stdin);
+  }
+}
+
 void mmix_run(void)
 {		  interacting=false;
 		  show_operating_system=false;
@@ -162,10 +186,11 @@ void mmix_run(void)
 		  tracing=false;
 		  tracing_exceptions=0;
           stack_tracing=false;
-
 		  update_symtab();
+		  init_fake_stdin();
           MMIXThread();
 }
+
 
 int break_at_symbol(int file_no,char *symbol)
 { sym_node *sym=find_symbol(symbol,file_no);
@@ -190,6 +215,7 @@ void mmix_debug(void)
 		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  update_symtab();
+		  init_fake_stdin();
 		  MMIXThread();
 }
 

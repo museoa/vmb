@@ -45,7 +45,8 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON                    "Icons\\icon.ico"
+IDI_ICON                ICON                    "Icons\\mmixvd256.ico"
+IDI_ICON_SMALL          ICON                    "Icons\\mmixvd16.ico"
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
@@ -65,7 +66,6 @@ IDI_DEBUG_HALT          ICON                    "Icons\\stop.ico"
 IDI_VIEW_WHITESPACE     ICON                    "Icons\\whitespace.ico"
 IDI_DEBUG_STEPOVER      ICON                    "Icons\\stepover.ico"
 IDI_DEBUG_STEPOUT       ICON                    "Icons\\stepout.ico"
-IDI_ICON_SMALL          ICON                    "Icons\\mmixide16.ico"
 IDI_BREAKX              ICON                    "Icons\\brkexec.ico"
 IDI_BREAKR              ICON                    "Icons\\brkread.ico"
 IDI_BREAKW              ICON                    "Icons\\brkwrite.ico"
@@ -266,17 +266,27 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,275,7,50,15
     LTEXT           "Full name",IDC_TAB_FULLNAME,19,50,299,8
     CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,60,119,10
-    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,72,59,10
-#ifdef VMB
-    CONTROL         "Create image file",IDC_CHECK_IMAGEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,84,70,10
-#endif
-    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,96,74,10
-    EDITTEXT        IDC_EDIT_COMMAND,30,109,285,14,ES_AUTOHSCROLL
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,61,119,10
+    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,104,59,10
+    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,74,74,10
+    EDITTEXT        IDC_EDIT_COMMAND,30,87,285,14,ES_AUTOHSCROLL
     CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_CLIPSIBLINGS | WS_TABSTOP,7,29,318,102,WS_EX_TRANSPARENT
     PUSHBUTTON      "Add File ...",IDC_ADD,7,7,50,15
-    CONTROL         "Load multiple or no files",IDC_CHECK_MULTIPLEFILES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,10,91,10
+    CONTROL         "Load single file",IDC_CHECK_SINGLEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,10,91,10
+END
+
+IDD_OPTIONS_RUN DIALOGEX 0, 0, 294, 93
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Run"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,237,55,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,237,72,50,14
+    EDITTEXT        IDC_ARGS,60,7,227,14,ES_AUTOHSCROLL
+    LTEXT           "Command line:",IDC_STATIC,7,10,51,8
+    LTEXT           "Fake StdIn:",IDC_STATIC,19,30,39,8
+    EDITTEXT        IDC_FAKE_STDIN,60,27,170,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse ...",IDC_BROWSE_STDIN,237,27,50,14
 END
 
 
@@ -348,6 +358,14 @@ BEGIN
         RIGHTMARGIN, 325
         TOPMARGIN, 7
         BOTTOMMARGIN, 131
+    END
+
+    IDD_OPTIONS_RUN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 287
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -429,9 +447,6 @@ BEGIN
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
-#ifdef VMB
-        MENUITEM "&Connect",                    ID_MMIX_CONNECT,MFT_STRING,MFS_ENABLED
-#endif
         MENUITEM "Set E&xecute Breakpoint",     ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
         MENUITEM "Set &Tracepoint",             ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
         MENUITEM "Set &Read Breakpoint",        ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
@@ -442,12 +457,10 @@ BEGIN
         MENUITEM "&Editor ...",                 ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
         MENUITEM "&Assembler ...",              ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
         MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
-#ifdef VMB
-        MENUITEM "&Motherboard ...",            ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
-#endif
+        MENUITEM "&Run ...",                    ID_OPTIONS_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM "Symbol &table  ...",          ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Build ...",                  ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
-        POPUP "Encoding",                       65535,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Sources ...",                ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
+        POPUP "En&coding",                      65535,MFT_STRING,MFS_ENABLED
         BEGIN
             MENUITEM "ASCII",                       ID_ENCODING_ASCII,MFT_STRING,MFS_ENABLED
             MENUITEM "UTF",                         ID_ENCODING_UTF,MFT_STRING,MFS_ENABLED

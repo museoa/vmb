@@ -5,6 +5,7 @@ extern HWND	  hSplitter;
 extern HWND      hButtonBar;
 extern HWND hSymbolTable;
 extern HWND	  hEdit;
+
 extern int major_version, minor_version;
 extern char version[];
 extern char title[];

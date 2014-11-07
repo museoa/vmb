@@ -1,0 +1,94 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+<h3>The MMIX Debugger</h3>
+If an MMIX source file is in the editor, you can start
+the MMIX simulator in debugging mode 
+either by
+<ul> 
+<li> Selecting "Debug" from the "MMIX" menu.
+<li> Pressing the F5 key.
+<li> Pressing the Debugg/Continue Button <font color="gray"><img src="debug.gif" alt="" height="24" width="24" border="2"></font>.
+</ul>
+
+If the source file has changed, you will be asked if you want
+to save your changes.
+Then you will be asked whether you want to assemble the source file
+(unless the mmo file on disk is newer than the source file.)
+Running the assembler will also collect information about
+connecting the lines and symbols in your source file to locations
+in memory. This infomation is necessary while debugging. 
+If the assembler has finished without errors, debugging will start.
+
+	<p>
+Once the debugger has started a collection of new buttons is displayed
+in the button bar. These buttons are a more convenient alternative to
+the commands that you find in the MMIX menu.
+
+	
+	<p></p>
+	<p>You can further customize the debuggers behaviour through the Debug Options dialog, which you can access through the Options menu.</p>
+	<p></p>
+	<h4>Running, Stopping, and Stepwise Execution</h4>
+	<ul>
+		<li><font color="gray"><img src="debug.gif" alt="" height="24" width="24" border="2"> </font>Debugg/Continue<br>
+			Continue execution instructions until a breakpoint or the end
+of the Program is reached.
+			<p>
+		<li><font color="gray"><img src="stepin.gif" border=2></font> Step Instruction<br>
+Execute one instruction and stop again.
+<p>
+		<li><font color="gray"><img src="stepover.gif" border=2></font> Step Over<br> 
+Like Step Instruction, unless the current instruction is a 
+<tt>PUSHJ</tt> or <tt>PUSHGO</tt> instruction. In this case run
+the program without stopping until the corresponding <tt>POP</tt> 
+instruction is executed (unless a breakpoint or the end of the program intervenes).
+<p>
+		<li><font color="gray"><img src="stepout.gif" border=2></font> Step Out<br>
+			Continue execution until the end of the current subroutine 
+			(unless a breakpoint or the end of the program intervenes).
+			<p>
+		
+		
+		<li><font color="gray"><img src="pause.gif" border=2></font> Break Execution<br>
+			Interrupt a running execution, as if a breakpoint was hit.
+			<p>
+		
+		<li><font color="gray"><img src="stop.gif" border=2></font> Halt Execution<br>
+			Terminate the debugging session.<p>
+		</ul>
+	
+<h4>Setting Breakpoints and Tracepoints</h4>There are three buttons to toggle (set or unset) breakpoints and one button to toggle a tracepoint. To set a breakpoint move the cursor in the edit window to the line containing the instruction and press the appropriate button.<ul>
+		<li><img src="brkexec.gif" border=0> toggle an execute breakpoint. The program will stop after or before executing the first instruction on this line.<br>
+			<p>
+			Execute breakpoint exampe:<font color="gray"><img src="execline.gif" align="absmiddle" border=2 hspace="20"></font>
+			<p>
+		    You can toggle execute breakpoint also directly by clicking with the mouse in the margin.
+		    <p>
+		<li><img src="brkread.gif" border=0> toggle a read breakpoint. The program will stop after any read access to this memory location.
+			<p>
+			Read breakpoint exampe:<font color="gray"><img src="readline.gif" align="absmiddle" border=2 hspace="20"></font>
+			<p>
+		<li><img src="brkwrite.gif" border=0> toggle a write breakpoint. The program will stop after any write access to this memory location.
+			<p>
+			Read and write breakpoint exampe:<font color="gray"><img src="rwriteline.gif" align="absmiddle" border=2 hspace="20"></font>
+			<p>
+		<li><img src="brktrace.gif" border=0> toggle a tracepoint. This instruction will be shown in the trace window each time it is executed.
+			<p>
+			Tracepoint exampe:<font color="gray"><img src="traceline.gif" align="absmiddle" border=2 hspace="20"></font>
+			<p>
+	</ul>
+
+
+
+
+
+
+		
+			
+		
+			
+		
+		
+</body>

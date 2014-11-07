@@ -40,8 +40,8 @@
 #define IDI_BREAKR                      152
 #define IDI_BREAKW                      153
 #define IDI_BREAKT                      154
-#define IDI_ICON1                       155
 #define IDI_LOAD_FILE                   155
+#define IDD_OPTIONS_RUN                 156
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -139,8 +139,12 @@
 #define IDC_CHECK_EXECUTE               1054
 #define IDC_EDIT1                       1055
 #define IDC_EDIT_COMMAND                1055
-#define IDC_CHECK_MULTIPLEFILES         1056
+#define IDC_ARGS                        1055
+#define IDC_CHECK_SINGLEFILE            1056
 #define IDC_CHECK_IMAGEFILE             1057
+#define IDC_FAKE_STDIN                  1058
+#define IDC_BUTTON1                     1059
+#define IDC_BROWSE_STDIN                1059
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -206,14 +210,15 @@
 #define ID_MMIX_BREAKT                  40100
 #define ID_HELP_CONTENT                 40101
 #define ID_HELP_INSTRUCTIONS            40102
+#define ID_OPTIONS_RUN                  40103
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        156
-#define _APS_NEXT_COMMAND_VALUE         40103
-#define _APS_NEXT_CONTROL_VALUE         1058
+#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_COMMAND_VALUE         40104
+#define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

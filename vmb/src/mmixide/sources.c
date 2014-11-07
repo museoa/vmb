@@ -9,18 +9,11 @@
 
 static HWND hSourceDlg;
 static HWND hFileTab;
-static HIMAGELIST hFileMarkers=NULL;
+
 static int current_tab;
 static int application_index;
-int load_multiple=0;
+int load_single_file=1;
 
-static void init_filemarkers(void)
-{ HICON hIcon;
-  if (hFileMarkers!=NULL) return;
-  hFileMarkers=ImageList_Create(16,16,ILC_COLOR|ILC_MASK,1,1);
-  hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOAD_FILE));
-  ImageList_AddIcon(hFileMarkers, hIcon);
-}
 
 #define MAX_CMD 512
 static void no_loading(int file_no)
@@ -65,15 +58,26 @@ static void select_tab(int index)
 
 static void add_file(int file_no)
 { TCITEM tie;
-  int index;
+  int index, imax;
   if (hFileTab==NULL) return;
   if (file_no<0) return;
-  index = TabCtrl_GetItemCount(hFileTab);
+  imax = TabCtrl_GetItemCount(hFileTab);
+  for (index=0;index<imax;index++)
+  { tie.mask=TCIF_PARAM;
+    TabCtrl_GetItem(hFileTab,index,&tie);
+    if (file_no==tie.lParam)
+		break;
+  }
   tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
   tie.pszText = unique_name(file_no);
   tie.lParam=file_no;
   if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
-  current_tab=TabCtrl_InsertItem (hFileTab, index, &tie);
+  if (index <imax)
+  { TabCtrl_SetItem(hFileTab,index,&tie);
+    current_tab=index;
+  }
+  else
+    current_tab=TabCtrl_InsertItem (hFileTab, index, &tie);
 }
 
 
@@ -84,13 +88,12 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG:
       { hSourceDlg=hDlg;
 	    hFileTab=GetDlgItem(hDlg,IDC_TAB_FILES);
-		init_filemarkers();
 		TabCtrl_SetImageList(hFileTab,hFileMarkers);
 		for_all_files(add_file);
 		current_tab=0;
 		TabCtrl_SetCurSel (hFileTab, current_tab);
         show_file();
-		CheckDlgButton(hSourceDlg,IDC_CHECK_MULTIPLEFILES,load_multiple?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hSourceDlg,IDC_CHECK_SINGLEFILE,load_single_file?BST_CHECKED:BST_UNCHECKED);
       }
       return TRUE;
     case WM_SYSCOMMAND:
@@ -101,12 +104,15 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { load_multiple=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_MULTIPLEFILES);
+      { load_single_file=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_SINGLEFILE);
         hSourceDlg=NULL;
 		hFileTab=NULL;
 		EndDialog(hDlg, TRUE);
         return TRUE;
       } 
+      else if( wparam == IDC_CHECK_SINGLEFILE )
+      { load_single_file=IsDlgButtonChecked(hSourceDlg,IDC_CHECK_SINGLEFILE);
+	  }
 	  else if (wparam==IDC_ADD)
 	  { int file_no = ed_open();
 		if (file_no>=0) 
@@ -132,16 +138,18 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         TabCtrl_GetItem(hFileTab,current_tab,&tie);
         file_no=(int)tie.lParam;
         if (IsDlgButtonChecked(hSourceDlg,IDC_CHECK_LOADMMO))
-        { if (!load_multiple) 
+        { if (load_single_file) 
 		  { int index, count = TabCtrl_GetItemCount(hFileTab);
 		    for(index=0; index<count;index++)
-			{ tie.mask = TCIF_PARAM|TCIF_IMAGE;
-  	          TabCtrl_GetItem(hFileTab,current_tab,&tie);
-			  if (index!=current_tab && file2loading((int)tie.lParam)!=0)
-			  { file2loading((int)tie.lParam)=0;
-			    tie.iImage=-1;
-			    tie.mask=TCIF_IMAGE;
-				TabCtrl_SetItem(hFileTab,current_tab,&tie);
+			{ if (index!=current_tab) 
+			  { tie.mask = TCIF_PARAM|TCIF_IMAGE;
+  	            TabCtrl_GetItem(hFileTab,index,&tie);
+			    if (file2loading((int)tie.lParam)!=0)
+			    { file2loading((int)tie.lParam)=0;
+			      tie.iImage=-1;
+			      tie.mask=TCIF_IMAGE;
+				  TabCtrl_SetItem(hFileTab,index,&tie);
+			    }
 			  }
 		    }
 		  }

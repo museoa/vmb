@@ -52,11 +52,19 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 		CheckDlgButton(hDlg,IDC_CHECK_MAIN,break_at_Main?BST_CHECKED:BST_UNCHECKED);
         CheckDlgButton(hDlg,IDC_CHECK_TRACE,show_trace?BST_CHECKED:BST_UNCHECKED);
-        CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
+
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_BEFORE,!break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,tracing_exceptions!=0?BST_CHECKED:BST_UNCHECKED);
+
+#ifdef VMB
+        CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
+#else
+		EnableWindow(GetDlgItem(hDlg,IDC_CHECK_OS),FALSE);
+		EnableWindow(GetDlgItem(hDlg,IDC_CHECK_MISSING_APP),FALSE);
+#endif
+
       }
       return TRUE;
     case WM_SYSCOMMAND:

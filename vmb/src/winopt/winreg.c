@@ -24,8 +24,8 @@ void write_regtab(char *program)
               RegSetValueEx(p,regtab[i].key,0,REG_DWORD,(BYTE*)&tmp,sizeof(DWORD));
 		    }
 		    else if (regtab[i].type==TYPE_STRING)
-		    { char *tmp=(char*)regtab[i].value;
-              RegSetValueEx(p,regtab[i].key,0,REG_SZ,(BYTE*)&tmp,(DWORD)strlen(tmp)+1);
+		    { char **tmp=(char**)regtab[i].value;
+              RegSetValueEx(p,regtab[i].key,0,REG_SZ,(BYTE*)*tmp,(DWORD)strlen(*tmp)+1);
 		    } 
 		    else if (0<=regtab[i].type && regtab[i].type<32)
 		    { int tmp = *(int*)regtab[i].value;

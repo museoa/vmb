@@ -19,6 +19,7 @@
 int edit_file_no = -1; /* the file currently in the editor */
 
 HWND hEdit=NULL;
+HIMAGELIST hFileMarkers=NULL;
 static HWND hSCe=NULL;
 static HWND hTabs=NULL;
 static int tabh = 40;
@@ -167,10 +168,19 @@ void ed_toggle_break(int bits)
 { ed_toggle_break_at((int)ed_send(SCI_GETCURRENTPOS,0,0),bits);
 }
 
+static void init_filemarkers(void)
+{ HICON hIcon;
+  if (hFileMarkers!=NULL) return;
+  hFileMarkers=ImageList_Create(16,16,ILC_COLOR|ILC_MASK,1,1);
+  hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOAD_FILE));
+  ImageList_AddIcon(hFileMarkers, hIcon);
+}
+
 void init_edit(HINSTANCE hInstance)
 {	Scintilla_RegisterClasses(hInstance);
 	Scintilla_LinkLexers();
     register_editor(hInst);	
+    init_filemarkers();
 }
 
 static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -183,6 +193,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
          ed_ptr= (sptr_t)SendMessage(hSCe,SCI_GETDIRECTPOINTER,0,0);
 		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
 		       0,0,0,0,hWnd,NULL,hInst,NULL);
+		 TabCtrl_SetImageList(hTabs,hFileMarkers);
          SendMessage(hTabs,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
 		 DragAcceptFiles(hWnd,TRUE);
 	     return 0;
@@ -812,16 +823,18 @@ void ed_add_tab(int file_no)
   if (file_no<0) return;
   index = find_tab(file_no);
   if (index>=0)
-  { tie.mask = TCIF_TEXT|TCIF_PARAM;
+  { tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
+	if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
     TabCtrl_SetItem (hTabs, index, &tie);
   }
   else
   { index = TabCtrl_GetItemCount(hTabs);
-    tie.mask = TCIF_TEXT|TCIF_PARAM;
+    tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
+	if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
     TabCtrl_InsertItem (hTabs, index, &tie);
 	if (index==1) resize_tab();
   }

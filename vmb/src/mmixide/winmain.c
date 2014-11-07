@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include <afxres.h>
 #include <htmlhelp.h> 
 #include <stdio.h>
@@ -27,6 +28,7 @@
 #include "breakpoints.h"
 #include "editor.h"
 #include "winlog.h"
+#include "runoptions.h"
 #include "winmain.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
@@ -34,7 +36,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.37 $ $Date: 2014-10-24 13:24:20 $";
+char version[]="$Revision: 1.38 $ $Date: 2014-11-07 10:09:30 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -391,6 +393,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_OPTIONS_DEBUG:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_DEBUG),hWnd,OptionDebugDialogProc);
 		  return 0;
+		case ID_OPTIONS_RUN:
+		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_RUN),hWnd,OptionRunDialogProc);
+		  return 0;
 		case ID_OPTIONS_SOURCES:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_SOURCES),hWnd,OptionSourcesDialogProc);
 		  return 0;
@@ -658,7 +663,7 @@ static void count_load_files(int file_no)
 }
 static int check_load_count(void)
 { load_count = 0;
-  if (load_multiple) return 1;
+  if (!load_single_file) return 1;
   load_count = 0;
   for_all_files(count_load_files);
   if (load_count==0)
@@ -844,6 +849,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	set_whitespace(show_whitespace);
 	CheckMenuItem(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND|(syntax_highlighting?MF_CHECKED:MF_UNCHECKED));
     set_text_style();
+    set_lineno_width();
+    set_profile_width();
 
     SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 

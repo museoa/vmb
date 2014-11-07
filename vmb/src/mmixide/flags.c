@@ -8,6 +8,7 @@
 #include "sources.h"
 #include "libmmixal.h"
 #include "symtab.h"
+#include "runoptions.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scilexer.h"
 
@@ -29,6 +30,10 @@ regtable regtab= {
 	{"regcolor",&syntax_color[SCE_MMIXAL_REGISTER],TYPE_DWORD},
 	{"symcolor",&syntax_color[SCE_MMIXAL_SYMBOL],TYPE_DWORD},
 	{"commentcolor",&syntax_color[SCE_MMIXAL_COMMENT],TYPE_DWORD},
+
+	/* run options */
+	{"stdin",&stdin_file,TYPE_STRING},
+	{"args",&run_args,TYPE_STRING},
 
     /* assembler options */
 	{"boption",&b_option,TYPE_DWORD},
@@ -59,7 +64,7 @@ regtable regtab= {
 	{KEY_FLAGS,&symtab_small,24},
 
 	{KEY_FLAGS,&missing_app,25},
-	{KEY_FLAGS,&load_multiple,26},
+	{KEY_FLAGS,&load_single_file,26},
 
 
 	{NULL,NULL,0}};

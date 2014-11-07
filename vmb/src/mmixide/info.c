@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
+#include <commctrl.h>
 #include "error.h"
 #include "mmixlib.h"
 #define STATIC_BUILD
@@ -165,12 +166,12 @@ static void set_filename(int file_no,char *head, char * tail)
   fullname[file_no]=head;
   shortname[file_no]=tail;
   needs_reading[file_no]=1;
-  ed_add_tab(file_no);
   if (first_name)
   { file2loading(file_no)=1;
 	file2assembly(file_no)=1;
 	first_name=0;
   }
+  ed_add_tab(file_no);
 }
 
 int filename2file(char *filename)
