@@ -210,7 +210,8 @@
 #define ID_MMIX_BREAKT                  40100
 #define ID_HELP_CONTENT                 40101
 #define ID_HELP_INSTRUCTIONS            40102
-#define ID_OPTIONS_RUN                  40103
+#define ID_HELP_CONTEXT		            40103
+#define ID_OPTIONS_RUN                  40104
 
 // Next default values for new objects
 // 

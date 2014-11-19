@@ -1,0 +1,56 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+<h3>The MMIX Inspector and Data Editor</h3>
+The MMIX insprector windows allow the inspection of memory locations and registers.
+
+			
+	<h4>The Memory Inspector</h4>
+	<font color="gray"><img src="meminspect.png" alt="" height="134" width="580" align="right" border="2" hspace="10" vspace="10"></font>
+	<p>The memory inspector shows the content of memory locations in various formats. </p>
+	<p>In the top left corner of the inspector you find an edit box, where you can enter an <strong>address</strong>. This address is used to position the display of memory locations below at the given address.</p>
+	<p>Next to it, on the right, there is the <strong>format</strong> button. Pressing it will change the format used to display the memory content. The choices are </p>
+	<ul>
+		<li>Hex, for hexadecimal display.
+		<li>ASCII, for display of ascii codes as characters. Note that only characters in the range from 0x20 to 0x7F are displayed, characters outside this range are displayed as small black rectangles.
+		<li>Unsigned, for displaying the content as unsigned numbers.
+		<li>Signed, for displaying the content as signed numbers assuming two's-complement representation.
+		<li>Float, for displaying the content as floating point numbers assuming a representation that conforms to the IEEE Standard.
+	</ul>
+	<p>Next to the right comes the <strong>chunk size</strong> button. Pressing it will change the size of the memory chunks that are displayed below. You can choose between</p>
+	<ul>
+		<li>Byte (8 bits),
+		<li>Wyde (2 bytes or 16 bits),
+		<li>Tetra (4 bytes or 32 bits), and
+		<li>Octa (8 bytes or 64 bits).
+	</ul>
+	<p>You can combin any chunk size with any format, except that the Float format is available only for Tetra or Octa sized chunks.</p>
+	<p>Below these Buttons, are several lines showing the content of memory locations.</p>
+	<p>Each line starts with the address of the first byte shown in this line. Then the memory content is shown using the selected chunk size and format.</p>
+	<h5>Changes</h5>
+	<p>Whenever the program changes the content of a memory location currently visible in the display, the content is shown in <strong>red</strong>. This should help you spot the point where changes occur in memory.</p>
+	<h5>Alignment</h5>
+	<p>The individual chunks are <strong>aligned</strong>; that is, an Octa will start at an address that is a multiple of 8, a Tetra will start at an address that is a multiple of 4, and a Wyde will start at an address that is even.</p>
+	<h5>Scrollbar</h5>
+	<p>On the right side of the window is a <strong>scrollbar</strong>. You can use it to scroll up and down in the displayed memory region. When the scrollbar reaches the bottom of the window, you still can continue to scroll down by using the page down button of the scroll bar. The same is true when you reach the top of the window with the restriction, that you can not scroll past the address given in the top left edit window.</p>
+	<h4>The Register Inspector</h4>
+	<font color="gray"><img src="reginspect.png" alt="" height="172" width="202" align="right" border="2" hspace="10" vspace="10"></font>
+	<p>The register inspector works is very similar to the memory inspector. There is, however, no edit boy to enter a start address, and each line starts with a register name instead of an address.</p>
+	<h5>Local Registers and Register Stack</h5>
+	<p>The window that shows the local registers will dynamicaly update to show only the current local registers. Registers that become marginal will disappear from the display. </p>
+	<p>If the display of the register stack is enabled (either automaticaly by selecting the appropriate check box in the Debugger Options, or manualy in the Register submenu of the View menu), also the registers hidden on the register stack are shown. These registers are shown in light gray using the register numbers that they will have once they become accessible again. The register that separates the current local registers from the hidden registers below contains the size of the next stack frame. Instead of the register name, just a hyphen is shown, because this register will never become visible, execpt if overwritten by a return value.</p>
+	<h4>The Data Editor</h4>
+	<font color="gray"><img src="dataedit.png" alt="" height="74" width="522" align="right" border="2" hspace="10" vspace="10"></font>
+	Memory and register inspectors can be used to inspect data, but you can not use them to alter data. For this purpose you need the Data Editor.
+	<p>To open the Data Editor, just double-click on any data item on display in an inspector window. If a data editor is not yet open, a new data editor will be created; otherwise, the existing data editor will be repositioned to the data item just double clicked.</p>
+	<p>The data editor has a format button and a chunk size button just as a memory inspector. In addition it features a Load and a Store button.</p>
+	<ul>
+		<li>Pressing the Load button will reload the content from the memory (or register) into the data editor, just as a load instruction of the CPU would do.
+		<li>Pressing the Store button will store the content shown in the data editor back to the memory loaction or register, just as a store instruction of the CPU would do.
+	</ul>
+	<p>Unlike an inspector, the data editor will display just the data selected by the double click; that is, at most one Octa. Of course, the chunk size can be made smaller later on, for example to split an Octa into four Wydes as shown above. </p>
+	<p>The data is displayed in a number of edit boxes, that can be altered as usual, as long as they conform to the specified format.  </p>
+	<p></p>
+	<h4></h4>
+</body>

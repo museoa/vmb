@@ -20,6 +20,8 @@ extern void win32_error2(int line, char *message, char *info);
 
 extern void win32_fatal_error(int line, char *message);
 extern int xpos, ypos; /* Window position */
+extern int width,height; /* dimension of main window */
+
 
 extern void set_option(char **option, char *str);
 #define MAXARG 256

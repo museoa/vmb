@@ -80,6 +80,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_debug_global=IsDlgButtonChecked(hDlg,IDC_SHOW_GLOBAL);
 		show_debug_special=IsDlgButtonChecked(hDlg,IDC_SHOW_SPECIAL);
 		show_debug_regstack=IsDlgButtonChecked(hDlg,IDC_SHOW_REGSTACK);
+		CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
 		show_debug_text=IsDlgButtonChecked(hDlg,IDC_SHOW_TEXT);
 		show_debug_data=IsDlgButtonChecked(hDlg,IDC_SHOW_DATA);
 		show_debug_pool=IsDlgButtonChecked(hDlg,IDC_SHOW_POOL);

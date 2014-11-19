@@ -71,6 +71,35 @@ int  ed_operation(unsigned int op)
 { return (int)ed_send(op,0,0);
 }
 
+char * ed_get_instruction(void)
+/* return pointer to a string containing the instruction in the current line
+   or NULL if no such instrcution is found */
+{ int i, n = (int)ed_send(SCI_GETCURLINE,0,0);
+  char *p,*q;
+  static char op[7];
+  p = malloc(n+1);
+  if (p==NULL)
+  { win32_error(__LINE__, "Unable to allocate memory");
+    return NULL;
+  }
+  ed_send(SCI_GETCURLINE,n,(LONG_PTR)p);
+  p[n]=0;
+  q=p;
+  while (!isspace(*q) && *q!=0) q++; /*skip label */
+  while (isspace(*q)) q++; /*skip white space */
+  i=0;
+  while (!isspace(*q) && *q!=0 && i<6)
+  { op[i]=*q;
+    i++;
+    q++;
+  }
+  free(p);
+  if (i==0) return NULL;
+  op[i]=0;
+  return op;
+}
+
+
 void ed_tab_select(int file_no);
 #define ED_BLOCKSIZE 0x800
 static void ed_read_file(void)

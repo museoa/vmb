@@ -51,9 +51,10 @@ static int bb_id(button *b)
 }
 
 static int bb_count(button *b)
+/* count visible buttons */
 { int count = 0;
   while (b!=NULL)
-  { count++;
+  { if (b->visible) count++;
     b=b->next;
   }
   return count;

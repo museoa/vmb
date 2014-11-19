@@ -15,6 +15,8 @@
 regtable regtab= {
 	{"xpos",&xpos,TYPE_DWORD},
 	{"ypos",&ypos,TYPE_DWORD},
+	{"width",&width,TYPE_DWORD},
+	{"height",&height,TYPE_DWORD},
 	/* editor options */
 	{"tabwidth",&tabwidth,TYPE_DWORD},
 	{KEY_FLAGS ,&autosave,0},

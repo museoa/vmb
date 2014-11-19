@@ -36,7 +36,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.38 $ $Date: 2014-11-07 10:09:30 $";
+char version[]="$Revision: 1.39 $ $Date: 2014-11-19 12:28:31 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -64,6 +64,7 @@ HWND	  hError=NULL;
 HWND	  hSymbolTable=NULL;
 
 #define S_WIDTH 400
+int status_width = S_WIDTH; /* width of status window */
 
 void ide_status(char *message)
 { SendMessage(hStatus, WM_SETTEXT,0,(LPARAM)message);
@@ -147,8 +148,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return 0;
   case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
-		{	MoveWindow(hButtonBar, 0,0,LOWORD(lParam)-S_WIDTH,BB_HEIGHT, TRUE);
-		    MoveWindow(hStatus, LOWORD(lParam)-S_WIDTH,0,S_WIDTH,BB_HEIGHT, TRUE);
+		{	if (LOWORD(lParam)<3*S_WIDTH) 
+		       status_width=LOWORD(lParam)/3;
+		    else
+				status_width=S_WIDTH;
+			MoveWindow(hButtonBar, 0,0,LOWORD(lParam)-status_width,BB_HEIGHT, TRUE);
+		    MoveWindow(hStatus, LOWORD(lParam)-status_width,0,status_width,BB_HEIGHT, TRUE);
 			MoveWindow(hSplitter, 0,BB_HEIGHT,LOWORD(lParam),HIWORD(lParam)-BB_HEIGHT, TRUE);
 		}
 		return 1;
@@ -375,8 +380,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  new_register_view(REG_SPECIAL);
 		  return 0;
 		case ID_REGISTERS_STACK:
-		  show_debug_regstack=1;
-		  new_register_view(REG_LOCAL);
+		  show_debug_regstack=!show_debug_regstack;
+		  CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
+		  if (show_debug_regstack)
+		    new_register_view(REG_LOCAL);
+		  set_register_inspectors();
 		  return 0;
 		case ID_VIEW_BREAKPOINTS:
           create_breakpoints();
@@ -419,26 +427,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		  }
 		  return 0;
-		case ID_HELP_INSTRUCTIONS:
+	    case ID_HELP_INSTRUCTIONS:
 		  { HWND hh;
+		    char *helpfile= (programhelpfile==NULL)?"mmixide.chm":programhelpfile;
+            hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+			hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
+            return 0;
+		  }
+		case ID_HELP_CONTEXT:
+		  { HWND hh;
+		    char *op;
 		    HH_AKLINK link; 
-		    if (programhelpfile==NULL)
-              hh = HtmlHelp(hWnd,"mmixide.chm",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-		    else
-              hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+		    char *helpfile= (programhelpfile==NULL)?"mmixide.chm":programhelpfile;
+            hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
             /* this will search for the given keyword */
-            link.cbStruct =     sizeof(HH_AKLINK) ;
-            link.fReserved =    FALSE ;
-            link.pszKeywords =  "LDA" ;
-            link.pszUrl =       NULL ;
-            link.pszMsgText =   NULL ;
-            link.pszMsgTitle =  NULL ;
-            link.pszWindow =    NULL ;
-            link.fIndexOnFail = TRUE ;
-		    if (programhelpfile==NULL)
-              hh = HtmlHelp(hWnd,"mmixide.chm", HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
-		    else
-              hh = HtmlHelp(hWnd,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+            op=ed_get_instruction();
+            if (op==NULL) 
+			  hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
+			else
+			{ link.cbStruct =     sizeof(HH_AKLINK) ;
+              link.fReserved =    FALSE ;
+              link.pszKeywords =  op ;
+              link.pszUrl =       NULL ;
+              link.pszMsgText =   NULL ;
+              link.pszMsgTitle =  NULL ;
+              link.pszWindow =    NULL ;
+              link.fIndexOnFail = TRUE ;
+              hh = HtmlHelp(hWnd,helpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+			}
 		  }
 		  return 0;
 	  }
@@ -806,7 +822,7 @@ void add_buttons(void)
   add_button(IDI_BREAKW,ID_MMIX_BREAKW,BG_EDIT,20,"Toggle Write Breakpoint");
   add_button(IDI_BREAKT,ID_MMIX_BREAKT,BG_EDIT,21,"Toggle Tracepoint");
 
-  add_button(IDI_HELP,ID_HELP_ABOUT,BG_HELP,22,"About");
+  add_button(IDI_HELP,ID_HELP_CONTEXT,BG_HELP,22,"Help");
 
 
 }
@@ -833,7 +849,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!InitInstance (hInstance)) return FALSE;
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
-		0, 0, r.right-r.left-S_WIDTH, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
+		0, 0, r.right-r.left-status_width, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
 	hSplitter = sp_CreateSplitter("The Splitter", WS_CHILD|WS_VISIBLE,
                   0, BB_HEIGHT, r.right-r.left, r.bottom-r.top-BB_HEIGHT, hMainWnd, NULL, hInst, NULL);
     add_buttons();
@@ -845,6 +861,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	param_init ();
 	read_regtab(defined);
 	get_xypos();
+	CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|(show_whitespace?MF_CHECKED:MF_UNCHECKED));
 	set_whitespace(show_whitespace);
 	CheckMenuItem(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND|(syntax_highlighting?MF_CHECKED:MF_UNCHECKED));
@@ -852,17 +869,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     set_lineno_width();
     set_profile_width();
 
-    SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_SHOWWINDOW);
 
 	if (edit_file_no<0) ed_new();
 	hStatus = CreateWindow("STATIC", "Status" ,
 				WS_CHILD|WS_VISIBLE|SS_RIGHT,
-                r.right-r.left-S_WIDTH,0, S_WIDTH,BB_HEIGHT,
+                r.right-r.left-status_width,0, status_width,BB_HEIGHT,
 	            hMainWnd, NULL, hInstance, NULL);
 	SendMessage(hStatus,WM_SETFONT,(WPARAM)GetStockObject(ANSI_FIXED_FONT),0);
     ide_status(version);
 
-    ShowWindow(hMainWnd, SW_SHOW);
+	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_SHOWWINDOW|((width&&height)?0:SWP_NOSIZE));
+
+    //ShowWindow(hMainWnd, SW_SHOW);
 	if (minimized)CloseWindow(hMainWnd); 
     
 	UpdateWindow(hMainWnd);

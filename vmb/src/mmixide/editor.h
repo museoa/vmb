@@ -32,4 +32,5 @@ extern void ed_add_tab(int file_no);
 extern void ed_remove_tab(int file_no);
 
 extern void ed_toggle_break(int bits);
+extern char * ed_get_instruction(void);
 //extern void create_edit(void); /* create the editor pane */

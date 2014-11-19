@@ -11,6 +11,8 @@ void set_xypos(HWND hWnd)
   }
   xpos=wndpl.rcNormalPosition.left;
   ypos=wndpl.rcNormalPosition.top;
+  width=wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
+  height=wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
 }
 
 void get_xypos(void)
@@ -21,4 +23,6 @@ void get_xypos(void)
 	return;  /* values are reasonable */
   if (xpos < 0 || xpos >w) xpos = 0;
   if (ypos < 0 || ypos >h) ypos = 0;
+  if (width<=0 || xpos+width>w) width=w-xpos;
+  if (height<=0 || ypos+height>h) width=h-ypos;
 }

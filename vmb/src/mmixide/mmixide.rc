@@ -32,7 +32,7 @@ BEGIN
     "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    VK_F1,          ID_HELP_ABOUT,          VIRTKEY, NOINVERT
+    VK_F1,          ID_HELP_CONTEXT,          VIRTKEY, NOINVERT
     VK_F7,          ID_MMIX_ASSEMBLE,       VIRTKEY, NOINVERT
     VK_F5,          ID_MMIX_DEBUG,          VIRTKEY, NOINVERT
 END
@@ -468,7 +468,7 @@ BEGIN
     END
     POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
     BEGIN
-        MENUITEM "&About\tF1",                  ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "&About",                      ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
         MENUITEM "Content",                     ID_HELP_CONTENT,MFT_STRING,MFS_ENABLED
         MENUITEM "Instructions",                ID_HELP_INSTRUCTIONS,MFT_STRING,MFS_ENABLED
     END
