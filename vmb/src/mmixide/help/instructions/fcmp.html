@@ -1,0 +1,108 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>Comparing Floating Point Numbers</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Comparison">
+	<param name="Keyword" value="Floating Point">
+	<param name="Keyword" value="FCMP">
+	<param name="Keyword" value="FEQL">
+	<param name="Keyword" value="FUN">
+	<param name="Keyword" value="FCMPE">
+	<param name="Keyword" value="FEQLE">
+	<param name="Keyword" value="FUNE">
+</OBJECT>
+
+
+  <B>Name:</B>
+<p>
+  <a name="FCMP" id="FCMP">FCMP</a> $X,$Y,$Z
+ <br><a name="FEQL" id="FEQL">FEQL</a> $X,$Y,$Z
+ <br><a name="FUN" id="FUN">FUN</a> $X,$Y,$Z
+ <br><a name="FCMPE" id="FCMPE">FCMPE</a> $X,$Y,$Z
+ <br><a name="FEQLE" id="FEQLE">FEQLE</a> $X,$Y,$Z
+ <br><a name="FUNE" id="FUNE">FUNE</a> $X,$Y,$Z
+ <p>
+<B>Specification:</B>
+<table cellspacing=5>
+<tr><td>FCMP:<td>
+<table>
+<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+     <td rowspan=3 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td> - 1 <td> if f($Y) &#x003C; f($Z)
+<tr><td>    0 <td> if f($Y) = f($Z)
+<tr><td>   +1 <td> if f($Y) &#x003E; f($Z)
+</table>
+<tr><td>FEQL:<td>
+<table>
+<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td>  1  <td> if f ($Y) = f($Z)
+<tr><td>    0 <td> otherwise
+</table>
+</table>
+<p>
+Let N<sub>&#x03B5;</sub>(u) = {x| |x - u|&#x2264; &#x03B5; 2<sup>e-q</sup>},
+ where q is the excess 
+ and  e = E + q is the sum of exponent and excess
+of the floating point representation of u. Then:
+
+<br>
+<table cellspacing=5>
+<tr><td>FCMPE:<td>
+<table>
+<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+     <td rowspan=3 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td>  - 1 <td> if f($Y) &#x003C; N<sub>&#x03B5;</sub>(f($Z)) 
+                    and N<sub>&#x03B5;</sub>(f($Y)) &#x003C; f($Z)
+<tr><td> 0     <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
+                    or f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
+<tr><td> +1    <td> if f($Y) &#x003E; N<sub>&#x03B5;</sub>(f($Z)) 
+                    and N<sub>&#x03B5;</sub>(f($Y)) &#x003E; f($Z)
+</table>
+        
+<tr><td>FEQLE:<td>
+<table>
+<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td> 1 <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
+                 and f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
+<tr><td>  0 <td> otherwise
+</table>
+</table>
+<br>
+The value of &#x03B5; is taken from the special register rE.
+<table cellspacing=5>
+<p>
+<tr><td>FUN:<td>
+<table>
+<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td>  1 <td> if either $Y or $Z is not a Number (NaN),
+<tr><td>  0  <td> otherwise
+</table>
+
+<tr><td>FUNE:<td>
+<table>
+<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="brace.png" alt="{">
+     <td>  1 <td> if either $Y, $Z or rE is not a Number (NaN),
+<tr><td>   0 <td> otherwise
+</table>
+</table>
+  <p>
+<B>Description:</B>
+<p>
+For a more detailed description see for example
+ [<a href="mmix-doc.pdf">mmix-doc</a>].
+
+</body>

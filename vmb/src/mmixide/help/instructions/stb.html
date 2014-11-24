@@ -1,0 +1,52 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4><a name="Signed_Store" id="Signed_Store">Storing Signed Integers</a></h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Storing">
+	<param name="Keyword" value="STB">
+	<param name="Keyword" value="STW">
+	<param name="Keyword" value="STT">
+	<param name="Keyword" value="STO">
+</OBJECT>
+
+
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="STB" id="STB">STB</a> $X,$Y,$Z</td><td>STB $X,$Y,Z</td><td>Store Byte/Store Byte Immediate   </td></tr>
+<tr><td><a name="STW" id="STW">STW</a> $X,$Y,$Z</td><td>STW $X,$Y,Z</td><td>Store Wyde/Store Wyde Immediate</td></tr>
+<tr><td><a name="STT" id="STT">STT</a> $X,$Y,$Z</td><td>STT $X,$Y,Z</td><td>Store Tetra/Store Tetra Immediate </td></tr>
+<tr><td><a name="STO" id="STO">STO</a> $X,$Y,$Z</td><td>STO $X,$Y,Z</td><td>Store Octa/Store Octa Immediate   </td></tr>
+<tr><td>            </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+With A &larr; $Y+$Z respectively A &larr; $Y+Z we have:
+<table cellspacing=5>
+  <tr><td>STB: s(M<sub>1</sub>[A])  </td><td> &larr; s($X)
+  <tr><td>STW: s(M<sub>2</sub>[A])  </td><td> &larr; s($X)
+  <tr><td>STT: s(M<sub>4</sub>[A])  </td><td> &larr; s($X)
+  <tr><td>STO: s(M<sub>8</sub>[A])  </td><td> &larr; s($X)
+</table>
+  <p>
+<B>Timing:</B>
+<p>
+&mu; + &upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Writes one byte, wyde, tetrabyte, or octabyte to memory. Overflow may occur.
+<p>
+The address A is rounded down, if necessary, according to the alignment requirements.
+Addresses for octabytes must be a multiple of 8, for tetrabytes a multiple of 4,
+and for wydes a multiple of 2.
+  <p>
+<B>See also:</B>
+<p>
+<a href="stbu.html">Storing Unsigned Data</a>.
+
+</body>

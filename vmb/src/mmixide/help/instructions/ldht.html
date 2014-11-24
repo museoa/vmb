@@ -1,0 +1,39 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4>The LDHT Instruction</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Loading">
+	<param name="Keyword" value="LDHT">
+</OBJECT>
+
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="LDHT" id="LDHT">LDHT</a> $X,$Y,$Z</td><td>LDHT $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>u($X)  </td><td> &larr; u(M<sub>4</sub>[$Y + $Z]) &#x00D7; 2<sup>32</sup>
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon; + 1&mu;
+  <p>
+<B>Description:</B>
+<p>
+Loads one tetrabyte from main memory into the high-tetra (the 4 most significant byte)
+of $X. The low tetra of $X is filled with zeros.
+  <p>
+The address A is rounded down, if necessary, to be a multiple of 4.
+<p>
+<B>See also:</B>
+<p>
+<a href="stht.html">STHT</a> and <a href="ldb.html">LDT</a>.
+
+</body>

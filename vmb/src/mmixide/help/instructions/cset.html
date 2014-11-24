@@ -1,0 +1,77 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4><a name="Conditional_Set" id="Conditional_Set">Conditional Assignments</a></h4>
+
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Conditional Assignment">
+	<param name="Keyword" value="CSZ">
+	<param name="Keyword" value="ZSZ">
+	<param name="Keyword" value="CSNZ">
+	<param name="Keyword" value="ZSNZ">
+	<param name="Keyword" value="CSN">
+	<param name="Keyword" value="ZSN">
+	<param name="Keyword" value="CSNN">
+	<param name="Keyword" value="ZSNN">
+	<param name="Keyword" value="CSP">
+	<param name="Keyword" value="ZSP">
+	<param name="Keyword" value="CSNP">
+	<param name="Keyword" value="ZSNP">
+	<param name="Keyword" value="CSOD">
+	<param name="Keyword" value="ZSOD">
+	<param name="Keyword" value="CSEV">
+	<param name="Keyword" value="ZSEV">
+</OBJECT>
+
+ <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="CSZ" id="CSZ">CSZ</a> $X,$Y,$Z </td><td>CSZ $X,$Y,Z     
+</td><td><a name="ZSZ" id="ZSZ">ZSZ</a> $X,$Y,$Z </td><td>ZSZ $X,$Y,Z </td></tr>
+<tr><td><a name="CSNZ" id="CSNZ">CSNZ</a> $X,$Y,$Z</td><td>CSNZ $X,$Y,Z   
+ </td><td><a name="ZSNZ" id="ZSNZ">ZSNZ</a> $X,$Y,$Z</td><td>ZSNZ $X,$Y,Z</td></tr>
+<tr><td><a name="CSN" id="CSN">CSN</a> $X,$Y,$Z </td><td>CSN $X,$Y,Z     
+</td><td><a name="ZSN" id="ZSN">ZSN</a> $X,$Y,$Z </td><td>ZSN $X,$Y,Z </td></tr>
+<tr><td><a name="CSNN" id="CSNN">CSNN</a> $X,$Y,$Z</td><td>CSNN $X,$Y,Z    
+</td><td><a name="ZSNN" id="ZSNN">ZSNN</a> $X,$Y,$Z</td><td>ZSNN $X,$Y,Z</td></tr>
+<tr><td><a name="CSP" id="CSP">CSP</a> $X,$Y,$Z </td><td>CSP $X,$Y,Z     
+</td><td><a name="ZSP" id="ZSP">ZSP</a> $X,$Y,$Z </td><td>ZSP $X,$Y,Z </td></tr>
+<tr><td><a name="CSNP" id="CSNP">CSNP</a> $X,$Y,$Z</td><td>CSNP $X,$Y,Z    
+</td><td><a name="ZSNP" id="ZSNP">ZSNP</a> $X,$Y,$Z</td><td>ZSNP $X,$Y,Z</td></tr>
+<tr><td><a name="CSOD" id="CSOD">CSOD</a> $X,$Y,$Z</td><td>CSOD $X,$Y,Z    
+</td><td><a name="ZSOD" id="ZSOD">ZSOD</a> $X,$Y,$Z</td><td>ZSOD $X,$Y,Z</td></tr>
+<tr><td><a name="CSEV" id="CSEV">CSEV</a> $X,$Y,$Z</td><td>CSEV $X,$Y,Z    
+</td><td><a name="ZSEV" id="ZSEV">ZSEV</a> $X,$Y,$Z</td><td>ZSEV $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td> CSxx:
+    <td>s($X) &larr; s($Z) if s($Y) satisfies the condition xx.
+ 
+<tr><td valign="top">ZSxx:</td>
+<td><table>
+     <td rowspan=2 valign="middle"> s($X) &larr; 
+     <td rowspan=2 valign="middle"> 
+       <img src="brace.png" alt="{">
+    <td>  s($Z) if s($Y) satisfies condition xx,
+<tr><td>   0    otherwise
+</table>
+</table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+The "Conditional Set" and "Zero or Set" Instructions check the specified condition
+for the value $Y and conditional execute the assignment.
+  <p>
+<B>See also:</B>
+<p>
+<a href="branch.html">Branches</a>.
+
+</body>

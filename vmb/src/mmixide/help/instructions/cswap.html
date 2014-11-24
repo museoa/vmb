@@ -1,0 +1,38 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>CSWAP</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Synchronization">
+	<param name="Keyword" value="CSWAP">
+</OBJECT>
+
+  <B>Name:</B>
+<p>
+<a name="CSWAP" id="CSWAP">CSWAP</a> $X,$Y,$Z
+ <p>
+<B>Specification:</B>
+<p>
+If u(M<sub>8</sub>[$Y + $Z]) = rP<br>
+then u(M<sub>8</sub>[$Y + $Z]) &larr; $X and $X  &larr; 1<br>
+otherwise rP  &larr; u(M<sub>8</sub>[$Y + $Z]) and $X  &larr; 0
+<p>
+<B>Timing:</B>
+<p>
+2&upsilon; + 2&mu;
+  <p>
+<B>Description:</B>
+<p>
+Compare and Swap. 
+Compare the octabyte at the address $Y+$Z (or $Y+Z) with the content
+of the prediction register rP.
+If both are equal, store $X at the given address and set $X to 1,
+otherwise load the value from the given address into rP and set $X to 0.
+  <p>
+This is an atomic operation, and therefore suitable to synchronize
+processes using memory locations.
+
+</body>

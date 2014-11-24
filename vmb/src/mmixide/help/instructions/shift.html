@@ -1,0 +1,50 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>Shifting Bit Patterns</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Shifting">	
+	<param name="Keyword" value="SL">	
+	<param name="Keyword" value="SLU">
+	<param name="Keyword" value="SR">
+	<param name="Keyword" value="SRU">
+</OBJECT>
+
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="SL" id="SL">SL</a> $X,$Y,$Z </td><td>SL $X,$Y,Z </td></tr>
+<tr><td><a name="SLU" id="SLU">SLU</a> $X,$Y,$Z</td><td>SLU $X,$Y,Z</td></tr>
+<tr><td><a name="SR" id="SR">SR</a> $X,$Y,$Z </td><td>SR $X,$Y,Z </td></tr>
+<tr><td><a name="SRU" id="SRU">SRU</a> $X,$Y,$Z</td><td>SRU $X,$Y,Z</td></tr>
+<tr><td>            </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>SL: s($X)  </td><td> &larr; s($Y) &#x00D7; 2<sup>u($Z)</sup>
+  <tr><td>SLU: u($X)  </td><td> &larr; (u($Y) &#x00D7; 2<sup>u($Z)</sup>) mod 2<sup>64</sup>
+  <tr><td>SR: s($X)  </td><td> &larr; &lfloor;s($Y) / 2<sup>u($Z)</sup>&rfloor;
+ <tr><td>SRU: u($X)  </td><td> &larr; &lfloor;u($Y) / 2<sup>u($Z)</sup>&rfloor;
+   </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+SL shifts the bits in register $Y left.
+If bits unequal to the sign bit of $Y are shifted out during
+this process, an overflow is signaled. The result is filled with 0 bits from the right.
+
+  SLU has the same effect but never causes overflow.
+<p>
+SR shifts the bits in register $Y to the right.
+It fills the target register from the left by replicating the sign bit and discards
+bits on the right; SRU fills the target register from the left with zeros.
+
+</body>

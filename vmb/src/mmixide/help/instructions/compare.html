@@ -1,0 +1,54 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>Compare instructions</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Comparison">
+	<param name="Keyword" value="CMP">
+	<param name="Keyword" value="CMPU">
+</OBJECT>
+
+ <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="CMP" id="CMP">CMP</a> $X,$Y,$Z </td><td>CMP $X,$Y,Z </td></tr>
+<tr><td><a name="CMPU" id="CMPU">CMPU</a> $X,$Y,$Z</td><td>CMPU $X,$Y,Z</td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+<table cellspacing=5 >
+<tr><td valign="top">CMP:</td><td>
+<table>
+<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+     <td rowspan=3 valign="middle"> 
+       <img src="brace.png" alt="{">
+    <td>  - 1 <td> if s($Y) &lt; s($Z)
+<tr><td>  0 <td> if s($Y) = s($Z)
+<tr><td>  + 1 <td> if s($Y) &gt; s($Z)
+</table>
+
+<tr><td valign="top">CMPU:</td><td>
+<table>
+<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+     <td rowspan=3 valign="middle"> 
+       <img src="brace.png" alt="{">
+    <td>  - 1 <td> if u($Y) &lt; u($Z)
+<tr><td>  0 <td> if u($Y) = u($Z)
+<tr><td>  + 1 <td> if u($Y) &gt; u($Z)
+</table>
+</table>
+<p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Compares two integer numbers. The result can be used to control
+  <a href="branch.html">Branches</a> or
+  <a href="cset.html">Conditional Set</a> instructions.
+
+</body>

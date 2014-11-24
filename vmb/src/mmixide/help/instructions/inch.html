@@ -1,0 +1,46 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>INCH, INCMH, INCML, and INCL</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="INCH">
+	<param name="Keyword" value="INCMH">
+	<param name="Keyword" value="INCML">
+	<param name="Keyword" value="INCL">
+</OBJECT>
+
+
+ <B>Name:</B>
+<p>
+<a name="INCH" id="INCH">INCH</a> $X,YZ
+ <br><a name="INCMH" id="INCMH">INCMH</a> $X,YZ
+ <br><a name="INCML" id="INCML">INCML</a> $X,YZ
+ <br><a name="INCL" id="INCL">INCL</a> $X,YZ
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>INCH: u($X)  </td><td> &larr; (u($X) + YZ &#x00D7; 2<sup>48</sup>) mod 2<sup>64</sup>
+  <tr><td>INCMH: u($X)  </td><td> &larr; (u($X) + YZ &#x00D7; 2<sup>32</sup>) mod 2<sup>64</sup>
+  <tr><td>INCML: u($X)  </td><td> &larr; (u($X) + YZ &#x00D7; 2<sup>16</sup>) mod 2<sup>64</sup>
+  <tr><td>INCL: u($X)  </td><td> &larr; (u($X) + YZ) mod 2<sup>64</sup>
+    </table><p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+This collection of increment instructions will first shift the 16-bit 
+immediate value to the left by 6, 4, 2, or 0 byte before adding it
+to $X.
+  <p>
+<B>See also:</B>
+<p>
+<a href="orh.html">ORH</a>, <a href="orh.html">ANDNH</a>, and <a href="seth.html">SETH</a>.
+                                                                                                    
+
+</body>

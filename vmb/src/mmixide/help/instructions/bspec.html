@@ -1,0 +1,40 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>BSPEC and ESPEC</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Special Mode">
+	<param name="Keyword" value="BSPEC">
+	<param name="Keyword" value="ESPEC">
+</OBJECT>
+
+<B>Name:</B>
+<p>
+<a name="BSPEC" id="BSPEC">BSPEC</a> <I>Expression</I>
+<br><a name="ESPEC" id="ESPEC">ESPEC</a>
+ <p>
+<B>Description:</B>
+<p>
+BSPEC stands for "Begin Special Mode" and 
+ESPEC stands for "End Special Mode".
+  <p>
+The assembler writes the text between these two instructions directly to the
+output file, but does not load it as part of the assembled program.
+This mechanism can be used to transmit information from the source to
+the object file for later use. For instance high level languages
+might embed debug information into the object file.
+  <p>
+Regular MMIX instructions are not allowed in special mode, however, the
+  pseudo instructions
+  IS, PREFIX, BYTE, WYDE, TETRA, OCTA, GREG, and LOCAL 
+  are allowed.
+  <p>
+The  <I>Expression</I>  following  BSPEC should fit into two byte
+and can be used to pass information regarding format and type of the
+following information.
+For example BSPEC 1 might be used to pass source line numbers and
+BSPEC 2 for source file names.
+</body>

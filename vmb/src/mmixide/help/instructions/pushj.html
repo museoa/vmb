@@ -1,0 +1,72 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4>PUSHJ and PUSHGO</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="PUSHJ">
+	<param name="Keyword" value="PUSHGO">
+</OBJECT>
+
+
+  <B>Name:</B>
+<p>
+<a name="PUSHJ" id="PUSHJ">PUSHJ</a> $X,$Y,Z
+ <br><a name="PUSHGO" id="PUSHGO">PUSHGO</a> $X,$Y,Z
+ <p>
+<B>Specification:</B>
+  assignment to $X.
+  If X &#x003C; rG, registers $0 to $X - 1 are pushed to the register stack.
+  If $X is a marginal register, it is automatically made local as in an
+  Finally, the value X is pushed on the register stack.
+  <p>
+If X &#x2265; rG, registers $0 to $rL-1 are pushed to the register stack
+  Finally, the value rL is pushed on the register stack and rL  &larr; 0.
+  <p>
+Further:
+<br>
+<table cellspacing=5>
+  <tr><td>rJ  </td><td> &larr; @ + 4
+  <tr><td>@  </td><td> &larr; @ + 4YZ (PUSHJ) or
+  <tr><td>@  </td><td> &larr; @ + 4(YZ - 2<sup>16</sup>) (PUSHJB) or
+  <tr><td>@  </td><td> &larr; $Y + $Z (PUSHGO) or
+  <tr><td>@  </td><td> &larr; $Y + Z (PUSHGOI)
+</table>
+  <p>
+The   PUSHJ-Operation   of   x +  1   registers to the register stack
+S[0],&#x2026;,S[&#x03C4; - 1] entails the following:
+<br>
+<table cellspacing=5>
+<tr><td>S[&tau;]  </td><td> &larr; $0
+<tr><td>S[&#x03C4; + 1]  </td><td> &larr; $1
+<tr><td>&#x2026;
+<tr><td>S[&#x03C4; + x - 1]  </td><td> &larr; $(X - 1),
+  <tr><td>S[&#x03C4; + x]  </td><td> &larr; x,
+  <tr><td>&#x03C4;  </td><td> &larr; &#x03C4; + x + 1,
+  <tr><td>$0  </td><td> &larr; $(x + 1)
+<tr><td>&#x2026;
+<tr><td>$(rL - x - 2)  </td><td> &larr; $(rL - 1),
+  <tr><td>rL  </td><td> &larr; rL - x - 1.
+</table><p>
+<B>Timing:</B>
+<p>
+PUSHJ: 1&upsilon;
+  <p>
+PUSHGO: 3&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+  The PUSHJ and PUSHGO instructions are used to link subroutines.
+  The only difference between the two is the computation of the
+  target address. PUSHJ uses a 16-bit relative address, like branch
+  instructions, while PUSHGO uses an absolute address $Y+$Z (or $Y+Z)
+  like the GO instruction.
+  <p>
+<B>See also:</B>
+<p>
+<a href="pop.html">POP</a> and
+  <br><a href="go.html">GO</a> 
+
+</body>
+

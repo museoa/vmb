@@ -1,0 +1,72 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4><a name="Branches" id="Branches">Branches</a></h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Branches">
+	<param name="Keyword" value="BZ">
+	<param name="Keyword" value="BNZ">
+	<param name="Keyword" value="BP">
+	<param name="Keyword" value="BNP">
+	<param name="Keyword" value="BN">
+	<param name="Keyword" value="BNN">
+	<param name="Keyword" value="BOD">
+	<param name="Keyword" value="BEV">
+	<param name="Keyword" value="PBZ">
+	<param name="Keyword" value="PBNZ">
+	<param name="Keyword" value="PBP">
+	<param name="Keyword" value="PBNP">
+	<param name="Keyword" value="PBN">
+	<param name="Keyword" value="PBNN">
+	<param name="Keyword" value="PBOD">
+	<param name="Keyword" value="PBEV">
+
+</OBJECT>
+
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="BZ" id="BZ">BZ</a> $X,YZ </td><td>PBZ $X,YZ </td><td>(Probable) Branch if zero          </td></tr>
+<tr><td><a name="BNZ" id="BNZ">BNZ</a> $X,YZ</td><td>PBNZ $X,YZ</td><td>(Probable) Branch if nonzero     </td></tr>
+<tr><td><a name="BN" id="BN">BN</a> $X,YZ </td><td>PBN $X,YZ </td><td>(Probable) Branch if negative     </td></tr>
+<tr><td><a name="BNN" id="BNN">BNN</a> $X,YZ</td><td>PBNN $X,YZ</td><td>(Probable) Branch if nonnegative</td></tr>
+<tr><td><a name="BP" id="BP">BP</a> $X,YZ </td><td>PBP $X,YZ </td><td>(Probable) Branch if positive      </td></tr>
+<tr><td><a name="BNP" id="BNP">BNP</a> $X,YZ</td><td>PBNP $X,YZ</td><td>(Probable) Branch if nonpositive </td></tr>
+<tr><td><a name="BOD" id="BOD">BOD</a> $X,YZ</td><td>PBOD $X,YZ</td><td>(Probable) Branch if odd           </td></tr>
+<tr><td><a name="BEV" id="BEV">BEV</a> $X,YZ</td><td>PBEV $X,YZ</td><td>(Probable) Branch if even          </td></tr>
+<tr><td>         </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+With RA &larr; @+4*YZ for forward branches
+<br>
+and RA &larr; @+4*(YZ-2<sup>16</sup>) for backward branches, we have:
+  <table cellspacing=5 
+><tr><td>BZ: @ </td><td> &larr; RA,  </td><td>if s($X) = 0                                      </td></tr>
+<tr><td>BNZ:@ </td><td> &larr; RA, </td><td>if s($X)&ne;0                                        </td></tr>
+<tr><td>BN: @ </td><td> &larr; RA,  </td><td>if s($X) &lt; 0                                      </td></tr>
+<tr><td>BNN:@ </td><td> &larr; RA, </td><td>if s($X) &ge; 0                                      </td></tr>
+<tr><td>BP: @ </td><td> &larr; RA,  </td><td>if s($X) &gt; 0                                      </td></tr>
+<tr><td>BNP: @ </td><td> &larr; RA,</td><td>if s($X) &le; 0                                      </td></tr>
+<tr><td>BOD: @ </td><td> &larr; RA,</td><td>if s($X) mod 2 = 1, d.h. s($X) odd</td></tr>
+<tr><td>BEV: @ </td><td> &larr; RA,</td><td>if s($X) mod 2 = 0, d.h. s($X) even</td></tr>
+<tr><td>           </td></tr>
+</table> 
+ <p>
+<B>Timing:</B>
+<p>
+1&upsilon;, in case the branch prediction logic makes a correct prediction (good guess),
+ and 3&upsilon; otherwise (bad guess).
+  <p>
+<B>Description:</B>
+<p>
+Conditional Branches. The assembler determines automatically, whether 
+the branch is forward or backward and chooses the appropriate instruction.
+
+Probable branches, with the prefix "P" are a hint for the processor
+that the branch is probably taken, directing the instruction fetch
+to the target address.
+</body>

@@ -1,0 +1,30 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>The LOCAL Instruction</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="LOCAL">
+</OBJECT>
+
+
+  <B>Name:</B>
+<p>
+<a name="LOCAL" id="LOCAL">LOCAL</a> <I>Expression</I>
+<p>
+<B>Description:</B>
+<p>
+This instruction declares the <I>Expression</I> as a local register.
+The assembler will issue an error message if at the end of assembling
+the file, rG is not greater than all the register number declared to be local.
+The LOCAL instruction is only necessary for register numbers greater or equal
+to 32, since registers with smaller numbers are never global.
+<p>
+<B>See also:</B>
+<p>
+<a href="pushj.html">PUSHJ</a> 
+
+</body>
+

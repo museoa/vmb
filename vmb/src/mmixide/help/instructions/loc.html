@@ -1,0 +1,43 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>The LOC instruction</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="LOC">
+</OBJECT>
+
+
+  <B>Name:</B>
+<p>
+<a name="LOC" id="LOC">LOC</a> Expression
+ <p>
+<B>Specification:</B>
+<table cellspacing=5>
+<tr><td> @ </td><td> &larr; Expression
+</table>
+  <p>
+<B>Description:</B>
+<p>
+Defines the new current location in memory. The assembler always
+places instructions and data in memory at the current location,
+incrementing the current location as needed.
+The symbol @ ("The location where we are at") can be used for the current location
+in an expression.
+<p>
+
+In user mode, the program has access to four segments in main memory:
+
+<table border=1 cellspacing="4" cellpadding="4">
+<tr><th>Segment</th><th>Symbol</th><th>Start address</th><th>Use</th></tr>
+<tr><td>Text Segment  </td><td>     &nbsp;               </td><td>                <TT>#0</TT></td><td><p>
+Program and static data       </td></tr>
+<tr><td>Data Segment</td><td><TT>Data_Segment </TT></td><td><TT>#2000000000000000</TT></td><td><p>
+variable Data </td></tr>
+<tr><td>Pool Segment  </td><td><TT>Pool_Segment </TT></td><td><TT>#4000000000000000</TT></td><td>  &nbsp;</td></tr>
+<tr><td>Stack Segment </td><td><TT>Stack_Segment</TT></td><td><TT>#6000000000000000</TT></td><td>  &nbsp;</td></tr>
+</table>
+
+</body>

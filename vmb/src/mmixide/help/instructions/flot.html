@@ -1,0 +1,44 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+<h4>Floating Point Conversion</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Conversion">
+	<param name="Keyword" value="Floating Point">
+	<param name="Keyword" value="FLOT">
+	<param name="Keyword" value="FLOTU">
+	<param name="Keyword" value="FIX">
+	<param name="Keyword" value="FIXU">
+</OBJECT>
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="FLOT" id="FLOT">FLOT</a> $X,$Z </td><td>FLOT $X,Z </td></tr>
+<tr><td><a name="FLOTU" id="FLOTU">FLOTU</a> $X,$Z</td><td>FLOTU $X,Z</td></tr>
+<tr><td><a name="FIX" id="FIX">FIX</a> $X,$Z  </td><td><a name="FIXU" id="FIXU">FIXU</a> $X,$Z</td></tr>
+<tr><td>           </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<table cellspacing=5 >
+
+<tr><td>FLOT: <td> f($X)  </td><td> &larr; s($Z)
+  <tr><td>FLOTU: <td> f($X)  </td><td> &larr; u($Z)
+  <tr><td>FIX: <td> s($X)  </td><td> &larr; int(f($Z))
+  <tr><td>FIXU:<td> u($X)  </td><td> &larr; (int(f($Z)))mod2<sup>64</sup>
+    </table><p>
+<B>Timing:</B>
+<p>
+4&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Converts numbers from integer representation to floating point representation
+and vice versa.
+An optional Y-Operand can be used to specify one of the following
+rounding modes:
+  ROUND_OFF, ROUND_UP, ROUND_DOWN, or  ROUND_NEAR.
+</body>
+

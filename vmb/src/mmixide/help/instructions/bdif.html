@@ -1,0 +1,41 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+<h4>Bytewise Operations</h4>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="BDIF">
+	<param name="Keyword" value="WDIF">
+	<param name="Keyword" value="TDIF">
+	<param name="Keyword" value="ODIF">
+</OBJECT>
+
+
+  <B>Name:</B>
+<table cellspacing=5 
+><tr><td><a name="BDIF" id="BDIF">BDIF</a> $X,$Y,$Z</td><td>BDIF $X,$Y,Z</td></tr>
+<tr><td><a name="WDIF" id="WDIF">WDIF</a> $X,$Y,$Z</td><td>WDIF $X,$Y,Z</td></tr>
+<tr><td><a name="TDIF" id="TDIF">TDIF</a> $X,$Y,$Z</td><td>TDIF $X,$Y,Z</td></tr>
+<tr><td><a name="ODIF" id="ODIF">ODIF</a> $X,$Y,$Z</td><td>ODIF $X,$Y,Z</td></tr>
+<tr><td>             </td></tr>
+</table> 
+ <p>
+<B>Specification:</B>
+<p>
+  x  &larr; y-&#x02D9;z = max (0,y - z)
+<br>
+  Here x,y,z are corresponding elements of the vectors $X, $Y, and $Z.
+<p>
+<B>Timing:</B>
+<p>
+1&upsilon;
+  <p>
+<B>Description:</B>
+<p>
+Saturated Difference. An Octa byte is regarded as a vector of
+eight byte, four Wyde, or two Tetra respectively.
+
+</body>
+
