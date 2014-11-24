@@ -1,12 +1,17 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
+#include <setjmp.h> 
 #include "resource.h"
 #include "winmain.h"
 #define _MMIXAL_
 #include "mmixlib.h"
 #include "info.h"
 #include "assembler.h"
+
+
+extern jmp_buf mmixal_exit;
+
 
 int x_option = 0;
 int b_option = 80;
@@ -60,12 +65,13 @@ static char *get_mml_name(char *full_mms_name)
    return full_mml_name;
 }
 
-
 void report_error(char*message,int file_no,int line_no)
 { if(message[0]=='!') /* fatal error */
+  { ide_add_error(message+1,file_no,line_no);
     ide_status(message+1);
+  } 
   else if(message[0]=='*') /* warning */
-	ide_add_error(message,file_no,line_no);
+	ide_add_error(message+1,file_no,line_no);
   else /* error */
 	ide_add_error(message,file_no,line_no);
   err_count++;
@@ -78,6 +84,7 @@ void report_error(char*message,int file_no,int line_no)
     else fprintf(listing_file,
        "********** error: %s!\n",message);
   }
+  if(message[0]=='!')longjmp(mmixal_exit,-2); /* fatal error */
 }
 
 

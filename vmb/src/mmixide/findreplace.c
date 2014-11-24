@@ -169,6 +169,7 @@ FindDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
 switch ( message )
   { case WM_INITDIALOG:
+	  register_subwindow(hDlg);
 	  restore_history(GetDlgItem(hDlg,IDC_COMBO_FIND),find_history_count,find_history);
 	  restore_history(GetDlgItem(hDlg,IDC_COMBO_REPLACE),replace_history_count,replace_history);
 	  { int len = (int) ed_send(SCI_GETSELTEXT,0,0);

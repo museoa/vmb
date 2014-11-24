@@ -120,9 +120,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -140,8 +144,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/VERBOSE"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib Htmlhelp.lib comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -150,7 +153,7 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
-				AllowIsolation="true"
+				AllowIsolation="false"
 				Profile="false"
 			/>
 			<Tool

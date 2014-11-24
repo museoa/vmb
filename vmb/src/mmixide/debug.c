@@ -106,6 +106,10 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         return TRUE;
 	  }
      break;
+  case WM_HELP:
+    ide_help("help\\debugger\\debugoptions.html");
+    return TRUE;
+
   }
   return FALSE;
 }
@@ -564,3 +568,13 @@ int del_breakpoint(int file_no, int line_no, int mask)
   for_all_loc(file_no, line_no, del_break);
   return 1;
 }	
+
+int is_inspector(HWND h)
+{ int i;
+  while (h!=NULL)
+  { for(i=0; i<MAXMEM; i++) if (memory_insp[i].hWnd==h) return 1;
+    for(i=0; i<MAXREG; i++) if (register_insp[i].hWnd==h) return 1;
+	h=GetParent(h);
+  }
+  return 0;
+}

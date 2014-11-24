@@ -28,6 +28,7 @@ extern void ed_release_document(int file_no);
 extern void ed_get_document(void);
 extern int ed_open(void);
 
+extern int ed_show_tab(int file_no);
 extern void ed_add_tab(int file_no);
 extern void ed_remove_tab(int file_no);
 

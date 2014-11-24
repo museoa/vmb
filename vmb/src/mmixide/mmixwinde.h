@@ -11,3 +11,5 @@ extern HWND GetDataEdit(int id, HWND hMemory);
 
 extern void DestroyDataEdit(int id);
 /* call to destroy all DataEdit windows */
+
+extern int is_dataedit(HWND h);

@@ -584,31 +584,14 @@ int ed_open(void)
 }
 
 
-
-
-int dont_overwrite(char *fullname)
-{ HANDLE out_file = CreateFile(fullname,GENERIC_READ,FILE_SHARE_READ,
-                       (LPSECURITY_ATTRIBUTES) NULL,OPEN_EXISTING,
-                        FILE_ATTRIBUTE_NORMAL,NULL);
-  if (out_file != INVALID_HANDLE_VALUE) 
-  { LARGE_INTEGER size;
-    GetFileSizeEx(out_file,&size);
-	CloseHandle(out_file);
-	if (size.QuadPart!=0 
-	      && IDYES!=MessageBox(NULL,"Overwrite existing file?",
-	                       fullname,MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2))
-      return 1;
-  }
-  return 0;
-}
-
-
 static void ed_write_file(void)
 {	FILE *fp;
     char *name = fullname[edit_file_no];
     if (name==NULL || name[0]==0) return;
     fp = fopen(name, "wb");
-	if (fp) {
+	if (fp==NULL)
+       win32_error2(__LINE__,"Unable to save file",name);
+	else {
 		int i;
 		struct Sci_TextRange tr;
 		char data[ED_BLOCKSIZE+1];
@@ -655,9 +638,10 @@ int ed_save_as(void)
 	ofn.lpstrFilter = "MMIX (.mms)\0*.mms\0" "All Files (*.*)\0*.*\0\0";
 	ofn.nMaxFile = MAX_PATH;
 	ofn.lpstrTitle = "Save File";
-	ofn.Flags = OFN_HIDEREADONLY;
+	ofn.lpstrDefExt = "mms";
+	ofn.Flags = OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT;
 
-	if (GetSaveFileName(&ofn) && !dont_overwrite(asname)) 
+	if (GetSaveFileName(&ofn))
 	{  file_set_name(edit_file_no,asname);
 	   ed_write_file();
 	   file2reading(edit_file_no)=0;
@@ -845,27 +829,36 @@ void ed_remove_tab(int file_no)
   }
 }
 
-void ed_add_tab(int file_no)
+
+int ed_show_tab(int file_no)
 { TCITEM tie;
   int index;
-  if (hTabs==NULL) return;
-  if (file_no<0) return;
+  if (hTabs==NULL) return -1;
+  if (file_no<0) return -1;
   index = find_tab(file_no);
   if (index>=0)
   { tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
-	if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
+	tie.iImage= (file2loading(file_no))?0:-1;
     TabCtrl_SetItem (hTabs, index, &tie);
   }
-  else
-  { index = TabCtrl_GetItemCount(hTabs);
+  return index;
+}
+
+void ed_add_tab(int file_no)
+{ 
+  if (hTabs==NULL) return;
+  if (file_no<0) return;
+  if (ed_show_tab(file_no)<0)
+  { TCITEM tie;
+    int index = TabCtrl_GetItemCount(hTabs);
     tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
 	if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
     TabCtrl_InsertItem (hTabs, index, &tie);
 	if (index==1) resize_tab();
+	TabCtrl_SetCurSel (hTabs, index);
   }
-  TabCtrl_SetCurSel (hTabs, index);
 }

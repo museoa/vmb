@@ -71,7 +71,7 @@ static void add_file(int file_no)
   tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
   tie.pszText = unique_name(file_no);
   tie.lParam=file_no;
-  if (file2loading(file_no)) tie.iImage=0; else tie.iImage=-1;
+  tie.iImage= (file2loading(file_no))?0:-1;
   if (index <imax)
   { TabCtrl_SetItem(hFileTab,index,&tie);
     current_tab=index;
@@ -149,6 +149,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			      tie.iImage=-1;
 			      tie.mask=TCIF_IMAGE;
 				  TabCtrl_SetItem(hFileTab,index,&tie);
+				  ed_show_tab((int)tie.lParam);
 			    }
 			  }
 		    }
@@ -157,12 +158,14 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	      tie.mask=TCIF_IMAGE;
 	      tie.iImage=0;
 	      TabCtrl_SetItem(hFileTab,current_tab,&tie);
+		  ed_show_tab(file_no);
 		}
         else
         { file2loading(file_no)=0;
           tie.mask=TCIF_IMAGE;
 	      tie.iImage=-1;
 	      TabCtrl_SetItem(hFileTab,current_tab,&tie);
+	  	  ed_show_tab(file_no);
         }
 		return TRUE;
 	  }

@@ -12,6 +12,7 @@ extern char title[];
 extern char *program_name;
 
 extern void ide_status(char *message);
+extern void ide_help(char *topic);
 extern void ide_add_error(char *message, int file_no, int line_no);
 extern void ide_clear_error_marker(void);
 extern void ide_clear_error_list(void);
@@ -67,4 +68,5 @@ extern int codepage;
 
 extern void win32_message(char *msg);
 extern void win32_error(int line, char *message);
+extern void win32_error2(int line, char *message, char *info);
 extern void win32_fatal_error(int line, char *message);

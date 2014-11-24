@@ -1,7 +1,9 @@
 #include <windows.h>
 #include <stdio.h>
+#include <htmlhelp.h> 
 #include "resource.h"
 #include "winmain.h"
+#include "winopt.h"
 #include "option.h"
 #include "runoptions.h"
 
@@ -28,11 +30,9 @@ static void browse_stdin(HWND hDlg)
 	  SetDlgItemText(hDlg,IDC_FAKE_STDIN,tmp_option);
 }
 
-
-
 INT_PTR CALLBACK 
 OptionRunDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ 
+{
   switch ( message )
   { case WM_INITDIALOG:
       if (run_args!=NULL) SetDlgItemText(hDlg,IDC_ARGS,run_args);
@@ -54,7 +54,7 @@ OptionRunDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         return TRUE;
       } 
 	  else if (wparam==IDCANCEL)
-	  { EndDialog(hDlg, TRUE);
+	  {	 EndDialog(hDlg, TRUE);
         return TRUE;
 	  }
 	  else if (wparam==IDC_BROWSE_STDIN)

@@ -285,7 +285,9 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   switch ( message )
   { case WM_INITDIALOG :
       { RECT rect;
-	    dataedit *de = new_dataedit();
+	    dataedit *de;
+		register_subwindow(hDlg);
+		de = new_dataedit();
 		if (de==NULL) 
 		{ DestroyWindow(hDlg);
 		  return FALSE;
@@ -304,7 +306,12 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    //get_font_metrics(hDlg);
 	  }
 	  return FALSE;
-
+	case WM_CLOSE:
+	  // DestroyWindow(hDlg); does not work currently
+	return FALSE;
+	case WM_DESTROY:
+	  unregister_subwindow(hDlg);
+	  // free((dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER)); does not work currently
 	case DE_CONNECT:
 	     de_connect(hDlg,(inspector_def *)lparam);
 	  /* fall through to DE_UPDATE */

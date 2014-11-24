@@ -12,6 +12,14 @@ static HWND hDataEdit[MAXDATAEDIT] = {0};
 HINSTANCE hDataEditInstance=0;
 HWND hDataEditParent=0;
 
+int is_dataedit(HWND h)
+{ int i;
+  while (h!=NULL)
+  { for(i=0; i<MAXDATAEDIT; i++) if (hDataEdit[i]==h) return 1;
+	h=GetParent(h);
+  }
+  return 0;
+}
 
 HWND GetDataEdit(int id, HWND hMemory)
 { if (id <0 || id>=MAXDATAEDIT) 

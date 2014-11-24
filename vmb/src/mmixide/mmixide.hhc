@@ -15,275 +15,373 @@
 	<UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="The MMIX Instruction Set">
-			<param name="Local" value="help/instructions.html">
+			<param name="Local" value="help/instructions/index.html">
 			</OBJECT>
 		<UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Integer Arithmetic">
-				<param name="Local" value="help/integer.html">
+				<param name="Local" value="help/instructions/integer.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Signed Arithmetic">
-					<param name="Local" value="help/signed.html">
+					<param name="Local" value="help/instructions/signed.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Unsigned Arithmetic">
-					<param name="Local" value="help/unsigned.html">
+					<param name="Local" value="help/instructions/unsigned.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="NEG and NEGU">
-					<param name="Local" value="help/neg.html">
+					<param name="Local" value="help/instructions/neg.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Compare instructions">
-					<param name="Local" value="help/compare.html">
+					<param name="Local" value="help/instructions/compare.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Floating Point Arithmetic">
-				<param name="Local" value="help/float.html">
+				<param name="Local" value="help/instructions/float.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Floating Point Conversion">
-					<param name="Local" value="help/flot.html">
+					<param name="Local" value="help/instructions/flot.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Floating Point Arithmetic">
-					<param name="Local" value="help/farith.html">
+					<param name="Local" value="help/instructions/farith.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Comparing Floating Point Numbers">
-					<param name="Local" value="help/fcmp.html">
+					<param name="Local" value="help/instructions/fcmp.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Conversion of Short Floats">
-					<param name="Local" value="help/shortfloat.html">
+					<param name="Local" value="help/instructions/shortfloat.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Bits and Bytes">
-				<param name="Local" value="help/bits.html">
+				<param name="Local" value="help/instructions/bits.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Bitwise Logical Operations">
-					<param name="Local" value="help/logic.html">
+					<param name="Local" value="help/instructions/logic.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Shifting Bit Patterns">
-					<param name="Local" value="help/shift.html">
+					<param name="Local" value="help/instructions/shift.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Mix and Match">
-					<param name="Local" value="help/mor.html">
+					<param name="Local" value="help/instructions/mor.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Bytewise Operations">
-					<param name="Local" value="help/bdif.html">
+					<param name="Local" value="help/instructions/bdif.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Bitwise Operations with 16-Bit Immediate values">
-					<param name="Local" value="help/orh.html">
+					<param name="Local" value="help/instructions/orh.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The  SADD Instruction">
-					<param name="Local" value="help/sadd.html">
+					<param name="Local" value="help/instructions/sadd.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The MUX Instruction">
-					<param name="Local" value="help/mux.html">
+					<param name="Local" value="help/instructions/mux.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Address Computations">
-				<param name="Local" value="help/address.html">
+				<param name="Local" value="help/instructions/address.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The Pseudo Instruction LDA">
-					<param name="Local" value="help/lda.html">
+					<param name="Local" value="help/instructions/lda.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Get Address (GETA)">
-					<param name="Local" value="help/geta.html">
+					<param name="Local" value="help/instructions/geta.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="2ADDU, 4ADDU, 8ADDU and 16ADDU">
-					<param name="Local" value="help/2addu.html">
+					<param name="Local" value="help/instructions/2addu.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SET, SETH, SETMH, SETML, and SETL">
-					<param name="Local" value="help/seth.html">
+					<param name="Local" value="help/instructions/seth.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="INCH, INCMH, INCML, and INCL">
-					<param name="Local" value="help/inch.html">
+					<param name="Local" value="help/instructions/inch.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Load and Store">
-				<param name="Local" value="help/loadstore.html">
+				<param name="Local" value="help/instructions/loadstore.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Loading Signed Integers">
-					<param name="Local" value="help/ldb.html">
+					<param name="Local" value="help/instructions/ldb.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Storing Signed Integers">
-					<param name="Local" value="help/stb.html">
+					<param name="Local" value="help/instructions/stb.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The STCO Instruction">
-					<param name="Local" value="help/stco.html">
+					<param name="Local" value="help/instructions/stco.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Loading Unsigned Data">
-					<param name="Local" value="help/ldbu.html">
+					<param name="Local" value="help/instructions/ldbu.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Storing Unsigned Data">
-					<param name="Local" value="help/stbu.html">
+					<param name="Local" value="help/instructions/stbu.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The STHT Instruction">
-					<param name="Local" value="help/stht.html">
+					<param name="Local" value="help/instructions/stht.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="The LDHT Instruction">
+					<param name="Local" value="help/instructions/ldht.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Loading and Storing of Short Floats">
-					<param name="Local" value="help/ldsf.html">
+					<param name="Local" value="help/instructions/ldsf.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Jumps and Branches">
-				<param name="Local" value="help/control.html">
+				<param name="Local" value="help/instructions/control.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Jumps with Relative Addresses">
-					<param name="Local" value="help/jmp.html">
+					<param name="Local" value="help/instructions/jmp.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Jumps with Absolute Addresses">
-					<param name="Local" value="help/go.html">
+					<param name="Local" value="help/instructions/go.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Branches">
-					<param name="Local" value="help/branch.html">
+					<param name="Local" value="help/instructions/branch.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Conditional Assignments">
-					<param name="Local" value="help/cset.html">
+					<param name="Local" value="help/instructions/cset.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Subroutines and Processes">
-				<param name="Local" value="help/subroutine.html">
+				<param name="Local" value="help/instructions/subroutine.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="PUSHJ and PUSHGO">
-					<param name="Local" value="help/pushj.html">
+					<param name="Local" value="help/instructions/pushj.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The POP Instruction">
-					<param name="Local" value="help/pop.html">
+					<param name="Local" value="help/instructions/pop.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SAVE and UNSAVE">
-					<param name="Local" value="help/save.html">
+					<param name="Local" value="help/instructions/save.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="CSWAP">
-					<param name="Local" value="help/cswap.html">
+					<param name="Local" value="help/instructions/cswap.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Special Registers and System Programming">
-				<param name="Local" value="help/special.html">
+				<param name="Local" value="help/instructions/special.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="PUT and GET">
-					<param name="Local" value="help/put.html">
+					<param name="Local" value="help/instructions/put.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="TRIP">
-					<param name="Local" value="help/trip.html">
+					<param name="Local" value="help/instructions/trip.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="TRAP">
-					<param name="Local" value="help/trap.html">
+					<param name="Local" value="help/instructions/trap.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="RESUME">
-					<param name="Local" value="help/resume.html">
+					<param name="Local" value="help/instructions/resume.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="LDUNC and STUNC">
-					<param name="Local" value="help/ldunc.html">
+					<param name="Local" value="help/instructions/ldunc.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="PRELD, PREST, and PREGO">
-					<param name="Local" value="help/preld.html">
+					<param name="Local" value="help/instructions/preld.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SYNC">
-					<param name="Local" value="help/sync.html">
+					<param name="Local" value="help/instructions/sync.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SYNCID">
-					<param name="Local" value="help/syncid.html">
+					<param name="Local" value="help/instructions/syncid.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SYNCD">
-					<param name="Local" value="help/syncd.html">
+					<param name="Local" value="help/instructions/syncd.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The LDVTS Instruction">
-					<param name="Local" value="help/ldvts.html">
+					<param name="Local" value="help/instructions/ldvts.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="SWYM">
-					<param name="Local" value="help/swym.html">
+					<param name="Local" value="help/instructions/swym.html">
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Assembler Instructions">
-				<param name="Local" value="help/assembler.html">
+				<param name="Local" value="help/instructions/assembler.html">
 				</OBJECT>
 			<UL>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Defining Names with IS">
-					<param name="Local" value="help/is.html">
+					<param name="Local" value="help/instructions/is.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The LOC instruction">
-					<param name="Local" value="help/loc.html">
+					<param name="Local" value="help/instructions/loc.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Assembling Data">
-					<param name="Local" value="help/byte.html">
+					<param name="Local" value="help/instructions/byte.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Defining global Registers with GREG">
-					<param name="Local" value="help/greg.html">
+					<param name="Local" value="help/instructions/greg.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Defining Namespaces with PREFIX">
-					<param name="Local" value="help/prefix.html">
+					<param name="Local" value="help/instructions/prefix.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="The LOCAL Instruction">
-					<param name="Local" value="help/local.html">
+					<param name="Local" value="help/instructions/local.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="BSPEC and ESPEC">
-					<param name="Local" value="help/bspec.html">
+					<param name="Local" value="help/instructions/bspec.html">
 					</OBJECT>
 			</UL>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="The MMIX Debugger">
+			<param name="Local" value="help/debugger/index.html">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Running, Stopping, and Stepwise Execution">
+				<param name="Local" value="help/debugger/index.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Setting Breakpoints and Tracepoints">
+					<param name="Local" value="help/debugger/index.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Debugger Options">
+				<param name="Local" value="help/debugger/debugoptions.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Inspecting Registers and Memory">
+					<param name="Local" value="help/debugger/debugoptions.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Choosing Special Registers for display">
+					<param name="Local" value="help/debugger/debugoptions.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Customizing Tracing">
+					<param name="Local" value="help/debugger/debugoptions.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Inspector and Data Editor">
+				<param name="Local" value="help/debugger/inspector.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="The Memory Inspector">
+					<param name="Local" value="help/debugger/inspector.html">
+					</OBJECT>
+				<UL>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Changes">
+						<param name="Local" value="help/debugger/inspector.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Alignment">
+						<param name="Local" value="help/debugger/inspector.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Scrollbar">
+						<param name="Local" value="help/debugger/inspector.html">
+						</OBJECT>
+				</UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="The Register Inspector">
+					<param name="Local" value="help/debugger/inspector.html">
+					</OBJECT>
+				<UL>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Local Registers and Register Stack">
+						<param name="Local" value="help/debugger/inspector.html">
+						</OBJECT>
+				</UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="The Data Editor">
+					<param name="Local" value="help/debugger/inspector.html">
+					</OBJECT>
+			</UL>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Splitter Bars">
+			<param name="Local" value="help/splitter/index.html">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Draging a splitter bar">
+				<param name="Local" value="help/splitter/index.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Turning the splitter bar">
+				<param name="Local" value="help/splitter/index.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Moving a window pane">
+				<param name="Local" value="help/splitter/index.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Closing one of the adjacent window panes">
+				<param name="Local" value="help/splitter/index.html">
+				</OBJECT>
 		</UL>
 	</UL>
 </UL>

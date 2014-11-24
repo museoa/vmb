@@ -29,6 +29,7 @@
 #include "editor.h"
 #include "winlog.h"
 #include "runoptions.h"
+#include "mmixwinde.h"
 #include "winmain.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
@@ -36,7 +37,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.39 $ $Date: 2014-11-19 12:28:31 $";
+char version[]="$Revision: 1.40 $ $Date: 2014-11-24 10:03:35 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -72,7 +73,10 @@ void ide_status(char *message)
   //SetWindowText(hStatus,message);
 }
 
-
+void ide_help(char *topic)
+{ HWND hh;
+  hh = HtmlHelp(hMainWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)topic) ;
+}
 
 void ide_add_error(char *message, int file_no, int line_no)
 { int item;
@@ -235,7 +239,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_EDIT_FIND:
 			{ HWND h;
 			  h = CreateDialog(hInst,MAKEINTRESOURCE(IDD_FIND),hWnd,FindDialogProc);
-			  register_subwindow(h);
 			  ShowWindow(h, SW_SHOW); 
 			}
 			return 0;
@@ -417,46 +420,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	      return 0; 
 
 		case ID_HELP_CONTENT:
-		  { HWND hh; 
-		    if (programhelpfile==NULL)
-              hh = HtmlHelp(hWnd,"mmixide.chm",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-		    else
-				hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-			/* this will search for the given topic file */
-			hh = HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
-
-		  }
+#ifdef VMB
+		  ide_help("help\\mmixide.html");
+#else
+		  ide_help("help\\mmixvd.html");
+#endif
 		  return 0;
 	    case ID_HELP_INSTRUCTIONS:
-		  { HWND hh;
-		    char *helpfile= (programhelpfile==NULL)?"mmixide.chm":programhelpfile;
-            hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-			hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
-            return 0;
-		  }
-		case ID_HELP_CONTEXT:
-		  { HWND hh;
-		    char *op;
-		    HH_AKLINK link; 
-		    char *helpfile= (programhelpfile==NULL)?"mmixide.chm":programhelpfile;
-            hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-            /* this will search for the given keyword */
-            op=ed_get_instruction();
-            if (op==NULL) 
-			  hh = HtmlHelp(hWnd,helpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)"help\\instructions.html") ;
-			else
-			{ link.cbStruct =     sizeof(HH_AKLINK) ;
-              link.fReserved =    FALSE ;
-              link.pszKeywords =  op ;
-              link.pszUrl =       NULL ;
-              link.pszMsgText =   NULL ;
-              link.pszMsgTitle =  NULL ;
-              link.pszWindow =    NULL ;
-              link.fIndexOnFail = TRUE ;
-              hh = HtmlHelp(hWnd,helpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
-			}
-		  }
-		  return 0;
+		  ide_help("help\\instructions\\index.html");
+		  return 0;	
 	  }
 	  /* else if (HIWORD(wParam)==1) break; Accellerator */
 	}
@@ -506,6 +478,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  ed_show_line(line_no);
 		}
 	  }
+	}
+    return 0;
+  case WM_HELP:
+	{ HWND hf = GetFocus();
+      if (is_inspector(hf))
+	    ide_help("help\\debugger\\inspector.html");
+      else if (is_dataedit(hf))
+	    ide_help("help\\debugger\\inspector.html");
+	  else
+      { char *op=ed_get_instruction();
+        if (op==NULL) 
+	      ide_help("help\\instructions\\index.html");
+	    else
+	    { HWND hh;
+	      HH_AKLINK link; 
+			  link.cbStruct =     sizeof(HH_AKLINK) ;
+              link.fReserved =    FALSE ;
+              link.pszKeywords =  op ;
+              link.pszUrl =       NULL ;
+              link.pszMsgText =   NULL ;
+              link.pszMsgTitle =  NULL ;
+              link.pszWindow =    NULL ;
+              link.fIndexOnFail = TRUE ;
+              hh = HtmlHelp(hWnd,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+			}
+		  }
 	}
     return 0;
   case WM_MMIX_STOPPED:
@@ -868,8 +866,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     set_text_style();
     set_lineno_width();
     set_profile_width();
-
-
+    if (programhelpfile==NULL) 
+#ifdef VMB
+		programhelpfile="mmixide.chm";
+#else
+		programhelpfile="mmixvd.chm";
+#endif
 	if (edit_file_no<0) ed_new();
 	hStatus = CreateWindow("STATIC", "Status" ,
 				WS_CHILD|WS_VISIBLE|SS_RIGHT,
