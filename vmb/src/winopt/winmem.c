@@ -7,6 +7,7 @@
 #include "inspect.h"
 #include "dedit.h"
 #include "winde.h"
+#include "winopt.h"
 
 #pragma warning(disable : 4996)
 
@@ -17,13 +18,13 @@ char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
 static void sb_range(inspector_def *insp)
 /* determine and set scrollbar range as virtual number of insp->lines */
 { SCROLLINFO si;
-  unsigned int mem_size; 
+  unsigned int new_size, new_base; 
 
   /* determine range */
   if (insp->hWnd==NULL) return;
   if (insp->size==0)
-  { insp->mem_base=0;
-	mem_size = 0;
+  { new_base=0;
+	new_size = 0;
 	insp->sb_base=0;
 	insp->sb_cur=0;
 	insp->sb_rng=0;
@@ -34,8 +35,8 @@ static void sb_range(inspector_def *insp)
     insp->sb_base =0;
 	if (insp->sb_cur>insp->sb_rng-(insp->lines-1)) insp->sb_cur=insp->sb_rng-(insp->lines-1);
 	if (insp->sb_cur<0) insp->sb_cur=0;
-    insp->mem_base = insp->regs[insp->sb_cur].offset;
-	mem_size = insp->size -insp->mem_base;
+    new_base = insp->regs[insp->sb_cur].offset;
+	new_size = insp->size -new_base;
   }
   else 
   { unsigned int page_range;
@@ -67,21 +68,47 @@ static void sb_range(inspector_def *insp)
 	    insp->sb_base=0;
 	  insp->sb_cur=insp->sb_rng-(insp->lines-1);
 	}
-    insp->mem_base=insp->sb_base+insp->sb_cur*insp->line_range;
-	mem_size = page_range;
-	if (mem_size > insp->size -insp->mem_base)
-	{ mem_size = insp->size -insp->mem_base;
+    new_base=insp->sb_base+insp->sb_cur*insp->line_range;
+	new_size = page_range;
+	if (new_size > insp->size -new_base)
+	{ new_size = insp->size -new_base;
       InvalidateRect(insp->hWnd,NULL,TRUE);
 	}
   }
-
-  if (mem_size>insp->mem_size)
-  { insp->mem_buf=realloc(insp->mem_buf,mem_size);
+  /* adjust size */
+  if (new_size>insp->mem_size)
+  { insp->mem_buf=realloc(insp->mem_buf,new_size);
     if (insp->mem_buf==NULL)
 		win32_fatal_error(__LINE__,"Out of memory");
-	memset(insp->mem_buf+insp->mem_size,0,mem_size-insp->mem_size);
   }
-  insp->mem_size=mem_size;
+  /* adjust base */
+  if (new_base<insp->mem_base)
+  { int diff = insp->mem_base-new_base;
+    insp->mem_size=insp->mem_size -diff;
+	memmove(insp->mem_buf, insp->mem_buf+diff,insp->mem_size);
+  }
+  else if (new_base>=insp->mem_base+insp->mem_size)
+	insp->mem_size=0;
+  else if (new_base>insp->mem_base)
+  { int diff = new_base-insp->mem_base;
+    if (new_base+insp->mem_size>insp->mem_base+new_size)
+      insp->mem_size=insp->mem_base+new_size-new_base;
+	memmove(insp->mem_buf+diff, insp->mem_buf, insp->mem_size);
+	if (insp->get_mem) 
+	  insp->get_mem(new_base,diff,insp->mem_buf);
+    else
+      memset(insp->mem_buf,0,diff);
+    insp->mem_size=insp->mem_size+diff;
+  }
+  if (new_size>insp->mem_size)
+  { if (insp->get_mem) 
+	  insp->get_mem(new_base+insp->mem_size,new_size-insp->mem_size,insp->mem_buf+insp->mem_size);
+    else
+      memset(insp->mem_buf+insp->mem_size,0,new_size-insp->mem_size);
+  }
+  insp->mem_size=new_size;
+  insp->mem_base=new_base;
+
   if (insp->sb_rng<insp->lines)
 	  ShowScrollBar(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),SB_CTL,FALSE);
   else
@@ -140,7 +167,7 @@ static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto
       { goto_addr=insp->address+(insp->size-1);
       }
     }
-    uint64tohex(goto_addr,hexstr);
+    uint64_to_hex(goto_addr,hexstr);
     SetDlgItemText(hMemory,IDC_GOTO,hexstr);
 	return goto_addr;
 }
@@ -160,11 +187,22 @@ static void refresh_old_mem(inspector_def *insp)
 }
 
   
+/* these depend only on the font, which is the same for all inspectors */
+static int separator_width, separator_height, top_height; 
+int mem_min_width=0,mem_min_height=0;
+void set_mem_font_metrics(void)
+{ separator_height=fixed_line_height-fixed_char_height;
+  separator_width = fixed_char_width/2;
+  top_height=2*(fixed_line_height+separator_height);
+  mem_min_width=25*fixed_char_width+separator_width;
+  mem_min_height= top_height+separator_height+fixed_line_height;
+}
+
 
 void set_edit_rect(inspector_def *insp);
 
 void adjust_mem_display(inspector_def *insp)
-{ 
+{ RECT ur;
   if (insp->hWnd==NULL) return;
   sb_range(insp);
   refresh_old_mem(insp);
@@ -173,34 +211,16 @@ void adjust_mem_display(inspector_def *insp)
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
     memset(insp->mem_buf,0,insp->mem_size);
   set_edit_rect(insp);
-  InvalidateRect(insp->hWnd,NULL,insp->regs!=NULL);
+  ur.top=top_height-separator_height;
+  ur.bottom=insp->height;
+  ur.left=0;
+  ur.right=insp->width;
+  InvalidateRect(insp->hWnd,&ur,TRUE);
 }
 
 
 
 
-
-/* these depend only on the font, which is the same for all inspectors */
-static int line_height=0, digit_width, address_width, separator_width, separator_height, top_width; 
-int mem_min_width=0,mem_min_height=0;
-void set_mem_font_metrics(void)
-{ SIZE size;
-  HDC hDC=GetDC(NULL);
-  HFONT hfnt = GetStockObject(ANSI_FIXED_FONT); 
-  HFONT holdfnt=SelectObject(hDC, hfnt);
-  GetTextExtentPoint32(hDC,"0",1,&size);
-  separator_height=2;
-  digit_width=size.cx;
-  line_height=size.cy+separator_height;
-  separator_width = digit_width/2;
-  GetTextExtentPoint32(hDC,"0x0000000000000000:",19,&size);
-  address_width=size.cx;
-  top_width=2*(line_height+separator_height);
-  SelectObject(hDC,holdfnt);
-  ReleaseDC(NULL,hDC);
-  mem_min_width=25*digit_width+separator_width;
-  mem_min_height= top_width+separator_height+line_height;
-}
 
 
 int chunk_len(enum mem_fmt f, int chunk_size)
@@ -232,24 +252,24 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
   GetWindowRect(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),&sbRect);
   sbw=sbRect.right-sbRect.left;
   MoveWindow(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),
-	         insp->width-sbw,top_width,sbw,insp->height-top_width,TRUE);
+	         insp->width-sbw,top_height,sbw,insp->height-top_height,TRUE);
 
 
-  insp->lines = (insp->height-top_width)/line_height;
+  insp->lines = (insp->height-top_height)/fixed_line_height;
   if (insp->lines<1) insp->lines=1;
   
   insp->column_digits=chunk_len(insp->format,1<<insp->chunk);
 
-  insp->column_width=insp->column_digits*digit_width+separator_width;
-  insp->columns = (insp->width-sbw-address_width-separator_width)/insp->column_width;
+  insp->column_width=insp->column_digits*fixed_char_width+separator_width;
+  insp->columns = (insp->width-sbw-insp->address_width)/insp->column_width;
   if (insp->columns<1)
   { insp->columns=1;
-    insp->column_width=insp->width-sbw-address_width-separator_width;
-	if (insp->column_digits*digit_width>insp->column_width)
-      insp->column_digits=insp->column_width/digit_width;
+    insp->column_width=insp->width-sbw-insp->address_width;
+	if (insp->column_digits*fixed_char_width>insp->column_width)
+      insp->column_digits=insp->column_width/fixed_char_width;
   }
   insp->line_range = insp->columns*(1<<insp->chunk);
-  InvalidateRect(hMemory,NULL,TRUE); /* can possibly be removed */
+  //InvalidateRect(hMemory,NULL,TRUE); /* can possibly be removed */
   adjust_mem_display(insp);
 }
 
@@ -370,14 +390,19 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 
 
 void update_max_regnames(inspector_def *insp)
-{ int i;
-  if (insp->regs==NULL) return;
-  insp->max_regname=4; /* the basic minimum */
-  for (i=0;i<insp->num_regs;i++)
-  { int n;
-    n = (int)strlen(insp->regs[i].name);
-	if (n> insp->max_regname) insp->max_regname=n;
+{ int max_regname;
+  if (insp->regs==NULL)
+    max_regname=19;
+  else
+  { int i;
+    max_regname=4; /* the basic minimum */
+    for (i=0;i<insp->num_regs;i++)
+    { int n;
+      n = (int)strlen(insp->regs[i].name);
+	  if (n> max_regname) max_regname=n;
+    }
   }
+  insp->address_width=max_regname*fixed_char_width+separator_width;
 }
 
 void display_registers(inspector_def *insp,HDC hdc)
@@ -393,9 +418,9 @@ void display_registers(inspector_def *insp,HDC hdc)
 	 int y, chunk_size, x;
      struct register_def *r;
 	 r = &insp->regs[insp->sb_cur+i];
-     y=top_width+i*line_height;
-     x=digit_width*(insp->max_regname+1);
-     SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
+     y=top_height+i*fixed_line_height;
+     x=insp->address_width;
+     SelectObject(hdc, hFixedFont);
      SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
 	 if (r->options&REG_OPT_DISABLED)
 	   SetTextColor(hdc,GetSysColor(COLOR_GRAYTEXT));
@@ -405,7 +430,7 @@ void display_registers(inspector_def *insp,HDC hdc)
 	 rect.top=y;
      rect.left=0;
      rect.right=x;
-     rect.bottom=y+line_height-separator_height;
+     rect.bottom=y+fixed_line_height-separator_height;
      ExtTextOut(hdc,x,y,
 		   ETO_OPAQUE,&rect,r->name,(int)strlen(r->name),NULL);
 	 if (r->format==user_format) format=insp->format; else format=r->format;
@@ -424,11 +449,11 @@ void display_registers(inspector_def *insp,HDC hdc)
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   rect.top=y;
        rect.left=x;
-       rect.right=x+len*digit_width;
-       rect.bottom=y+line_height-separator_height;
-       ExtTextOut(hdc,x+len*digit_width,y,
+       rect.right=x+len*fixed_char_width;
+       rect.bottom=y+fixed_line_height-separator_height;
+       ExtTextOut(hdc,x+len*fixed_char_width,y,
 		   ETO_OPAQUE,&rect,str,(int)strlen(str),NULL);
-	   x=x+len*digit_width+separator_width;
+	   x=x+len*fixed_char_width+separator_width;
 	 }
    } 
 }
@@ -437,12 +462,12 @@ void display_address(inspector_def *insp,HDC hdc)
   uint64_t addr=insp->address+insp->mem_base;
   char str[22]; /* big enough for the largest 8Byte integer */
   
-  SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
+  SelectObject(hdc, hFixedFont);
   SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
   for (i=0;i<insp->lines && (unsigned int)(i*insp->line_range)<insp->mem_size;i++)
-  { uint64tohex(addr+i*insp->line_range,str);
+  { uint64_to_hex(addr+i*insp->line_range,str);
     str[18]=':';
-	TextOut(hdc,0,top_width+i*line_height,str,19);
+	TextOut(hdc,0,top_height+i*fixed_line_height,str,19);
   }
 }
 
@@ -455,7 +480,7 @@ void display_memory(inspector_def *insp,HDC hdc)
   int columns= insp->columns;
   for (i=0;i<insp->lines && (unsigned int)(i*insp->line_range)<insp->mem_size;i++)
    { int y;
-     y=top_width+i*line_height;
+     y=top_height+i*fixed_line_height;
 	 for (k=0;k<columns;k++)
 	 { int x,l;
 	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= insp->mem_size)
@@ -470,12 +495,12 @@ void display_memory(inspector_def *insp,HDC hdc)
 	     l=0;
          SetBkColor(hdc,COLD);
 	   }
-	   x = address_width+separator_width+k*insp->column_width;
+	   x = insp->address_width+separator_width+k*insp->column_width;
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   r.top=y;
        r.left=x;
        r.right=x+insp->column_width-separator_width;
-       r.bottom=y+line_height-separator_height;
+       r.bottom=y+fixed_line_height-separator_height;
 
        ExtTextOut(hdc,x+insp->column_width-separator_width,y,
 		   ETO_OPAQUE,&r,str,l,NULL);
@@ -514,28 +539,29 @@ void set_edit_rect(struct inspector_def *insp)
 	chunk = insp->regs[insp->de_offset].chunk;
 	if (chunk == user_chunk) chunk = insp->chunk;
     edit_line=insp->de_offset-insp->sb_cur;
-	insp->edit_rect.left=digit_width*(insp->max_regname+1);
 	line_offset=0;
-	edit_width=chunk_len(fmt,1<<chunk)*digit_width+separator_width;
+	edit_width=chunk_len(fmt,1<<chunk)*fixed_char_width+separator_width;
   }
   else {
 	page_offset= insp->de_offset-insp->mem_base;
     if (page_offset<0 || page_offset>=(int)insp->mem_size) return;
     edit_line= page_offset/insp->line_range;
     line_offset= page_offset-edit_line*insp->line_range;
-	insp->edit_rect.left=address_width;
 	edit_width=insp->column_width;
   }
-  insp->edit_rect.top=top_width+edit_line*line_height;
-  insp->edit_rect.bottom=insp->edit_rect.top+line_height-separator_height;
-  insp->edit_rect.left+=separator_width+(line_offset/(1<<insp->chunk))*edit_width;
+  if (edit_line<0) 
+	  return;
+  insp->edit_rect.top=top_height+edit_line*fixed_line_height;
+  insp->edit_rect.bottom=insp->edit_rect.top+fixed_line_height-separator_height;
+  insp->edit_rect.left=insp->address_width+separator_width+(line_offset/(1<<insp->chunk))*edit_width;
   insp->edit_rect.right=insp->edit_rect.left+edit_width-separator_width;
   InflateRect(&insp->edit_rect,separator_height,separator_height);
 }
 
 void  set_edit_offset(inspector_def *insp,int x, int y)
 /* determine edit_offset from the position */
-{ int i = (y-top_width)/line_height;
+{ int i = (y-top_height)/fixed_line_height;
+  if (x<=insp->address_width) return;
   insp->de_offset=-1;
   if (i<0 || i >= insp->lines) return;
   if (insp->regs!=NULL)
@@ -544,8 +570,7 @@ void  set_edit_offset(inspector_def *insp,int x, int y)
   }
   else
   { unsigned int offset = insp->mem_base+i*insp->line_range;
-	if (x<=address_width) return;
-    offset+=(1<<insp->chunk)*((x-address_width)/insp->column_width);
+    offset+=(1<<insp->chunk)*((x-insp->address_width)/insp->column_width);
 	if (offset>=insp->size) return;
     insp->de_offset=offset;
   }
@@ -571,18 +596,18 @@ void SetInspector(HWND hMemory, inspector_def * insp)
 	p.x=r.right;
 	p.y=r.top;
     ScreenToClient(hMemory,&p);
-	xButton=p.x+digit_width;
+	xButton=p.x+fixed_char_width;
 	GetWindowRect(GetDlgItem(hMemory,IDC_FORMAT),&r);
 	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),xButton,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),xButton+digit_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
   }
   else
   { RECT r;
 	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_HIDE);
   	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_HIDE);
 	GetWindowRect(GetDlgItem(hMemory,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),digit_width,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),2*digit_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),fixed_char_width,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),2*fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
 
   }
   SetDlgItemText(hMemory,IDC_FORMAT,format_names[insp->format]);
@@ -605,7 +630,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	case WM_DESTROY:
 		{  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		   unregister_subwindow(hDlg);
-		   DestroyDataEdit(0);
+		   //DestroyDataEdit(0); I think this is not necessary
 		   if (insp!=NULL) insp->hWnd=NULL;
 		}
 	  return FALSE;
@@ -724,7 +749,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
 { HWND h;
-  if (line_height==0) set_mem_font_metrics();
+  if (fixed_line_height==0) set_mem_font_metrics();
   h= CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hParent,MemoryDialogProc);
   hDataEditParent=hParent;
   return h;

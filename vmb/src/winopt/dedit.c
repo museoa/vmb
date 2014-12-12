@@ -1,20 +1,21 @@
 #include <windows.h>
 #include "winopt.h"
 #include "resource.h"
+#include "winde.h"
 #include "dedit.h"
 
 
 /* DataEditor */
 typedef struct dataedit
-{  HWND hWnd;
-   inspector_def *insp;
+{  HWND hWnd;   /* the handle to the data edit dialog window */
+   inspector_def *insp; /* the inspector connected to */
    char * reg_name; /* register name, if NULL this is memory */
    int reg_offset; /* offset to devices base address */
    uint64_t address; /* use instead of name and offset if name==NULL */
    unsigned char mem[8]; /* up to one octa */
    int size; /* 1,2,4, or 8  number of byte to edit */
-   enum mem_fmt format;
-   enum chunk_fmt chunk;
+   enum mem_fmt format; /* current format */
+   enum chunk_fmt chunk; /* current chunk */
 } dataedit;
 
 static dataedit *new_dataedit(void)
@@ -67,22 +68,6 @@ static uint64_t str_to_u64(char *str)
   return u;
 }
 
-static uint64_t hex_to_u64(char *str)
-{ uint64_t u=0;
-  while (isspace(*str)) str++;
-  while (*str!=0)
-  { if (isdigit(*str))
-      u=u*16+((*str)-'0');
-    else if ('a'<=*str && *str<='f')
-      u=u*16+((*str)-'a'+10);
-    else if ('A'<=*str && *str<='F')
-      u=u*16+((*str)-'A'+10);
-    else
-	  break;
-    str++;
-  }
-  return u;
-}
 
 
 
@@ -103,7 +88,7 @@ static void str_to_chunk(char *str, unsigned char *buf, enum mem_fmt fmt, int ch
   else if (fmt==unsigned_format)
     u= str_to_u64(str);
   else if (fmt==hex_format)
-	u= hex_to_u64(str);
+	u= hex_to_uint64(str);
   else if (fmt==ascii_format)
     u=(*str)&0xFF;
 
@@ -211,7 +196,7 @@ static void show_edit_name(dataedit *de)
 	SetDlgItemText(de->hWnd,IDC_NAME,de->reg_name);
   else
   { char str[22]; /* big enough for the largest 8Byte integer */
-    uint64tohex(de->address,str);
+    uint64_to_hex(de->address,str);
     SetDlgItemText(de->hWnd,IDC_NAME,str);
   }
 }
@@ -307,11 +292,12 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  }
 	  return FALSE;
 	case WM_CLOSE:
-	  // DestroyWindow(hDlg); does not work currently
-	return FALSE;
+	  DestroyDataEdit(0);
+	  return FALSE;
 	case WM_DESTROY:
 	  unregister_subwindow(hDlg);
-	  // free((dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER)); does not work currently
+	  free((dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER));
+      return FALSE;
 	case DE_CONNECT:
 	     de_connect(hDlg,(inspector_def *)lparam);
 	  /* fall through to DE_UPDATE */

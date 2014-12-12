@@ -9,6 +9,7 @@
 #include "winmain.h"
 #include "symtab.h"
 #include "editor.h"
+#include "breakpoints.h"
 #include "info.h"
 #pragma warning(disable : 4996)
 
@@ -93,6 +94,7 @@ static int alloc_file_no(void)
 static void release_file_no(int file_no)
 { if (file_no<0) return;
   ed_remove_tab(file_no);
+  remove_file_breakpoints(file_no);
   if (fullname[file_no]!=NULL)
     free(fullname[file_no]);
   fullname[file_no]=shortname[file_no]=NULL;
@@ -218,22 +220,6 @@ void file_set_name(int file_no, char *filename)
 }
 
 
-static void mem_node_clear_breaks(unsigned char file_no,mem_node*p)
-{  int i;
-	if (p==NULL) return;
-   mem_node_clear_breaks(file_no, p->left);
-   mem_node_clear_breaks(file_no, p->right);
-   for (i=0;i<512;i++)
-   { mem_tetra *q=&(p->dat[i]);
-	   if(q->file_no==file_no)
-		   q->bkpt=0;
-   }
-}
-
-void mem_clear_breaks(int file_no)
-{ mem_node_clear_breaks(file_no,mem_root);
-}
-
 static void clear_symbols(int file_no)
 { 
   free_tree(symbols[file_no]);
@@ -246,7 +232,7 @@ static void clear_symbols(int file_no)
 
 void clear_file_info(int file_no)
 /* remove all data about file */
-{   mem_clear_breaks(file_no);
+{   remove_file_breakpoints(file_no);
     clear_symbols(file_no);
 }
 
@@ -257,20 +243,27 @@ void clear_all_info(void)
     clear_file_info(file_no);
 }
 
-
-void mem_iterator(mem_node *p,int file_no, int line_no, void f(octa loc))
+static mem_iterator_aux(mem_node *p,void f(octa loc, mem_tetra *dat))
 { int j;
-  if (p->left) mem_iterator(p->left,file_no,line_no,f);
+  if (p->left) mem_iterator_aux(p->left,f);
+  for (j=0;j<512;j++) 
+		f(incr(p->loc,4*j),p->dat+j);
+  if (p->right) mem_iterator_aux(p->right,f);
+}
+
+void mem_iterator(void f(octa loc, mem_tetra *dat))
+{ mem_iterator_aux(mem_root,f);
+}
+
+
+void file_line_loc(mem_node *p,int file_no, int line_no, void f(octa loc))
+{ int j;
+  if (p->left) file_line_loc(p->left,file_no,line_no,f);
   for (j=0;j<512;j++) 
 	if (p->dat[j].file_no==file_no && p->dat[j].line_no==line_no)
 		f(incr(p->loc,4*j));
-  if (p->right) mem_iterator(p->right,file_no,line_no,f);
+  if (p->right) file_line_loc(p->right,file_no,line_no,f);
 
-}
-
-void for_all_loc(int file_no, int line_no, void f(octa loc))
-/* iterate f over all locations belonging to this file and line */
-{ mem_iterator(mem_root,file_no,line_no,f);
 }
 
 
@@ -296,17 +289,23 @@ void add_line_loc(int file_no, int line_no, octa loc)
   }
 }
 
-int freq_max=-1;
+unsigned int freq_max=-1;
+int freq_file_no=-1;
+int freq_line_no=0;
 
-static void get_max_freq(octa loc)
-{ int freq = loc2freq(loc);
-  if (freq>freq_max) freq_max=freq;
+static void get_max_freq(octa loc, mem_tetra *dat)
+{ if (dat->line_no==freq_line_no &&
+	  dat->file_no==freq_file_no && 
+      (int)dat->freq>freq_max) 
+	  freq_max=dat->freq;
 }
 
 int line2freq(int file_no,int line_no)
 /* returns the frequency count for this line  or -1 if none found*/
 { freq_max=-1;
-	for_all_loc(file_no, line_no, get_max_freq);
+  freq_file_no=file_no;
+  freq_line_no=line_no;
+  mem_iterator(get_max_freq);
   return freq_max;
 }
 

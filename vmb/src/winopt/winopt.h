@@ -39,7 +39,8 @@ typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;
 
 /* in util.c */
-extern void uint64tohex(uint64_t u, char *c);
+extern void uint64_to_hex(uint64_t u, char *c);
+extern uint64_t hex_to_uint64(char *str);
 extern uint64_t strtouint64(char *arg);
 
 /* in winabout.c */
@@ -83,6 +84,14 @@ extern void write_regtab(char *program);
 extern void read_regtab(char * program);
 extern void parse_commandline(int argc, char *argv[]);
 
+/* from layout.c */
+
+extern HFONT hFixedFont;
+extern HFONT hVarFont;
+extern int fixed_line_height;
+extern int fixed_char_width;
+extern int fixed_char_height;
+extern int version_width; /* length of the version string in VarFont */
 
 #if 0
 extern void win32_log(char *msg);

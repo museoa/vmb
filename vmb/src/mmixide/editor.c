@@ -7,6 +7,7 @@
 #include "splitter.h"
 #include "info.h"
 #include "debug.h"
+#include "breakpoints.h"
 #include "mmixdata.h"
 #include "edit.h"
 #include "editor.h"
@@ -130,6 +131,7 @@ void set_edit_file(int file_no)
   if (file_no==edit_file_no && !(fullname[edit_file_no]!=NULL && file2reading(edit_file_no))) return;
   ide_clear_error_marker();
   clear_stop_marker();
+  ed_refresh_breaks();
   if (edit_file_no>=0)
   {  file2dirty(edit_file_no)=(int)ed_send(SCI_GETMODIFY,0,0);
      curPos[edit_file_no]=(int)ed_send(SCI_GETCURRENTPOS,0,0);
@@ -150,9 +152,10 @@ void set_edit_file(int file_no)
 }
 
 
-ide_mark_breakpoint(int file_no, int line_no)
-{ if (file_no==edit_file_no)
-     ed_send(SCI_MARKERADD,line_no-1,MMIX_BREAKX_MARKER); /* lines start with zero */
+void ed_set_break(int file_no, int line_no, unsigned char bits)
+{ if (file_no!=edit_file_no) set_edit_file(file_no);
+  ed_send(SCI_MARKERDELETE,line_no-1,-1);
+  ed_send(SCI_MARKERADDSET,line_no-1,bits); /* lines start with zero */
 }
 
 
@@ -183,13 +186,13 @@ static void ed_toggle_break_at(int position,int bits)
   int markers = (int)ed_send(SCI_MARKERGET,line,0);
   if (markers & bits)
   { int i;
-	del_breakpoint(edit_file_no,line+1, bits);
+	del_file_breakpoint(edit_file_no,line+1, bits);
     for (i=0;i<4;i++)
      if (bits&(1<<i)) ed_send(SCI_MARKERDELETE,line,i);
   }
   else
-  { if (set_breakpoint(edit_file_no,line+1, bits))
-      ed_send(SCI_MARKERADDSET,line,bits);
+  { set_file_breakpoint(edit_file_no,line+1, bits);
+    ed_send(SCI_MARKERADDSET,line,bits);
   }
 }
 
@@ -288,12 +291,12 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		    brkp = (int)ed_send(SCI_MARKERGET,line,0);
 		    brkp &= 1<<MMIX_BREAKX_MARKER;
             if (brkp)
-		    { del_breakpoint(edit_file_no,line+1,exec_bit);
+		    { del_file_breakpoint(edit_file_no,line+1,exec_bit);
 		      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
 		    }
 		    else
-		    { if (set_breakpoint(edit_file_no,line+1,exec_bit))
-		        ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
+		    { set_file_breakpoint(edit_file_no,line+1,exec_bit);
+		      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
 		    }
 		  }
 		  else if(n->code==SCN_MODIFIED)
@@ -418,7 +421,7 @@ static void show_profile_range(int from, int to)
 { int line_no;
 	for (line_no=from;line_no<=to; line_no++)
   { char number[21];
-    int freq = line2freq(edit_file_no,line_no+1);
+    int freq = line2freq(edit_file_no,line_no+1); /* this is very inefficient, iteration over all the memory for each line */
 	if (freq<=0) continue;
     sprintf(number,"%d",freq);
 	ed_send(SCI_MARGINSETTEXT,line_no, (sptr_t)number);
@@ -507,7 +510,7 @@ void new_edit(void)
    ed_send(SCI_MARKERDEFINERGBAIMAGE,MMIX_BREAKW_MARKER,(LONG_PTR)brkwrite.pixel_data);
 
    /* tracing */
-   ed_send(SCI_SETMARGINTYPEN,MMIX_TRACE_MARGIN,SC_MARGIN_SYMBOL);
+   ed_send(SCI_SETMARGINTYPEN,MMIX_TRACE_MARGIN,SC_MARGIN_BACK);
    ed_send(SCI_SETMARGINWIDTHN,MMIX_TRACE_MARGIN,16);
    ed_send(SCI_SETMARGINMASKN,MMIX_TRACE_MARGIN,(1<<MMIX_TRACE_MARKER));
    ed_send(SCI_MARKERDEFINE, MMIX_TRACE_MARKER,SC_MARK_ARROW);
@@ -741,7 +744,7 @@ void set_whitespace(int ws)
 void ed_refresh_breaks(void)
 { int line=-1;
   if (hEdit==NULL) return;  
-  mem_clear_breaks(edit_file_no);
+  remove_file_breakpoints(edit_file_no);
   while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,
 	                           (1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)|
 	                           (1<<MMIX_BREAKR_MARKER)|(1<<MMIX_BREAKW_MARKER)
@@ -753,15 +756,14 @@ void ed_refresh_breaks(void)
     if (markers & (1<<MMIX_BREAKR_MARKER)) bits|=read_bit;
     if (markers & (1<<MMIX_BREAKW_MARKER)) bits|=write_bit;
     if (markers & (1<<MMIX_BREAKT_MARKER)) bits|=trace_bit;
-	{ if (!set_breakpoint(edit_file_no,line+1,bits))
-        ed_send(SCI_MARKERDELETE,line,markers);
-	}
+	set_file_breakpoint(edit_file_no,line+1,bits);
+    ed_send(SCI_MARKERDELETE,line,markers);
   }
 }
 
 void  ed_show_line(int line_no)
-{  ed_send(SCI_ENSUREVISIBLEENFORCEPOLICY,line_no-1,0); 
-   //  ed_send(SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
+{  ed_send(SCI_ENSUREVISIBLEENFORCEPOLICY,line_no-1,0); /* scroll into view */
+   ed_send(SCI_GOTOLINE,line_no-1,0); /* position cursor */
    SetFocus(hSCe);
 }
 

@@ -44,7 +44,7 @@ struct inspector_def {
 	int num_regs;      /* number of registers if register_def!=NULL */
 	struct register_def *regs; /* NULL if memory */
 	/* the rest can be initialized with zero */
-	int max_regname;   /*maximum number of characters in register names */
+	int address_width;   /*size of addess or register names column*/
 	uint64_t address;  /* used for memory only */
 	RECT edit_rect;
 	HWND hWnd; /* the window where the edit rectangle is displayed */

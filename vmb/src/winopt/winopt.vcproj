@@ -164,6 +164,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\layout.c"
+				>
+			</File>
+			<File
 				RelativePath=".\option.c"
 				>
 			</File>

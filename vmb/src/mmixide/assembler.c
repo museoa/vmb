@@ -48,8 +48,10 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
 	  { EndDialog(hDlg, TRUE);
         return TRUE;
 	  }
-	  else if (wparam==IDC_SPIN_BUFFERSIZE)
      break;
+  case WM_HELP:
+    ide_help("help\\options\\assembler.html");
+    return TRUE;
   }
   return FALSE;
 }

@@ -93,6 +93,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="copy helpfile to output directory"
+				CommandLine="copy mmixvd.chm $(OutDir)\mmixvd.chm"
 			/>
 		</Configuration>
 		<Configuration
@@ -181,6 +183,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="copy helpfile to output directory"
+				CommandLine="copy mmixvd.chm $(OutDir)\mmixvd.chm"
 			/>
 		</Configuration>
 	</Configurations>
@@ -319,11 +323,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

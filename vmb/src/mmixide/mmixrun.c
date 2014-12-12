@@ -23,6 +23,7 @@
 #include "editor.h"
 #include "option.h"
 #include "runoptions.h"
+#include "breakpoints.h"
 #include "mmixrun.h"
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -95,12 +96,12 @@ extern jmp_buf mmix_exit;
 
 #define sign_bit ((unsigned)0x80000000)
 
-
+#ifdef VMB
 
 void mmix_exit_hook(int returncode)
 { longjmp(mmix_exit, returncode);
 }
-
+#endif
 
 
 static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
@@ -191,17 +192,6 @@ void mmix_run(void)
           MMIXThread();
 }
 
-
-int break_at_symbol(int file_no,char *symbol)
-{ sym_node *sym=find_symbol(symbol,file_no);
-  if (sym!=NULL&& sym->link==DEFINED)
-  { loc2bkpt(sym->equiv)|=exec_bit;
-	ide_mark_breakpoint(sym->file_no,sym->line_no);
-	return 1;
-  }
-  else
-    return 0;
-}
 
 void mmix_reset(void)
 { 	PostMessage(hMainWnd,WM_MMIX_RESET,0,0);

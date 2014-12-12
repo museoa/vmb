@@ -9,6 +9,7 @@
 #include "mmixrun.h"
 #include "info.h"
 #include "editor.h"
+#include "winopt.h"
 #include "symtab.h"
 
 int symtab_locals=0;
@@ -46,6 +47,10 @@ OptionSymtabDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         return TRUE;
 	  }
      break;
+  case WM_HELP:
+    ide_help("help\\options\\symbols.html");
+    return TRUE;
+
   }
   return FALSE;
 }
@@ -57,12 +62,18 @@ void symtab_reset(void)
 
 static void symtab_add(char *symbol, sym_node *sym)
 { LPARAM item;
-  if ((symtab_registers && sym->link==REGISTER) || sym->link==DEFINED)
-  { if (!symtab_locals && strchr(symbol+1,':')!=NULL) return;
-    if (!symtab_small && sym->link==DEFINED && sym->equiv.h==0 && sym->equiv.l<0x100) return;
-    item = SendMessage(hSymbolTable,LB_ADDSTRING,0,(LPARAM)symbol);
-    SendMessage(hSymbolTable,LB_SETITEMDATA,item,(LPARAM)sym);
+  if (sym->link!=REGISTER && sym->link!=DEFINED) return;
+  if (sym->link==REGISTER && !symtab_registers) return;
+  if (!symtab_locals && strchr(symbol+1,':')!=NULL) return;
+  if (!symtab_small && sym->link==DEFINED && sym->equiv.h==0 && sym->equiv.l<0x100) return;
+  if (sym->link==REGISTER)
+  { char str[100];
+    sprintf_s(str,100,"%s IS $%d",symbol,sym->equiv.l);
+	item = SendMessage(hSymbolTable,LB_ADDSTRING,0,(LPARAM)str);
   }
+  else
+    item = SendMessage(hSymbolTable,LB_ADDSTRING,0,(LPARAM)symbol);
+  SendMessage(hSymbolTable,LB_SETITEMDATA,item,(LPARAM)sym);
 }
 
 #if 0
@@ -124,9 +135,10 @@ void update_symtab(void)
 void create_symtab(void)
 { sp_create_options(1,1,0.15,0,hEdit);
   hSymbolTable = CreateWindow("LISTBOX","Symbol Table",
-		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
+		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
              0,0,0,0,
 	         hSplitter, NULL, hInst, NULL);
+    SendMessage(hSymbolTable,WM_SETFONT,(WPARAM)hFixedFont,0);
   update_symtab();
 }
 

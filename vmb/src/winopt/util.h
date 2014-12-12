@@ -1,7 +1,8 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-extern void uint64tohex(uint64_t u, char *c);
+extern void uint64_to_hex(uint64_t u, char *c);
+extern uint64_t hex_to_uint64(char *str);
 extern uint64_t strtouint64(char *arg);
 extern void inttochar(int val, unsigned char buffer[4]);
 extern int chartoint(const unsigned char buffer[4]);

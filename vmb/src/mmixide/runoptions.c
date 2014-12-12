@@ -61,6 +61,10 @@ OptionRunDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  {  browse_stdin(hDlg);
 	  }
      break;
+  case WM_HELP:
+    ide_help("help\\options\\run.html");
+    return TRUE;
+
   }
   return FALSE;
 }

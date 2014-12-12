@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "winmain.h"
 #include "winopt.h"
 #include "resource.h"
 
@@ -11,16 +12,26 @@ extern sptr_t ed_send(unsigned int msg,uptr_t wparam,sptr_t lparam);
 static char find_str[MAX_FIND_STR]={0};
 static char replace_str[MAX_FIND_STR]={0};
 static char expand_str[MAX_FIND_STR]={0};
+int find_escape=1;
+
+#define tohex(i)  (((i)&0xF)<10?((i)&0xF)+'0':((i)&0xF)-10+'A')
 
 static char *expand_special(char *str)
 { int to=0;
+  if (!find_escape) return str;
   do {
-    if (*str=='\t')
+    if (*str==0) 
+	  break;
+	else if (*str=='\t')
       expand_str[to++]='\\',expand_str[to++]='t';
 	else if (*str=='\n')
       expand_str[to++]='\\',expand_str[to++]='n';
 	else    if (*str=='\r')
       expand_str[to++]='\\',expand_str[to++]='r';
+	else if (*str<0x20)
+	{ unsigned char c=*str;    
+	  expand_str[to++]='\\',expand_str[to++]='x',expand_str[to++]=tohex(c>>4),expand_str[to++]=tohex(c);
+	}
 	else
       expand_str[to++]=*str;
 	str++;
@@ -28,8 +39,12 @@ static char *expand_special(char *str)
   expand_str[to]=0;
   return expand_str;
 }
-static contract_special(char *str)
+
+#define fromhex(c) (('0'<=(c)&&(c)<='9')?(c)-'0':(('A'<=(c)&&(c)<='F')?(c)-'A'+10:(('a'<=(c)&&(c)<='f')?(c)-'a'+10:0)))
+
+static void contract_special(char *str)
 { char *from=str;
+  if (!find_escape) return;
   do {
     if (from[0]=='\\')
 	{ if (from[1]=='t')
@@ -38,6 +53,11 @@ static contract_special(char *str)
 	    *str++='\n', from+=2;
 	  else if (from[1]=='r')
 	    *str++='\r', from+=2;
+	  else if (from[1]=='x')
+	  {  *str=fromhex(from[2]), from+=3;
+	     if (from[0]!=0) *str=(*str)*16+fromhex(from[0]), from++;
+		 str++;
+	  }
 	  else
 	    *str++=from[1],from+=2;
 	}
@@ -55,6 +75,7 @@ static int replace_history_count = 0;
 static int find_flags=SCFIND_MATCHCASE;
 static int find_wrap=1; 
 static int find_direction = 1; /* direction ==1 forward  direction == -1 backward */
+
 
 void add_list(HWND h, char *str)
 { 
@@ -188,6 +209,8 @@ switch ( message )
 		  (find_flags&SCFIND_WHOLEWORD)?BST_CHECKED:BST_UNCHECKED,0);
 	  SendDlgItemMessage(hDlg,IDC_CHECK_WRAP,BM_SETCHECK,
 		  find_wrap?BST_CHECKED:BST_UNCHECKED,0);
+	  SendDlgItemMessage(hDlg,IDC_CHECK_ESC,BM_SETCHECK,
+		  find_escape?BST_CHECKED:BST_UNCHECKED,0);
       return TRUE;
     case WM_COMMAND:
 	  if (HIWORD(wparam) == BN_CLICKED) 
@@ -249,6 +272,11 @@ switch ( message )
             if (check==BST_CHECKED) find_wrap=1;
 			else find_wrap=0;
 		  }
+		  else if (LOWORD(wparam) == IDC_CHECK_ESC)
+		  { LRESULT check=SendDlgItemMessage(hDlg,IDC_CHECK_ESC,BM_GETCHECK,0,0);
+            if (check==BST_CHECKED) find_escape=1;
+			else find_escape=0;
+		  }
 	    }
 	  }
       break;
@@ -263,6 +291,9 @@ switch ( message )
 	  save_history(GetDlgItem(hDlg,IDC_COMBO_REPLACE),&replace_history_count,replace_history);
       unregister_subwindow(hDlg);
       break;
+	case WM_HELP:
+      ide_help("help\\options\\find.html");
+      return TRUE;
   }
   return FALSE;
 }

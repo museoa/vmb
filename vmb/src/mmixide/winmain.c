@@ -37,7 +37,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.40 $ $Date: 2014-11-24 10:03:35 $";
+char version[]="$Revision: 1.41 $ $Date: 2014-12-12 16:51:13 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -64,8 +64,7 @@ HWND      hStatus;
 HWND	  hError=NULL;
 HWND	  hSymbolTable=NULL;
 
-#define S_WIDTH 400
-int status_width = S_WIDTH; /* width of status window */
+int status_width = 100; /* initial width of status window */
 
 void ide_status(char *message)
 { SendMessage(hStatus, WM_SETTEXT,0,(LPARAM)message);
@@ -144,6 +143,18 @@ int ide_prepare_mmix(void)
   return 1;
 }
 
+void toggle_view(HWND *hWnd, UINT MenuID, void create(void))
+{
+  if (menu_toggle(MenuID))
+  { if (*hWnd!=NULL) return;
+ 	create();
+  }
+  else if (*hWnd!=NULL)
+  { DestroyWindow(*hWnd);
+	*hWnd=NULL;
+  }
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
   switch (message) 
@@ -152,10 +163,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return 0;
   case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
-		{	if (LOWORD(lParam)<3*S_WIDTH) 
-		       status_width=LOWORD(lParam)/3;
+		{	if (LOWORD(lParam)<4*version_width) 
+		       status_width=LOWORD(lParam)/4;
 		    else
-				status_width=S_WIDTH;
+				status_width=version_width;
 			MoveWindow(hButtonBar, 0,0,LOWORD(lParam)-status_width,BB_HEIGHT, TRUE);
 		    MoveWindow(hStatus, LOWORD(lParam)-status_width,0,status_width,BB_HEIGHT, TRUE);
 			MoveWindow(hSplitter, 0,BB_HEIGHT,LOWORD(lParam),HIWORD(lParam)-BB_HEIGHT, TRUE);
@@ -261,18 +272,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ed_toggle_break(write_bit);
 			return 0;
 		case ID_VIEW_SYMBOLTABLE:
-		  if (menu_toggle(ID_VIEW_SYMBOLTABLE))
-		  { if (hSymbolTable!=NULL) return 0;
-			create_symtab();
-		  }
-		  else
-		  {  DestroyWindow(hSymbolTable);
-			 hSymbolTable=NULL;
-		  }
-		  return 0;
+			toggle_view(&hSymbolTable,ID_VIEW_SYMBOLTABLE,create_symtab);
+		    return 0;
   	    case ID_VIEW_TRACE:
-		  show_trace_window();
-		  return 0;
+			toggle_view(&hLog,ID_VIEW_TRACE,show_trace_window);
+		    return 0;
+		case ID_VIEW_BREAKPOINTS:
+			toggle_view(&hBreakpoints,ID_VIEW_BREAKPOINTS,create_breakpoints);
+		    return 0;
 	    case ID_VIEW_ZOOMIN:
 		  ed_zoom_in();
 		  return 0;
@@ -388,9 +395,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  if (show_debug_regstack)
 		    new_register_view(REG_LOCAL);
 		  set_register_inspectors();
-		  return 0;
-		case ID_VIEW_BREAKPOINTS:
-          create_breakpoints();
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
@@ -598,16 +602,6 @@ BOOL InitInstance(HINSTANCE hInstance)
 }
 
 
-static void break_main(int file_no)
-{ break_at_symbol(file_no,":Main");
-}
-
-void update_breakpoints(void)
-{ int line = -1;
-  if (break_at_Main) 
-	  for_all_files(break_main);
-  ed_refresh_breaks();
-}
 
 int mmo_file_newer(char *full_mms_name)
 { HANDLE mms, mmo;
@@ -776,7 +770,7 @@ int execute_commands(void)
 void new_errorlist(void)
 {   sp_create_options(0,0,0.2,0,hEdit);
 	hError = CreateWindow("LISTBOX", "Errorlist" ,
-				WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT 
+				WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT 
 ,
                 0,0,0,0,
 	            hSplitter, NULL, hInst, NULL);
@@ -845,6 +839,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     bb_init(hInstance);
 
 	if (!InitInstance (hInstance)) return FALSE;
+	init_layout(0);
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
 		0, 0, r.right-r.left-status_width, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
@@ -877,7 +872,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				WS_CHILD|WS_VISIBLE|SS_RIGHT,
                 r.right-r.left-status_width,0, status_width,BB_HEIGHT,
 	            hMainWnd, NULL, hInstance, NULL);
-	SendMessage(hStatus,WM_SETFONT,(WPARAM)GetStockObject(ANSI_FIXED_FONT),0);
+	SendMessage(hStatus,WM_SETFONT,(WPARAM)hVarFont,0);
     ide_status(version);
 
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_SHOWWINDOW|((width&&height)?0:SWP_NOSIZE));
@@ -926,4 +921,9 @@ void win32_fatal_error(int line, char *message)
 {   win32_error(line, message);
 	SendMessage(hMainWnd,WM_COMMAND,0,ID_FILE_EXIT);
 	exit(1);
+}
+
+
+void destroy_log(HWND hLog)
+{  CheckMenuItem(hMenu,ID_VIEW_TRACE,MF_BYCOMMAND|MF_UNCHECKED);
 }

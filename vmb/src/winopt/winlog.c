@@ -7,7 +7,6 @@
 
 HWND hLog=NULL; /* logging output goes to this window, if not NULL */
 static WNDPROC StaticWndProc=NULL;
-static HFONT hLogFont=NULL;
 #define WM_VMB_MSG			(WM_APP+1)
 #define WM_VMB_GETS			(WM_APP+2)
 
@@ -89,6 +88,8 @@ static int loginput=0;
 static UINT mes[10009]={0};
 static int mesc=0;
 
+extern void destroy_log(HWND hLog);
+
 extern LRESULT CALLBACK   
 LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
 { 
@@ -112,10 +113,9 @@ LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
 	  return 0;
 	case WM_DESTROY:  
 	  DeleteCriticalSection(&msg_section);
-	  DeleteObject(hLogFont);
       CloseHandle(hGets); 
       hGets=NULL;
-	  hLogFont=NULL;
+	  destroy_log(hLog);
 	  hLog=NULL;
 	  break;
 	case WM_CHAR:
@@ -151,6 +151,14 @@ LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
 	case WM_NCHITTEST: 
     case WM_SETCURSOR:
       return CallWindowProc(StaticWndProc, hWnd, message, wparam, lparam);
+	case WM_GETMINMAXINFO:
+	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
+	  p->ptMinTrackSize.x = 40*fixed_char_width;
+      p->ptMinTrackSize.y = 4*fixed_line_height;
+	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
+	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
+	}
+	return 0;
   }
     
   if (loginput)
@@ -172,7 +180,6 @@ HWND CreateLog(HWND hParent,HINSTANCE hInst)
 						0,0,100,10,
 						hParent,NULL,hInst,0);
     StaticWndProc = (WNDPROC)SetWindowLongPtr(hLog, GWLP_WNDPROC,(LONG)(LONG_PTR)LogWndProc);
-	hLogFont=GetStockObject(ANSI_FIXED_FONT); 
 	hGets=CreateEvent(NULL,FALSE,FALSE,NULL);
 #if 0
 	{ int nHeight;
@@ -186,7 +193,7 @@ HWND CreateLog(HWND hParent,HINSTANCE hInst)
 		ANTIALIASED_QUALITY,FIXED_PITCH|FF_MODERN,"MS Sans Serif");
 	}
 #endif
-    SendMessage(hLog,WM_SETFONT,(WPARAM)hLogFont,0);
+    SendMessage(hLog,WM_SETFONT,(WPARAM)hFixedFont,0);
     return hLog;
 }
 

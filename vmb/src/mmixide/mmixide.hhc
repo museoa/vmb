@@ -305,24 +305,6 @@
 					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
-				<param name="Name" value="The MMIX Debugger Options">
-				<param name="Local" value="help/debugger/debugoptions.html">
-				</OBJECT>
-			<UL>
-				<LI> <OBJECT type="text/sitemap">
-					<param name="Name" value="Inspecting Registers and Memory">
-					<param name="Local" value="help/debugger/debugoptions.html">
-					</OBJECT>
-				<LI> <OBJECT type="text/sitemap">
-					<param name="Name" value="Choosing Special Registers for display">
-					<param name="Local" value="help/debugger/debugoptions.html">
-					</OBJECT>
-				<LI> <OBJECT type="text/sitemap">
-					<param name="Name" value="Customizing Tracing">
-					<param name="Local" value="help/debugger/debugoptions.html">
-					</OBJECT>
-			</UL>
-			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="The MMIX Inspector and Data Editor">
 				<param name="Local" value="help/debugger/inspector.html">
 				</OBJECT>

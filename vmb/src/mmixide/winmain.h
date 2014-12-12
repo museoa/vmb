@@ -16,7 +16,7 @@ extern void ide_help(char *topic);
 extern void ide_add_error(char *message, int file_no, int line_no);
 extern void ide_clear_error_marker(void);
 extern void ide_clear_error_list(void);
-extern void update_breakpoints(void);
+
 extern int assemble_if_needed(int file_no);
 extern int assemble_all_needed(void);
 extern int check_load_count(void);
@@ -28,7 +28,6 @@ extern void ide_exit_ignore(int returncode);
 
 extern void clear_stop_marker(void);
 extern void set_edit_file(int file_no);
-extern ide_mark_breakpoint(int file_no, int line_no);
 extern void show_stop_marker(int file_no, int line_no);
 extern void set_lineno_width(void);
 extern void set_profile_width(void);

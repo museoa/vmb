@@ -9,6 +9,7 @@
 #include "libmmixal.h"
 #include "symtab.h"
 #include "runoptions.h"
+#include "findreplace.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scilexer.h"
 
@@ -67,6 +68,6 @@ regtable regtab= {
 
 	{KEY_FLAGS,&missing_app,25},
 	{KEY_FLAGS,&load_single_file,26},
-
+	{KEY_FLAGS,&find_escape,27},
 
 	{NULL,NULL,0}};

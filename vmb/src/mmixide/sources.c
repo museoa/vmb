@@ -224,6 +224,9 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 		return TRUE;
 	  }
+  case WM_HELP:
+    ide_help("help\\options\\sources.html");
+    return TRUE;
 
 
   }

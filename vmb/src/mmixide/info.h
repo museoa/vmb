@@ -80,5 +80,6 @@ extern int get_inuse_file(void);
 /* return a file that is in use */
 extern int line2freq(int file_no,int line_no);
 /* returns the frequency count for this line  or -1 if none found*/
-extern void mem_clear_breaks(int file_no);
-/* remove all breakpoints for this file */
+
+extern void mem_iterator(void f(octa loc, mem_tetra *dat));
+/* iterate f over all mem tetras */

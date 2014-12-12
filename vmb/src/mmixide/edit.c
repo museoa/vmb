@@ -107,7 +107,11 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		 DeleteObject(hb);
 	   }
 	   return TRUE;
-	}
+	}  
+	case WM_HELP:
+    ide_help("help\\options\\editor.html");
+    return TRUE;
+
   }
   return FALSE;
 }

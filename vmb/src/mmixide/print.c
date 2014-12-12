@@ -75,7 +75,7 @@ int print(void)
   pd.hDevNames   = hNames;     // Don't forget to free or store hDevNames
   pd.Flags       = PD_USEDEVMODECOPIESANDCOLLATE | PD_RETURNDC; 
   pd.nCopies     = 1;
-  pd.nFromPage   = 0xFFFF; 
+  pd.nFromPage   = 1; 
   pd.nToPage     = 0xFFFF; 
   pd.nMinPage    = 1; 
   pd.nMaxPage    = 0xFFFF; 
@@ -142,7 +142,8 @@ int print(void)
 
 	ed_send(SCI_SETPRINTCOLOURMODE,SC_PRINT_BLACKONWHITE,0);
 	ed_send(SCI_SETPRINTWRAPMODE,SC_WRAP_NONE,0);
- 
+ 	ed_send(SCI_SETPRINTMAGNIFICATION,-3,0);
+
 	srf.chrg.cpMin=0;
 	srf.chrg.cpMax=100;
     srf.hdc=srf.hdcTarget=pd.hDC;
@@ -158,39 +159,41 @@ int print(void)
 
     if (StartDoc(pd.hDC, &di) == SP_ERROR)  goto Error; 
     page=1;
- 	while(print_from<print_to)
-	{ 
-	  SetTextAlign(pd.hDC,TA_LEFT|TA_BOTTOM);
-	  if (name!=NULL)
-      TextOut(pd.hDC,srf.rc.left,srf.rc.top-headheight,name,(int)strlen(name));
+ 	while(print_from<print_to && page<=pd.nToPage)
+	{ int printing = !(pd.Flags&PD_PAGENUMS) || (page>=pd.nFromPage);
 
-	  { HPEN hPen = GetStockObject(BLACK_PEN);
-	    HPEN hPenOld = SelectObject(pd.hDC, hPen); 
-        MoveToEx(pd.hDC, srf.rc.left, srf.rc.top-headheight/2, NULL); 
-        LineTo(pd.hDC, srf.rc.right, srf.rc.top-headheight/2); 
-        SelectObject(pd.hDC, hPenOld); 
+	  if (printing)
+	  { SetTextAlign(pd.hDC,TA_LEFT|TA_BOTTOM);
+	    if (name!=NULL)
+        TextOut(pd.hDC,srf.rc.left,srf.rc.top-headheight,name,(int)strlen(name));
+
+	    { HPEN hPen = GetStockObject(BLACK_PEN);
+	      HPEN hPenOld = SelectObject(pd.hDC, hPen); 
+          MoveToEx(pd.hDC, srf.rc.left, srf.rc.top-headheight/2, NULL); 
+          LineTo(pd.hDC, srf.rc.right, srf.rc.top-headheight/2); 
+          SelectObject(pd.hDC, hPenOld); 
+	    }
+        if (StartPage(pd.hDC) <= 0) goto Error; 
 	  }
 
-
-      if (StartPage(pd.hDC) <= 0) goto Error; 
 	  srf.chrg.cpMin=print_from;
 	  srf.chrg.cpMax=print_to;
-	  print_from=(int)ed_send(SCI_FORMATRANGE,1,(sptr_t)&srf);
+	  print_from=(int)ed_send(SCI_FORMATRANGE,printing,(sptr_t)&srf);
 
+      if (printing)
+	  { { HPEN hPen = GetStockObject(BLACK_PEN);
+	      HPEN hPenOld = SelectObject(pd.hDC, hPen); 
+          MoveToEx(pd.hDC, srf.rc.left, srf.rc.bottom+headheight/2, NULL); 
+          LineTo(pd.hDC, srf.rc.right, srf.rc.bottom+headheight/2); 
+          SelectObject(pd.hDC, hPenOld); 
+	     }
 
-	  { HPEN hPen = GetStockObject(BLACK_PEN);
-	    HPEN hPenOld = SelectObject(pd.hDC, hPen); 
-        MoveToEx(pd.hDC, srf.rc.left, srf.rc.bottom+headheight/2, NULL); 
-        LineTo(pd.hDC, srf.rc.right, srf.rc.bottom+headheight/2); 
-        SelectObject(pd.hDC, hPenOld); 
+	    sprintf(pagestr,"%d",page);
+	    SetTextAlign(pd.hDC,TA_RIGHT|TA_TOP);
+        TextOut(pd.hDC,srf.rc.right,srf.rc.bottom+headheight,pagestr,(int)strlen(pagestr));
+
+        if (EndPage(pd.hDC) <= 0)  goto Error; 
 	  }
-
-	  sprintf(pagestr,"%d",page);
-	  SetTextAlign(pd.hDC,TA_RIGHT|TA_TOP);
-      TextOut(pd.hDC,srf.rc.right,srf.rc.bottom+headheight,pagestr,(int)strlen(pagestr));
-
-
-      if (EndPage(pd.hDC) <= 0)  goto Error; 
 	  page++;
 	}
 	EndDoc(pd.hDC); 

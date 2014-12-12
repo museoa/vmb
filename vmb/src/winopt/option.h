@@ -42,7 +42,7 @@ typedef UINT64 uint64_t;
 
 
 /* this is what you get: */
-extern void uint64tohex(uint64_t u, char *c);
+extern void uint64_to_hex(uint64_t u, char *c);
 extern uint64_t strtouint64(char *arg);
 /* strings with the program path  and program name */
 extern char *programpath;

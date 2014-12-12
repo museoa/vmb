@@ -107,7 +107,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  }
      break;
   case WM_HELP:
-    ide_help("help\\debugger\\debugoptions.html");
+    ide_help("help\\options\\debugger.html");
     return TRUE;
 
   }
@@ -545,29 +545,7 @@ void memory_update(void)
 //	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
 }
 
-static int break_mask=0;
 
-static void set_break(octa loc)
-{ mem_find(loc)->bkpt |= break_mask;
-}
-
-static void del_break(octa loc)
-{ mem_find(loc)->bkpt &= ~break_mask;
-}
-
-int set_breakpoint(int file_no, int line_no, int mask)
-/* return true if breakpoint could be set */
-{ break_mask=mask;
-  for_all_loc(file_no, line_no, set_break);
-  return 1;
-}	
-
-
-int del_breakpoint(int file_no, int line_no, int mask)
-{ break_mask=mask;
-  for_all_loc(file_no, line_no, del_break);
-  return 1;
-}	
 
 int is_inspector(HWND h)
 { int i;
