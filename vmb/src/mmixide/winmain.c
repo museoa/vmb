@@ -37,7 +37,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.41 $ $Date: 2014-12-12 16:51:13 $";
+char version[]="$Revision: 1.42 $ $Date: 2014-12-15 14:09:26 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -394,7 +394,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
 		  if (show_debug_regstack)
 		    new_register_view(REG_LOCAL);
-		  set_register_inspectors();
+		  else
+			regstack_update();
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);

@@ -1,6 +1,7 @@
 extern void new_memory_view(int i);
 extern void new_register_view(int i);
 extern void memory_update(void);
+extern void regstack_update(void);
 extern void debug_init(void);
 
 extern void set_register_inspectors(void);

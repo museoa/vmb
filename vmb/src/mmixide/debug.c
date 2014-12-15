@@ -460,9 +460,9 @@ struct inspector_def register_insp[MAXREG+1]= /* array sorted by REG_LOCAL,REG_G
 {NULL}
 };
 
-void set_register_inspectors(void)
-{ if (register_insp[REG_LOCAL].hWnd!=NULL)
-  { int i, n, r, b, opt;
+void set_localreg_inspector(void)
+{ int i, n, r, b, opt;
+  if (register_insp[REG_LOCAL].hWnd==NULL) return;
     if (show_debug_regstack)
 	{ n = (O-S)+L;
 	  b = S;
@@ -488,16 +488,17 @@ void set_register_inspectors(void)
 	  reg_names[i].offset=(b+i)*8;
 	  reg_names[i].options=opt;
 	}
-    adjust_mem_display(&register_insp[REG_LOCAL]);
-  }
-  if (register_insp[REG_GLOBAL].num_regs!=256-G)
-  { register_insp[REG_GLOBAL].num_regs=256-G;
-    register_insp[REG_GLOBAL].regs=&reg_names[G];
-    adjust_mem_display(&register_insp[REG_GLOBAL]);
-  }
-  else
-	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL], register_insp[REG_GLOBAL].regs[0].offset,(256-G)*8);
-   MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL], 0,register_insp[REG_SPECIAL].size );
+}
+
+void set_globalreg_inspector(void)
+{ if (register_insp[REG_GLOBAL].hWnd==NULL) return;
+  register_insp[REG_GLOBAL].num_regs=256-G;
+  register_insp[REG_GLOBAL].regs=&reg_names[G];
+}
+
+void set_register_inspectors(void)
+{ set_localreg_inspector();
+  set_globalreg_inspector();
 }
 
 void debug_init(void)
@@ -528,6 +529,7 @@ void new_register_view(int i)
   h = CreateMemoryDialog(hInst,hSplitter);
   SetInspector(h, &register_insp[i]);
   set_register_inspectors();
+  adjust_mem_display(&register_insp[i]);
   ShowWindow(h,SW_SHOW);
 }
 
@@ -540,12 +542,17 @@ void memory_update(void)
 	if(memory_insp[i].hWnd)
 	  MemoryDialogUpdate(memory_insp[i].hWnd,&memory_insp[i], 0,memory_insp[i].size );
   set_register_inspectors();
-//  for (i=0; i<MAXREG; i++)
-//	if(register_insp[i].hWnd)
-//	  MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
+  for (i=0; i<MAXREG; i++)
+	if(register_insp[i].hWnd)
+	{ MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
+	  adjust_mem_display(&register_insp[i]);
+    }
 }
 
-
+void regstack_update(void)
+{ set_localreg_inspector();
+  adjust_mem_display(&register_insp[REG_LOCAL]);
+}
 
 int is_inspector(HWND h)
 { int i;

@@ -82,29 +82,12 @@ static void sb_range(inspector_def *insp)
 		win32_fatal_error(__LINE__,"Out of memory");
   }
   /* adjust base */
-  if (new_base<insp->mem_base)
-  { int diff = insp->mem_base-new_base;
-    insp->mem_size=insp->mem_size -diff;
-	memmove(insp->mem_buf, insp->mem_buf+diff,insp->mem_size);
-  }
-  else if (new_base>=insp->mem_base+insp->mem_size)
-	insp->mem_size=0;
-  else if (new_base>insp->mem_base)
-  { int diff = new_base-insp->mem_base;
-    if (new_base+insp->mem_size>insp->mem_base+new_size)
-      insp->mem_size=insp->mem_base+new_size-new_base;
-	memmove(insp->mem_buf+diff, insp->mem_buf, insp->mem_size);
-	if (insp->get_mem) 
-	  insp->get_mem(new_base,diff,insp->mem_buf);
-    else
-      memset(insp->mem_buf,0,diff);
-    insp->mem_size=insp->mem_size+diff;
-  }
-  if (new_size>insp->mem_size)
+
+  if (new_base!=insp->mem_base || new_size>insp->mem_size)
   { if (insp->get_mem) 
-	  insp->get_mem(new_base+insp->mem_size,new_size-insp->mem_size,insp->mem_buf+insp->mem_size);
+	  insp->get_mem(new_base,new_size,insp->mem_buf);
     else
-      memset(insp->mem_buf+insp->mem_size,0,new_size-insp->mem_size);
+      memset(insp->mem_buf,0,new_size);
   }
   insp->mem_size=new_size;
   insp->mem_base=new_base;
@@ -205,7 +188,7 @@ void adjust_mem_display(inspector_def *insp)
 { RECT ur;
   if (insp->hWnd==NULL) return;
   sb_range(insp);
-  refresh_old_mem(insp);
+  /* refresh_old_mem(insp); */
   if (insp->get_mem) 
 	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
@@ -322,11 +305,18 @@ void update_old_mem(inspector_def *insp)
 
 
 static int different(inspector_def *insp,int offset, int size)
-{ int i;
-  for (i=0;i<size;i++)
-  { unsigned int index=offset+i;
-    if (index>=insp->old_size || index>=insp->mem_size ||
-	    insp->old_mem[offset+i]!=insp->mem_buf[offset+i]) return 1;
+/* offset is relative to mem_base into mem_buf */
+{ int i,j;
+  i=0;
+  j=offset+(insp->mem_base-insp->old_base);
+  if (j<0) 
+  { i=-j; 
+    j=0;
+  }
+  while (i<size && (unsigned int)j<insp->old_size)
+  { if (insp->old_mem[j]!=insp->mem_buf[offset+i]) return 1;
+    i++;
+	j++;
   }
   return 0;
 }
@@ -511,12 +501,12 @@ void display_memory(inspector_def *insp,HDC hdc)
 
 void display_data(inspector_def *insp,HDC hdc)
 { if (insp->regs!=NULL)
-  { update_old_mem(insp);
+  { /* refresh_old_mem(insp); */
     display_registers(insp,hdc);
   }
   else
   { display_address(insp,hdc);
-    update_old_mem(insp);
+    /* refresh_old_mem(insp); */
     display_memory(insp,hdc);
   }
 }
