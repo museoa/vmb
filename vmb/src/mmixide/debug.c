@@ -225,7 +225,7 @@ void new_memory_view(int i)
     for (k=i+1;k<MAXMEM&&memory_insp[k].hWnd==NULL;k++)
 	  continue;
   if (k>=MAXMEM)
-	 sp_create_options(0,0,0.0,mem_min_width,NULL);
+	 sp_create_options(0,0,0.0,1,NULL);
   else if (k<i)
 	 sp_create_options(0,0,0.5,0,memory_insp[k].hWnd);
   else
@@ -521,7 +521,7 @@ void new_register_view(int i)
     for (k=i+1;k<MAXREG&&register_insp[k].hWnd==NULL;k++)
 	  continue;
   if (k>=MAXREG)
-	 sp_create_options(0,1,0.0,mem_min_width,NULL);
+	 sp_create_options(0,1,0.0,1,NULL);
   else if (k<i)
 	 sp_create_options(0,0,0.5,0,register_insp[k].hWnd);
   else

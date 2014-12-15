@@ -23,7 +23,7 @@ int is_dataedit(HWND h)
 HWND GetDataEdit(int id, HWND hMemory)
 { if (hDataEdit!=NULL)
     return hDataEdit;
-  sp_create_options(0, 0, 0.2, mem_min_height,hMemory);
+  sp_create_options(0, 0, 0.2, 1,hMemory);
   hDataEdit = CreateDataEdit(hInst,hSplitter);
   if (hDataEdit==NULL)
     win32_error(__LINE__,"Unable to create Data Editor");

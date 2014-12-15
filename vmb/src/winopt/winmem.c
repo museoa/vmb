@@ -13,7 +13,17 @@
 
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
+int mem_min_height=0;
+static int separator_width, separator_height, top_height, sb_width=0; 
 
+static void invalidate_mem(inspector_def *insp)
+{ RECT r;
+  r.top=top_height-separator_height;
+  r.bottom=insp->height;
+  r.left=0;
+  r.right=insp->width;
+  InvalidateRect(insp->hWnd,&r,TRUE);
+}
 
 static void sb_range(inspector_def *insp)
 /* determine and set scrollbar range as virtual number of insp->lines */
@@ -72,7 +82,6 @@ static void sb_range(inspector_def *insp)
 	new_size = page_range;
 	if (new_size > insp->size -new_base)
 	{ new_size = insp->size -new_base;
-      InvalidateRect(insp->hWnd,NULL,TRUE);
 	}
   }
   /* adjust size */
@@ -171,34 +180,28 @@ static void refresh_old_mem(inspector_def *insp)
 
   
 /* these depend only on the font, which is the same for all inspectors */
-static int separator_width, separator_height, top_height; 
-int mem_min_width=0,mem_min_height=0;
+
+
 void set_mem_font_metrics(void)
 { separator_height=fixed_line_height-fixed_char_height;
   separator_width = fixed_char_width/2;
   top_height=2*(fixed_line_height+separator_height);
-  mem_min_width=25*fixed_char_width+separator_width;
   mem_min_height= top_height+separator_height+fixed_line_height;
 }
 
 
 void set_edit_rect(inspector_def *insp);
 
+
 void adjust_mem_display(inspector_def *insp)
-{ RECT ur;
-  if (insp->hWnd==NULL) return;
+{ if (insp->hWnd==NULL) return;
   sb_range(insp);
-  /* refresh_old_mem(insp); */
   if (insp->get_mem) 
 	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
     memset(insp->mem_buf,0,insp->mem_size);
   set_edit_rect(insp);
-  ur.top=top_height-separator_height;
-  ur.bottom=insp->height;
-  ur.left=0;
-  ur.right=insp->width;
-  InvalidateRect(insp->hWnd,&ur,TRUE);
+  invalidate_mem(insp);
 }
 
 
@@ -229,13 +232,10 @@ int chunk_len(enum mem_fmt f, int chunk_size)
 
 
 static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
-{ int sbw;
-  RECT sbRect;
+{ 
 
-  GetWindowRect(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),&sbRect);
-  sbw=sbRect.right-sbRect.left;
   MoveWindow(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),
-	         insp->width-sbw,top_height,sbw,insp->height-top_height,TRUE);
+	         insp->width-sb_width,top_height,sb_width,insp->height-top_height,TRUE);
 
 
   insp->lines = (insp->height-top_height)/fixed_line_height;
@@ -244,15 +244,14 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
   insp->column_digits=chunk_len(insp->format,1<<insp->chunk);
 
   insp->column_width=insp->column_digits*fixed_char_width+separator_width;
-  insp->columns = (insp->width-sbw-insp->address_width)/insp->column_width;
+  insp->columns = (insp->width-sb_width-insp->address_width)/insp->column_width;
   if (insp->columns<1)
   { insp->columns=1;
-    insp->column_width=insp->width-sbw-insp->address_width;
+    insp->column_width=insp->width-sb_width-insp->address_width;
 	if (insp->column_digits*fixed_char_width>insp->column_width)
       insp->column_digits=insp->column_width/fixed_char_width;
   }
   insp->line_range = insp->columns*(1<<insp->chunk);
-  //InvalidateRect(hMemory,NULL,TRUE); /* can possibly be removed */
   adjust_mem_display(insp);
 }
 
@@ -264,44 +263,6 @@ static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
 
 #define COLD RGB(0xFD,0xFD,0xFF)
 #define HOT RGB(0xFF,0xA0,0xA0)
-
-void update_old_mem(inspector_def *insp)
-{ if (insp->old_size<insp->mem_size)
-  { insp->old_mem = realloc(insp->old_mem,insp->mem_size);
-    if (insp->old_mem==NULL)
-		win32_fatal_error(__LINE__,"Out of memory");
-  }
-   /* newly displayed memory contents is cold, (copy from insp->mem_buf)
-      only previously displayed content that has changed is hot */
-   if (insp->old_base<insp->mem_base)
-   { /* move overlap of old and new down*/
-      unsigned int dist = insp->mem_base-insp->old_base; 
-      if (insp->old_size>dist)
-	  { int ovlap = insp->old_size-dist;
-	    memmove(insp->old_mem, insp->old_mem+dist,ovlap);
-	    memmove(insp->old_mem+ovlap,insp->mem_buf+ovlap,insp->mem_size-ovlap);
-	  }
-	  else
-	    memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
-   }
-   else if (insp->old_base>insp->mem_base)
-   { /* move overlap of old and new up*/
-      unsigned int dist = insp->old_base-insp->mem_base; 
-      if (insp->old_size>dist)
-	  { int ovlap = insp->old_size-dist;
-	    memmove(insp->old_mem+dist, insp->old_mem,ovlap);
-	    memmove(insp->old_mem,insp->mem_buf,dist);
-		if (insp->mem_size>insp->old_size)
-	      memmove(insp->old_mem+insp->old_size,insp->mem_buf+insp->old_size,insp->mem_size-insp->old_size);
-	  }
-	  else
-	    memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
-   }
-   else if (insp->mem_size>insp->old_size)
-	 memmove(insp->old_mem+insp->old_size,insp->mem_buf+insp->old_size,insp->mem_size-insp->old_size);
-   insp->old_base=insp->mem_base;
-   insp->old_size=insp->mem_size;
-}
 
 
 static int different(inspector_def *insp,int offset, int size)
@@ -431,7 +392,8 @@ void display_registers(inspector_def *insp,HDC hdc)
 	 for (k=0;k*chunk_size < r->size;k++)
 	 { int len;
 	   len = chunk_len(format,chunk_size);
-	   chunk_to_str(str, insp->mem_buf+r->offset+k*chunk_size-insp->mem_base, format,chunk_size,len);
+	   if (len>insp->column_digits) len=insp->column_digits;
+	   len = chunk_to_str(str, insp->mem_buf+r->offset+k*chunk_size-insp->mem_base, format,chunk_size,len);
        if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
 	     SetBkColor(hdc,HOT);
 	   else
@@ -608,6 +570,11 @@ static INT_PTR CALLBACK
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { switch ( message )
   { case WM_INITDIALOG :
+      if (sb_width==0)
+	  { RECT sbRect;
+        GetWindowRect(GetDlgItem(hDlg,IDC_MEM_SCROLLBAR),&sbRect);
+        sb_width=sbRect.right-sbRect.left;
+	  }
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
 	  SetFocus(GetDlgItem(hDlg,IDOK));
@@ -727,7 +694,11 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  break;
 	case WM_GETMINMAXINFO:
 	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
-	  p->ptMinTrackSize.x = mem_min_width;
+	  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+	  if (insp!=NULL)
+		  p->ptMinTrackSize.x = insp->address_width+16*fixed_char_width+2*separator_width+sb_width;
+	  else
+	      p->ptMinTrackSize.x = 36*fixed_char_width+2*separator_width+sb_width;
       p->ptMinTrackSize.y = mem_min_height;
 	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
 	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
@@ -758,7 +729,7 @@ void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, i
     if (offset<insp->mem_base) from=insp->mem_base; else from=offset;
 	if (offset+size<insp->mem_base+insp->mem_size) to = offset+size; else to = insp->mem_base+insp->mem_size;
 	if (insp->get_mem) insp->get_mem(from, to-from, insp->mem_buf+(from-insp->mem_base));
-    InvalidateRect(hMemory,NULL,insp->regs!=NULL);
+	invalidate_mem(insp);
   }
 }
 

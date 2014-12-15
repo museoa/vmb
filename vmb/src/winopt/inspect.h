@@ -3,7 +3,6 @@
 #define INSPECT_H
 #include "float.h"
 
-extern int mem_min_width,mem_min_height;
 extern void set_mem_font_metrics(void);
 enum mem_fmt {hex_format=0, ascii_format=1, unsigned_format=2, signed_format=3,  float_format=4, last_format=4, user_format=5 };
 
