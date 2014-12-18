@@ -289,20 +289,20 @@ void add_line_loc(int file_no, int line_no, octa loc)
   }
 }
 
-unsigned int freq_max=-1;
+tetra freq_max=0;
 int freq_file_no=-1;
 int freq_line_no=0;
 
 static void get_max_freq(octa loc, mem_tetra *dat)
 { if (dat->line_no==freq_line_no &&
 	  dat->file_no==freq_file_no && 
-      (int)dat->freq>freq_max) 
+      dat->freq>freq_max) 
 	  freq_max=dat->freq;
 }
 
 int line2freq(int file_no,int line_no)
 /* returns the frequency count for this line  or -1 if none found*/
-{ freq_max=-1;
+{ freq_max=0;
   freq_file_no=file_no;
   freq_line_no=line_no;
   mem_iterator(get_max_freq);

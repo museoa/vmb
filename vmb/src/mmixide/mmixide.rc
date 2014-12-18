@@ -433,8 +433,11 @@ BEGIN
         MENUITEM MFT_SEPARATOR
         MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
         MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
         MENUITEM "Syntax &Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED
         MENUITEM "Show &White Space",           ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
+        MENUITEM "Show &Line Numbers",          ID_VIEW_LINENUMBERS,MFT_STRING,MFS_ENABLED
+        MENUITEM "Show &Profile",               ID_VIEW_PROFILE,MFT_STRING,MFS_ENABLED
     END
     POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
     BEGIN

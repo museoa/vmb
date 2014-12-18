@@ -47,8 +47,10 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == IDOK )
 	  { autosave =IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOSAVE);
 		show_line_no =IsDlgButtonChecked(hDlg,IDC_CHECK_LINENO);
-        set_lineno_width();
+		CheckMenuItem(hMenu,ID_VIEW_LINENUMBERS,MF_BYCOMMAND|(show_line_no?MF_CHECKED:MF_UNCHECKED));
+		set_lineno_width();
 		show_profile =IsDlgButtonChecked(hDlg,IDC_CHECK_PROFILE);
+		CheckMenuItem(hMenu,ID_VIEW_PROFILE,MF_BYCOMMAND|(show_profile?MF_CHECKED:MF_UNCHECKED));
         set_profile_width();
 		display_profile();
 		tabwidth=GetDlgItemInt(hDlg,IDC_TABWIDTH,NULL,FALSE);

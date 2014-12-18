@@ -1,6 +1,14 @@
 <head>
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Assembler Options">
+	<param name="Keyword" value="Buffer size">
+	<param name="Keyword" value="Address calculation">
+	<param name="Keyword" value="Expanded address calculation">
+	<param name="Keyword" value="Listing file">
+	<param name="Keyword" value="Auto assemble">
+</OBJECT>
 <body>
 	<h3>The MMIX Assembler Options</h3>
 	<p><img src="assembler.png" alt="" border="0"></p>
@@ -10,7 +18,7 @@
 	<p>This edit control  determines the assemblers buffer size for source lines (the -b command line option of mmixal). Longer lines in the source file will be truncated with a warning showing up in the assembler output window.</p>
 	<h4>Expanden address calculations</h4>
 	<p>If this box is checked, the MMIX assembler will use four instructions to load any required address into register $255. This will make `<tt>GREG @</tt>´ instructions unnecessary but yields  larger and slower code.</p>
-	<h4>Creater listing file</h4>
+	<h4>Create listing file</h4>
 	<p>If this box is checked, the assembler will produce a listing file. The name of the listing file is the name of the source file with the extension `<tt>.mms</tt>´ replaced by `<tt>.mml</tt>´.</p>
 	<h4>Auto assemble</h4>
 	<p>Whenever the debugger starts, it will check whether there is an object file and whether it is newer than the source file. If this is not the case, it might be appropriate to assemble the source file.</p>

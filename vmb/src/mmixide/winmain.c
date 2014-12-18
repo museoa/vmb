@@ -37,7 +37,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.42 $ $Date: 2014-12-15 14:09:26 $";
+char version[]="$Revision: 1.43 $ $Date: 2014-12-18 07:11:12 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -289,6 +289,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_VIEW_WHITESPACE:
           set_whitespace(menu_toggle(ID_VIEW_WHITESPACE));
 		  return 0;
+		case ID_VIEW_LINENUMBERS:
+          show_line_no=menu_toggle(ID_VIEW_LINENUMBERS);
+		  set_lineno_width();
+		  return 0;
+		case ID_VIEW_PROFILE:
+          show_profile=menu_toggle(ID_VIEW_PROFILE);
+		  set_profile_width();
+		  return 0;
+
 		case ID_ENCODING_ASCII:
 		  ed_set_ascii();
           CheckMenuItem(hMenu,ID_ENCODING_ASCII,MF_BYCOMMAND|MF_CHECKED);
@@ -860,7 +869,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	set_whitespace(show_whitespace);
 	CheckMenuItem(hMenu,ID_VIEW_SYNTAX,MF_BYCOMMAND|(syntax_highlighting?MF_CHECKED:MF_UNCHECKED));
     set_text_style();
+	CheckMenuItem(hMenu,ID_VIEW_LINENUMBERS,MF_BYCOMMAND|(show_line_no?MF_CHECKED:MF_UNCHECKED));
     set_lineno_width();
+	CheckMenuItem(hMenu,ID_VIEW_PROFILE,MF_BYCOMMAND|(show_profile?MF_CHECKED:MF_UNCHECKED));
     set_profile_width();
     if (programhelpfile==NULL) 
 #ifdef VMB
