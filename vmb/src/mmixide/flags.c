@@ -57,7 +57,7 @@ regtable regtab= {
 	{KEY_FLAGS,&show_debug_neg,17},
 	{KEY_FLAGS,&show_trace,18},
 	{KEY_FLAGS,&show_operating_system,19},
-	{KEY_FLAGS,&tracing_exceptions,20},
+	{KEY_FLAGS,&stack_tracing,20},
 #ifdef VMB
 	{KEY_FLAGS,&auto_connect,21},
 #endif
@@ -69,5 +69,5 @@ regtable regtab= {
 	{KEY_FLAGS,&missing_app,25},
 	{KEY_FLAGS,&load_single_file,26},
 	{KEY_FLAGS,&find_escape,27},
-
+	{"traceexceptions",&tracing_exceptions,TYPE_DWORD},
 	{NULL,NULL,0}};

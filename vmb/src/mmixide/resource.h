@@ -42,6 +42,7 @@
 #define IDI_BREAKT                      154
 #define IDI_LOAD_FILE                   155
 #define IDD_OPTIONS_RUN                 156
+#define IDD_OPTIONS_EXCEPTIONS          157
 #define IDC_SHOW_LOCAL                  1001
 #define IDC_SHOW_RA                     1001
 #define IDC_SHOW_GLOBAL                 1002
@@ -81,7 +82,6 @@
 #define IDC_CHECK_WRAP                  1013
 #define IDC_BUFFERSIZE                  1013
 #define IDC_CHECK_PROFILE               1013
-#define IDC_CHECK_EXCEPTIONS            1013
 #define IDC_SHOW_RN                     1014
 #define IDC_CHECK_X                     1014
 #define IDC_CHECK_ESC                   1014
@@ -94,6 +94,8 @@
 #define IDC_CHECK_OS                    1017
 #define IDC_SHOW_RR                     1018
 #define IDC_CHECK_LOCALS                1018
+#define IDC_SELECT_SPECIALS2            1018
+#define IDC_SELECT_EXCEPTIONS           1018
 #define IDC_SHOW_RS                     1019
 #define IDC_CHECK_REGISTERS             1019
 #define IDC_SHOW_RT                     1020
@@ -147,8 +149,17 @@
 #define IDC_EXEC                        1061
 #define IDC_READ                        1062
 #define IDC_WRITE                       1063
-#define IDC_EXEC4                       1064
-#define IDC_TRACE                       1064
+#define IDC_CHECK_EXCEPTIONS            1064
+#define IDC_CHECK_STACKTRACE            1075
+#define IDC_TRACE                       1066
+#define IDC_CHECK_EXCEPTIONS_X          1067
+#define IDC_CHECK_EXCEPTIONS_Z          1068
+#define IDC_CHECK_EXCEPTIONS_U          1069
+#define IDC_CHECK_EXCEPTIONS_O          1070
+#define IDC_CHECK_EXCEPTIONS_I          1071
+#define IDC_CHECK_EXCEPTIONS_W          1072
+#define IDC_CHECK_EXCEPTIONS_V          1073
+#define IDC_CHECK_EXCEPTIONS_D          1074
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -224,7 +235,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40108
 #define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101

@@ -34,6 +34,56 @@ int break_after = 1;
 int show_trace = 1;
 
 #define MAX_DEBUG_WINDOWS 9
+
+static unsigned int dialog_tx; /* local copy of tracing_exceptions */
+
+INT_PTR CALLBACK    
+OptionExceptionsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
+{ 
+  switch ( message )
+  { case WM_INITDIALOG:
+      CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_X,(dialog_tx&X_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_Z,(dialog_tx&Z_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_U,(dialog_tx&U_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_O,(dialog_tx&O_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_I,(dialog_tx&I_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_W,(dialog_tx&W_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_V,(dialog_tx&V_BIT)?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS_D,(dialog_tx&D_BIT)?BST_CHECKED:BST_UNCHECKED);
+      return TRUE;
+    case WM_SYSCOMMAND:
+      if( wparam == SC_CLOSE ) 
+      { EndDialog(hDlg, FALSE);
+        return TRUE;
+      }
+      break;
+    case WM_COMMAND:
+      if( wparam == IDOK )
+      { EndDialog(hDlg, TRUE);
+	    dialog_tx=0;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_X)) dialog_tx|=X_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_Z)) dialog_tx|=Z_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_U)) dialog_tx|=U_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_O)) dialog_tx|=O_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_I)) dialog_tx|=I_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_W)) dialog_tx|=W_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_V)) dialog_tx|=V_BIT;
+        if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS_D)) dialog_tx|=D_BIT;
+      } else if (wparam==IDCANCEL)
+	  { EndDialog(hDlg, FALSE);
+        return TRUE;
+	  }
+     break;
+  case WM_HELP:
+    ide_help("help\\options\\debugger.html");
+    return TRUE;
+
+  }
+  return FALSE;
+}
+
+
+
 INT_PTR CALLBACK    
 OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { 
@@ -55,7 +105,14 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_AFTER,break_after?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_RADIO_BREAK_BEFORE,!break_after?BST_CHECKED:BST_UNCHECKED);
-		CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,tracing_exceptions!=0?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_STACKTRACE,stack_tracing?BST_CHECKED:BST_UNCHECKED);
+		dialog_tx=tracing_exceptions;
+		if (tracing_exceptions==0)
+		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_UNCHECKED);
+		else if (tracing_exceptions==0xFF00)
+		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_CHECKED);
+		else 
+		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_INDETERMINATE);
 
 #ifdef VMB
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
@@ -86,16 +143,20 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		show_debug_pool=IsDlgButtonChecked(hDlg,IDC_SHOW_POOL);
 		show_debug_stack=IsDlgButtonChecked(hDlg,IDC_SHOW_STACK);
 		show_debug_neg=IsDlgButtonChecked(hDlg,IDC_SHOW_NEG);
+		stack_tracing=IsDlgButtonChecked(hDlg,IDC_CHECK_STACKTRACE);
 		missing_app=IsDlgButtonChecked(hDlg,IDC_CHECK_MISSING_APP);
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
 		break_after=IsDlgButtonChecked(hDlg,IDC_RADIO_BREAK_AFTER);
-		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS))
-			tracing_exceptions=-1;
-		else
+		
+		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS)==BST_CHECKED)
+			tracing_exceptions=0xFF00;
+		else if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS)==BST_UNCHECKED)
 			tracing_exceptions=0;
+		else tracing_exceptions=dialog_tx;
+
         EndDialog(hDlg, TRUE);
         return TRUE;
       } else if (wparam==IDCANCEL)
@@ -104,6 +165,16 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  } else if (wparam==IDC_SELECT_SPECIALS)
 	  { DialogBox(hInst,MAKEINTRESOURCE(IDD_SHOW_SPECIAL),hDlg,OptionSpecialDialogProc);
         return TRUE;
+	  } else if (wparam==IDC_SELECT_EXCEPTIONS)
+	  { if (DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EXCEPTIONS),hDlg,OptionExceptionsDialogProc))
+	    { if (dialog_tx==0xFF00)
+	        CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_CHECKED);
+		  else if (dialog_tx==0)
+	        CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_UNCHECKED);
+		  else
+	        CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_INDETERMINATE);
+	    }
+		return 0;
 	  }
      break;
   case WM_HELP:

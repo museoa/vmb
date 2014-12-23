@@ -185,8 +185,6 @@ void mmix_run(void)
 		  show_operating_system=false;
           breakpoint=false;
 		  tracing=false;
-		  tracing_exceptions=0;
-          stack_tracing=false;
 		  update_symtab();
 		  init_fake_stdin();
           MMIXThread();
@@ -201,8 +199,6 @@ void mmix_reset(void)
 void mmix_debug(void)
 {		  interacting=true;
           breakpoint=true;
-		  tracing_exceptions=0x0;
-		  stack_tracing=false;
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  update_symtab();
 		  init_fake_stdin();
@@ -365,20 +361,25 @@ resume:
 
 static char logstr[512];
 
+int mmix_vprintf(char *format, va_list vargs)
+{   char logstr[512];
+  int n; 
+  n = vsprintf(logstr,format, vargs);
+  win32_log(logstr);
+  return n;
+}
 int mmix_printf(FILE *f, char *format, ...)
 { va_list vargs;
-  char logstr[512];
   int n; 
-  va_start(vargs,format);	
+  va_start(vargs,format);
   if (f==stdout||f==stderr)  
-  { n = vsprintf(logstr,format, vargs);
-    win32_log(logstr);
-  }
+    n = mmix_vprintf(format,vargs);
   else
 	n=vfprintf(f,format,vargs);
 
   return n;
 }
+
 
 int mmix_fputc(int c, FILE *f)
 {  if (f==stdout||f==stderr)  
