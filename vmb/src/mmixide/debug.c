@@ -36,6 +36,7 @@ int show_trace = 1;
 #define MAX_DEBUG_WINDOWS 9
 
 static unsigned int dialog_tx; /* local copy of tracing_exceptions */
+#define ALL_EXC_BITS (X_BIT|Z_BIT|U_BIT|O_BIT|I_BIT|W_BIT|V_BIT|D_BIT)
 
 INT_PTR CALLBACK    
 OptionExceptionsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -109,17 +110,16 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		dialog_tx=tracing_exceptions;
 		if (tracing_exceptions==0)
 		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_UNCHECKED);
-		else if (tracing_exceptions==0xFF00)
+		else if (tracing_exceptions==ALL_EXC_BITS)
 		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_CHECKED);
 		else 
 		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_INDETERMINATE);
+		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
 
 #ifdef VMB
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
-		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
 #else
-		EnableWindow(GetDlgItem(hDlg,IDC_CHECK_OS),FALSE);
-		EnableWindow(GetDlgItem(hDlg,IDC_CHECK_MISSING_APP),FALSE);
+		ShowWindow(GetDlgItem(hDlg,IDC_CHECK_OS),SW_HIDE);
 #endif
 
       }
@@ -152,7 +152,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		break_after=IsDlgButtonChecked(hDlg,IDC_RADIO_BREAK_AFTER);
 		
 		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS)==BST_CHECKED)
-			tracing_exceptions=0xFF00;
+			tracing_exceptions=ALL_EXC_BITS;
 		else if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS)==BST_UNCHECKED)
 			tracing_exceptions=0;
 		else tracing_exceptions=dialog_tx;
@@ -167,7 +167,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         return TRUE;
 	  } else if (wparam==IDC_SELECT_EXCEPTIONS)
 	  { if (DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EXCEPTIONS),hDlg,OptionExceptionsDialogProc))
-	    { if (dialog_tx==0xFF00)
+	    { if (dialog_tx==ALL_EXC_BITS)
 	        CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_CHECKED);
 		  else if (dialog_tx==0)
 	        CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_UNCHECKED);

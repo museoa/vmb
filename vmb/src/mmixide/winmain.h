@@ -19,7 +19,6 @@ extern void ide_clear_error_list(void);
 
 extern int assemble_if_needed(int file_no);
 extern int assemble_all_needed(void);
-extern int check_load_count(void);
 extern int execute_commands(void);
 extern void new_errorlist(void);
 

@@ -4,6 +4,7 @@
 #pragma warning(disable : 4996)
 #include "resource.h"
 #include "winmain.h"
+#include "winopt.h"
 #include "splitter.h"
 #include "info.h"
 #include "debug.h"
@@ -462,6 +463,7 @@ void new_edit(void)
    ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
    ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
+   ed_send(SCI_SETSCROLLWIDTH,80*fixed_char_width,0);
    ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_JUMPS|CARET_EVEN,3);
    set_text_style();
    /* configure margins and markers */

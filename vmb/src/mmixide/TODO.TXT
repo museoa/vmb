@@ -1,4 +1,5 @@
-
+When recompiling a file old file and linnumber information may remain in memory
+because this information is overwritten but not deleted.
 
 
 Breakpoints window

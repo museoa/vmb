@@ -288,8 +288,7 @@ void mmix_zero_memory(mem_node *p)
 { int j;
   if (p->left) mmix_zero_memory(p->left);
   if (p->right) mmix_zero_memory(p->right);
-  for (j=0;j<512;j++) 
-	  p->dat[j].freq=p->dat[j].tet=0;
+  memset(p->dat,0,sizeof(p->dat));
 }
 #endif
 int mmix_main(int argc, char *argv[],char *mmo_name)

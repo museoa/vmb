@@ -36,8 +36,8 @@
 
 #pragma warning(disable : 4996)
 
-int major_version=1, minor_version=5;
-char version[]="$Revision: 1.43 $ $Date: 2014-12-18 07:11:12 $";
+int major_version=1, minor_version=6;
+char version[]="$Revision: 1.44 $ $Date: 2015-01-30 14:56:53 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -125,6 +125,25 @@ static int menu_toggle(int id)
 
 
 
+static int load_count=0;
+
+static void count_load_files(int file_no)
+{ if (file2loading(file_no)) load_count++;
+}
+static int check_load_count(void)
+{ if (!load_single_file && !missing_app) return 1;
+  load_count = 0;
+  for_all_files(count_load_files);
+  if (load_count==0 && (missing_app|load_single_file))
+  { MessageBox(hMainWnd, "No mms file selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
+    return 0;
+  }
+  if (load_count!=1 && load_single_file)
+  { MessageBox(hMainWnd, "Multiple mms files selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
+    return 0;
+  }
+  return 1;
+}
 
 
 int ide_prepare_mmix(void)
@@ -674,22 +693,6 @@ int assemble_if_needed(int file_no)
   return 1;
 }
 
-static int load_count=0;
-
-static void count_load_files(int file_no)
-{ if (file2loading(file_no)) load_count++;
-}
-static int check_load_count(void)
-{ load_count = 0;
-  if (!load_single_file) return 1;
-  load_count = 0;
-  for_all_files(count_load_files);
-  if (load_count==0)
-  { MessageBox(hMainWnd, "No mms file selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
-    return 0;
-  }
-  return 1;
-}
 
 static int assembly_ok=0;
 

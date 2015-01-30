@@ -25,7 +25,9 @@ void write_regtab(char *program)
 		    }
 		    else if (regtab[i].type==TYPE_STRING)
 		    { char **tmp=(char**)regtab[i].value;
-              RegSetValueEx(p,regtab[i].key,0,REG_SZ,(BYTE*)*tmp,(DWORD)strlen(*tmp)+1);
+		      char empty[1]={0}, *eptr=empty;	
+              if (*tmp==NULL) tmp=&eptr;
+			  RegSetValueEx(p,regtab[i].key,0,REG_SZ,(BYTE*)*tmp,(DWORD)strlen(*tmp)+1);
 		    } 
 		    else if (0<=regtab[i].type && regtab[i].type<32)
 		    { int tmp = *(int*)regtab[i].value;
@@ -81,7 +83,7 @@ void read_regtab(char *program)
 			  { value[bc]=0;
 			    set_option((char**)regtab[i].value, value);
 			  }
-			  else
+			  else if (r==ERROR_MORE_DATA)
 				  win32_error(__LINE__,"Registry entry too big (>521 byte)");
 		    } 
 		    else if (has_flags && 0<=regtab[i].type && regtab[i].type<32)
