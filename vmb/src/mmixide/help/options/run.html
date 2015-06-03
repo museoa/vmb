@@ -22,9 +22,9 @@
 	<p></p>
 	<p>You reach the MMIX run options through the Options menu.</p>
 	<h4>Command line</h4>
-	<p>When an MMIX program enters the `<tt>Main</tt>Â´ routine, the resisters $0 and $1 will contain the argument count and the location of the argument vector, respectively.</p>
+	<p>When an MMIX program enters the `<tt>Main</tt>´ routine, the resisters $0 and $1 will contain the argument count and the location of the argument vector, respectively.</p>
 	<p>The argument count is the number of arguments given on the command line. The argument vector is an array of octabytes located at the beginning of the pool segment; these octabytes contain the addresses of the arguments. The arguments are stored as zero terminated ASCII strings in the pool segment as well. Note that the first octabyte in the pool segment contains the address of the first free octabyte in the pool segement.</p>
-	<p>As an example, if the program starts with the above command line ``hello worldÂ´Â´, you can see in the local register window:</p>
+	<p>As an example, if the program starts with the above command line ``hello world´´, you can see in the local register window:</p>
 	<p><font color="gray"><img src="locals.png" alt="" height="38" width="175" border="2"></font></p>
 	<p>In register $0 is the value 2 (two arguments) and in register $1 is the value #4000 0000 0000 0008, pointing to the second octabyte in the pool segment. </p>
 	<p>Looking at the pool segement using the pool segment window you can see:</p>
