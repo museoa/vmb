@@ -44,7 +44,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON                    "Icons\\mmixvd256.ico"
+IDI_ICON                ICON                    "Icons\\mmixvd.ico"
 IDI_ICON_SMALL          ICON                    "Icons\\mmixvd16.ico"
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"

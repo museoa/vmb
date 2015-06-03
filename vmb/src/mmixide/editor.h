@@ -35,4 +35,6 @@ extern void ed_remove_tab(int file_no);
 extern void ed_toggle_break(int bits);
 extern void ed_set_break(int file_no, int line_no, unsigned char bits);
 extern char * ed_get_instruction(void);
+
+extern FILETIME ftime(char *file_name);
 //extern void create_edit(void); /* create the editor pane */

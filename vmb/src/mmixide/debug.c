@@ -578,7 +578,6 @@ void debug_init(void)
 	if (local_mem==NULL)  win32_fatal_error(__LINE__,"Out of Memory for local_mem");
 	reg_names_init();
 	set_special_reg_name();
-	set_mem_font_metrics();
 }
 
 void new_register_view(int i)

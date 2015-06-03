@@ -285,8 +285,7 @@ static void mmix_load(int file_no)
 
 #ifndef VMB
 void mmix_zero_memory(mem_node *p)
-{ int j;
-  if (p->left) mmix_zero_memory(p->left);
+{ if (p->left) mmix_zero_memory(p->left);
   if (p->right) mmix_zero_memory(p->right);
   memset(p->dat,0,sizeof(p->dat));
 }

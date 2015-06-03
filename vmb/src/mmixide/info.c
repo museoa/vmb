@@ -37,6 +37,7 @@ char needs_loading[MAX_FILES+1] ={0};			/* does this file need needs_loading */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
+FILETIME file_time[MAX_FILES+1] ={0};   /* filetime of disk file */
 
 extern void free_tree(trie_node *root);
 

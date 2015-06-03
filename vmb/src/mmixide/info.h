@@ -20,7 +20,7 @@ extern void *doc[MAX_FILES+1]; /* pointer to scintilla documents */
 extern int curPos[MAX_FILES+1];
 extern int curAnchor[MAX_FILES+1];
 extern int firstLine[MAX_FILES+1];
-
+extern FILETIME file_time[MAX_FILES+1]; 
 #define file2shortname(file_no) (shortname[file_no])
 #define file2fullname(file_no)  (fullname[file_no])
 #define file2debuginfo(file_no) (has_debug_info[file_no])

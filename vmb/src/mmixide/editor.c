@@ -104,6 +104,7 @@ char * ed_get_instruction(void)
 
 void ed_tab_select(int file_no);
 #define ED_BLOCKSIZE 0x800
+#if 0
 static void ed_read_file(void)
 { FILE *fp;
   fp = fopen(file2fullname(edit_file_no), "rb");
@@ -124,6 +125,50 @@ static void ed_read_file(void)
   }
   file2reading(edit_file_no)=0;
 }
+#else
+static void ed_read_file(void)
+{ HANDLE fh;
+  fh = CreateFile(file2fullname(edit_file_no),
+	  GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+  if (fh==INVALID_HANDLE_VALUE) 
+  { ide_status("Unable to open file");
+  }
+  else {
+    char data[ED_BLOCKSIZE];
+    DWORD len;
+    GetFileTime(fh,NULL,NULL,&(file_time[edit_file_no]));
+	ed_send(SCI_SETTEXT,0,(sptr_t)"");
+    while (ReadFile(fh,data,ED_BLOCKSIZE,&len,NULL) && len>0)
+      ed_send(SCI_ADDTEXT, len, (sptr_t)data);
+	CloseHandle(fh);
+	file2dirty(edit_file_no)=0;
+    ed_send(SCI_SETUNDOCOLLECTION, 1,0);
+    ed_send(SCI_SETSAVEPOINT,0,0);
+    ed_send(SCI_GOTOPOS,0,0);
+	set_lineno_width();
+  }
+  file2reading(edit_file_no)=0;
+}
+#endif
+
+static void check_diskfile_change(void)
+{ FILETIME dtime;
+  char *full_mms_name;
+  if (edit_file_no<0) return;
+  full_mms_name=file2fullname(edit_file_no);
+  if (full_mms_name==NULL) return;
+  dtime=ftime(full_mms_name);
+  if (CompareFileTime(&dtime,&(file_time[edit_file_no]))>0)
+  { int decision;
+    int dirty = (int)ed_send(SCI_GETMODIFY,0,0);
+    if (dirty)
+      decision= MessageBox(hMainWnd, "File has changed on disk.\nDiscard changes and reload?", full_mms_name, MB_YESNO|MB_ICONWARNING);
+    else
+      decision= MessageBox(hMainWnd, "File has changed on disk.\nReload?", full_mms_name, MB_YESNO|MB_ICONQUESTION);			  if (decision == IDYES)
+	{ ed_read_file();
+	}
+  }
+}
 
 
 void set_edit_file(int file_no)
@@ -141,7 +186,10 @@ void set_edit_file(int file_no)
   }
   edit_file_no = file_no;
   ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
-  if (fullname[edit_file_no]!=NULL && file2reading(edit_file_no)) ed_read_file();
+  if (fullname[edit_file_no]!=NULL)
+  { if (file2reading(edit_file_no)) ed_read_file();
+    else check_diskfile_change();
+  }
   set_tabwidth();
   set_text_style();
   set_whitespace(show_whitespace);
@@ -215,6 +263,8 @@ void init_edit(HINSTANCE hInstance)
     register_editor(hInst);	
     init_filemarkers();
 }
+
+
 
 static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
@@ -306,9 +356,26 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		  }
 	    }
 	  return 0;
+	case WM_COMMAND:
+		{ HWND hControl = (HWND)lParam;
+	      if (hControl==hSCe && HIWORD(wParam)==SCEN_SETFOCUS)
+		  { check_diskfile_change();
+		    update_symtab();
+		  }
+		}
+	  }
 	}
-  }
   return (DefWindowProc(hWnd, message, wParam, lParam));
+}
+
+FILETIME ftime(char *file_name)
+{ FILETIME t={0,0};
+  HANDLE h;
+  if (file_name==NULL || file_name[0]==0) return t;
+  h = CreateFile(file_name,FILE_READ_ATTRIBUTES,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+  if (h==INVALID_HANDLE_VALUE) return t;
+  GetFileTime(h,NULL,NULL,&t);
+  return t;
 }
 
 
@@ -588,7 +655,7 @@ int ed_open(void)
       return -1;
 }
 
-
+#if 0
 static void ed_write_file(void)
 {	FILE *fp;
     char *name = fullname[edit_file_no];
@@ -614,7 +681,40 @@ static void ed_write_file(void)
 		ed_send(SCI_SETSAVEPOINT,0,0);
 	}
 }
-
+#else
+static void ed_write_file(void)
+{ HANDLE fh;
+    char *name = fullname[edit_file_no];
+    if (name==NULL || name[0]==0) return;
+    fh = CreateFile(name,
+	  GENERIC_WRITE,FILE_SHARE_WRITE,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+    if (fh==INVALID_HANDLE_VALUE) 
+       win32_error2(__LINE__,"Unable to save file",name);
+	else {
+		int i;
+		struct Sci_TextRange tr;
+		char data[ED_BLOCKSIZE+1];
+		int len;
+		len= (int)ed_send(SCI_GETLENGTH,0,0);
+	    tr.lpstrText = data;
+		for (i = 0; i < len; i += ED_BLOCKSIZE) 
+		{ DWORD nextw;
+		  DWORD next = len - i;
+		  if (next > ED_BLOCKSIZE) next = ED_BLOCKSIZE;
+	      tr.chrg.cpMin = i;
+	      tr.chrg.cpMax = i+next;
+	      ed_send(SCI_GETTEXTRANGE, 0,(sptr_t)&tr);
+		  if (!WriteFile(fh,data,next,&nextw,NULL) || nextw<next)
+		  { win32_error2(__LINE__,"Unable to write file",name);
+		    break;
+		  }
+		}
+		GetFileTime(fh,NULL,NULL,&(file_time[edit_file_no]));
+		CloseHandle(fh);
+		ed_send(SCI_SETSAVEPOINT,0,0);
+    }
+}
+#endif
 
 void ed_save(void)
 { if (hEdit==NULL) return;

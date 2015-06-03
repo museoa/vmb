@@ -37,7 +37,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.44 $ $Date: 2015-01-30 14:56:53 $";
+char version[]="$Revision: 1.45 $ $Date: 2015-06-03 14:53:16 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -633,25 +633,14 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 int mmo_file_newer(char *full_mms_name)
-{ HANDLE mms, mmo;
-  FILETIME mmsTime, mmoTime;
-  char *mmo_name;
-  if (full_mms_name==NULL || full_mms_name[0]==0) return 0;
-  mms = CreateFile(full_mms_name,FILE_READ_ATTRIBUTES,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-  if (mms==INVALID_HANDLE_VALUE) return 0;
-  mmo_name = get_mmo_name(full_mms_name);
-  if (mmo_name==NULL) return 0;
-  mmo = CreateFile(mmo_name,FILE_READ_ATTRIBUTES,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-  if (mmo==INVALID_HANDLE_VALUE) return 1;
-  GetFileTime(mms,NULL,NULL,&mmsTime);
-  GetFileTime(mmo,NULL,NULL,&mmoTime);
+{ FILETIME mmsTime, mmoTime;
+  mmsTime=ftime(full_mms_name);
+  mmoTime=ftime(get_mmo_name(full_mms_name));
   if (CompareFileTime(&mmsTime,&mmoTime)>0)
 	  return 1;
   else
 	  return 0;
 }
-
-
 
 
 
