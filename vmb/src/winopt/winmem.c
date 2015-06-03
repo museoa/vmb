@@ -13,8 +13,7 @@
 
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
-int mem_min_height=0;
-static int separator_width, separator_height, top_height, sb_width=0; 
+static int top_height, sb_width=0; 
 
 static void invalidate_mem(inspector_def *insp)
 { RECT r;
@@ -176,17 +175,6 @@ static void refresh_old_mem(inspector_def *insp)
   memmove(insp->old_mem,insp->mem_buf,insp->mem_size);
   insp->old_base=insp->mem_base;
   insp->old_size=insp->mem_size;
-}
-
-  
-/* these depend only on the font, which is the same for all inspectors */
-
-
-void set_mem_font_metrics(void)
-{ separator_height=fixed_line_height-fixed_char_height;
-  separator_width = fixed_char_width/2;
-  top_height=2*(fixed_line_height+separator_height);
-  mem_min_height= top_height+separator_height+fixed_line_height;
 }
 
 
@@ -568,13 +556,17 @@ void SetInspector(HWND hMemory, inspector_def * insp)
 
 static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ switch ( message )
+{ static int mem_min_height=0;
+  switch ( message )
   { case WM_INITDIALOG :
       if (sb_width==0)
 	  { RECT sbRect;
         GetWindowRect(GetDlgItem(hDlg,IDC_MEM_SCROLLBAR),&sbRect);
         sb_width=sbRect.right-sbRect.left;
+		GetWindowRect(GetDlgItem(hDlg,IDC_FORMAT),&sbRect);
+		top_height = separator_height*2+(sbRect.bottom-sbRect.top);
 	  }
+	  mem_min_height= top_height+separator_height+fixed_line_height;
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
 	  SetFocus(GetDlgItem(hDlg,IDOK));
@@ -710,7 +702,6 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
 { HWND h;
-  if (fixed_line_height==0) set_mem_font_metrics();
   h= CreateDialog(hInst,MAKEINTRESOURCE(IDD_MEMORY),hParent,MemoryDialogProc);
   hDataEditParent=hParent;
   return h;

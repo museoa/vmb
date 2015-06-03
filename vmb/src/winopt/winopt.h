@@ -91,6 +91,8 @@ extern HFONT hVarFont;
 extern int fixed_line_height;
 extern int fixed_char_width;
 extern int fixed_char_height;
+extern int separator_width;
+extern int separator_height; 
 extern int version_width; /* length of the version string in VarFont */
 
 #if 0

@@ -11,6 +11,8 @@ HFONT hVarFont=NULL;
 int fixed_line_height=0;
 int fixed_char_width=0;
 int fixed_char_height=0;
+int separator_width=0;
+int separator_height=0; 
 int version_width=0; /* length of the version string */
 
 void init_layout(int interactive)
@@ -58,6 +60,8 @@ void init_layout(int interactive)
   fixed_char_width=tm.tmAveCharWidth;
   fixed_char_height=tm.tmHeight; 
   fixed_line_height= (fixed_char_height*12+9)/10; /*add 20% baselineskip */
+  separator_height=fixed_line_height-fixed_char_height;
+  separator_width = fixed_char_width/2;
   hVarFont=GetStockObject(DEFAULT_GUI_FONT);
   holdfnt=SelectObject(hdc, hVarFont);
   GetTextExtentPoint32(hdc,version,(int)strlen(version),&size);
