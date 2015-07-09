@@ -18,7 +18,9 @@
 #define IDI_HELP                        119
 #define IDI_MMIX_DEBUG                  120
 #define IDI_VIEW_ZOOMIN                 121
+
 #define IDD_ABOUT                       121
+#define IDD_CONNECT                     122
 #define IDD_SHOW_SPECIAL                127
 #define IDD_SHOW_DEBUG                  128
 #define IDD_FIND                        129

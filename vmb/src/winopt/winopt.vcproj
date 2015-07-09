@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="winopt"
+	Name="vmbguilib"
 	ProjectGUID="{5A384688-86B5-439D-B700-C52330851681}"
 	RootNamespace="winopt"
 	Keyword="Win32Proj"
@@ -172,11 +172,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\util.c"
+				RelativePath=".\uint64.c"
 				>
 			</File>
 			<File
 				RelativePath=".\winabout.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winconnect.c"
 				>
 			</File>
 			<File
@@ -238,7 +242,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\util.h"
+				RelativePath=".\uint64.h"
 				>
 			</File>
 			<File

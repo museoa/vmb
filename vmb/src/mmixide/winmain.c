@@ -13,6 +13,7 @@
 #include "mmixlib.h"
 #include "mmixrun.h"
 #ifdef VMB
+#include "vmb.h"
 #include "mmix-bus.h"
 #endif
 #include "findreplace.h"
@@ -37,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.45 $ $Date: 2015-06-03 14:53:16 $";
+char version[]="$Revision: 1.46 $ $Date: 2015-07-09 11:27:46 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -95,6 +96,7 @@ void ide_clear_error_list(void)
 
 #ifdef VMB
 extern int auto_connect;
+extern device_info vmb;
 
 int ide_connect(void)
 { if (vmb.connected) return 1;
@@ -180,6 +182,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {     case WM_CREATE:
          SetWindowPos(hWnd,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
         return 0;
+  case WM_KILLFOCUS:
+	    break;
+  case WM_SETFOCUS:
+	  if (ed_setfocus())  return 0;
+	  break;
   case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
 		{	if (LOWORD(lParam)<4*version_width) 

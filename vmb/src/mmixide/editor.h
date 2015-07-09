@@ -3,7 +3,7 @@ extern HIMAGELIST hFileMarkers;
 extern int edit_file_no; /* the file currently in the editor */
 
 extern void init_edit(HINSTANCE hInstance);
-
+extern int ed_setfocus(void);
 extern void ed_new(void);
 extern void ed_save(void);
 extern int ed_save_as(void);

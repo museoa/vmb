@@ -26,36 +26,6 @@
 #include <ctype.h>
 #include "bus-arith.h"
 
-/* converting intergers to and from four byte buffers */
-void inttochar(int val, unsigned char buffer[4])
-{
-	buffer[3] =  val;
-	val = val >> 8;
-	buffer[2] =  val;
-	val = val >> 8;
-	buffer[1] =  val;
-	val = val >> 8;
-	buffer[0] =  val;
-}
-void shorttochar(int val, unsigned char buffer[2])
-{
-	buffer[1] =  val;
-	val = val >> 8;
-	buffer[0] =  val;
-}
-int chartoint(const unsigned char buffer[4])
-{
-  int val;
-  val = buffer[0];
-  val = val << 8;
-  val = buffer[1] | val;
-  val = val << 8;
-  val = buffer[2] | val;
-  val = val << 8;
-  val = buffer[3] | val;
-  return val;
-}
-
 
 /* functions to test for an address range */
 
@@ -209,3 +179,4 @@ void inttohex (int from, char *to)
     }
   *to++ = '\0';
 }
+

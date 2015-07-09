@@ -23,15 +23,11 @@
 
 #ifndef BUS_ARITH_H
 #define BUS_ARITH_H
-/* some usefull definitions for conversion and arithmetic
-   with numbers stored as byte arrays on the bus
-*/
 
 
 
 /* utility function to pack/unpack an integer into a four byte big endian buffer */
 extern void inttochar(int val, unsigned char buffer[4]);
-extern void shorttochar(int val, unsigned char buffer[2]);
 extern int chartoint(const unsigned char buffer[4]);
 /* macro versions */
 #define HITETRA(x) ((unsigned int)(sizeof(x)>4?(((x)>>32)&0xFFFFFFFF):0))

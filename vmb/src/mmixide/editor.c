@@ -69,6 +69,12 @@ LONG_PTR ed_send(unsigned int msg,ULONG_PTR wparam,LONG_PTR lparam)
   // Scintilla_DirectFunction used only in findreplace.c and print.c
 }
 
+
+int ed_setfocus(void)
+{ if (hSCe==NULL) return 0;
+  return SetFocus(hSCe)!=NULL;
+}
+
 int  ed_operation(unsigned int op)
 { return (int)ed_send(op,0,0);
 }

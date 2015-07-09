@@ -188,7 +188,6 @@ extern sym_node*sym_avail;
 #define DEFINED (sym_node*)1     /* link value for octabyte equivalents */
 #define REGISTER (sym_node*) 2   /* link value for register equivalents */
 
-extern bool long_warning_given;
 extern octa cur_loc, listing_loc;
 extern octa neg_one;
 extern bool spec_mode;

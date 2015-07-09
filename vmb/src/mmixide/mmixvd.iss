@@ -49,8 +49,10 @@ Filename: "{app}\mmixvd.exe"; Parameters: ""; Description: "Launch MMIXVD"; Flag
 
 [Registry]
 Root: HKCR; Subkey: ".mms"; ValueType: string; ValueName: ""; ValueData: "mms_auto_file"; Flags: uninsdeletevalue
+Root: HKCR; Subkey: ".mms"; ValueType: string; ValueName: "PerceivedType"; ValueData: "text"; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "mms_auto_file"; ValueType: string; ValueName: ""; ValueData: "MMIX source"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "mms_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mmixvd.exe"" ""%1"""
+Root: HKCR; Subkey: "mms_auto_file\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mmixvd.exe"" ""%1"""
 
 [Code]
 const

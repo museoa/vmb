@@ -28,25 +28,15 @@ extern void set_option(char **option, char *str);
 extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 
 /* Symbols provided by winopt */
-
-typedef INT8 int8_t;
-typedef INT16 int16_t;
-typedef INT32 int32_t;
-typedef INT64 int64_t;
-typedef UINT8 uint8_t;
-typedef UINT16 uint16_t;
-typedef UINT32 uint32_t;
-typedef UINT64 uint64_t;
-
-/* in util.c */
-extern void uint64_to_hex(uint64_t u, char *c);
-extern uint64_t hex_to_uint64(char *str);
-extern uint64_t strtouint64(char *arg);
+#include "uint64.h"
 
 /* in winabout.c */
 extern INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
+/* in winconnect.c */
+INT_PTR CALLBACK    
+ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 /* in windialog.c */
 extern void register_subwindow(HWND h);
 extern void unregister_subwindow(HWND h);

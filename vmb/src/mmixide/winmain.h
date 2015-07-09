@@ -23,7 +23,6 @@ extern int execute_commands(void);
 extern void new_errorlist(void);
 
 extern void new_edit(void);
-extern void ide_exit_ignore(int returncode);
 
 extern void clear_stop_marker(void);
 extern void set_edit_file(int file_no);

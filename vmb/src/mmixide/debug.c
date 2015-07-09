@@ -9,7 +9,8 @@
 #include "debug.h"
 #include "resource.h"
 #include "mmixrun.h"
-#include "util.h"
+#include "uint64.h"
+#include "endian.h"
 
 
 

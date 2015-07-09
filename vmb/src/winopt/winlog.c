@@ -179,7 +179,7 @@ HWND CreateLog(HWND hParent,HINSTANCE hInst)
 						NULL,WS_CHILD|WS_VISIBLE|WS_BORDER|WS_VSCROLL|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, //|ES_READONLY,
 						0,0,100,10,
 						hParent,NULL,hInst,0);
-    StaticWndProc = (WNDPROC)SetWindowLongPtr(hLog, GWLP_WNDPROC,(LONG)(LONG_PTR)LogWndProc);
+    StaticWndProc = (WNDPROC)(LONG_PTR)SetWindowLongPtr(hLog, GWLP_WNDPROC,(LONG)(LONG_PTR)LogWndProc);
 	hGets=CreateEvent(NULL,FALSE,FALSE,NULL);
 #if 0
 	{ int nHeight;

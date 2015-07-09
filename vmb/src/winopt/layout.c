@@ -1,6 +1,6 @@
 #include <windows.h>
 #include <string.h>
-
+#include <wingdi.h>
 #include "winopt.h"
 
 
@@ -22,9 +22,7 @@ void init_layout(int interactive)
   CHOOSEFONT cf;            // common dialog box structure
   LOGFONT lf;        // logical font structure
   TEXTMETRIC tm;
-  hdc=GetDC(NULL);
-
-
+ 
   ZeroMemory(&cf, sizeof(cf));
   cf.lStructSize = sizeof (cf);
   ZeroMemory(&lf, sizeof(lf));
@@ -32,10 +30,12 @@ void init_layout(int interactive)
   cf.hwndOwner = hMainWnd;
   cf.lpLogFont = &lf;
   lf.lfCharSet=ANSI_CHARSET;
+  hdc=GetDC(NULL);
+  /* the height of a 10pt font in pixels */
   lf.lfHeight = -MulDiv(10, GetDeviceCaps(hdc, LOGPIXELSY), 72);
   lf.lfWeight = FW_NORMAL;
   lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-  lf.lfQuality =  0x05 /*CLEARTYPE_QUALITY */;
+  lf.lfQuality =  ANTIALIASED_QUALITY /*CLEARTYPE_QUALITY */;
   strcpy_s(lf.lfFaceName,sizeof(lf.lfFaceName),"Courier New");
   cf.rgbColors = RGB(0,0,0);
   cf.Flags = CF_SCREENFONTS  

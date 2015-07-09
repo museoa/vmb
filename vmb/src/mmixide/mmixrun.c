@@ -30,6 +30,10 @@
 
 #pragma warning(disable : 4996)
 
+#ifdef VMB
+device_info vmb;
+#endif
+
 extern void vmb_atexit(void);
 void mmix_run_init(void);
 
@@ -100,6 +104,9 @@ extern jmp_buf mmix_exit;
 
 void mmix_exit_hook(int returncode)
 { longjmp(mmix_exit, returncode);
+}
+void  ide_exit_ignore(int returncode)
+{ ;
 }
 #endif
 
@@ -296,7 +303,7 @@ int mmix_main(int argc, char *argv[],char *mmo_name)
   if (g[255].l!=0)
    goto end_simulation;
 #ifdef VMB 
-  if (!vmb.connected) {win32_message("Not connected") return 0;}
+  if (!vmb.connected) {win32_message("Not connected"); return 0;}
   if (vmb.power) vmb_raise_reset(&vmb);
 #endif
   mmix_initialize();
@@ -306,7 +313,7 @@ boot:
   win32_log("Power...");
   while (!vmb.power)
   {  vmb_wait_for_power(&vmb);
-     if (!vmb.connected){win32_message("Power but not connected") return 0;}
+     if (!vmb.connected){win32_message("Power but not connected"); return 0;}
   }
   win32_log("ON\n");
   Sleep(50); /* give all devices some time to power up before loading the application */

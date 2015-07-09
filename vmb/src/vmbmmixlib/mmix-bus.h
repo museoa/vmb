@@ -18,8 +18,10 @@
     You should have received a copy of the GNU General Public License
     along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 */
+extern int get_interrupt(octa *data);
+extern int wait_time(int ms);
+extern void cancel_wait(void);
 extern void load_uncached_data(int size, octa *data, octa address, int signextension);
 extern void store_uncached_data(int size, octa data, octa address);
 extern void load_cached_data(int size, octa *data, octa address, int signextension);

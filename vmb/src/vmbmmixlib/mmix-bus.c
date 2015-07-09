@@ -32,6 +32,23 @@
 
 extern device_info vmb;
 
+/* checking for interrupt */
+int get_interrupt(octa *data)
+{ if (vmb_get_interrupt(&vmb,&(data->h),&(data->l))==1)
+  { g[rQ].h |= data->h; g[rQ].l |= data->l;
+    return 1;
+  }
+  else
+    return 0;
+}
+
+int wait_time(int ms)
+{ return vmb_wait_for_event_timed(&vmb,ms);
+}
+
+void cancel_wait(void)
+{ vmb_cancel_wait_for_event(&vmb); 
+}
 
 /* loading data from physical memory */
 
