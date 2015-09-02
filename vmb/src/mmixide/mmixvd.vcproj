@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib;util;vmblib"
+				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -125,8 +125,8 @@
 				Optimization="3"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib;util;vmblib"
+				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS;VMB"
 				RuntimeLibrary="0"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
@@ -490,6 +490,10 @@
 			</File>
 			<File
 				RelativePath=".\winopt\win32about.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\winopt\win32connect.rc"
 				>
 			</File>
 			<File

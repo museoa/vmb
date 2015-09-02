@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../util;../opt;mmixlib;../vmbmmixlib;../splitterlib"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(ConfigurationName)\mmixlib.lib Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -93,6 +93,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="copy helpfile to output directory"
+				CommandLine="copy mmixide.chm $(OutDir)\mmixide.chm"
 			/>
 		</Configuration>
 		<Configuration
@@ -120,9 +122,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../util;../opt;mmixlib;../vmbmmixlib;../splitterlib"
+				Optimization="3"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -140,8 +146,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/VERBOSE"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib Htmlhelp.lib comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -150,7 +155,7 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
-				AllowIsolation="true"
+				AllowIsolation="false"
 				Profile="false"
 			/>
 			<Tool
@@ -178,6 +183,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="copy helpfile to output directory"
+				CommandLine="copy mmixide.chm $(OutDir)\mmixide.chm"
 			/>
 		</Configuration>
 	</Configurations>
@@ -246,6 +253,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\runoptions.c"
+				>
+			</File>
+			<File
 				RelativePath=".\sources.c"
 				>
 			</File>
@@ -304,19 +315,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\param.h"
+				>
+			</File>
+			<File
 				RelativePath=".\print.h"
 				>
 			</File>
 			<File
-				RelativePath="..\scintilla\win32\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
@@ -394,7 +405,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\mmixide.ico"
+				RelativePath=".\Icons\loadfile.ico"
 				>
 			</File>
 			<File
@@ -403,6 +414,18 @@
 			</File>
 			<File
 				RelativePath=".\Icons\mmixide16.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixide.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixide16.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixide256.ico"
 				>
 			</File>
 			<File
@@ -466,15 +489,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32about.rc"
+				RelativePath=".\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.rc"
+				RelativePath=".\winopt\win32dedit.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32dedit.rc"
+				RelativePath=".\winopt\win32memory.rc"
 				>
 			</File>
 			<File

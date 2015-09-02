@@ -191,6 +191,7 @@ void set_edit_file(int file_no)
      firstLine[edit_file_no]=(int)ed_send(SCI_GETFIRSTVISIBLELINE,0,0);
   }
   edit_file_no = file_no;
+  SetWindowText(hMainWnd,unique_name(edit_file_no));
   ed_send(SCI_SETDOCPOINTER,0,(LONG_PTR)doc[edit_file_no]);
   if (fullname[edit_file_no]!=NULL)
   { if (file2reading(edit_file_no)) ed_read_file();

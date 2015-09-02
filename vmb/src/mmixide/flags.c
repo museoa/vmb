@@ -69,5 +69,6 @@ regtable regtab= {
 	{KEY_FLAGS,&missing_app,25},
 	{KEY_FLAGS,&load_single_file,26},
 	{KEY_FLAGS,&find_escape,27},
+	{KEY_FLAGS ,&auto_close_errors,28},
 	{"traceexceptions",&tracing_exceptions,TYPE_DWORD},
 	{NULL,NULL,0}};

@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.46 $ $Date: 2015-07-09 11:27:46 $";
+char version[]="$Revision: 1.47 $ $Date: 2015-09-02 15:53:50 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -155,6 +155,8 @@ int ide_prepare_mmix(void)
   }
   if (!ed_save_all(1)) return 0;
   if (!assemble_all_needed()) return 0;
+  if (auto_close_errors&& hError!=NULL) 
+  { DestroyWindow(hError); hError=NULL; }
   if (!check_load_count()) return 0;
   if (!execute_commands()) return 0;
 #ifdef VMB
@@ -372,12 +374,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
-		  if (mmix_assemble(edit_file_no)==0 && file2loading(edit_file_no) && mmix_active() 
+		  if (mmix_assemble(edit_file_no)==0)
+		  { 
+			if (auto_close_errors && hError!=NULL) 
+			  {DestroyWindow(hError); hError=NULL; }
+			if (file2loading(edit_file_no) && mmix_active() 
 #ifdef VMB
 			  && vmb.power
 #endif
 			  )
-		  { MessageBox(hWnd,"mmo file already running! Reset to reload file.", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
+				MessageBox(hWnd,"mmo file already running! Reset to reload file.", unique_name(edit_file_no),MB_OK|MB_ICONWARNING);
 		  }
 	      return 0; 
 #ifdef VMB

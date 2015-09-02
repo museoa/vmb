@@ -18,7 +18,6 @@
 #define IDI_HELP                        119
 #define IDI_MMIX_DEBUG                  120
 #define IDI_VIEW_ZOOMIN                 121
-
 #define IDD_ABOUT                       121
 #define IDD_CONNECT                     122
 #define IDD_SHOW_SPECIAL                127
@@ -148,11 +147,12 @@
 #define IDC_CHECK_IMAGEFILE             1058
 #define IDC_FAKE_STDIN                  1059
 #define IDC_BROWSE_STDIN                1060
+#define IDC_CHECK1                      1060
+#define IDC_CHECK_AUTOCLOSE_ERRORS      1060
 #define IDC_EXEC                        1061
 #define IDC_READ                        1062
 #define IDC_WRITE                       1063
 #define IDC_CHECK_EXCEPTIONS            1064
-#define IDC_CHECK_STACKTRACE            1075
 #define IDC_TRACE                       1066
 #define IDC_CHECK_EXCEPTIONS_X          1067
 #define IDC_CHECK_EXCEPTIONS_Z          1068
@@ -162,6 +162,7 @@
 #define IDC_CHECK_EXCEPTIONS_W          1072
 #define IDC_CHECK_EXCEPTIONS_V          1073
 #define IDC_CHECK_EXCEPTIONS_D          1074
+#define IDC_CHECK_STACKTRACE            1075
 #define ID_FILE_EXIT                    40002
 #define ID_MMIX_RUN                     40004
 #define ID_HELP_ABOUT                   40014
@@ -239,7 +240,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40108
-#define _APS_NEXT_CONTROL_VALUE         1060
+#define _APS_NEXT_CONTROL_VALUE         1061
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
