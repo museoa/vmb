@@ -323,11 +323,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File
@@ -409,15 +409,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\mmixide.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixide.rc"
 				>
 			</File>
 			<File
 				RelativePath=".\Icons\mmixide16.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixide.ico"
 				>
 			</File>
 			<File

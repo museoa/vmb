@@ -24,6 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -87,6 +89,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="copy boilerplate.w include file"
+				CommandLine="@echo on&#x0D;&#x0A;copy mmixware\boilerplate.w ."
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
