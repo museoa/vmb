@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib;util;vmblib"
+				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -125,7 +125,7 @@
 				Optimization="3"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="mmixlib;winopt;splitterlib;util;vmblib"
+				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS;VMB"
 				RuntimeLibrary="0"
 				RuntimeTypeInfo="false"
@@ -489,19 +489,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\win32about.rc"
+				RelativePath="..\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\win32connect.rc"
+				RelativePath=".\.winopt\win32connect.rc"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\win32dedit.rc"
+				RelativePath="..\winopt\win32dedit.rc"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\win32memory.rc"
+				RelativePath="..\winopt\win32memory.rc"
 				>
 			</File>
 			<File

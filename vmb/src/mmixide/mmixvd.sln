@@ -25,11 +25,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixlib", "mmixlib\mmixlib.
 		{5A384688-86B5-439D-B700-C52330851681} = {5A384688-86B5-439D-B700-C52330851681}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbguilib", "winopt\winopt.vcproj", "{5A384688-86B5-439D-B700-C52330851681}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbguilib", "..\winopt\winopt.vcproj", "{5A384688-86B5-439D-B700-C52330851681}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "splitterlib", "splitterlib\splitterlib.vcproj", "{1CA5CEA9-8223-488F-84E7-8A378DE377CD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "splitterlib", "..\splitterlib\splitterlib.vcproj", "{1CA5CEA9-8223-488F-84E7-8A378DE377CD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbmmixlib", "vmblib\vmblib.vcproj", "{4B0D2135-BFD9-4380-9406-3AA5E6A7D9D1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbmmixlib", "..\vmbmmixlib\vmbmmixlib.vcproj", "{4B0D2135-BFD9-4380-9406-3AA5E6A7D9D1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7A37974-103B-4A8A-ACD4-F304C0D9C35C} = {C7A37974-103B-4A8A-ACD4-F304C0D9C35C}
 		{5A384688-86B5-439D-B700-C52330851681} = {5A384688-86B5-439D-B700-C52330851681}
