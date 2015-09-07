@@ -5,6 +5,7 @@
 #include "bus-arith.h"
 #include "resource.h"
 #include "winopt.h"
+#include "opt.h"
 #include "inspect.h"
 #include "param.h"
 #include "option.h"
@@ -19,7 +20,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.26 $ $Date: 2015-09-07 15:50:52 $";
+char version[]="$Revision: 1.27 $ $Date: 2015-09-07 16:45:21 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -241,7 +242,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	param_init();
 	SetWindowText(hMainWnd,defined);
-	get_pos_key(&xpos,&ypos,defined);
+	read_regtab(defined);
     init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);

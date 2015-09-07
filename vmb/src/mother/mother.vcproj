@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mother"
 	ProjectGUID="{D646BE8E-9009-4DF1-9178-63E6FD0BB6FD}"
 	RootNamespace="mother"
@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\opt; ..\util"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -122,7 +122,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalIncludeDirectories="..\opt; ..\util"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -179,7 +179,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{5A384688-86B5-439D-B700-C52330851681}"
-			RelativePathToProject="..\opt\vmbwinopt.vcproj"
+			RelativePathToProject="..\winopt\winopt.vcproj"
 		/>
 		<ProjectReference
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
@@ -219,11 +219,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

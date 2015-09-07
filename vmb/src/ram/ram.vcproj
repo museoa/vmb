@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util; ..\winopt;..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalIncludeDirectories="..\util; ..\winopt;..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

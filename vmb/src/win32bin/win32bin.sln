@@ -6,12 +6,24 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmbwinopt", "..\opt\vmbwinopt.vcproj", "{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keyboard", "..\keyboard\keyboard.vcproj", "{EEEBF854-5B18-4DA9-897B-02D6201F20CF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "screen", "..\screen\screen.vcproj", "{DFB40465-F17A-4B2D-8692-EF03E56829F0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rom", "..\rom\rom.vcproj", "{5517BA05-32AF-42D6-A69B-26BA7F0F4090}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ram", "..\ram\ram.vcproj", "{C12BCD03-F88D-4468-B4A0-1FF0E4818221}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmix", "..\mmix\mmix.vcproj", "{456CB0C3-26FB-4533-A616-39D9175F8CA5}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -21,16 +33,34 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixal", "..\mmix\mmixal.vcproj", "{B0BD2341-516A-4FC7-B239-0BC4996426C9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mother", "..\mother\mother.vcproj", "{D646BE8E-9009-4DF1-9178-63E6FD0BB6FD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flash", "..\flash\flash.vcproj", "{30013A83-D402-43B3-8442-8C6953BC42EA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winvram", "..\winvram\winvram.vcproj", "{FE9C2409-0EFD-4BF9-9F00-D917910EF3D9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sevensegment", "..\sevensegment\sevensegment.vcproj", "{1961A4CD-9F87-4E25-80C7-6109EB901107}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timer", "..\timer\timer.vcproj", "{47C72EF2-74A4-48E7-A6E1-0B4890084ABC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "disk", "..\disk\disk.vcproj", "{CDB41BD2-EB8F-4337-B079-4FC5FA44D5F0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "button", "..\button\button.vcproj", "{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -46,6 +76,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmixgdb", "..\mmix\gmmix.vc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "led", "..\led\led.vcproj", "{3A0CE6CE-2E84-48CD-BF94-F03E97DDA7BF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmoimg", "..\mmix\mmoimg.vcproj", "{1ED92422-F16F-419A-BC94-6EC9628DEA0C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -53,6 +86,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmoimg", "..\mmix\mmoimg.vc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serial", "..\serial\serial.vcproj", "{2A8B7118-00BA-4933-9BA9-D061861643C9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DC8B98C7-E18F-4AB5-8E43-6D8A5523A992} = {DC8B98C7-E18F-4AB5-8E43-6D8A5523A992}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmotype", "..\mmix\mmotype.vcproj", "{C1C9CA73-16B5-420C-BFB5-9643DE9A6D09}"
 	ProjectSection(ProjectDependencies) = postProject

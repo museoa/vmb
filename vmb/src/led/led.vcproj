@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

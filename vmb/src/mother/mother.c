@@ -34,6 +34,7 @@ extern int terminate_flag;
 #include <process.h>
 #include "resource.h"
 #include "winopt.h"
+#include "opt.h"
 
 
 typedef int socklen_t;
@@ -73,7 +74,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=5;
-char version[] = "$Revision: 1.47 $ $Date: 2014-02-18 12:19:27 $";
+char version[] = "$Revision: 1.48 $ $Date: 2015-09-07 16:45:20 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -1145,7 +1146,7 @@ WinMain (HINSTANCE hInstance,
   {   do_commands ();
       return 0;
   }
-  get_pos_key(&xpos,&ypos,defined);
+  read_regtab(defined);
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();

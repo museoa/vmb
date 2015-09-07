@@ -5,6 +5,7 @@
 #include "bus-arith.h"
 #include "resource.h"
 #include "winopt.h"
+#include "opt.h"
 #include "param.h"
 #include "inspect.h"
 #include "option.h"

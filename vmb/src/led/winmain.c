@@ -4,6 +4,7 @@
 #include "bus-arith.h"
 #include "resource.h"
 #include "winopt.h"
+#include "opt.h"
 #include "param.h"
 #include "inspect.h"
 #include "option.h"
@@ -458,7 +459,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	SetWindowText(hMainWnd,defined);
 	if (nleds<1) nleds=1;
 	if (nleds>8) nleds=8;
-    get_pos_key(&xpos,&ypos,defined);
+	read_regtab(defined);
     init_device(&vmb);
 	load_pictures();
 	init_colors();

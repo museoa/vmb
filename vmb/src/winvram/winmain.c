@@ -10,9 +10,10 @@
 #include "param.h"
 #include "option.h"
 #include "winopt.h"
+#include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.38 $ $Date: 2015-09-07 15:50:52 $";
+char version[]="$Revision: 1.39 $ $Date: 2015-09-07 16:45:21 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -1223,7 +1224,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	
 	param_init();
 	SetWindowText(hMainWnd,defined);
-    get_pos_key(&xpos,&ypos,defined);
+    read_regtab(defined);
     init_screen(&vmb);
     init_mouse();
     init_gpu();

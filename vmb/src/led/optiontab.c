@@ -58,7 +58,7 @@ option_spec options[] = {
 {"label",                               'l', "label",    "led label",     str_arg, NULL, {&label}},
 {"display the LEDs in a vertical column",'v', "vertical", "vertical flag",    on_arg, NULL, {&vertical}},
 {"start with a minimized window",        'm', "minimized","minimized flag",    on_arg, NULL, {&minimized}},
-{"to generate debug output",            'd', "debug",   "debug flag",     fun_arg, NULL, {&do_option_debug}},
+{"to generate debug output",            'd', "debug",   "debug flag",     fun_arg, NULL, {&vmb_debug_on}},
 {"make debugging verbose",   'v', "verbose",    "verbose debugging", on_arg, NULL, {&vmb_verbose_flag}},
 {"set the debug mask",                  'M', "debugmask", "hide debug output",   int_arg, "0xFFF0", {&vmb_debug_mask}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
