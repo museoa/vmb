@@ -434,6 +434,31 @@ void set_special_reg_name(void)
   register_insp[REG_SPECIAL].num_regs=k;
 }
 
+#ifndef VMB
+void inttochar(int val, unsigned char buffer[4])
+{
+	buffer[3] =  val;
+	val = val >> 8;
+	buffer[2] =  val;
+	val = val >> 8;
+	buffer[1] =  val;
+	val = val >> 8;
+	buffer[0] =  val;
+}
+
+int chartoint(const unsigned char buffer[4])
+{
+  int val;
+  val = buffer[0];
+  val = val << 8;
+  val = buffer[1] | val;
+  val = val << 8;
+  val = buffer[2] | val;
+  val = val << 8;
+  val = buffer[3] | val;
+  return val;
+}
+#endif
 
 /* local registers */
 static unsigned char *local_mem=NULL;

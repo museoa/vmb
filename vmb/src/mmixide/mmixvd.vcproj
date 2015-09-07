@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
+				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -126,7 +126,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
-				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS;VMB"
+				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
@@ -413,10 +413,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\mmixide16.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\mmixvd.ico"
 				>
 			</File>
@@ -490,10 +486,6 @@
 			</File>
 			<File
 				RelativePath="..\winopt\win32about.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\.winopt\win32connect.rc"
 				>
 			</File>
 			<File
