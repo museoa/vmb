@@ -289,7 +289,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
   switch ( message )
   { case WM_INITDIALOG:
-      uint64tohex(vmb_address,tmp_option);
+      uint64_to_hex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR0),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[0]);
 	  SendMessage(GetDlgItem(hDlg,IDC_COLOR1),STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hOn[1]);

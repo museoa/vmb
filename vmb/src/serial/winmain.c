@@ -23,7 +23,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
   switch ( message )
   { case WM_INITDIALOG:
-	  uint64tohex(vmb_address,tmp_option);
+	  uint64_to_hex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_RINTERRUPT,rinterrupt,FALSE);
 	  SetDlgItemInt(hDlg,IDC_WINTERRUPT,winterrupt,FALSE);

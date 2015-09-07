@@ -40,12 +40,13 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 #include "winopt.h"
+#include "opt.h"
 #include "inspect.h"
 
 int major_version=1, minor_version=5;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.22 $ $Date: 2014-02-18 12:19:27 $";
+char version[]="$Revision: 1.23 $ $Date: 2015-09-07 15:50:52 $";
 
 char howto[] =
 "\n"
@@ -149,7 +150,7 @@ void open_file(void)
 	 vmb_error(__LINE__,"No filename for image file given");
 	else
 	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",vmb_filename);
-      if ((f = vmb_fopen(vmb_filename, "rb")) == NULL)
+      if ((f = win32_fopen(vmb_filename, "rb")) == NULL)
         vmb_error2(__LINE__,"Unable to open image file",vmb_filename);
 	  else
 	  { c = strrchr(vmb_filename,'.');

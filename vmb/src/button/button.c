@@ -1,6 +1,6 @@
 
 int major_version=1, minor_version=5;
-char version[]="$Revision: 1.14 $ $Date: 2013-09-05 06:50:56 $";
+char version[]="$Revision: 1.15 $ $Date: 2015-09-07 15:50:50 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";
@@ -12,7 +12,7 @@ char howto[]="The button device can be configured to send interrupts\n"
 #include <afxres.h>
 #include "vmb.h"
 #include "resource.h"
-#include "winopt.h"
+#include "opt.h"
 #include "param.h"
 #include "inspect.h"
 #include "option.h"
@@ -113,7 +113,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
   switch ( message )
   { case WM_INITDIALOG:
-      uint64tohex(vmb_address,tmp_option);
+      uint64_to_hex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
 	  SetDlgItemInt(hDlg,IDC_UPINTERRUPT,upinterrupt,FALSE);

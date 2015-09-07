@@ -45,7 +45,7 @@ void display_char(char c);
 int major_version=1, minor_version=5;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.28 $ $Date: 2013-09-05 06:50:56 $";
+char version[]="$Revision: 1.29 $ $Date: 2015-09-07 15:50:50 $";
 
 char howto[] =
 "\n"
@@ -128,7 +128,7 @@ void kb_terminate(void)
 void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
-  f = vmb_fopen(filename,"rb");
+  f = win32_fopen(filename,"rb");
   if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);

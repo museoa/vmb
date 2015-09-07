@@ -46,16 +46,18 @@ void (*vmb_error_init_hook)(int i) =NULL;
 void (*vmb_exit_hook)(int i) = NULL;
 
 
-void vmb_debug_on(void)
+int vmb_debug_on(void)
 {  vmb_debug_flag = 1;
    if (vmb_error_init_hook != NULL)
      vmb_error_init_hook(vmb_debug_flag);
+   return 0;
 }
 
-void vmb_debug_off(void)
+int vmb_debug_off(void)
 {  vmb_debug_flag = 0;
    if (vmb_error_init_hook != NULL)
      vmb_error_init_hook(vmb_debug_flag);
+   return 0;
 }
 
 

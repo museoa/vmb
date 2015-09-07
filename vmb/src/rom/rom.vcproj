@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="rom"
 	ProjectGUID="{5517BA05-32AF-42D6-A69B-26BA7F0F4090}"
 	RootNamespace="rom"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -179,7 +179,7 @@
 		/>
 		<ProjectReference
 			ReferencedProjectIdentifier="{5A384688-86B5-439D-B700-C52330851681}"
-			RelativePathToProject="..\opt\vmbwinopt.vcproj"
+			RelativePathToProject="..\winopt\winopt.vcproj"
 		/>
 	</References>
 	<Files>
@@ -207,7 +207,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.h"
+				RelativePath="..\winopt\win32connect.h"
 				>
 			</File>
 		</Filter>
@@ -241,15 +241,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32about.rc"
+				RelativePath="..\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.rc"
+				RelativePath="..\winopt\win32connect.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32dedit.rc"
+				RelativePath="..\winopt\win32dedit.rc"
 				>
 			</File>
 		</Filter>

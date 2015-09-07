@@ -10,7 +10,7 @@
 
 HBITMAP hwait;
 
-char version[]="$Revision: 1.2 $ $Date: 2011-02-24 13:58:17 $";
+char version[]="$Revision: 1.3 $ $Date: 2015-09-07 15:50:50 $";
 
 char howto[] =
 "\n"
@@ -50,7 +50,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   switch ( message )
   { case WM_INITDIALOG:
 #if 0
-      uint64tohex(vmb_address,tmp_option);
+      uint64_to_hex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
       SetDlgItemText(hDlg,IDC_FILE,filename);
 #endif

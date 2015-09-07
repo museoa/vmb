@@ -157,6 +157,7 @@
 #define AFX_IDD_PROPPAGE_FONT           32258
 #define AFX_IDD_PROPPAGE_PICTURE        32259
 #define AFX_IDB_TRUETYPE                32384
+#define ID_FILE_EXIT                    40002
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009

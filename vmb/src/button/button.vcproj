@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="button"
 	ProjectGUID="{D00E9322-B30F-47E7-BA2F-FCF289F30A4A}"
 	RootNamespace="button"
@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util; ..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalIncludeDirectories="..\util; ..\opt"
+				AdditionalIncludeDirectories="..\util; ..\winopt;..\opt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -203,7 +203,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.h"
+				RelativePath="..\winopt\win32connect.h"
 				>
 			</File>
 		</Filter>
@@ -233,11 +233,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32about.rc"
+				RelativePath="..\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.rc"
+				RelativePath="..\winopt\win32connect.rc"
 				>
 			</File>
 		</Filter>

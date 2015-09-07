@@ -65,8 +65,8 @@ extern void (*vmb_exit_hook)(int i);
 
 
 /* two functions to switch on and off debugging */
-extern void vmb_debug_on(void);
-extern void vmb_debug_off(void);
+extern int vmb_debug_on(void);
+extern int vmb_debug_off(void);
 
 
 #endif

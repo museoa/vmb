@@ -28,14 +28,18 @@
    and processes the commandline
  */
 
+ 
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
 #ifdef WIN32
+#include <windows.h>
 #include <direct.h>
 #define DIRCHAR ('\\')
 #define DIRSTR  ("\\")
+#pragma warning(disable : 4996)
+#include "winopt.h"
 #else
 #include <unistd.h>
 #define DIRCHAR ('/')
@@ -48,9 +52,9 @@
 #define vmb_debugi(a,b,c)
 #define vmb_debugs(a,b,c)
 #endif
-#include "winopt.h"
+
 #include "option.h"
-#pragma warning(disable : 4996)
+
 
 
 
@@ -59,6 +63,7 @@
 
 char tmp_option[MAXTMPOPTION]= {0};
 char *programpath = NULL;
+char *program_name=NULL;
 char *programhelpfile = NULL;
 char *defined=NULL;
 static char * configFILE=NULL;
@@ -680,13 +685,6 @@ int parse_configfile(char *filename)
 int do_option_configfile(char *filename)
 { return parse_configfile(filename);
 }
-
-#ifdef VMB
-int do_option_debug(char *dummy)
-{ vmb_debug_on();
-  return 0;
-}
-#endif
 
 
 static void do_program(char * arg)

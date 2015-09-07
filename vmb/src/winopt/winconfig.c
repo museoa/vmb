@@ -1,9 +1,10 @@
 
 #include <windows.h>
+#include <stdio.h>
 #include "winopt.h"
 #include "option.h"
-#include "param.h"
-#include "vmb.h"
+#pragma warning(disable : 4996)
+
 #include "resource.h"
 
 

@@ -1,4 +1,3 @@
-//include "option.h"
 #ifndef INSPECT_H
 #define INSPECT_H
 #include "float.h"
@@ -79,8 +78,10 @@ extern void SetInspector(HWND hWnd, inspector_def * insp);
 /* call this function to tell the memory inspector that an update is due */
 void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size);
 
-
+extern void mem_update(unsigned int offset, int size);
+/* call this function to tell a specific memory inspector i that an update is due */
 extern void adjust_mem_display(inspector_def *insp);
+
 #else
 /* make it a no-op */
 #define mem_update(offset, size)

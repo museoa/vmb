@@ -38,13 +38,12 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.47 $ $Date: 2015-09-02 15:53:50 $";
+char version[]="$Revision: 1.48 $ $Date: 2015-09-07 15:50:50 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
 char title[] ="MMIX Visual Debugger";
 #endif
-char *program_name=NULL;
 
 /* Button groups for the button bar */
 #define BG_FILE 0
@@ -912,33 +911,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	return (int)msg.wParam;
 }
 
-
-
-void win32_message(char *msg)
-{
-	MessageBox(hMainWnd,msg,"Message",MB_OK);
-}
-
-
-void win32_error(int line, char *message)
-{ static char tmp[1000];
-  sprintf(tmp,"ERROR (%s, %d): %s\r\n",program_name,line,message);
-  win32_message(tmp);
-}
-
-
-void win32_error2(int line, char *message, char *info)
-{ static char tmp[1000];
-  sprintf(tmp,"ERROR (%s, %d): %s\r\n%s\r\n",program_name,line,message,info);
-  win32_message(tmp);
-}
-
-
-void win32_fatal_error(int line, char *message)
-{   win32_error(line, message);
-	SendMessage(hMainWnd,WM_COMMAND,0,ID_FILE_EXIT);
-	exit(1);
-}
 
 
 void destroy_log(HWND hLog)

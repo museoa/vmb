@@ -45,7 +45,7 @@ extern HWND hMainWnd;
 int major_version=1, minor_version=5;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.24 $ $Date: 2013-09-05 06:50:56 $";
+char version[]="$Revision: 1.25 $ $Date: 2015-09-07 15:50:50 $";
 
 char howto[] =
 "\n"
@@ -70,7 +70,7 @@ void open_file(void)
   if (vmb_filename==NULL || strcmp(vmb_filename,"") == 0)
     vmb_error(__LINE__,"No filename for image file given");
   else
-  { f = vmb_fopen(vmb_filename,"rb");
+  { f = win32_fopen(vmb_filename,"rb");
 	if (f==NULL) 
 		vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to open image file", vmb_filename);
 	else

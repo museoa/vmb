@@ -31,7 +31,7 @@ extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.31 $ $Date: 2013-09-05 06:50:56 $";
+char version[]="$Revision: 1.32 $ $Date: 2015-09-07 15:50:50 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -408,7 +408,7 @@ static void diskInit(void) {
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
   if (vmb_filename != NULL) {
     /* try to install disk */
-    diskImage = vmb_fopen(vmb_filename, "r+b");
+    diskImage = win32_fopen(vmb_filename, "r+b");
     if (diskImage == NULL)
       vmb_error(__LINE__,"cannot open disk image");
     else

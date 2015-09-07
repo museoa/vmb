@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <stdio.h>
 #include "winopt.h"
 #include "float.h"

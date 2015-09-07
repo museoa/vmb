@@ -1,6 +1,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include "opt.h"
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
@@ -93,7 +94,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	
 	param_init();
 	SetWindowText(hMainWnd,defined);
-    get_pos_key(&xpos,&ypos,defined);
+	read_regtab(defined);
     init_device(&vmb);
 
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);

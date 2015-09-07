@@ -207,7 +207,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.h"
+				RelativePath="..\winopt\win32connect.h"
 				>
 			</File>
 		</Filter>
@@ -241,7 +241,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.rc"
+				RelativePath="..\winopt\win32connect.rc"
 				>
 			</File>
 		</Filter>

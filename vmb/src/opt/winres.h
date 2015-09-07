@@ -1,3 +1,5 @@
+#ifndef _WINRES_H_
+#define _WINRES_H_
 
 #define IDS_CLASS                       1
 #define IDS_TITLE                       2
@@ -23,7 +25,7 @@
 #define IDC_THE_SERVER                  1001
 #define IDC_THE_PORT                    1002
 #define IDC_CHECK_AUTOCONNECT           1004
-
+#define ID_FILE_EXIT                    40002
 #define ID_CONNECT                      40007
 #define ID_DEBUG                        40008
 #define ID_VERBOSE                      40009
@@ -34,3 +36,4 @@
 #define ID_MINIMIZE                     40016
 #define ID_HELP_CONFIGURATION           40017
 
+#endif

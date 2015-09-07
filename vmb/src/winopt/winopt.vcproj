@@ -160,6 +160,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\flags.c"
+				>
+			</File>
+			<File
 				RelativePath=".\float.c"
 				>
 			</File>
@@ -172,11 +176,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\stdinbuf.c"
+				>
+			</File>
+			<File
 				RelativePath=".\uint64.c"
 				>
 			</File>
 			<File
+				RelativePath=".\win32error.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winabout.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winbitmap.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winconfig.c"
 				>
 			</File>
 			<File
@@ -185,6 +205,10 @@
 			</File>
 			<File
 				RelativePath=".\winde.c"
+				>
+			</File>
+			<File
+				RelativePath=".\windebug.c"
 				>
 			</File>
 			<File
@@ -197,6 +221,10 @@
 			</File>
 			<File
 				RelativePath=".\winlog.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winlogoff.c"
 				>
 			</File>
 			<File
@@ -234,10 +262,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\param.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -255,10 +279,6 @@
 			</File>
 			<File
 				RelativePath=".\winopt.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winres.h"
 				>
 			</File>
 		</Filter>

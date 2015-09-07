@@ -6,10 +6,6 @@
 #include "inspect.h"
 #include "winlog.h"
 
-void win32_message(char *msg)
-{
-	MessageBox(NULL,msg,"Message",MB_OK);
-}
 
 static HWND hMemory=NULL;
 HWND hDebug=NULL; /* debug output goes to this window, if not NULL */

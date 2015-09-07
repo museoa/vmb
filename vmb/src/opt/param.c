@@ -30,7 +30,7 @@
 #ifdef WIN32
 #include <windows.h>
 #pragma warning(disable : 4996)
-#include "winopt.h"
+#include "opt.h"
 #else
 #include <unistd.h>
 #include <stdint.h>
@@ -39,6 +39,7 @@
 #include "param.h"
 #include "option.h"
 #include "bus-arith.h"
+
 
 
 char *host=NULL;
@@ -60,6 +61,7 @@ extern option_spec options[];
 
 #ifdef WIN32
 extern HWND hMainWnd;
+extern HMENU hMenu;
 #endif
 
 void usage(char *message)

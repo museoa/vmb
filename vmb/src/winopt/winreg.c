@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "winopt.h"
 
 void write_regtab(char *program)

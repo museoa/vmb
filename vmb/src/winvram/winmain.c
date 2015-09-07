@@ -12,7 +12,7 @@
 #include "winopt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.37 $ $Date: 2014-02-10 14:05:42 $";
+char version[]="$Revision: 1.38 $ $Date: 2015-09-07 15:50:52 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -831,19 +831,19 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
   switch ( message )
   { case WM_INITDIALOG:
-      uint64tohex(vmb_address,tmp_option);
+      uint64_to_hex(vmb_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_FRAMEHEIGHT,frameheight,FALSE);
 	  SetDlgItemInt(hDlg,IDC_FRAMEWIDTH,framewidth,FALSE);
 	  SetDlgItemInt(hDlg,IDC_HEIGHT,height,FALSE);
 	  SetDlgItemInt(hDlg,IDC_WIDTH,width,FALSE);
 
-	  uint64tohex(vmb_mouse_address,tmp_option);
+	  uint64_to_hex(vmb_mouse_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS_MOUSE,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_INTERRUPT,interrupt_no,FALSE);
 	  CheckDlgButton(hDlg,IDC_MOUSEMOVE,move_interrupt?BST_CHECKED:BST_UNCHECKED);
 
-      uint64tohex(vmb_gpu_address,tmp_option);
+      uint64_to_hex(vmb_gpu_address,tmp_option);
       SetDlgItemText(hDlg,IDC_ADDRESS_GPU,tmp_option);
 	  SetDlgItemInt(hDlg,IDC_GPU_INTERRUPT,gpu_interrupt,FALSE);
 	  

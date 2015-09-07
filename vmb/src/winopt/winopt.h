@@ -1,12 +1,11 @@
 #ifndef _WINOPT_H_
 #define _WINOPT_H_
 
-#include <windows.h>
-
 /* Sybols needed by winopt */
 
 extern HWND hMainWnd;
 extern HINSTANCE hInst;
+extern HMENU hMenu;
 extern int major_version, minor_version;
 extern char version[];
 extern char title[];
@@ -15,10 +14,14 @@ extern char *defined;
 extern char *programhelpfile;
 
 extern void win32_message(char *msg);
+extern void win32_error_init(int i);
 extern void win32_error(int line, char *message);
 extern void win32_error2(int line, char *message, char *info);
 
+extern void win32_log(char *msg);
+
 extern void win32_fatal_error(int line, char *message);
+
 extern int xpos, ypos; /* Window position */
 extern int width,height; /* dimension of main window */
 
@@ -30,12 +33,13 @@ extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 /* Symbols provided by winopt */
 #include "uint64.h"
 
+
 /* in winabout.c */
 extern INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
 /* in winconnect.c */
-INT_PTR CALLBACK    
+extern INT_PTR CALLBACK    
 ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 /* in windialog.c */
 extern void register_subwindow(HWND h);
@@ -47,10 +51,8 @@ extern BOOL do_subwindow_msg(MSG *msg);
 extern void set_xypos(HWND hWnd);
 extern void get_xypos(void);
 
-/* from winpos.c */
-extern void set_pos_key(HWND hWnd, char *name);
-extern void get_pos_key(int *Xpos, int *Ypos, char *name);
-
+extern HBITMAP hBmp;
+extern HBITMAP hon,hoff,hconnect;
 
 
 /* table of key value pairs to store in the registry terminated by a NULL key */
@@ -84,31 +86,21 @@ extern int fixed_char_height;
 extern int separator_width;
 extern int separator_height; 
 extern int version_width; /* length of the version string in VarFont */
+extern int minimized;
 
-#if 0
-extern void win32_log(char *msg);
+#ifdef WIN32
+extern void param_init(void);
+#else
+extern void param_init(int argc, char *argv[]);
+#endif
 
-extern void mem_update(unsigned int offset, int size);
-/* call this function to tell a specific memory inspector i that an update is due */
-extern void mem_update_i(int i, unsigned int offset, int size);
-
-extern HWND hDebug;
-extern INT_PTR CALLBACK   
-DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
-
-extern INT_PTR CALLBACK   
-SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam ); /*needed */
 
 
 extern LRESULT CALLBACK 
 OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
 
-              
-extern int set_reg_DWORD(char *program, char *name, DWORD value);
-extern DWORD get_reg_DWORD(char *program, char *name);
-
-
-
-#endif
+#include <stdio.h>
+FILE *win32_fopen(char *filename, char *mode);
+/* open fiename, look in the configPATH and programpath before giving up */
 
 #endif

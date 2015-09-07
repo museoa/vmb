@@ -2,14 +2,24 @@
 #include <htmlhelp.h> 
 #include <afxres.h>
 #include "vmb.h"
+#include "opt.h"
 #include "winopt.h"
 #include "param.h"
 #include "option.h"
 #include "resource.h"
 
 
-
+extern HWND hMainWnd;
+extern HINSTANCE hInst;
+extern HMENU hMenu;
 HWND hpower;
+extern INT_PTR CALLBACK    
+AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+
+extern INT_PTR CALLBACK    
+ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+extern void write_regtab(char *program);
+
 
 LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
@@ -18,23 +28,28 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
   case WM_NCHITTEST:
     return HTCAPTION;
   case WM_VMB_ON: /* Power On */
-    SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
+	if (hpower!=NULL)
+      SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hon);
 	return 0;
   case WM_VMB_OFF: /* Power Off */
+	if (hpower!=NULL)
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
 	return 0;
   case WM_VMB_CONNECT: /* Connected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Disconnect"))
 	  DrawMenuBar(hMainWnd);
+	if (hpower!=NULL)
 	SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
  	return 0;
   case WM_VMB_DISCONNECT: /* Disconnected */
 	if (ModifyMenu(hMenu,ID_CONNECT, MF_BYCOMMAND|MF_STRING,ID_CONNECT,"Connect..."))
 	  DrawMenuBar(hMainWnd);
+	if (hpower!=NULL)
 	   SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hconnect);
 	return 0;
   case WM_CREATE: 
 	hpower = CreateWindow("STATIC",NULL,WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_REALSIZEIMAGE,10,10,32,32,hWnd,NULL,hInst,0);
+	if (hpower!=NULL)
     SendMessage(hpower,STM_SETIMAGE,(WPARAM) IMAGE_BITMAP,(LPARAM)hoff);
     return 0;
   case WM_PAINT:
@@ -60,6 +75,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     if (HIWORD(wParam)==0) /* Menu */
       switch(LOWORD(wParam))
 	{ case ID_EXIT:
+	  case ID_FILE_EXIT:
         PostMessage(hMainWnd,WM_CLOSE,0,0);
 	    return 0;
 	case ID_CONNECT:
@@ -104,7 +120,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     return 0;
 
   case WM_DESTROY:
-	set_pos_key(hMainWnd,defined);
+	write_regtab(defined);
     PostQuitMessage(0);
     return 0;
   default:

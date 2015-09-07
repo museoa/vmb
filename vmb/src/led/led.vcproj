@@ -216,7 +216,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.h"
+				RelativePath="..\winopt\win32connect.h"
 				>
 			</File>
 		</Filter>
@@ -254,15 +254,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32about.rc"
+				RelativePath="..\winopt\win32about.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32connect.rc"
+				RelativePath="..\winopt\win32connect.rc"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\win32dedit.rc"
+				RelativePath="..\winopt\win32dedit.rc"
 				>
 			</File>
 		</Filter>
