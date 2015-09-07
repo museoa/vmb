@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="vmbguilib"
+	Name="winopt"
 	ProjectGUID="{5A384688-86B5-439D-B700-C52330851681}"
 	RootNamespace="winopt"
 	Keyword="Win32Proj"
