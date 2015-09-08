@@ -24,8 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description=""
-				CommandLine=""
+				CommandLine="copy $(InputDir)mmixlib\mmixware\boilerplate.w $(InputDir)boilerplate.w"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -90,7 +89,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="copy boilerplate.w include file"
-				CommandLine="@echo on&#x0D;&#x0A;copy mmixware\boilerplate.w ."
+				CommandLine="copy $(InputDir)mmixlib\mmixware\boilerplate.w $(InputDir)boilerplate.w"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

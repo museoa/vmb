@@ -17,9 +17,11 @@ void win32_error(int line, char *message)
 }
 
 
-void win32_error2(int line, char *message, char *info)
+void win32_ferror(int line, char *format, char *str)
 { static char tmp[1000];
-  sprintf(tmp,"ERROR (%s, %d): %s\r\n%s\r\n",program_name,line,message,info);
+  int n;
+  n=sprintf(tmp,"ERROR (%s, %d): ",program_name,line);
+  sprintf(tmp+n,format,str);
   win32_message(tmp);
 }
 

@@ -669,7 +669,7 @@ static void ed_write_file(void)
     if (name==NULL || name[0]==0) return;
     fp = fopen(name, "wb");
 	if (fp==NULL)
-       win32_error2(__LINE__,"Unable to save file",name);
+       win32_ferror(__LINE__,"Unable to save file (%s)\r\n",name);
 	else {
 		int i;
 		struct Sci_TextRange tr;
@@ -696,7 +696,7 @@ static void ed_write_file(void)
     fh = CreateFile(name,
 	  GENERIC_WRITE,FILE_SHARE_WRITE,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
     if (fh==INVALID_HANDLE_VALUE) 
-       win32_error2(__LINE__,"Unable to save file",name);
+       win32_ferror(__LINE__,"Unable to save file (%s)\r\n",name);
 	else {
 		int i;
 		struct Sci_TextRange tr;
@@ -712,7 +712,7 @@ static void ed_write_file(void)
 	      tr.chrg.cpMax = i+next;
 	      ed_send(SCI_GETTEXTRANGE, 0,(sptr_t)&tr);
 		  if (!WriteFile(fh,data,next,&nextw,NULL) || nextw<next)
-		  { win32_error2(__LINE__,"Unable to write file",name);
+		  { win32_ferror(__LINE__,"Unable to write file (%s)\r\n",name);
 		    break;
 		  }
 		}

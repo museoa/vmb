@@ -16,7 +16,7 @@ extern char *programhelpfile;
 extern void win32_message(char *msg);
 extern void win32_error_init(int i);
 extern void win32_error(int line, char *message);
-extern void win32_error2(int line, char *message, char *info);
+extern void win32_ferror(int line, char *format, char *str);
 
 extern void win32_log(char *msg);
 

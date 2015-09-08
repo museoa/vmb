@@ -233,24 +233,24 @@ int do_option(option_spec *p, char *arg)
   switch (p->kind)
   { case str_arg: 
       if (arg==NULL)
-        win32_error2(__LINE__,"Argument expected",p->description);
+        win32_ferror(__LINE__,"Argument expected (%s)\r\n",p->description);
       else
         store_strarg(p->handler.str,arg,1);
       return 1;
   case int_arg:
 	  if (arg==NULL)
-		  win32_error2(__LINE__,"Argument expected",p->description);
+        win32_ferror(__LINE__,"Argument expected (%s)\r\n",p->description);
 	  else
           *(p->handler.i)=strtoint(arg);
       return 1;
   case double_arg:
 	  if (arg==NULL)
-		  win32_error2(__LINE__,"Argument expected",p->description);
+        win32_ferror(__LINE__,"Argument expected (%s)\r\n",p->description);
 	  else
           *(p->handler.d)=strtodouble(arg);
       return 1;   case uint64_arg:
       if (arg==NULL)
-		  win32_error2(__LINE__,"Argument expected",p->description);
+        win32_ferror(__LINE__,"Argument expected (%s)\r\n",p->description);
 	  else
           *(p->handler.u)=strtouint64(arg);
       return 1;

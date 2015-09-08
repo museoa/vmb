@@ -182,7 +182,7 @@ static void init_fake_stdin(void)
   mmix_fake_stdin(stdin);
   if (stdin_file!=NULL && stdin_file[0]!=0)
   { fake_stdin=fopen(stdin_file,"r");
-    if (!fake_stdin) win32_error2(__LINE__,"Sorry, I can't open file!\n",stdin_file);
+    if (!fake_stdin) win32_ferror(__LINE__,"Unable to open file (%s)\r\n",stdin_file);
     else mmix_fake_stdin(fake_stdin);
   }
 }
