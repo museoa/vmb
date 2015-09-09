@@ -44,8 +44,13 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+#ifdef VMB
+IDI_ICON                ICON                    "Icons\\mmixide.ico"
+IDI_ICON_SMALL          ICON                    "Icons\\mmixide16.ico"
+#else
 IDI_ICON                ICON                    "Icons\\mmixvd.ico"
 IDI_ICON_SMALL          ICON                    "Icons\\mmixvd16.ico"
+#endif
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
@@ -266,21 +271,23 @@ BEGIN
     CONTROL         "Show small values",IDC_CHECK_SMALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,73,10
 END
 
-IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 332, 138
+IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 330, 150
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sources"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,275,7,50,15
-    LTEXT           "Full name",IDC_TAB_FULLNAME,19,50,299,8
-    CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,61,119,10
-    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,104,59,10
-    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,74,74,10
-    EDITTEXT        IDC_EDIT_COMMAND,30,87,285,14,ES_AUTOHSCROLL
-    CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_CLIPSIBLINGS | WS_TABSTOP,7,29,318,102,WS_EX_TRANSPARENT
     PUSHBUTTON      "Add File ...",IDC_ADD,7,7,50,15
-    CONTROL         "Load single file",IDC_CHECK_SINGLEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,10,114,10
+    DEFPUSHBUTTON   "OK",IDOK,275,7,50,15
+    CONTROL         "Load single file",IDC_CHECK_SINGLEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,70,10,115,10
+    CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_CLIPSIBLINGS | WS_TABSTOP,7,30,325,100,WS_EX_TRANSPARENT
+    LTEXT           "Full name",IDC_TAB_FULLNAME,20,50,299,8
+    CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,65,119,10
+    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,80,59,10
+#ifdef VMB	
+    CONTROL         "Create image file",IDC_CHECK_IMAGEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,95,70,10
+#endif
+    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,110,74,10
+    EDITTEXT        IDC_EDIT_COMMAND,30,125,285,15,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONS_RUN DIALOGEX 0, 0, 294, 93
@@ -497,6 +504,9 @@ BEGIN
         MENUITEM "&Editor ...",                 ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
         MENUITEM "&Assembler ...",              ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
         MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
+#ifdef VMB
+        MENUITEM "&Motherboard ...",            ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
+#endif
         MENUITEM "&Run ...",                    ID_OPTIONS_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM "Symbol &table  ...",          ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
         MENUITEM "&Sources ...",                ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
