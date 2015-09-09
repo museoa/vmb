@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mmmix"
 	ProjectGUID="{892DEC24-95DD-436A-8608-C1C76559F842}"
 	RootNamespace="mmmix"
@@ -24,8 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description=""
-				CommandLine=""
+				Description="Build C files"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixware\mmix-io.w io-win.ch mmix-io.c&#x0D;&#x0A;ctangle mmixware\mmix-mem.w mem-win.ch mmix-mem.c&#x0D;&#x0A;ctangle mmixware\mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmixware\mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -41,12 +41,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -63,7 +63,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -100,13 +99,15 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			UseOfATL="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description=""
-				CommandLine=""
+				Description="Build C files"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;ctangle mmixware\mmix-io.w io-win.ch mmix-io.c&#x0D;&#x0A;ctangle mmixware\mmix-mem.w mem-win.ch mmix-mem.c&#x0D;&#x0A;ctangle mmixware\mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmixware\mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -122,9 +123,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
-				RuntimeLibrary="2"
+				UseUnicodeResponseFiles="false"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -141,7 +142,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -192,35 +192,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-config.w"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-config.w mmix-config.c"
-						CommandLine="ctangle mmix-config.w mmix-config.c"
-						Outputs="mmix-config.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-config.w mmix-config.c"
-						CommandLine="ctangle mmix-config.w mmix-config.c"
-						Outputs="mmix-config.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\mmix-io.c"
-				>
-			</File>
-			<File
-				RelativePath=".\mmix-io.w"
 				>
 			</File>
 			<File
@@ -228,82 +200,36 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-mem.w"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-mem.w mmix-mem.c"
-						CommandLine="ctangle mmix-mem.w mmix-mem.c"
-						Outputs="mmix-mem.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmix-mem.w mmix-mem.c"
-						CommandLine="ctangle mmix-mem.w mmix-mem.c"
-						Outputs="mmix-mem.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\mmix-pipe.c"
 				>
-			</File>
-			<File
-				RelativePath=".\mmix-pipe.w"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="ctangle mmix-pipe.w mmix-pipe.c"
-						Outputs="mmix-pipe.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="ctangle mmix-pipe.w mmix-pipe.c"
-						Outputs="mmix-pipe.c"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mmmix.c"
 				>
 			</File>
 			<File
-				RelativePath=".\mmmix.w"
+				RelativePath=".\arith-win.ch"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmmix.w mmmix.c"
-						CommandLine="ctangle mmmix.w mmmix.c"
-						Outputs="mmmix.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="ctangle mmmix.w mmmix.c"
-						CommandLine="ctangle mmmix.w mmmix.c"
-						Outputs="mmmix.c"
-					/>
-				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\config-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\io-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\mem-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\pipe-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\mmmix-win.ch"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -312,7 +238,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\address.h"
+				RelativePath=".\abstime.h"
 				>
 			</File>
 		</Filter>

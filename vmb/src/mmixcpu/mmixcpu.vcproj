@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="winopt"
-	ProjectGUID="{5A384688-86B5-439D-B700-C52330851681}"
-	RootNamespace="winopt"
+	Name="mmixcpu"
+	ProjectGUID="{8C808B73-7109-450C-917C-2EC73293FD94}"
+	RootNamespace="mmixcpu"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -19,7 +19,8 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
+			ATLMinimizesCRunTimeLibraryUsage="true"
 			CharacterSet="0"
 			>
 			<Tool
@@ -41,16 +42,15 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
+				PreprocessorDefinitions="WIN32;VMB;_DEBUG;_CONSOLE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CallingConvention="0"
+				DebugInformationFormat="4"
 				CompileAs="1"
 			/>
 			<Tool
@@ -63,10 +63,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="Ws2_32.lib"
+				ShowProgress="0"
+				LinkIncremental="2"
+				IgnoreAllDefaultLibraries="false"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -78,6 +90,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -85,7 +103,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
@@ -107,15 +125,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="..\util;..\vmbmmixlib"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
-				CallingConvention="0"
 				CompileAs="1"
 			/>
 			<Tool
@@ -128,10 +144,23 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="Ws2_32.lib"
+				ShowProgress="0"
+				LinkIncremental="1"
+				GenerateDebugInformation="false"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -141,6 +170,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -156,87 +191,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dedit.c"
-				>
-			</File>
-			<File
-				RelativePath=".\flags.c"
-				>
-			</File>
-			<File
-				RelativePath=".\float.c"
-				>
-			</File>
-			<File
-				RelativePath=".\layout.c"
-				>
-			</File>
-			<File
-				RelativePath=".\option.c"
-				>
-			</File>
-			<File
-				RelativePath=".\stdinbuf.c"
-				>
-			</File>
-			<File
-				RelativePath=".\uint64.c"
-				>
-			</File>
-			<File
-				RelativePath=".\win32error.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winabout.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winbitmap.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winconfig.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winconnect.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winde.c"
-				>
-			</File>
-			<File
-				RelativePath=".\windebug.c"
-				>
-			</File>
-			<File
-				RelativePath=".\windialog.c"
-				>
-			</File>
-			<File
-				RelativePath=".\wininspect.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winlog.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winlogoff.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winmem.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winreg.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winxy.c"
+				RelativePath=".\mmixcpu.c"
 				>
 			</File>
 		</Filter>
@@ -245,42 +200,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\dedit.h"
-				>
-			</File>
-			<File
-				RelativePath=".\float.h"
-				>
-			</File>
-			<File
-				RelativePath=".\inspect.h"
-				>
-			</File>
-			<File
-				RelativePath=".\option.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\uint64.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winde.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winlog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\winopt.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

@@ -75,12 +75,12 @@ extern int lring_mask; /* one less than |lring_size| */
 extern octa new_Q;
 extern int good_guesses, bad_guesses;
 extern bool interacting;
-extern bool rw_break;
 extern bool show_operating_system;
 extern octa rOlimit;
 extern bool just_traced;
 extern bool trace_once;
-extern bool halted, profile_started, stack_tracing, profiling, interrupt, breakpoint, tracing;
+extern bool halted, profile_started, stack_tracing, profiling, interrupt, tracing;
+extern int breakpoint;
 extern unsigned int tracing_exceptions; /* exception bits that cause tracing */
 extern octa sclock;
 extern char *stdin_buf_start, *stdin_buf_end;

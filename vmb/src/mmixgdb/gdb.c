@@ -50,7 +50,7 @@ int async_gdb_command(char *gdb_command)
    takes necessary actions and returns true, else it returns false.
 */  
 { if (*gdb_command == BREAK ) /* break */
-  { breakpoint |=trace_bit;
+  { breakpoint = true;
     gdb_signal = TARGET_SIGNAL_INT;
     fprintf(stderr, "Async Break Level %d received\n",break_level);
     break_level++;
@@ -608,13 +608,13 @@ void handle_gdb_command(char *buffer)
        signal_continue(1);
        return;
      case 's':  /* continue single step*/
-       breakpoint |= trace_bit;
+       breakpoint = true;
        gdb_signal = TARGET_SIGNAL_TRAP;
        put_free_buffer(buffer);
        signal_continue(1);
        return;
      case 'k': /* kill simulator */
-       breakpoint |= trace_bit;
+       breakpoint = true;
        gdb_signal = TARGET_SIGNAL_KILL;
        OK_msg(buffer);
        signal_continue(0);

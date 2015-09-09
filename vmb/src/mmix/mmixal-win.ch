@@ -1,16 +1,8 @@
 
 @x
-#ifdef __STDC__
-#define ARGS(list) list
-#else
-#define ARGS(list) ()
-#endif
+#include <time.h>
 @y
-#ifdef __STDC__
-#define ARGS(list) list
-#else
-#define ARGS(list) ()
-#endif
+#include <time.h>
 
-#pragma warning(disable : 4146 4244) 
+#pragma warning(disable : 4146 4244 4996) 
 @z

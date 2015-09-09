@@ -461,7 +461,7 @@ G=zbyte;@+ L=0;@+ O=0;
 for (j=G+G;j<256+256;j++,ll++,aux.l+=4) read_tet(), ll->tet=tet;
 inst_ptr.h=(ll-2)->tet, inst_ptr.l=(ll-1)->tet; /* \.{Main} */
 (ll+2*12)->tet=G<<24;
-g[255]=incr(aux,12*8); /* we will |UNSAVE| from here, to get going */
+g[255]=incr(aux,12*8); /* we will \.{UNSAVE} from here, to get going */
 @y
 @<Load the postamble@>=
 { octa x;
@@ -963,7 +963,7 @@ page_fault:
 @z
 
 @x
-case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:@/
+case LDO: case LDOI: case LDOU: case LDOUI: case LDUNC: case LDUNCI:
  w.l&=-8;@+ ll=mem_find(w);
  test_load_bkpt(ll);@+test_load_bkpt(ll+1);
  x.h=ll->tet;@+ x.l=(ll+1)->tet;
@@ -1207,8 +1207,10 @@ stack_store(x);
 g[rS]=incr(g[rS],-8);
 ll=mem_find(g[rS]);
 test_load_bkpt(ll);@+test_load_bkpt(ll+1);
-if (k==rZ+1) x.l=G=g[rG].l=ll->tet>>24, a.l=g[rA].l=(ll+1)->tet&0x3ffff;
-else g[k].h=ll->tet, g[k].l=(ll+1)->tet;
+if (k==rZ+1) {
+  x.l=G=g[rG].l=ll->tet>>24, a.l=g[rA].l=(ll+1)->tet&0x3ffff;
+  if (G<32) x.l=G=g[rG].l=32;
+}@+else g[k].h=ll->tet, g[k].l=(ll+1)->tet;
 if (stack_tracing) {
   tracing=true;
   if (cur_line) show_line();
@@ -1822,7 +1824,7 @@ break;
 @x
 @d RESUME_AGAIN 0 /* repeat the command in rX as if in location $\rm rW-4$ */
 @d RESUME_CONT 1 /* same, but substitute rY and rZ for operands */
-@d RESUME_SET 2 /* set r[X] to rZ */
+@d RESUME_SET 2 /* set register \$X to rZ */
 @y
 @d RESUME_AGAIN 0 /* repeat the command in rX as if in location $\rm rW-4$ */
 @d RESUME_CONT 1 /* same, but substitute rY and rZ for operands */
@@ -1908,9 +1910,10 @@ else
 
 
 @x
-  if (g[rI].l==0 && g[rI].h==0) tracing=breakpoint=true;
+  if (g[rI].l<=info[op].oops && g[rI].l && g[rI].h==0) tracing=breakpoint=true;
 @y
-  if (g[rI].l==0 && g[rI].h==0) g[rQ].l |= IN_BIT, new_Q.l |= IN_BIT; /* set the i bit */
+   if (g[rI].l<=info[op].oops && g[rI].l && g[rI].h==0) 
+     g[rQ].l |= IN_BIT, new_Q.l |= IN_BIT; /* set the i bit */
 @z
 
 
@@ -2381,7 +2384,7 @@ argc -= (int)(cur_arg-argv); /* this is the |argc| of the user program */
 @<Subr...@>=
 void scan_option @,@,@[ARGS((char*,bool))@];@+@t}\6{@>
 void scan_option(arg,usage)
-  char *arg; /* command-line argument (without the `\.-') */
+  char *arg; /* command line argument (without the `\.-') */
   bool usage; /* should we exit with usage note if unrecognized? */
 @y
 @(libsoption.c@>=
@@ -2732,7 +2735,9 @@ we do not support the -D dump option.
 
 @x
 @ The special option `\.{-D<filename>}' can be used to prepare binary files
-needed by the \MMIX-in-\MMIX\ simulator of Section 1.4.3\'{}. This option
+needed by the \MMIX-in-\MMIX\ simulator of Section 1.4.3\'{}. (See
+{\sl The Art of Computer Programming}, Volume~1, Fascicle~1.) This option
+@^Fascicle 1@>
 puts big-endian octa\-bytes into a given file; a location~$l$ is followed
 by one or more nonzero octabytes M$_8[l]$, M$_8[l+8]$, M$_8[l+16]$, \dots,
 followed by zero. The simulated simulator knows how to load programs

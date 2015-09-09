@@ -1,8 +1,8 @@
 /*15:*/
-#line 106 "vmb.ch"
+#line 98 "vmb-gdb.ch"
 
 extern octa zero_octa;
-#line 593 "mmix-sim.w"
+#line 594 "mmix-sim.w"
 extern octa neg_one;
 extern octa aux,val;
 extern bool overflow;

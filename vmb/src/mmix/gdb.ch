@@ -2,16 +2,16 @@
 
 
 @x
-@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) breakpoint=tracing=true
+@d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) rw_break=breakpoint=tracing=true
 @y
-@d do_store_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
+@d do_store_bkpt rw_break=breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
 @d test_store_bkpt(ll) if ((ll)->bkpt&write_bit) do_store_bkpt
 @z
 
 @x
-@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) breakpoint=tracing=true
+@d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) rw_break=breakpoint=tracing=true
 @y
-@d do_load_bkpt breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
+@d do_load_bkpt rw_break=breakpoint=tracing=true,gdb_signal=TARGET_SIGNAL_TRAP
 @d test_load_bkpt(ll) if ((ll)->bkpt&read_bit) do_load_bkpt
 @z
 

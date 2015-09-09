@@ -81,7 +81,7 @@ extern int wait_for_continue(void);
 extern void signal_continue(int r);
 /* from mmix-sim.c */
 
-extern int breakpoint;
+extern bool breakpoint;
 extern bool stepping; /* should we pause after the next instruction? */
 
 extern int gdb_signal; /* signal to send to GDB */
