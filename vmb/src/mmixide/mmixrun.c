@@ -46,7 +46,7 @@ static int mmix_waiting = 0;
 
 int mmix_interact(void)
 { DWORD w;
-  breakpoint=false;
+  breakpoint=0;
   mmix_waiting = 1;
   PostMessage(hMainWnd,WM_MMIX_INTERACT,0,0); 
   w = WaitForSingleObject(hInteract,INFINITE);
@@ -71,21 +71,21 @@ int mmix_continue(unsigned char command)
    rOlimit=neg_one;
    switch (command)
    { case 'q': /* quit */
-       breakpoint=halted=true;
+       breakpoint|=trace_bit, halted=true;
        break;
      case 'c': /* continue */
 	   mmix_status(MMIX_RUNNING);
        break;
 	 case 'n': /* next instruction/ step over*/
 	   rOlimit=g[rO];
-       interacting=breakpoint=tracing=true; /* trace one inst and break */
+       breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
        break;
 	 case 'o': /* step out */
          rOlimit=incr(g[rO],-1);
-       interacting=breakpoint=tracing=true; /* trace one inst and break */
+       breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
        break;
 	 case 's': /* step instruction */
-     default: interacting=breakpoint=tracing=true; /* trace one inst and break */
+     default: breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
        break;
    }
    show_stop_marker(edit_file_no,-1); /* clear stop marker */
@@ -190,7 +190,7 @@ static void init_fake_stdin(void)
 void mmix_run(void)
 {		  interacting=false;
 		  show_operating_system=false;
-          breakpoint=false;
+          breakpoint=0;
 		  tracing=false;
 		  update_symtab();
 		  init_fake_stdin();
@@ -205,7 +205,7 @@ void mmix_reset(void)
 
 void mmix_debug(void)
 {		  interacting=true;
-          breakpoint=true;
+          breakpoint=0;
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  update_symtab();
 		  init_fake_stdin();
@@ -242,14 +242,14 @@ static int check_rO(void)
 
 static int check_interact(bool after)
 {   if (!interrupt && !breakpoint) return 1;
-	if (interrupt && !breakpoint) breakpoint=interacting=true, interrupt=false;
-	if (!interacting) { breakpoint=false; return 1; }
+	if (interrupt && !breakpoint) breakpoint|=trace_bit, interacting=true, interrupt=false;
+	if (!interacting) { breakpoint=0; return 1; }
 #ifdef VMB
 	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
 	    return mmix_interact();
 #endif
-    if (break_after||rw_break)
-	{ rw_break=false;
+    if (break_after|| (breakpoint &(read_bit|write_bit)))
+	{ breakpoint &=~(read_bit|write_bit);
 	  if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
 	  {  mmix_stopped(loc); /* display the last stop marker */
 	     trace_once=1;
@@ -352,7 +352,7 @@ resume:
 		!vmb.power || vmb.reset_flag ||
 #endif
 		(g[rQ].l&g[rK].l&RE_BIT))
-    { breakpoint=true; 
+    { breakpoint|=trace_bit; 
       goto boot;
     }
     if (!check_interact(true)) goto end_simulation;

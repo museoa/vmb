@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.48 $ $Date: 2015-09-07 15:50:50 $";
+char version[]="$Revision: 1.49 $ $Date: 2015-09-09 17:37:49 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -186,8 +186,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_KILLFOCUS:
 	    break;
   case WM_SETFOCUS:
-	  if (ed_setfocus())  return 0;
-	  break;
+/* this causes an infinite loop 
+	  if (ed_setfocus())  
+		  return 0;
+*/	 
+	 break;
   case WM_SIZE:
 		if (wParam==SIZE_RESTORED || SIZE_MAXIMIZED)
 		{	if (LOWORD(lParam)<4*version_width) 

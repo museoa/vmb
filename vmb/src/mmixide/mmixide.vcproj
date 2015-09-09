@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -56,12 +56,14 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="VMB"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				UseUnicodeResponseFiles="false"
 				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -140,12 +142,14 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="VMB"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				UseUnicodeResponseFiles="false"
 				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
@@ -323,11 +327,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
