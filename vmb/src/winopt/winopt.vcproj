@@ -208,10 +208,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windebug.c"
-				>
-			</File>
-			<File
 				RelativePath=".\windialog.c"
 				>
 			</File>
