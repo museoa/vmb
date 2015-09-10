@@ -2,7 +2,9 @@
 #include <windows.h>
 #include "resource.h"
 #include "option.h"
+#ifdef VMB
 #include "vmb.h"
+#endif
 
 extern char *host;
 extern int port;
