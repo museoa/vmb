@@ -10,8 +10,9 @@
 #include "resource.h"
 #include "mmixrun.h"
 #include "uint64.h"
+#ifdef VMB
 #include "endian.h"
-
+#endif
 
 
 #define MAXMEM 5
