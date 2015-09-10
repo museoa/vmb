@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=6;
-char version[]="$Revision: 1.49 $ $Date: 2015-09-09 17:37:49 $";
+char version[]="$Revision: 1.50 $ $Date: 2015-09-10 13:54:18 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -549,6 +549,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
               link.pszMsgTitle =  NULL ;
               link.pszWindow =    NULL ;
               link.fIndexOnFail = TRUE ;
+			  HtmlHelp(hWnd,programhelpfile, HH_DISPLAY_TOPIC,(DWORD_PTR)NULL);
               hh = HtmlHelp(hWnd,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
 			}
 		  }
