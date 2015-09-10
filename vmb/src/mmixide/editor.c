@@ -538,7 +538,7 @@ void new_edit(void)
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
    ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
    ed_send(SCI_SETSCROLLWIDTH,80*fixed_char_width,0);
-   ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_JUMPS|CARET_EVEN,3);
+   ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_STRICT,5);
    set_text_style();
    /* configure margins and markers */
    /* line numbers */
@@ -809,8 +809,9 @@ void ed_mark_error(int file_no, int line_no)
 	ed_send(SCI_MARKERDELETE, previous_error_line_no-1, MMIX_ERROR_MARKER);
   if (line_no>=0) {
     ed_send(SCI_MARKERADD, line_no-1, MMIX_ERROR_MARKER);
-    ed_send(SCI_GOTOLINE,line_no-1,0); /* first line is 0 */
-  }
+    ed_send(SCI_ENSUREVISIBLEENFORCEPOLICY,line_no-1,0);  
+    /* ed_send(SCI_GOTOLINE,line_no-1,0);  not needed */
+ }
   previous_error_line_no=line_no;
 }
 static int previous_mmix_line_no = -1;
