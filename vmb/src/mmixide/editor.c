@@ -597,6 +597,13 @@ void new_edit(void)
    /* kommand keys for the edit windows*/
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_PLUS+(SCMOD_CTRL<<16),SCI_ZOOMIN);
    ed_send(SCI_ASSIGNCMDKEY,VK_OEM_MINUS+(SCMOD_CTRL<<16),SCI_ZOOMOUT);
+   ed_send(SCI_ASSIGNCMDKEY,'/'+(SCMOD_CTRL<<16),SCI_SETZOOM);
+  /* modify delete line keys */
+   ed_send(SCI_ASSIGNCMDKEY,SCK_DELETE+(SCMOD_CTRL<<16),SCI_DELLINERIGHT);
+   ed_send(SCI_ASSIGNCMDKEY,SCK_DELETE+(SCMOD_SHIFT<<16),SCI_LINEDELETE);
+   ed_send(SCI_ASSIGNCMDKEY,SCK_BACK+(SCMOD_CTRL<<16),SCI_DELLINELEFT);
+
+
    /* set standatd encoding */
    SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_ENCODING_ASCII,(LPARAM)0);
 }

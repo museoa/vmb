@@ -364,6 +364,202 @@
 				<param name="Name" value="Closing one of the adjacent window panes">
 				<param name="Local" value="help/splitter/index.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Breakpoint Window">
+				<param name="Local" value="help/debugger/breaks.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Symbol Table Window">
+				<param name="Local" value="help/debugger/symbols.html">
+				</OBJECT>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Options">
+			<param name="Local" value="help/options/index.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Find and Replace">
+			<param name="Local" value="help/options/find.html">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Find">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Replace">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Match case">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Match whole word">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Use \t, \n, \r, \xFF">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Wrap around">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Editor Key Bindings">
+				<param name="Local" value="help/editor/keys.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Scroll and Position">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Cut, Copy, Paste, Delete, and Move">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Selections">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Do and Undo">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Zoom In and Out">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Symbol Table Options">
+				<param name="Local" value="help/options/symbols.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Show Locals">
+					<param name="Local" value="help/options/symbols.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Show Registers">
+					<param name="Local" value="help/options/symbols.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Show small values">
+					<param name="Local" value="help/options/symbols.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Editor Options">
+				<param name="Local" value="help/options/editor.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Allways save changed files">
+					<param name="Local" value="help/options/editor.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Show line numbers">
+					<param name="Local" value="help/options/editor.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Show profile">
+					<param name="Local" value="help/options/editor.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Tabulator">
+					<param name="Local" value="help/options/editor.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Assembler Options">
+				<param name="Local" value="help/options/assembler.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Buffer size">
+					<param name="Local" value="help/options/assembler.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Expanden address calculations">
+					<param name="Local" value="help/options/assembler.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Create listing file">
+					<param name="Local" value="help/options/assembler.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Auto assemble">
+					<param name="Local" value="help/options/assembler.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Debugger Options">
+				<param name="Local" value="help/options/debugger.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Inspecting Registers and Memory">
+					<param name="Local" value="help/options/debugger.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Choosing Special Registers for display">
+					<param name="Local" value="help/options/debugger.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Customizing Tracing">
+					<param name="Local" value="help/options/debugger.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Run Options">
+				<param name="Local" value="help/options/run.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Command line">
+					<param name="Local" value="help/options/run.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Fake StdIn">
+					<param name="Local" value="help/options/run.html">
+					</OBJECT>
+			</UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="The MMIX Sources Options">
+				<param name="Local" value="help/options/sources.html">
+				</OBJECT>
+			<UL>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Load single file">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Add file">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="File Tabs">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Full File Name">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Assemble and read symbol table">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Execute command">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Load mmo file">
+					<param name="Local" value="help/options/sources.html">
+					</OBJECT>
+			</UL>
 		</UL>
 	</UL>
 </UL>
