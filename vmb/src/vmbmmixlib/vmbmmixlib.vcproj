@@ -155,19 +155,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\buffers.c"
-				>
-			</File>
-			<File
-				RelativePath=".\gdb.c"
-				>
-			</File>
-			<File
 				RelativePath=".\mmix-bus.c"
-				>
-			</File>
-			<File
-				RelativePath=".\remote-utils.c"
 				>
 			</File>
 		</Filter>
@@ -182,14 +170,6 @@
 			</File>
 			<File
 				RelativePath=".\address.h"
-				>
-			</File>
-			<File
-				RelativePath=".\buffers.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gdb.h"
 				>
 			</File>
 			<File
