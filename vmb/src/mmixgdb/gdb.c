@@ -148,10 +148,6 @@ static void TERM_msg(char *buffer)
 { char *p;
   unsigned char n;
 
-  if (gdb_signal<0)
-  { EXIT_msg(buffer);
-    return;
-  }
   buffer[0]='T'; /* terminated */
   n=gdb_signal;
   p=buffer+1; 
@@ -412,9 +408,24 @@ static void readMemory(char *buffer)
 {     /* format maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToRead = 0;
 	unsigned char tmpBuffer[PBUFSIZ/2];
+	unsigned char *mem=tmpBuffer;
 	octa srcAddr;
 
 	hextoint(hextoocta(buffer+1, &srcAddr,1)+1,&bytesToRead);
+ 
+	if ((srcAddr.h==0xFFFFFFFF ||
+	     (srcAddr.h&0x9FFFFFFF)==0x1FFFFFFF) && srcAddr.l>=0xFFFFE00 ) /* gdb goes over segment boundaries */
+	{  int d = -(int)srcAddr.l;
+	   if (bytesToRead<d) d = bytesToRead; 
+	   memset(mem,0,d);
+	   chartohex(mem,buffer,d);
+	   bytesToRead=bytesToRead-d;
+	   if (bytesToRead<=0) return;
+	   srcAddr.l=0;
+	   srcAddr.h=srcAddr.h+1;
+	   mem=mem+d;
+	   buffer=buffer+2*d;
+	}
 
         /* bytes in the range rS <= srcAddr < rO
            are actually in the register Stack, but we pretend
@@ -428,25 +439,25 @@ static void readMemory(char *buffer)
 
             int i;
 	    for (i=-dreg; i< -ureg; i++)
-	    { inttochar(l[(O+i)&lring_mask].h, tmpBuffer+(dreg+i)*8);
-              inttochar(l[(O+i)&lring_mask].l, tmpBuffer+(dreg+i)*8+4);
+	    { inttochar(l[(O+i)&lring_mask].h, mem+(dreg+i)*8);
+              inttochar(l[(O+i)&lring_mask].l, mem+(dreg+i)*8+4);
             }
-            chartohex(tmpBuffer+(255*8-d)%8,buffer,bytesToRead);
+            chartohex(mem+(255*8-d)%8,buffer,bytesToRead);
 	  }
-        else if (ocmp(g[rO],srcAddr)<=0 || ocmp(incr(srcAddr,bytesToRead),g[rS])<0)
-          { mmgetchars(tmpBuffer, bytesToRead, srcAddr, -1);
-            chartohex(tmpBuffer,buffer,bytesToRead);
+      else if (ocmp(g[rO],srcAddr)<=0 || ocmp(incr(srcAddr,bytesToRead),g[rS])<0)
+      { mmgetchars(mem, bytesToRead, srcAddr, -1);
+            chartohex(mem,buffer,bytesToRead);
 	  }
         else if (ocmp(g[rS],srcAddr)<=0)
           { int d = ominus(g[rO],srcAddr).l;
 	    int dreg = (d+7)/8;
             int i;
-            mmgetchars(tmpBuffer, bytesToRead, srcAddr, -1);
+            mmgetchars(mem, bytesToRead, srcAddr, -1);
 	    for (i=-dreg; i< 0; i++)
-	    { inttochar(l[(O+i)&lring_mask].h, tmpBuffer+(dreg+i)*8);
-              inttochar(l[(O+i)&lring_mask].l, tmpBuffer+(dreg+i)*8+4);
+	    { inttochar(l[(O+i)&lring_mask].h, mem+(dreg+i)*8);
+              inttochar(l[(O+i)&lring_mask].l, mem+(dreg+i)*8+4);
             }
-            chartohex(tmpBuffer,buffer,bytesToRead);
+            chartohex(mem,buffer,bytesToRead);
 	  }
         else if (ocmp(incr(srcAddr,bytesToRead),g[rO])<0)
           { int d = ominus(g[rO],g[rS]).l;
@@ -454,23 +465,23 @@ static void readMemory(char *buffer)
             int u = ominus(g[rO],incr(srcAddr,bytesToRead)).l;
 	    int ureg = u/8;
             int i;
-            mmgetchars(tmpBuffer, bytesToRead, srcAddr, -1);
+            mmgetchars(mem, bytesToRead, srcAddr, -1);
 	    for (i=-dreg; i< -ureg; i++)
-	    { inttochar(l[(O+i)&lring_mask].h, tmpBuffer+(dreg+i)*8);
-              inttochar(l[(O+i)&lring_mask].l, tmpBuffer+(dreg+i)*8+4);
+	    { inttochar(l[(O+i)&lring_mask].h, mem+(dreg+i)*8);
+              inttochar(l[(O+i)&lring_mask].l, mem+(dreg+i)*8+4);
             }
-            chartohex(tmpBuffer,buffer,bytesToRead);
+            chartohex(mem,buffer,bytesToRead);
 	  }
         else
           { int d = ominus(g[rO],g[rS]).l;
 	    int dreg = (d+7)/8;
             int i;
-            mmgetchars(tmpBuffer, bytesToRead, srcAddr, -1);
+            mmgetchars(mem, bytesToRead, srcAddr, -1);
 	    for (i=-dreg; i< 0; i++)
-	    { inttochar(l[(O+i)&lring_mask].h, tmpBuffer+(dreg+i)*8);
-              inttochar(l[(O+i)&lring_mask].l, tmpBuffer+(dreg+i)*8+4);
+	    { inttochar(l[(O+i)&lring_mask].h, mem+(dreg+i)*8);
+              inttochar(l[(O+i)&lring_mask].l, mem+(dreg+i)*8+4);
             }
-            chartohex(tmpBuffer,buffer,bytesToRead);
+            chartohex(mem,buffer,bytesToRead);
 	  }
 }
 
@@ -479,14 +490,28 @@ static void writeMemory(char *buffer)
 {   /* format Maaaaa,nn  address aaaaa, bytes to read nnn */
 	int bytesToWrite = 0;
 	unsigned char tmpBuffer[PBUFSIZ/2];
+	unsigned char *mem=tmpBuffer;
 	octa dstAddr;
 	char *buffPtr = buffer;
 
-	buffPtr=hextoint(hextoocta(buffer+1, &dstAddr,1)+1,&bytesToWrite);
-        hextochar(buffPtr+1,tmpBuffer,bytesToWrite);
+		buffPtr=hextoint(hextoocta(buffer+1, &dstAddr,1)+1,&bytesToWrite);
+        hextochar(buffPtr+1,mem,bytesToWrite);
 
-        if ((dstAddr.h&0xe0000000) == 0) write_to_text = 1;
-	mmputchars(tmpBuffer, bytesToWrite, dstAddr);
+#if 0
+/* I assume we do not need this */	 
+	if ((dstAddr.h==0xFFFFFFFF ||
+	     (dstAddr.h&0x9FFFFFFF)==0x1FFFFFFF) && dstAddr.l>=0xFFFFE00 ) /* gdb goes over segment boundaries */
+	{  int d = -(int)dstAddr.l
+	   bytesToWrite=bytesToWrite-d;
+	   dstAddr.l=0;
+	   dstAddr.h=dstAddr.h+1;
+	   mem=mem+d;
+	}
+#endif
+	if (bytesToWrite>0)
+    { if ((dstAddr.h&0xe0000000) == 0 || (dstAddr.h&0x80000000)) write_to_text = 1;
+	  mmputchars(mem, bytesToWrite, dstAddr);
+	}
 	OK_msg(buffer);
 }
 
@@ -528,8 +553,22 @@ static void write_binary_memory(char *buffer)
 
 	buffPtr=hextoint(hextoocta(buffer+1, &dstAddr,1)+1,&bytesToWrite);
         remove_escape((unsigned char *)buffPtr+1, bytesToWrite);
-        if ((dstAddr.h&0xe0000000) == 0) write_to_text = 1;
-	mmputchars((unsigned char *)buffPtr+1, bytesToWrite, dstAddr);
+#if 0
+/* I assume we do not need this */	 
+	if ((dstAddr.h==0xFFFFFFFF ||
+	     (dstAddr.h&0x9FFFFFFF)==0x1FFFFFFF) && dstAddr.l>=0xFFFFE00 ) /* gdb goes over segment boundaries */
+	{  int d = -(int)dstAddr.l
+	   bytesToWrite=bytesToWrite-d;
+	   dstAddr.l=0;
+	   dstAddr.h=dstAddr.h+1;
+	   buffPtr=buffPtr+d;
+	}
+#endif
+	
+	if (bytesToWrite>0)
+    { if ((dstAddr.h&0xe0000000) == 0) write_to_text = 1;
+	  mmputchars((unsigned char *)buffPtr+1, bytesToWrite, dstAddr);
+	}
 	OK_msg(buffer);
 }
 
@@ -725,7 +764,21 @@ int interact_with_gdb(void)
   char *buffer;
   break_level=0;
   buffer = get_free_buffer();
-  TERM_msg(buffer);
+  if (breakpoint==-1)
+    EXIT_msg(buffer);
+  else
+  { 
+     if (breakpoint & (exec_bit|read_bit|write_bit)) gdb_signal=TARGET_SIGNAL_TRAP; 
+	 else if (g[rQ].l & (PF_BIT|RE_BIT)) gdb_signal= TARGET_SIGNAL_PWR;
+	 else if (g[rQ].l & (MP_BIT|NM_BIT)) gdb_signal= TARGET_SIGNAL_BUS;
+	 else if (g[rQ].l & (CP_BIT|PT_BIT)) gdb_signal= TARGET_SIGNAL_SEGV;
+	 else if (g[rQ].l & (IN_BIT)) gdb_signal= TARGET_SIGNAL_VTALRM;
+	 else if (g[rQ].h & (P_BIT|S_BIT|B_BIT|K_BIT)) gdb_signal= TARGET_SIGNAL_ILL;
+	 else if (g[rQ].h & (N_BIT|PX_BIT|PW_BIT|PR_BIT)) gdb_signal= TARGET_SIGNAL_SEGV;
+	 else if ((breakpoint&0xFF)==0) gdb_signal=breakpoint>>8;
+	 else gdb_signal=TARGET_SIGNAL_TRAP; 
+     TERM_msg(buffer);
+  }
   put_cmd_buffer(buffer);
   save_rQ = g[rQ];   /* debuger actions by default do not change rQ */
   save_newrQ = new_Q;

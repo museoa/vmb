@@ -37,8 +37,7 @@ int main(int argc,char *argv[])
 
 	init_mmix_bus(host,port,"MMIX CPU");
 	if(interacting&&gdb_init(gdbport))
-	{ breakpoint= true;
-	  gdb_signal= TARGET_SIGNAL_TRAP;
+	{ breakpoint|= trace_bit;
 	}
 	if (!vmb.connected) {fprintf(stderr,"Not connected\n"); return 0;}
 	if (vmb.power) vmb_raise_reset(&vmb);
@@ -65,13 +64,13 @@ boot:
   
 	while(vmb.connected){
 		if(interrupt&&!breakpoint)
-		{ breakpoint= interacting= true;
+		{ breakpoint= TARGET_SIGNAL_INT<<8;
+		  interacting= true;
 		  interrupt= false;
-		  gdb_signal= TARGET_SIGNAL_INT;
 		}
 		else if(!(inst_ptr.h&sign_bit)||show_operating_system||
 			(inst_ptr.h==0x80000000&&inst_ptr.l==0))
-		{ breakpoint= false;
+		{ breakpoint= 0;
 		  if(interacting)
 		  { if(!interact_with_gdb())
 		    { interacting= false;
@@ -93,19 +92,17 @@ boot:
 		if(interact_after_break)
 		  interacting= true,interact_after_break= false;
 		if(stepping)
-		{ breakpoint= true;
-		  gdb_signal= TARGET_SIGNAL_TRAP;
+		{ breakpoint= trace_bit;
 		  stepping= false;
 		}
 		if(!vmb.power || vmb.reset_flag || g[rQ].l&g[rK].l&RE_BIT)
-		{ breakpoint= true;
-		  gdb_signal= TARGET_SIGNAL_PWR;
+		{ breakpoint= (breakpoint&0xFF) | (TARGET_SIGNAL_PWR<<8);
 		  goto boot;
 		}
 	}
 end_simulation:
 	if(profiling) mmix_profile();
-	if(interacting){gdb_signal= -1;interact_with_gdb();}
+	if(interacting){breakpoint= -1;interact_with_gdb();}
 	if(interacting||profiling||showing_stats)show_stats(true);
 	mmix_finalize();
 	return g[255].l;
