@@ -14,82 +14,121 @@
 #include "mmixrun.h"
 #include "breakpoints.h"
 
-
+/* the breakpoint window */
 static HWND hBreakList=NULL;
+/* functions to update the breakpoint window */
 static void add_breakpoint(int i);
 static void del_breakpoint(int i);
+static void change_breakpoint(int i);
 
 /* The datastructure representing all breakpoints */
 #define MAX_BREAKPOINTS 256
 static
 struct {
-	int line_no;
 	int file_no;
+	int line_no;
+	octa loc, loc_last; /* loc <= location <= loc_last */
 	unsigned char bkpt;
-	unsigned char active;
-	octa loc;
+	unsigned char mark; /* used for mark and sweep */
 } breakpoints[MAX_BREAKPOINTS];
-static int blimit = 0, bcount=0;
 
-/* there are two kinds of breakpoinst with a file!=-1 and witha loc!=-1 */
+/* currently we do not support loc ranges that cross 4GByte boundaries
+   so loc.h == loc_last.h for all breakpoints 
+   (actualy, we dont maintain loc_last.h)
+*/
+
+/* there are two kinds of breakpoinst with a file!=-1 and with a loc!=-1 */
 #define loc_unknown(i) (breakpoints[i].loc.h==-1 && breakpoints[i].loc.l==-1)
 #define file_unknown(i) (breakpoints[i].file_no<0)
+/* the other breakpoints are unused */
 #define unused(i) (loc_unknown(i)&& file_unknown(i))
 
-/* constructing a new breakpoint */
-static int new_breakpoint(void)
-{ int n;
-  if (bcount>=MAX_BREAKPOINTS)
-  { win32_error(__LINE__,"Too many breakpoints");
-    n=bcount-1; /* reuse last breakpoint */
+/* all used breakpoints are between 0 and blimit-1,
+   the number of used breakpoints id bcount. */
+static int blimit = 0, bcount=0;
+
+
+/* there is are important invariants:
+   - for each file and line there is at most one breakpoint entry in the list.
+     (entries may have overlapping location ranges, but then all but one
+	  must not have a file_no).
+
+   We ensure this by never changing the file,line entry and we call new_breakpoint
+   and we call new_breakpoint only if the file, line entry does not exist
+   or with an unkonwn file.
+
+   - if the mem_tetra at loc has a nonzero bkpt field,
+     then there must be an entry in the breakpoints list with that (valid) loc
+	 within its range.
+
+   We ensure this in three ways:
+   1) we have one function that sets the bkpt field
+      in a mem_tetra using the loc range from the breakpoints list.
+	  no other function sets the bkpt field to anything but zero.
+   2) before we remove an entry in the breakpoints list,
+      we set the bkpt field in the mem_tetra to zero for all locs in its range. 
+   3) if we never shrink the loc range in the breakpoint list.
+*/
+
+static void mem_set_breakpoint(int i)
+{ if (!loc_unknown(i))
+  { octa loc;
+    for (loc=breakpoints[i].loc;loc.l<=breakpoints[i].loc_last.l;loc.l+=4)
+      loc2bkpt(loc)=breakpoints[i].bkpt;
   }
-  else
-  { n=blimit;
-    if (blimit==bcount) 
-	  blimit++;
-	else
-	  do n--; while(!unused(n));
-	bcount++;
+}
+
+static void zero_breakpoint(int i)
+{  if (!loc_unknown(i))
+  { octa loc;
+    for (loc=breakpoints[i].loc;loc.l<=breakpoints[i].loc_last.l;loc.l+=4)
+      loc2bkpt(loc)=0;
   }
-  breakpoints[n].line_no=0;
-  breakpoints[n].file_no=-1; /* no file */
-  breakpoints[n].bkpt=0;
-  breakpoints[n].active=1;
-  breakpoints[n].loc.h = breakpoints[n].loc.l = -1; /* loc unknown */
-  return n;
 }
 
 /* destructing an old breakpoint */
 static void remove_breakpoint(int i)
-{ if (i<0 ||i>=blimit) return;
+{ 
+  if (i<0 ||i>=MAX_BREAKPOINTS) return;
+  zero_breakpoint(i);
   del_breakpoint(i);
   if (blimit==i+1) 
-    blimit--;
+    blimit=i;
   else
-  { breakpoints[i].file_no=-1;
-    breakpoints[i].loc.h = breakpoints[i].loc.l = -1; /* loc unknown */
+  { breakpoints[i].file_no=-1; /* file unknown */
+    breakpoints[i].loc=neg_one; /* loc unknown */
   }
   bcount--;
 }
 
-int find_file_breakpoint(int file_no, int line_no)
-{ int i;
-  for (i=0; i<blimit;i++)
-    if ( breakpoints[i].file_no==file_no && 
-		 breakpoints[i].line_no==line_no)
-	 return i;
-  return -1;
+/* constructing a new breakpoint */
+static int new_breakpoint(int file_no, int line_no,	octa loc, unsigned char bkpt)
+{ int n;
+  if (bcount>=MAX_BREAKPOINTS)
+  { win32_error(__LINE__,"Too many breakpoints");
+	remove_breakpoint(bcount-1);/* reuse last breakpoint */
+  }
+  n=blimit;
+  if (blimit==bcount) 
+	  blimit++;
+  else
+	  do n--; while(!unused(n));
+  breakpoints[n].file_no=file_no;
+  breakpoints[n].line_no=line_no;
+  breakpoints[n].loc=loc;
+  breakpoints[n].bkpt=bkpt;
+  breakpoints[n].mark=0;
+  if (!unused(n))
+  {	bcount++;
+    add_breakpoint(n);
+  }
+  return n;
 }
 
+#if 0
+/* probably not used */
 
-int find_loc_breakpoint(octa loc)
-{ int i;
-  for (i=0; i<blimit;i++)
-    if ( breakpoints[i].loc.l==loc.l && 
-		 breakpoints[i].loc.h==loc.h)
-	 return i;
-  return -1;
-}
+
 /* Interfacing the breakpoints with the memory representation */
 
 static
@@ -106,11 +145,7 @@ void sync_loc(octa loc, mem_tetra *dat)
   }    
 }
 
-void mem_sync_breakpoints(void)
-/* syncronizing all breakpoints with the loaded memory */
-{  if (!mmix_active()) return;
-   mem_iterator(sync_loc);
-}
+
 
 static int break_bits=0, break_file_no=-1, break_line_no=0;
 
@@ -124,7 +159,7 @@ static void file_break(octa loc, mem_tetra *dat)
 	dat->bkpt = break_bits;
 }
 
-void mem_file_line_breakpoints(int file_no, int line_no, int bits)
+static void mem_file_line_breakpoints(int file_no, int line_no, int bits)
 /* set breakpoints for whole line */
 { if (!mmix_active()) return;
   break_bits=bits;
@@ -133,7 +168,7 @@ void mem_file_line_breakpoints(int file_no, int line_no, int bits)
   mem_iterator(file_line_break);
 }	
 
-void mem_file_breakpoints(int file_no, int bits)
+static void mem_file_breakpoints(int file_no, int bits)
 /* set breakpoint for whole file */
 { if (!mmix_active()) return;
   break_bits=bits;
@@ -141,18 +176,92 @@ void mem_file_breakpoints(int file_no, int bits)
   mem_iterator(file_break);
 }	
 
+#endif
 
-void mem_set_breakpoint(int i)
-{ if(mmix_active())
-  { if (!loc_unknown(i))
-       loc2bkpt(breakpoints[i].loc)=breakpoints[i].bkpt;
-    else if (!file_unknown(i))
-		mem_file_line_breakpoints(breakpoints[i].file_no, breakpoints[i].line_no, breakpoints[i].bkpt);
-  }
+void add_line_loc(int file_no,int line_no, octa loc)
+/* update breakpoints with locations and
+   set mem_tetras with bkpt's
+*/
+{ int i;
+
+  /* we iterate over the breakpoints, this could be done more efficiently
+     by sorting them by file and line */
+  for (i=0; i<blimit;i++)
+    if (breakpoints[i].file_no==file_no && 
+		breakpoints[i].line_no==line_no)
+    { if (loc_unknown(i))
+	  { breakpoints[i].loc=loc;
+        breakpoints[i].loc_last.l=loc.l;
+      }
+      else if (breakpoints[i].loc_last.l < loc.l && 
+               breakpoints[i].loc.h == loc.h) 
+        breakpoints[i].loc_last.l=loc.l;
+	  else return;
+      loc2bkpt(loc)=breakpoints[i].bkpt;
+	  return;
+    }
 }
 
 
-/* interfacing the breakpoint structure with the editor */
+/* auxiliar variable and function used in set_loc_breakpoint */
+static int  the_i;
+static void file_line_loc(octa loc, mem_tetra *dat)
+{ if (dat->line_no==breakpoints[the_i].line_no &&
+	  dat->file_no==breakpoints[the_i].file_no) 
+  { if (loc_unknown(the_i))
+    { breakpoints[the_i].loc=loc;
+      breakpoints[the_i].loc_last.l=loc.l;
+    }
+    else if (breakpoints[the_i].loc_last.l < loc.l && 
+             breakpoints[the_i].loc.h == loc.h)
+      breakpoints[the_i].loc_last.l=loc.l;
+  }
+}
+
+int set_loc_breakpoint(int i)
+/* iterate over the memory and set the location for
+   breakpoint i based on its file and line.
+   return 1 if successufull, 0 if not.
+   This can be an expensive function use only when necessary 
+*/
+{   if (!loc_unknown(i)) return 1;
+    if (file_unknown(i)) return 0;
+    the_i=i;
+    mem_iterator(file_line_loc);
+	return !loc_unknown(i);
+}
+
+/* interfacing the breakpoint list with the editor and
+   functions to call if a break marker in the editor changes */
+
+/* removing all loc information refering to a file */
+void remove_loc_breakpoints(int file_no)
+{ int i=0;
+  if (file_no<0) return;
+  for (i=0;i<blimit;i++)
+	if (breakpoints[i].file_no==file_no)
+	{ zero_breakpoint(i);
+	  breakpoints[i].loc=neg_one;
+	}
+}
+
+
+void mark_all_file_breakpoints(int file_no)
+{ int i=0;
+  if (file_no<0) return;
+  for (i=0;i<blimit;i++)
+	if (breakpoints[i].file_no==file_no)
+	  breakpoints[i].mark = 1;
+}
+
+void sweep_all_file_breakpoints(int file_no)
+{ int i=0;
+  if (file_no<0) return;
+  for (i=0;i<blimit;i++)
+	if (breakpoints[i].file_no==file_no && breakpoints[i].mark)
+	  remove_breakpoint(i);
+}
+
 
 /* removing all breakpoints refering to a file */
 void remove_file_breakpoints(int file_no)
@@ -161,30 +270,29 @@ void remove_file_breakpoints(int file_no)
   for (i=0;i<blimit;i++)
 	if (breakpoints[i].file_no==file_no)
 	  remove_breakpoint(i);
-  mem_file_breakpoints(file_no,0); /* delete them from memory */
 }
 
 
-/* setting a breakpoint in a file*/
-int set_file_breakpoint(int file_no, int line_no, int mask)
-/* return breakpoint set */
+/* setting a breakpoint in a file
+   call with bits, 0 to set bits
+   call with bits,bits, to selectively add bits 
+*/
+void set_file_breakpoint(int file_no, int line_no,  int bits, int mask)
 { int i;
-  i =find_file_breakpoint(file_no,line_no);
-  if (i>=0)
-  {  breakpoints[i].bkpt|=mask;
-     InvalidateRect(hBreakList,NULL,FALSE);
-  }
-  else
-  { i = new_breakpoint();
-    breakpoints[i].file_no=file_no;
-    breakpoints[i].line_no=line_no;
-    breakpoints[i].bkpt=mask;
-    breakpoints[i].active=1;
-    breakpoints[i].loc.h=breakpoints[i].loc.l=-1; /* unknown */
-    add_breakpoint(i);
-  }
-  mem_set_breakpoint(i);
-  return i;
+  for (i=0; i<blimit;i++)
+    if ( breakpoints[i].file_no==file_no && 
+		 breakpoints[i].line_no==line_no)
+    {  breakpoints[i].bkpt=(breakpoints[i].bkpt & ~mask)|bits;
+       breakpoints[i].mark=0; /* prepare for sweep */
+       change_breakpoint(i);
+	   if (mmix_active())
+         mem_set_breakpoint(i); /* for an existing breakpoint, we assume known loc */ 
+	   return;
+    }
+  /* no breakpoint for this file and line exists. */
+  i = new_breakpoint(file_no, line_no,neg_one,bits);
+  if (mmix_active() && set_loc_breakpoint(i))
+    mem_set_breakpoint(i);
 }	
 
 /* deleting a breakpoint in a file */
@@ -194,13 +302,15 @@ void del_file_breakpoint(int file_no, int line_no, int mask)
     if ( breakpoints[i].file_no==file_no && 
 		 breakpoints[i].line_no==line_no)
 	{ breakpoints[i].bkpt&=~mask;
-      mem_set_breakpoint(i);
       if (breakpoints[i].bkpt==0) 
 	  { remove_breakpoint(i);
 	  }
-	  else
-        InvalidateRect(hBreakList,NULL,FALSE);
-      return;
+	  else 
+	  { if (mmix_active())
+          mem_set_breakpoint(i); /* for an existing breakpoint, we assume known loc */
+        change_breakpoint(i);
+	  }
+	  return;
     }
 }
 
@@ -208,7 +318,7 @@ void del_file_breakpoint(int file_no, int line_no, int mask)
 int break_at_symbol(int file_no,char *symbol)
 { sym_node *sym=find_symbol(symbol,file_no);
   if (sym!=NULL&& sym->link==DEFINED)
-  { int i=set_file_breakpoint(sym->file_no,sym->line_no,exec_bit);
+  { set_file_breakpoint(sym->file_no,sym->line_no,exec_bit,exec_bit);
 	ed_set_break(sym->file_no,sym->line_no,exec_bit);
 	return 1;
   }
@@ -217,39 +327,70 @@ int break_at_symbol(int file_no,char *symbol)
 }
 
 
-
-
-/* Interfacing the breakpoints with the GUI */
+/* auxiliar function for update_breakpoints */
 static void break_main(int file_no)
 { if (file2loading(file_no))
 	break_at_symbol(file_no,":Main");
 }
 
-/* call after loading the object files in the debugger */
+/* call before running/debugging  */
 void update_breakpoints(void)
 { if (break_at_Main) 
 	  for_all_files(break_main);
-  ed_refresh_breaks(); /* syncronize editor with breakpoints */
-  mem_sync_breakpoints(); /* synchronize breakpoints with mem */
+  ed_refresh_breaks(); /* syncronize Markers in editor with breakpoints */
 }
 
-#define MAX_BREAK_NAME 32
+void sync_breakpoints(void)
+/* syncronizing all breakpoints with the loaded memory */
+{  int i;
+   for (i=0;i<blimit;i++)
+	   mem_set_breakpoint(i);
+}
+
+
+/* function to determine the name for a breakpoint as displayed in the breakpoint window */
+
+#define MAX_BREAK_NAME 64
 
 char *break_name(int i)
 { static char name[MAX_BREAK_NAME];
+  char *str=name;
+  int n =MAX_BREAK_NAME-1;
+  int k;
+  if (!file_unknown(i))
+  { k = sprintf_s(str,n,"%s(%d)",unique_name(breakpoints[i].file_no),breakpoints[i].line_no);
+    str +=k;
+	n -=k;
+  }
   if (!loc_unknown(i))
-    sprintf_s(name,MAX_BREAK_NAME,"#%04X %04X %04X %04X",
-	          (breakpoints[i].loc.h>>16)&0xFFFF, 
-	          breakpoints[i].loc.h&0xFFFF, 
-			  (breakpoints[i].loc.l>>16)&0xFFFF, 
-			  breakpoints[i].loc.l&0xFFFF);
-  else if (!file_unknown(i))
-	  sprintf_s(name,32,"%s:%3d",unique_name(breakpoints[i].file_no),breakpoints[i].line_no);
-  else
+  { unsigned int hhb, hlb, mh, ml,l;
+    if (n<MAX_BREAK_NAME-1)
+	{ k=sprintf_s(str,n,": "); str+=k; n -=k; }
+    hhb = (breakpoints[i].loc.h>>24)&0xFF;
+    hlb = (breakpoints[i].loc.h>>16)&0xFF;
+    mh  =   breakpoints[i].loc.h&0xFFFF;
+    ml  =   (breakpoints[i].loc.l>>16)&0xFFFF;
+    l   =   breakpoints[i].loc.l&0xFFFF;
+
+	k=sprintf_s(str,n,"#%02X",hhb); str+=k; n -=k; 
+	if (hlb)
+	{ k=sprintf_s(str,n,"%02X",hhb); str+=k; n -=k; }
+	if (mh)
+	{ k=sprintf_s(str,n,"%04X",mh); str+=k; n -=k; }
+	if (ml)
+	{ k=sprintf_s(str,n,"%04X",ml); str+=k; n -=k; }
+    if (!(hlb&&mh&&ml)) 
+	{ k=sprintf_s(str,n,"..."); str+=k; n -=k; }
+	k=sprintf_s(str,n,"%04X",l); str+=k; n -=k;
+	if (breakpoints[i].loc.l<breakpoints[i].loc_last.l)
+	{ k=sprintf_s(str,n,"->...%04X",breakpoints[i].loc_last.l); str+=k; n -=k; }
+  } 
+  if (n==MAX_BREAK_NAME-1)
 	  return "ERROR";
   return name;
 }
 
+/* functions to update the breakpoint window */
 
 static void add_breakpoint(int i)
 { LRESULT item;
@@ -266,6 +407,11 @@ static void del_breakpoint(int i)
   if(item!=LB_ERR) 
     SendMessage(hBreakList,LB_DELETESTRING,item,0);
 }
+
+static void change_breakpoint(int i)
+{  if (hBreakList==NULL) return;
+     InvalidateRect(hBreakList,NULL,FALSE);
+}
   
 static POINT list={0,0}; /* top left coordinates of list box */
 static void resize(HWND hDlg, int w, int h)
@@ -273,6 +419,18 @@ static void resize(HWND hDlg, int w, int h)
   MoveWindow(hBreakList,list.x,list.y,w-2*list.x,h-list.y-list.x,TRUE);
 }
 
+static int find_loc_breakpoint(octa loc)
+/* find a breakpoint with the given location as its range */
+{ int i;
+  for (i=0; i<blimit;i++)
+    if (breakpoints[i].loc.h==loc.h &&
+		breakpoints[i].loc.l==loc.l && breakpoints[i].loc_last.l==loc.l  
+		)
+	 return i;
+  return -1;
+}
+
+/* the window procedure for the breakpoints window */
 
 INT_PTR CALLBACK    
 BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -281,18 +439,6 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
   switch ( message )
   { case WM_INITDIALOG:
-      { RECT r,d;
-		int i;
-		hBreakList=GetDlgItem(hDlg,IDC_LIST_BREAKPOINTS);
-	    GetWindowRect(hBreakList,&d);
-		list.x=d.left; list.y=d.top;
-		ScreenToClient(hDlg,&list);
-	  	GetWindowRect(hDlg,&r);
-	    min_w = r.right-r.left;
-	    min_h = r.bottom-r.top;
-		resize(hDlg,min_w,min_h);
-		for (i=0; i<blimit;i++) add_breakpoint(i);
-      }
 	    hBreakX = LoadImage(hInst, MAKEINTRESOURCE(IDI_BREAKX),IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	    hBreakR = LoadImage(hInst, MAKEINTRESOURCE(IDI_BREAKR),IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	    hBreakW = LoadImage(hInst, MAKEINTRESOURCE(IDI_BREAKW),IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
@@ -301,7 +447,19 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         SendDlgItemMessage(hDlg,IDC_READ,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hBreakR);
         SendDlgItemMessage(hDlg,IDC_WRITE,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hBreakW);
         SendDlgItemMessage(hDlg,IDC_TRACE,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hBreakT);
-
+      { RECT r,d;
+		hBreakList=GetDlgItem(hDlg,IDC_LIST_BREAKPOINTS);
+	    GetWindowRect(hBreakList,&d);
+		list.x=d.left; list.y=d.top;
+		ScreenToClient(hDlg,&list);
+	  	GetWindowRect(hDlg,&r);
+	    min_w = r.right-r.left;
+	    min_h = r.bottom-r.top;
+	  }
+	    resize(hDlg,min_w,min_h);
+	  { int i;
+        for (i=0; i<blimit;i++) add_breakpoint(i);
+	  }
       return TRUE;
   case WM_CLOSE:
       hBreakpoints=NULL;
@@ -328,12 +486,15 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		loc.l=(tetra)(u&0xFFFFFFFF);
         i= find_loc_breakpoint(loc);
 		if (i<0)
-		{ i = new_breakpoint();
-		  breakpoints[i].loc=loc;
-		  add_breakpoint(i);
+		  i = new_breakpoint(-1,0,loc,exec_bit);
+		else
+		{ breakpoints[i].bkpt|=exec_bit;
+		  if (!file_unknown(i))
+		    ed_set_break(breakpoints[i].file_no,breakpoints[i].line_no,breakpoints[i].bkpt);
+		  change_breakpoint(i);
 		}
-		breakpoints[i].bkpt|=exec_bit;
-        mem_set_breakpoint(i);
+		if(mmix_active())
+          mem_set_breakpoint(i);
         return TRUE;
 	  }
 	  else if (wparam==IDC_REMOVE)
@@ -343,8 +504,6 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		i = (int)SendMessage(hBreakList,LB_GETITEMDATA,item,0);
 		if (!file_unknown(i))
 		  ed_set_break(breakpoints[i].file_no,breakpoints[i].line_no,0);
-		breakpoints[i].bkpt=0;
-        mem_set_breakpoint(i);
 		remove_breakpoint(i);
 	  }
 	  else if (wparam==IDC_EXEC||wparam==IDC_READ||wparam==IDC_WRITE||wparam==IDC_TRACE)
@@ -358,8 +517,9 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		else if (wparam==IDC_TRACE)breakpoints[i].bkpt^=trace_bit; 
 	    if (!file_unknown(i))
 			ed_set_break(breakpoints[i].file_no,breakpoints[i].line_no,breakpoints[i].bkpt);
-        mem_set_breakpoint(i);
-        InvalidateRect(hBreakList,NULL,FALSE);
+        if(mmix_active())
+			mem_set_breakpoint(i);
+		change_breakpoint(i);
 	  }
 	  else if (LOWORD(wparam)==IDC_LIST_BREAKPOINTS)
 	  { if (HIWORD(wparam)== LBN_DBLCLK)
@@ -367,7 +527,7 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  item = (int)SendMessage(hBreakList,LB_GETCURSEL,0,0);
 	      if (item!=LB_ERR)
 		  i = (int)SendMessage(hBreakList,LB_GETITEMDATA,item,0);
-		  if (i>=0)
+		  if (i>=0 && !file_unknown(i))
 		  { set_edit_file(breakpoints[i].file_no);
 		    ed_show_line(breakpoints[i].line_no);
 		  }
@@ -397,15 +557,14 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		if (j<0 || j>=blimit) return (BOOL)+1;
         if (breakpoints[i].file_no < breakpoints[j].file_no) return (BOOL)-1;
         if (breakpoints[i].file_no > breakpoints[j].file_no) return (BOOL)+1;
-		if (breakpoints[i].file_no==-1)
-		{ if (breakpoints[i].loc.h < breakpoints[j].loc.h) return (BOOL)-1;
-		  if (breakpoints[i].loc.h > breakpoints[j].loc.h) return (BOOL)+1;
-		  if (breakpoints[i].loc.l < breakpoints[j].loc.l) return (BOOL)-1;
-		  if (breakpoints[i].loc.l > breakpoints[j].loc.l) return (BOOL)+1;
-		  return (BOOL)0;
+		if (breakpoints[i].file_no!=-1)
+		{ if (breakpoints[i].line_no < breakpoints[j].line_no) return (BOOL)-1;
+		  if (breakpoints[i].line_no > breakpoints[j].line_no) return (BOOL)+1;
 		}
-		if (breakpoints[i].line_no < breakpoints[j].line_no) return (BOOL)-1;
-		if (breakpoints[i].line_no > breakpoints[j].line_no) return (BOOL)+1;
+		if (breakpoints[i].loc.h < breakpoints[j].loc.h) return (BOOL)-1;
+		if (breakpoints[i].loc.h > breakpoints[j].loc.h) return (BOOL)+1;
+		if (breakpoints[i].loc.l < breakpoints[j].loc.l) return (BOOL)-1;
+		if (breakpoints[i].loc.l > breakpoints[j].loc.l) return (BOOL)+1;
 		return (BOOL)0;
 	  }
    case WM_DRAWITEM: 
@@ -470,7 +629,7 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   return FALSE;
 }
 
-
+/* creating the breakpoints window */
  HWND hBreakpoints=NULL;
 
  void create_breakpoints(void)

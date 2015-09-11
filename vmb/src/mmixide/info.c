@@ -233,7 +233,7 @@ static void clear_symbols(int file_no)
 
 void clear_file_info(int file_no)
 /* remove all data about file */
-{   remove_file_breakpoints(file_no);
+{   remove_loc_breakpoints(file_no);
     clear_symbols(file_no);
 }
 
@@ -274,19 +274,6 @@ void for_all_files(void f(int i))
   for (file_no=0; file_no<next_file_no;file_no++)
   { if (inuse(file_no))
 		f(file_no);
-  }
-}
-
-
-void add_line_loc(int file_no, int line_no, octa loc)
-/* called from the assembler making relations between lines and locations */
-{ if (mmix_active()) 
-    return; /* there is an application running */
-  else
-  { mem_tetra *ll = mem_find(loc);
-    ll->file_no=file_no;
-    ll->line_no=line_no;
-    has_debug_info[file_no]=1;
   }
 }
 

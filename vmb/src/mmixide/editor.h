@@ -32,7 +32,7 @@ extern int ed_show_tab(int file_no);
 extern void ed_add_tab(int file_no);
 extern void ed_remove_tab(int file_no);
 
-extern void ed_toggle_break(int bits);
+extern void ed_toggle_break(int bit);
 extern void ed_set_break(int file_no, int line_no, unsigned char bits);
 extern char * ed_get_instruction(void);
 

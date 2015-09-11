@@ -322,7 +322,7 @@ boot:
 #endif
   mmix_boot(); 
   for_all_files(mmix_load);
-  PostMessage(hMainWnd,WM_MMIX_LOAD,0,0);
+  sync_breakpoints();
   mmix_commandline(argc, argv);
 #ifndef VMB
   goto interact;
@@ -340,7 +340,9 @@ interact:
 resume:
     mmix_perform_instruction(); 
 	mmix_trace();
+#ifdef VMB
 	mmix_dynamic_trap();
+#endif
     if (resuming)
 	{ if (op==RESUME)
 	    goto resume;

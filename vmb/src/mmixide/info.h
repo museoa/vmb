@@ -66,8 +66,6 @@ extern void for_all_loc(int file_no, int line_no, void f(octa loc));
 #define loc2file(loc) (mem_find(loc)->file_no)
 #define loc2line(loc) (mem_find(loc)->line_no)
 
-extern void add_line_loc(int file_no, int line_no, octa loc);
-/* associate this location with the given file and line */
 extern void for_all_files(void f(int i));
 /* set all file names in the listbox h */
 extern void update_symtab(void);

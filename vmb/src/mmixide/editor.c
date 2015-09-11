@@ -212,6 +212,7 @@ void ed_set_break(int file_no, int line_no, unsigned char bits)
 { if (file_no!=edit_file_no) set_edit_file(file_no);
   ed_send(SCI_MARKERDELETE,line_no-1,-1);
   ed_send(SCI_MARKERADDSET,line_no-1,bits); /* lines start with zero */
+  /* possibly stitch back to the old edit_file_no ? */
 }
 
 
@@ -237,23 +238,20 @@ int ed_save_all(int cancel)
 }
 
 
-static void ed_toggle_break_at(int position,int bits)
-{ int line = (int)ed_send(SCI_LINEFROMPOSITION,position,0);
+void ed_toggle_break(int bit)
+{ int position = (int)ed_send(SCI_GETCURRENTPOS,0,0);
+  int line = (int)ed_send(SCI_LINEFROMPOSITION,position,0);
   int markers = (int)ed_send(SCI_MARKERGET,line,0);
-  if (markers & bits)
+  if (markers & bit)
   { int i;
-	del_file_breakpoint(edit_file_no,line+1, bits);
+	del_file_breakpoint(edit_file_no,line+1, bit);
     for (i=0;i<4;i++)
-     if (bits&(1<<i)) ed_send(SCI_MARKERDELETE,line,i);
+     if (bit&(1<<i)) ed_send(SCI_MARKERDELETE,line,i);
   }
   else
-  { set_file_breakpoint(edit_file_no,line+1, bits);
-    ed_send(SCI_MARKERADDSET,line,bits);
+  { set_file_breakpoint(edit_file_no,line+1, bit,bit);
+    ed_send(SCI_MARKERADDSET,line,bit);
   }
-}
-
-void ed_toggle_break(int bits)
-{ ed_toggle_break_at((int)ed_send(SCI_GETCURRENTPOS,0,0),bits);
 }
 
 static void init_filemarkers(void)
@@ -353,7 +351,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		      ed_send(SCI_MARKERDELETE,line,MMIX_BREAKX_MARKER);
 		    }
 		    else
-		    { set_file_breakpoint(edit_file_no,line+1,exec_bit);
+		    { set_file_breakpoint(edit_file_no,line+1,exec_bit,exec_bit);
 		      ed_send(SCI_MARKERADD,line,MMIX_BREAKX_MARKER);
 		    }
 		  }
@@ -859,9 +857,14 @@ void set_whitespace(int ws)
 }
 
 void ed_refresh_breaks(void)
+/* this is a simple function which deletes all
+   breakpoint and inserts them again.
+   A better function would apply only changes
+   because usually there are not many.
+*/
 { int line=-1;
-  if (hEdit==NULL) return;  
-  remove_file_breakpoints(edit_file_no);
+  if (hEdit==NULL) return; 
+  mark_all_file_breakpoints(edit_file_no);
   while ((line = (int)ed_send(SCI_MARKERNEXT,line+1,
 	                           (1<<MMIX_BREAKX_MARKER)|(1<<MMIX_BREAKT_MARKER)|
 	                           (1<<MMIX_BREAKR_MARKER)|(1<<MMIX_BREAKW_MARKER)
@@ -873,9 +876,10 @@ void ed_refresh_breaks(void)
     if (markers & (1<<MMIX_BREAKR_MARKER)) bits|=read_bit;
     if (markers & (1<<MMIX_BREAKW_MARKER)) bits|=write_bit;
     if (markers & (1<<MMIX_BREAKT_MARKER)) bits|=trace_bit;
-	set_file_breakpoint(edit_file_no,line+1,bits);
-    ed_send(SCI_MARKERDELETE,line,markers);
+	if (bits!=0)
+      set_file_breakpoint(edit_file_no,line+1,bits,0);
   }
+  sweep_all_file_breakpoints(edit_file_no);
 }
 
 void  ed_show_line(int line_no)
