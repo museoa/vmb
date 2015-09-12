@@ -183,6 +183,7 @@
 						Name="VCCustomBuildTool"
 						Description="ctangle mmotype with mmoimg"
 						CommandLine="ctangle mmixlib\mmixware\mmotype.w mmoimg.ch mmoimg.c&#x0D;&#x0A;"
+						AdditionalDependencies="mmoimg.ch"
 						Outputs="mmoimg.c"
 					/>
 				</FileConfiguration>
@@ -193,6 +194,7 @@
 						Name="VCCustomBuildTool"
 						Description="ctangle mmotype with mmoimg"
 						CommandLine="ctangle mmixlib\mmixware\mmotype.w mmoimg.ch mmoimg.c&#x0D;&#x0A;"
+						AdditionalDependencies="mmoimg.ch"
 						Outputs="mmoimg.c"
 					/>
 				</FileConfiguration>

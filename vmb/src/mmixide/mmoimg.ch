@@ -36,9 +36,9 @@ to the mmotype program of Donald E. Knuth.
 #include <ctype.h>
 
 #ifdef MMIX_PRINT
-extern int mmix_printf(char *format,...);
-#define printf(...) mmix_printf(__VA_ARGS__)
-#define fprintf(file,...) mmix_printf(__VA_ARGS__)
+extern int mmix_printf(FILE *f,char *format,...);
+#define printf(...) mmix_printf(stdout,__VA_ARGS__)
+#define fprintf(file,...) mmix_printf(file,__VA_ARGS__)
 #endif
 
 #pragma warning(disable : 4996)

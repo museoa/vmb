@@ -186,19 +186,23 @@ void add_line_loc(int file_no,int line_no, octa loc)
 
   /* we iterate over the breakpoints, this could be done more efficiently
      by sorting them by file and line */
+  mem_tetra* ll=mem_find(loc);
+  ll->file_no=file_no;
+  ll->line_no=line_no;
   for (i=0; i<blimit;i++)
     if (breakpoints[i].file_no==file_no && 
 		breakpoints[i].line_no==line_no)
-    { if (loc_unknown(i))
+    { 
+	  if (loc_unknown(i))
 	  { breakpoints[i].loc=loc;
         breakpoints[i].loc_last.l=loc.l;
+		ll->bkpt=breakpoints[i].bkpt;
       }
       else if (breakpoints[i].loc_last.l < loc.l && 
-               breakpoints[i].loc.h == loc.h) 
-        breakpoints[i].loc_last.l=loc.l;
-	  else return;
-      loc2bkpt(loc)=breakpoints[i].bkpt;
-	  return;
+	         breakpoints[i].loc.h == loc.h) 
+	  {  breakpoints[i].loc_last.l=loc.l;
+	     ll->bkpt=breakpoints[i].bkpt;
+	  }
     }
 }
 

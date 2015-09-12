@@ -38,7 +38,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmoimg", "mmoimg.vcproj", "
 		{D49D454B-0839-4606-850D-03A6231DB2DA} = {D49D454B-0839-4606-850D-03A6231DB2DA}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "customizeide", "..\..\..\mmixvd\mmixide\mmixlib\customizeide.vcproj", "{97BF3001-ABEA-4190-884A-E846DB460ABE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "customizeide", "mmixlib\customizeide.vcproj", "{97BF3001-ABEA-4190-884A-E846DB460ABE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
