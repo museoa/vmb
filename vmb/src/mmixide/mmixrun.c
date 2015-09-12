@@ -236,52 +236,62 @@ void mmix_stopped(octa loc)
 /* this is the plain vmb version of mmix main() */
 
 static int check_rO(void)
-/* returns true if g[rO]<=rOlimit */
+/*used to disable tracing and interaction inside a subroutine. 
+  returns true if g[rO]<=rOlimit */
 { return (g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h;
 }
 
-static int check_interact(bool after)
-{   if (!interrupt && !breakpoint) return 1;
-	if (interrupt && !breakpoint) breakpoint|=trace_bit, interacting=true, interrupt=false;
-	if (!interacting) { breakpoint=0; return 1; }
-#ifdef VMB
-	if (!after && loc.h==0x80000000 && loc.l==0)  /* boot */
-	    return mmix_interact();
-#endif
+/* checking for interaction is done at two places before and after
+   performing (traceing and resumeing) the instruction.
+   The parameter after is false when this function is called before the instruction
+   and true if this function is called after the instruction.
+   Interaction after performing the instruction
+   is the "classic" MMIX way of interaction.
+   Interaction before executing the instruction is the typical way other debuggers
+   do it (you can inspect the register before doing the instruction and after).
+   The parameter break_after is true in case the user selects the classical behaviour
+   and it is false if the user prefers to interact before the instruction.
+
+*/
+
+#define OUTSIDE ((!(loc.h&sign_bit)||show_operating_system) && check_rO())
+
+static int check_interact_before(void)
+{ 	if (!interacting) { breakpoint=0; return 1; }
     if (break_after|| (breakpoint &(read_bit|write_bit)))
 	{ breakpoint &=~(read_bit|write_bit);
-	  if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
+	  if (OUTSIDE)
 	  {  mmix_stopped(loc); /* display the last stop marker */
 	     trace_once=1;
 	  }
-	  if (after)
-	  { if ((inst_ptr.h&sign_bit) && !show_operating_system) /* no stop in the operating system */  
-		  return 1;
-	    if (!check_rO()) /* no stop inside function */
-		  return 1;
-		if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) /* this is the case for step and step out but not for step over */
-	      mmix_stopped(loc); 
-	    return mmix_interact();
-      }
 	}
 	else
-	{ if (!after && (!(loc.h&sign_bit)||show_operating_system)&&check_rO())
-	  {  mmix_stopped(loc); /* display the last stop marker */
+	{ if (!OUTSIDE) return 1;
 	     trace_once=1;
-	  }
-	  if (!after)
-	  { if (loc.h&sign_bit && 
-		  !show_operating_system &&
-          !(loc.h==0x80000000 && loc.l==0)) 
-		    return 1;
-	    if (!check_rO()) 
-			return 1; /* here we still trace the pop instead of the push (or both) with step over */
-	    mmix_stopped(loc);
-	    return mmix_interact();
-      }
+      /* here we still trace the pop instead of the push (or both) with step over */
+	  mmix_stopped(loc);
+	  return mmix_interact();
 	}
     return 1;
 }
+
+static int check_interact_after(void)
+{ 	if (!interacting) { breakpoint=0; return 1; }
+    if (break_after || (breakpoint &(read_bit|write_bit)))
+	{ breakpoint &=~(read_bit|write_bit);
+	  if (!OUTSIDE) /* no stop inside function */
+		  return 1;
+	  if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) 
+		  /* this is the case for step and step out but not for step over */
+	      mmix_stopped(loc); 
+	  return mmix_interact();
+	}
+    return 1;
+}
+
+
+
+
 
 
 
@@ -321,10 +331,15 @@ boot:
   mmix_zero_memory(mem_root);
 #endif
   mmix_boot(); 
+  rOlimit=neg_one; /*reset rOlimit */
   for_all_files(mmix_load);
   sync_breakpoints();
+  show_breakpoints();
   mmix_commandline(argc, argv);
-#ifndef VMB
+#ifdef VMB
+  if (interacting && (!(loc.h&sign_bit)||show_operating_system))
+  { mmix_stopped(loc); breakpoint=trace_bit; }
+#else
   goto interact;
 #endif
   while (
@@ -336,7 +351,8 @@ boot:
 #ifndef VMB
 interact:
 #endif
-    if (!check_interact(false)) goto end_simulation;
+	if (interrupt) breakpoint|=trace_bit, interacting=true, interrupt=false;
+    if (breakpoint && !check_interact_before()) goto end_simulation;
 resume:
     mmix_perform_instruction(); 
 	mmix_trace();
@@ -349,6 +365,7 @@ resume:
 	  else
 	    resuming=false;
 	}
+	if (breakpoint && !check_interact_after()) goto end_simulation;
     if (
 #ifdef VMB
 		!vmb.power || vmb.reset_flag ||
@@ -357,7 +374,6 @@ resume:
     { breakpoint|=trace_bit; 
       goto boot;
     }
-    if (!check_interact(true)) goto end_simulation;
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(false);

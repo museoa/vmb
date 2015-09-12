@@ -78,7 +78,7 @@ static void mem_set_breakpoint(int i)
   }
 }
 
-static void zero_breakpoint(int i)
+static void mem_zero_breakpoint(int i)
 {  if (!loc_unknown(i))
   { octa loc;
     for (loc=breakpoints[i].loc;loc.l<=breakpoints[i].loc_last.l;loc.l+=4)
@@ -90,7 +90,7 @@ static void zero_breakpoint(int i)
 static void remove_breakpoint(int i)
 { 
   if (i<0 ||i>=MAX_BREAKPOINTS) return;
-  zero_breakpoint(i);
+  mem_zero_breakpoint(i);
   del_breakpoint(i);
   if (blimit==i+1) 
     blimit=i;
@@ -244,7 +244,7 @@ void remove_loc_breakpoints(int file_no)
   if (file_no<0) return;
   for (i=0;i<blimit;i++)
 	if (breakpoints[i].file_no==file_no)
-	{ zero_breakpoint(i);
+	{ mem_zero_breakpoint(i);
 	  breakpoints[i].loc=neg_one;
 	}
 }
@@ -412,9 +412,14 @@ static void del_breakpoint(int i)
     SendMessage(hBreakList,LB_DELETESTRING,item,0);
 }
 
-static void change_breakpoint(int i)
+
+void show_breakpoints(void)
 {  if (hBreakList==NULL) return;
      InvalidateRect(hBreakList,NULL,FALSE);
+}
+
+static void change_breakpoint(int i)
+{  show_breakpoints();
 }
   
 static POINT list={0,0}; /* top left coordinates of list box */

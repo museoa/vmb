@@ -7,6 +7,7 @@
 #define _MMIXAL_
 #include "mmixlib.h"
 #include "info.h"
+#include "breakpoints.h"
 #include "assembler.h"
 
 
@@ -114,5 +115,6 @@ int mmix_assemble(int file_no)
   }
   else
 	ide_status("mmixal done.");
+  show_breakpoints();
   return err_count;
 }

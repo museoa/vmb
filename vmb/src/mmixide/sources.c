@@ -56,7 +56,7 @@ static void select_tab(int index)
   show_file();
 }
 
-static void add_file(int file_no)
+static void add_file_tab(int file_no)
 { TCITEM tie;
   int index, imax;
   if (hFileTab==NULL) return;
@@ -89,7 +89,7 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { hSourceDlg=hDlg;
 	    hFileTab=GetDlgItem(hDlg,IDC_TAB_FILES);
 		TabCtrl_SetImageList(hFileTab,hFileMarkers);
-		for_all_files(add_file);
+		for_all_files(add_file_tab);
 		current_tab=0;
 		TabCtrl_SetCurSel (hFileTab, current_tab);
         show_file();
@@ -116,7 +116,8 @@ OptionSourcesDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  else if (wparam==IDC_ADD)
 	  { int file_no = ed_open();
 		if (file_no>=0) 
-		{  add_file(file_no);
+		{  set_edit_file(file_no);
+		   add_file_tab(file_no);
 		   select_tab(current_tab);
 		}
         return TRUE;

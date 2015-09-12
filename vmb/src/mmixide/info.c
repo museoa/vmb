@@ -229,11 +229,28 @@ static void clear_symbols(int file_no)
 }
 
 
+/* auxiliar variable and function for clear_mem_file */
+static int clear_file_no=-1;
+
+static void aux_clear_mem_file(octa loc, mem_tetra *dat)
+{ if (dat->file_no==clear_file_no)
+  { dat->file_no=-1;
+    dat->line_no=0; 
+  }
+}
+
+static void clear_mem_file(int file_no)
+/* returns the frequency count for this line  or -1 if none found*/
+{ clear_file_no=file_no;
+  mem_iterator(aux_clear_mem_file);
+}
+
 
 
 void clear_file_info(int file_no)
 /* remove all data about file */
 {   remove_loc_breakpoints(file_no);
+    clear_mem_file(file_no);
     clear_symbols(file_no);
 }
 
@@ -277,9 +294,10 @@ void for_all_files(void f(int i))
   }
 }
 
-tetra freq_max=0;
-int freq_file_no=-1;
-int freq_line_no=0;
+/* auxiliar variables and function for line2freq */
+static tetra freq_max=0;
+static int freq_file_no=-1;
+static int freq_line_no=0;
 
 static void get_max_freq(octa loc, mem_tetra *dat)
 { if (dat->line_no==freq_line_no &&
