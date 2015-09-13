@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.53 $ $Date: 2015-09-13 12:10:27 $";
+char version[]="$Revision: 1.54 $ $Date: 2015-09-13 14:02:13 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -153,7 +153,9 @@ int ide_prepare_mmix(void)
     return 0;
   }
   if (!ed_save_all(1)) return 0;
+  ed_refresh_breaks(); 
   if (!assemble_all_needed()) return 0;
+  set_break_at_Main();
   if (auto_close_errors&& hError!=NULL) 
   { DestroyWindow(hError); hError=NULL; }
   if (!check_load_count()) return 0;
@@ -364,7 +366,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  else 
 		  { if (show_trace) show_trace_window();
 			if (!ide_prepare_mmix()) return 0;
-			update_breakpoints();
 		    set_debug_windows();
 		    mmix_debug();
 		  }
@@ -372,12 +373,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_MMIX_RUN:
 		  if (mmix_active()) return 0;
 		  if (!ide_prepare_mmix()) return 0;
-		  update_breakpoints();
 		  mmix_run();
 	      return 0; 
 
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
+		  ed_refresh_breaks();
 		  if (mmix_assemble(edit_file_no)==0)
 		  { 
 			if (auto_close_errors && hError!=NULL) 
@@ -564,7 +565,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  bb_set_group(hButtonBar,BG_DEBUG,0,0);
 	  update_symtab();
 	}
-	else if (lParam==0)
+	else if (lParam==0||item_file_no(lParam)==0xFF)
 	{ mmix_status(MMIX_STOPPED);
       show_stop_marker(edit_file_no,-1); /* clear stop marker */
 	}

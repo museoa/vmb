@@ -3,7 +3,7 @@ extern void set_file_breakpoint(int file_no, int line_no, int bits, int mask);
 extern void del_file_breakpoint(int file_no, int line_no, int bits);
 extern void remove_file_breakpoints(int file_no);
 extern void remove_loc_breakpoints(int file_no);
-extern void update_breakpoints(void);
+extern void set_break_at_Main(void);
 extern void sync_breakpoints(void);
 /* remove all breakpoints for this file */
 extern HWND hBreakpoints;

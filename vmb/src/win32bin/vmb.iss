@@ -21,11 +21,10 @@ WizardImageStretch=no
 WizardSmallImageFile="C:\home\vmb\src\win32bin\ssetup.bmp"
 
 [Components]
-Name: "mmix"; Description: "MMIX Tools"; Types: full compact custom;
+Name: "mmix"; Description: "Plain MMIX Tools"; Types: full compact custom;
 
 [Tasks]
-;Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
-Name: desktopicon; Description: "Create a &desktop icon for the README Application"
+Name: readmeapp; Description: "Launch the VMB &README Application"; Flags: checkedonce;
 Name: modifypath; Description: Add application directory to your environmental path
 
 [Files]
@@ -44,12 +43,11 @@ Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: i
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixide.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\Release\mmixgdb.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\vmb\src\win32bin\Release\mmoimg.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\win32bin\Release\mmoimg.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\vmb.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\default.vmb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
@@ -58,21 +56,21 @@ Source: "C:\home\vmb\src\win32bin\copying.txt"; DestDir: "{app}"; Flags: ignorev
 Source: "C:\home\vmb\src\win32bin\readme.vmb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\readme.img"; DestDir: "{app}"; Flags: ignoreversion
 
-[Icons]
-Name: "{commondesktop}\readme.vmb"; Filename: "{app}\readme.vmb"; Tasks: desktopicon
-
 [Run]
-Filename: "{app}\mother.exe"; Parameters: "-c readme.vmb"; Description: "Launch VMB Readme"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\mother.exe"; Parameters: "-c readme.vmb"; Description: "Launch VMB Readme"; Flags: nowait postinstall skipifsilent; Tasks: readmeapp
 
 [Registry]
 Root: HKCR; Subkey: ".vmb"; ValueType: string; ValueName: ""; ValueData: "vmb_auto_file"; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "vmb_auto_file"; ValueType: string; ValueName: ""; ValueData: "vmb Configuration"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "vmb_auto_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\vmb.ico,0"
-Root: HKCR; Subkey: "vmb_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MOTHER.EXE"" -c ""%1"""
+Root: HKCR; Subkey: "vmb_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mother.exe"" -c ""%1"""
+Root: HKCR; Subkey: "vmb_auto_file\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mmixide.exe"" -c ""%1"""
 
 Root: HKCR; Subkey: ".mms"; ValueType: string; ValueName: ""; ValueData: "mms_auto_file"; Flags: uninsdeletevalue
+Root: HKCR; Subkey: ".mms"; ValueType: string; ValueName: "PerceivedType"; ValueData: "text"; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "mms_auto_file"; ValueType: string; ValueName: ""; ValueData: "MMIX source"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "mms_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\MMIXIDE.EXE"" ""%1"""
+Root: HKCR; Subkey: "mms_auto_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mmixide.exe"" ""%1"""
+Root: HKCR; Subkey: "mms_auto_file\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: """{app}\mmixide.exe"" ""%1"""
 
 [Code]
 const

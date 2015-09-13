@@ -72,17 +72,18 @@ static int blimit = 0, bcount=0;
 
 static void mem_set_breakpoint(int i)
 { if (!loc_unknown(i))
-  { octa loc;
-    for (loc=breakpoints[i].loc;loc.l<=breakpoints[i].loc_last.l;loc.l+=4)
-      loc2bkpt(loc)=breakpoints[i].bkpt;
+  { octa addr;
+    addr.h=breakpoints[i].loc.h;
+    for (addr.l=breakpoints[i].loc.l;addr.l<=breakpoints[i].loc_last.l;addr.l+=4)
+      loc2bkpt(addr)=breakpoints[i].bkpt;
   }
 }
 
 static void mem_zero_breakpoint(int i)
 {  if (!loc_unknown(i))
-  { octa loc;
-    for (loc=breakpoints[i].loc;loc.l<=breakpoints[i].loc_last.l;loc.l+=4)
-      loc2bkpt(loc)=0;
+  { octa addr;
+    for (addr=breakpoints[i].loc;addr.l<=breakpoints[i].loc_last.l;addr.l+=4)
+      loc2bkpt(addr)=0;
   }
 }
 
@@ -116,6 +117,7 @@ static int new_breakpoint(int file_no, int line_no,	octa loc, unsigned char bkpt
   breakpoints[n].file_no=file_no;
   breakpoints[n].line_no=line_no;
   breakpoints[n].loc=loc;
+  breakpoints[n].loc_last=loc;
   breakpoints[n].bkpt=bkpt;
   breakpoints[n].mark=0;
   if (!unused(n))
@@ -331,17 +333,16 @@ int break_at_symbol(int file_no,char *symbol)
 }
 
 
-/* auxiliar function for update_breakpoints */
+/* auxiliar function for set_break_at_Main */
 static void break_main(int file_no)
 { if (file2loading(file_no))
 	break_at_symbol(file_no,":Main");
 }
 
 /* call before running/debugging  */
-void update_breakpoints(void)
+void set_break_at_Main(void)
 { if (break_at_Main) 
-	  for_all_files(break_main);
-  ed_refresh_breaks(); /* syncronize Markers in editor with breakpoints */
+   for_all_files(break_main);   
 }
 
 void sync_breakpoints(void)

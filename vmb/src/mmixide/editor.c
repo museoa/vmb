@@ -857,10 +857,12 @@ void set_whitespace(int ws)
 }
 
 void ed_refresh_breaks(void)
-/* this is a simple function which deletes all
-   breakpoint and inserts them again.
-   A better function would apply only changes
-   because usually there are not many.
+/*mark all breakpoint belonging to the edit_file,
+  iterate over the markers 
+   - set the corresponding break bits 
+   - create a new breakpoint if it does not exist.
+   - remove the mark if it does exist
+  sweep (remove) all breakpoints that still have marks 
 */
 { int line=-1;
   if (hEdit==NULL) return; 
