@@ -35,8 +35,8 @@ extern HWND hMainWnd;
 #include "winopt.h"
 #include "inspect.h"
 
-int major_version=1, minor_version=5;
-char version[]="$Revision: 1.20 $ $Date: 2013-08-29 09:40:34 $";
+int major_version=1, minor_version=8;
+char version[]="$Revision: 1.21 $ $Date: 2015-09-13 10:04:01 $";
 char title[] ="VMB RAM";
 
 char howto[] =

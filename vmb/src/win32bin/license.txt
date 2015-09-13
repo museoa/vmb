@@ -4,7 +4,7 @@ VMB Copyright
 Except where otherwise noted, all of the documentation and software included
 in the vmb package is copyrighted by Martin Ruckert.
 
-Copyright (C) 2001-2003-2006 Martin Ruckert. All rights reserved.
+Copyright (C) 2001-2003-2006-2015 Martin Ruckert. All rights reserved.
 
 vmb Licence and Waranty Disclaimer
 ==================================

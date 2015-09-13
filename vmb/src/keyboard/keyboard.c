@@ -42,10 +42,10 @@ extern HBITMAP hBmpActive, hBmpInactive;
 
 void display_char(char c);
 
-int major_version=1, minor_version=5;
+int major_version=1, minor_version=8;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.29 $ $Date: 2015-09-07 15:50:50 $";
+char version[]="$Revision: 1.30 $ $Date: 2015-09-13 10:04:01 $";
 
 char howto[] =
 "\n"

@@ -20,8 +20,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-int major_version=1, minor_version=5;
-char version[]="$Revision: 1.15 $ $Date: 2013-09-05 06:50:57 $";
+int major_version=1, minor_version=8;
+char version[]="$Revision: 1.16 $ $Date: 2015-09-13 10:04:01 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";

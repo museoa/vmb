@@ -74,6 +74,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serial", "..\serial\serial.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winopt", "..\winopt\winopt.vcproj", "{5A384688-86B5-439D-B700-C52330851681}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "copyexe", "copyexe.vcproj", "{A5941848-18B2-47AC-8840-E3A6028C7DF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -144,6 +146,10 @@ Global
 		{5A384688-86B5-439D-B700-C52330851681}.Debug|Win32.Build.0 = Debug|Win32
 		{5A384688-86B5-439D-B700-C52330851681}.Release|Win32.ActiveCfg = Release|Win32
 		{5A384688-86B5-439D-B700-C52330851681}.Release|Win32.Build.0 = Release|Win32
+		{A5941848-18B2-47AC-8840-E3A6028C7DF5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A5941848-18B2-47AC-8840-E3A6028C7DF5}.Debug|Win32.Build.0 = Debug|Win32
+		{A5941848-18B2-47AC-8840-E3A6028C7DF5}.Release|Win32.ActiveCfg = Release|Win32
+		{A5941848-18B2-47AC-8840-E3A6028C7DF5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

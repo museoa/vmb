@@ -42,10 +42,10 @@ extern HWND hMainWnd;
 #include "winopt.h"
 #include "inspect.h"
 
-int major_version=1, minor_version=5;
+int major_version=1, minor_version=8;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.25 $ $Date: 2015-09-07 15:50:50 $";
+char version[]="$Revision: 1.26 $ $Date: 2015-09-13 10:04:01 $";
 
 char howto[] =
 "\n"

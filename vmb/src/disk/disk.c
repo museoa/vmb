@@ -26,12 +26,12 @@ extern HBITMAP hbussy;
 #include "param.h"
 #include "inspect.h"
 
-int major_version=1, minor_version=5;
+int major_version=1, minor_version=8;
 extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.32 $ $Date: 2015-09-07 15:50:50 $";
+char version[]="$Revision: 1.33 $ $Date: 2015-09-13 10:04:01 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"

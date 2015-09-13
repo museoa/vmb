@@ -73,8 +73,8 @@ device_info vmb = {0};
 #include "bus-arith.h"
 
 extern int vmb_power_flag;
-int major_version=1, minor_version=5;
-char version[] = "$Revision: 1.48 $ $Date: 2015-09-07 16:45:20 $";
+int major_version=1, minor_version=8;
+char version[] = "$Revision: 1.49 $ $Date: 2015-09-13 10:04:01 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
