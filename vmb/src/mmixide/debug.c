@@ -150,7 +150,9 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
+#ifdef VMB
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
+#endif
 		break_after=IsDlgButtonChecked(hDlg,IDC_RADIO_BREAK_AFTER);
 		
 		if (IsDlgButtonChecked(hDlg,IDC_CHECK_EXCEPTIONS)==BST_CHECKED)

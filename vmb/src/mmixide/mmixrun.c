@@ -60,7 +60,6 @@ int mmix_interact(void)
 
 void mmix_stop(void)
 { interrupt=true;
-  //show_operating_system=true;
   if (!interacting) halted=true;
 }
 
@@ -189,7 +188,9 @@ static void init_fake_stdin(void)
 
 void mmix_run(void)
 {		  interacting=false;
+#ifdef VMB
 		  show_operating_system=false;
+#endif
           breakpoint=0;
 		  tracing=false;
 		  update_symtab();
@@ -253,8 +254,11 @@ static int check_rO(void)
    and it is false if the user prefers to interact before the instruction.
 
 */
-
+#ifdef VMB
 #define OUTSIDE ((!(loc.h&sign_bit)||show_operating_system) && check_rO())
+#else
+#define OUTSIDE (check_rO())
+#endif
 
 static int check_interact_before(void)
 { 	if (!interacting) { breakpoint=0; return 1; }
@@ -281,7 +285,11 @@ static int check_interact_after(void)
 	{ breakpoint &=~(read_bit|write_bit);
 	  if (!OUTSIDE) /* no stop inside function */
 		  return 1;
+#ifdef VMB
 	  if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) 
+#else
+	  if (rOlimit.l&1) 
+#endif
 		  /* this is the case for step and step out but not for step over */
 	      mmix_stopped(loc); 
 	  return mmix_interact();

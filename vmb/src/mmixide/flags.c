@@ -56,7 +56,9 @@ regtable regtab= {
 	{KEY_FLAGS,&show_debug_pool,16},
 	{KEY_FLAGS,&show_debug_neg,17},
 	{KEY_FLAGS,&show_trace,18},
+#ifdef VMB
 	{KEY_FLAGS,&show_operating_system,19},
+#endif
 	{KEY_FLAGS,&stack_tracing,20},
 #ifdef VMB
 	{KEY_FLAGS,&auto_connect,21},
