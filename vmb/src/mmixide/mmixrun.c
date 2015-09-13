@@ -101,11 +101,8 @@ extern jmp_buf mmix_exit;
 
 #ifdef VMB
 
-void mmix_exit_hook(int returncode)
+static void mmix_exit_hook(int returncode)
 { longjmp(mmix_exit, returncode);
-}
-void  ide_exit_ignore(int returncode)
-{ ;
 }
 #endif
 

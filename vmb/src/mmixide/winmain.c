@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.52 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.53 $ $Date: 2015-09-13 12:10:27 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -895,6 +895,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	            hMainWnd, NULL, hInstance, NULL);
 	SendMessage(hStatus,WM_SETFONT,(WPARAM)hVarFont,0);
     ide_status(version);
+#ifdef VMB
+    vmb_program_name="mmixide";
+    vmb_message_hook = win32_message;
+    vmb_debug_hook = NULL;
+    vmb_error_init_hook = NULL;
+    vmb_exit_hook=ide_exit_ignore;
+#endif
 
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,width,height,SWP_SHOWWINDOW|((width&&height)?0:SWP_NOSIZE));
 
@@ -916,7 +923,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	return (int)msg.wParam;
 }
 
-
+#ifdef VMB
+void  ide_exit_ignore(int returncode)
+{ ;
+}
+#endif
 
 void destroy_log(HWND hLog)
 {  CheckMenuItem(hMenu,ID_VIEW_TRACE,MF_BYCOMMAND|MF_UNCHECKED);

@@ -67,3 +67,6 @@ extern void win32_message(char *msg);
 extern void win32_error(int line, char *message);
 extern void win32_ferror(int line, char *format, char *str);
 extern void win32_fatal_error(int line, char *message);
+#ifdef VMB
+extern void  ide_exit_ignore(int returncode);
+#endif
