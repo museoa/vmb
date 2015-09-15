@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.42 $ $Date: 2015-09-15 11:20:38 $";
+char version[]="$Revision: 1.43 $ $Date: 2015-09-15 18:20:34 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -1059,7 +1059,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           fh = (BITMAPFILEHEADER *)(buf + 0);
 	      signature = (unsigned char *)&fh->bfType;
 	      if (signature[0] != 'B' || signature[1]!= 'M') 
-		  { free(buf); return 0; }
+		  { free(buf);
+		  	vmb_debug(VMB_DEBUG_WARN,"No DIB detected");
+		    return 0; 
+		  }
 	      /* Bitmap Info Header */
 	      pbmi = (BITMAPINFO *)(buf + sizeof(BITMAPFILEHEADER));
 	      pbmih = &(pbmi->bmiHeader);
@@ -1071,24 +1074,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	      size = size + fh->bfOffBits;
 	      if (size > d)
 	      { unsigned char * tmp=(unsigned char *)realloc(buf, size);
-		    if (tmp == NULL) { free(buf); return 0;}
+		    if (tmp == NULL) { 
+				free(buf); 
+			    vmb_debug(VMB_DEBUG_ERROR,"DIB too big. Out of memory");
+				return 0;
+			}
             buf=tmp;
 		    fh = (BITMAPFILEHEADER *)(buf + 0);
 		    pbmi = (BITMAPINFO *)(buf + sizeof(BITMAPFILEHEADER));
 		    pbmih = &(pbmi->bmiHeader);
 			da.data=buf+d;
 			size=size-d;
-	      }
-          while (size>0)
-		  { if (d>size) d = size;
-			da.size = d;
-		    vmb_load(&vmb_gpu, &da);
-		    vmb_wait_for_valid(&vmb_gpu, &da);
-			size=size-d;
-			da.data=da.data+d;
-			if (da.address_lo+d<da.address_lo) da.address_hi++;
-			da.address_lo += d;
-            da.status = STATUS_INVALID;
+
+            while (size>0)
+		    { if (d>size) d = size;
+			  da.size = d;
+		      vmb_load(&vmb_gpu, &da);
+		      vmb_wait_for_valid(&vmb_gpu, &da);
+			  size=size-d;
+			  da.data=da.data+d;
+			  if (da.address_lo+d<da.address_lo) da.address_hi++;
+			  da.address_lo += d;
+              da.status = STATUS_INVALID;
+		    }
 		  }
 	      lpbits = buf + fh->bfOffBits;
 		  x = GPU_X;
