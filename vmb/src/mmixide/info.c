@@ -89,7 +89,7 @@ static int alloc_file_no(void)
       }
   }
   win32_error(__LINE__,"Too many files");
-  return 0; /* we should never get here */
+  return -1; /* we should never get here */
 }
 
 static void release_file_no(int file_no)
