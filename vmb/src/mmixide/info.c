@@ -83,7 +83,7 @@ static int alloc_file_no(void)
 #endif
 		execute[file_no]=0;
         needs_loading[file_no]=0;
-		ed_add_tab(file_no);
+		file_time[file_no].dwHighDateTime=file_time[file_no].dwLowDateTime=0;
 		if (file_no>=next_file_no) next_file_no = file_no+1;
         return file_no;
       }
@@ -174,7 +174,6 @@ static void set_filename(int file_no,char *head, char * tail)
 	file2assembly(file_no)=1;
 	first_name=0;
   }
-  ed_add_tab(file_no);
 }
 
 int filename2file(char *filename)
@@ -193,7 +192,9 @@ int filename2file(char *filename)
   }
   /* at this point we might reuse file number 0 if it is unnamed, in use, and not dirty */
   if (fullname[0]==NULL && doc[0]!=NULL && !file_dirty(0))
-	  file_no=0;
+  {  file_no=0;
+     ed_remove_tab(file_no); /* remove a possibly existing tab for this file */
+  }
   else
       file_no = alloc_file_no();
   set_filename(file_no,head,tail);
@@ -218,6 +219,7 @@ void file_set_name(int file_no, char *filename)
   shortname[file_no]=NULL;
   needs_reading[file_no]=0;
   set_filename(file_no,head,tail);
+  ed_add_tab(file_no);
 }
 
 
@@ -286,7 +288,7 @@ void file_line_loc(mem_node *p,int file_no, int line_no, void f(octa loc))
 
 
 void for_all_files(void f(int i))
-/* set all file names in the file list list box h */
+/* iterate over all files in use */
 { int file_no;
   for (file_no=0; file_no<next_file_no;file_no++)
   { if (inuse(file_no))

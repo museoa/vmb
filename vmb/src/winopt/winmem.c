@@ -380,7 +380,7 @@ void display_registers(inspector_def *insp,HDC hdc)
 	 for (k=0;k*chunk_size < r->size;k++)
 	 { int len;
 	   len = chunk_len(format,chunk_size);
-	   if (len>insp->column_digits) len=insp->column_digits;
+	   //if (len>insp->column_digits) len=insp->column_digits;
 	   len = chunk_to_str(str, insp->mem_buf+r->offset+k*chunk_size-insp->mem_base, format,chunk_size,len);
        if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
 	     SetBkColor(hdc,HOT);

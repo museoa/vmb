@@ -5,7 +5,7 @@ extern int edit_file_no; /* the file currently in the editor */
 extern void init_edit(HINSTANCE hInstance);
 extern int ed_setfocus(void);
 extern void ed_new(void);
-extern void ed_save(void);
+extern int ed_save(void);
 extern int ed_save_as(void);
 extern int ed_save_changes(int cancel);
 extern int ed_save_all(int cancel);
@@ -29,7 +29,7 @@ extern void ed_get_document(void);
 extern int ed_open(void);
 
 extern int ed_show_tab(int file_no);
-extern void ed_add_tab(int file_no);
+extern int ed_add_tab(int file_no);
 extern void ed_remove_tab(int file_no);
 
 extern void ed_toggle_break(int bit);

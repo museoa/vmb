@@ -168,6 +168,7 @@ char mmix_opcodes[] =
 "WYDE "
 "TETRA "
 "OCTA "
+"FILE "
 "BSPEC "
 "ESPEC "
 "GREG "

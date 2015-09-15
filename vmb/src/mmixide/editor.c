@@ -279,8 +279,9 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		       0,0,0,0,hWnd,NULL,hInst,NULL);
          ed_fn = (SciFnDirect)SendMessage(hSCe,SCI_GETDIRECTFUNCTION,0,0);
          ed_ptr= (sptr_t)SendMessage(hSCe,SCI_GETDIRECTPOINTER,0,0);
-		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
-		       0,0,0,0,hWnd,NULL,hInst,NULL);
+		 hTabs = CreateWindowEx(WS_EX_LEFT,WC_TABCONTROL,"EditorTabs",
+			           WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
+		               0,0,0,0,hWnd,NULL,hInst,NULL);
 		 TabCtrl_SetImageList(hTabs,hFileMarkers);
          SendMessage(hTabs,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
 		 DragAcceptFiles(hWnd,TRUE);
@@ -629,19 +630,34 @@ int ed_close(void)
   return 1;
 }
 
+static int aux_cancel;
+static void aux_close_file(int file_no)
+{ set_edit_file(file_no);
+  if (!ed_save_changes(aux_cancel)) return;
+  close_file(edit_file_no);
+}
+
 int ed_close_all(int cancel)
 /* return 1 if all files could be closed zero otherwise */
 { int file_no;
-  file_no=edit_file_no;
-  while(edit_file_no>=0)
-  { if (!ed_save_changes(cancel)) return 0;
-    close_file(edit_file_no);
-    edit_file_no=-1; /* no edit file yet */
-    file_no=get_inuse_file();
-    if (file_no>=0) set_edit_file(file_no);
+  aux_cancel=cancel;
+  for_all_files(aux_close_file);
+  edit_file_no=-1; /* no edit file yet */
+  file_no=get_inuse_file();
+  if (file_no>=0) 
+  { int decission;
+	set_edit_file(file_no);
+    decission= MessageBox(hMainWnd, "There are unsaved files. Exit anyway?","Unsaved Files", MB_YESNO|MB_ICONWARNING);
+	if (decission == IDYES)
+	{   for_all_files(close_file);
+		return 1;
+	}
+    else return 0;
   }
-  ed_new();
-  return 1;
+  else
+  { ed_new();
+    return 1;
+  }
 }
 
 
@@ -694,14 +710,17 @@ static void ed_write_file(void)
 	}
 }
 #else
-static void ed_write_file(void)
+static int ed_write_file(void)
 { HANDLE fh;
+    int ok=1;
     char *name = fullname[edit_file_no];
-    if (name==NULL || name[0]==0) return;
+    if (name==NULL || name[0]==0) return 0;
     fh = CreateFile(name,
 	  GENERIC_WRITE,FILE_SHARE_WRITE,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
     if (fh==INVALID_HANDLE_VALUE) 
-       win32_ferror(__LINE__,"Unable to save file (%s)\r\n",name);
+	{  win32_ferror(__LINE__,"Unable to save file (%s)\r\n",name);
+	   return 0;
+	}
 	else {
 		int i;
 		struct Sci_TextRange tr;
@@ -718,6 +737,7 @@ static void ed_write_file(void)
 	      ed_send(SCI_GETTEXTRANGE, 0,(sptr_t)&tr);
 		  if (!WriteFile(fh,data,next,&nextw,NULL) || nextw<next)
 		  { win32_ferror(__LINE__,"Unable to write file (%s)\r\n",name);
+		    ok=0;
 		    break;
 		  }
 		}
@@ -725,15 +745,16 @@ static void ed_write_file(void)
 		CloseHandle(fh);
 		ed_send(SCI_SETSAVEPOINT,0,0);
     }
+	return ok;
 }
 #endif
 
-void ed_save(void)
-{ if (hEdit==NULL) return;
+int ed_save(void)
+{ if (hEdit==NULL) return 0;
   if (file2fullname(edit_file_no)==NULL)
-    ed_save_as();
+    return ed_save_as();
   else
-	ed_write_file();
+	return ed_write_file();
 }
 
 int ed_save_as(void)
@@ -776,13 +797,12 @@ int ed_save_changes(int cancel)
   if (dirty)
   {	 
      if (autosave)
-	 {  ed_save();
-	    return 1;
+	 {  return ed_save();
 	 }
 	 else 
 	 { int decision= MessageBox(hMainWnd, "Save changes ?", unique_name(edit_file_no), cancel?MB_YESNOCANCEL:MB_YESNO);
 	   if (decision == IDYES)
-	     ed_save();
+	     return ed_save();
 	   else if (decision == IDCANCEL)
 	     return 0;
 	 }
@@ -944,6 +964,8 @@ void ed_tab_select(int file_no)
 {  int index = find_tab(file_no);
    if (index>=0)
 	 TabCtrl_SetCurSel(hTabs,index);
+   else
+	 ed_add_tab(file_no);
 }
 
 void ed_remove_tab(int file_no)
@@ -971,13 +993,14 @@ int ed_show_tab(int file_no)
   return index;
 }
 
-void ed_add_tab(int file_no)
-{ 
-  if (hTabs==NULL) return;
-  if (file_no<0) return;
-  if (ed_show_tab(file_no)<0)
+int ed_add_tab(int file_no)
+{ int index;
+  if (hTabs==NULL) return -1;
+  if (file_no<0) return -1;
+  index = ed_show_tab(file_no);
+  if (index <0)
   { TCITEM tie;
-    int index = TabCtrl_GetItemCount(hTabs);
+    index = TabCtrl_GetItemCount(hTabs);
     tie.mask = TCIF_TEXT|TCIF_PARAM|TCIF_IMAGE;
     tie.pszText = unique_name(file_no);
     tie.lParam=file_no;
@@ -986,4 +1009,5 @@ void ed_add_tab(int file_no)
 	if (index==1) resize_tab();
 	TabCtrl_SetCurSel (hTabs, index);
   }
+  return index;
 }

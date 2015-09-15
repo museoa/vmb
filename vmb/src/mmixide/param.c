@@ -77,8 +77,10 @@ void usage(char *message)
 void do_argument(int pos, char * arg)
 { int file_no=filename2file(arg);
   if (file_no<0) return;
-  if (edit_file_no>=0) return;
-  set_edit_file(file_no);
+  if (edit_file_no>=0) 
+    ed_add_tab(file_no);
+  else
+    set_edit_file(file_no);
 }
 
 

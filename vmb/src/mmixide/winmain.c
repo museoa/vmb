@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.54 $ $Date: 2015-09-13 14:02:13 $";
+char version[]="$Revision: 1.55 $ $Date: 2015-09-15 16:01:01 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -859,6 +859,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     bb_init(hInstance);
 
 	if (!InitInstance (hInstance)) return FALSE;
+	InitCommonControls(); /* needed for TAB Controls */
 	init_layout(0);
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
