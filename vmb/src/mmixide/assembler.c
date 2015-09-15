@@ -106,6 +106,16 @@ int mmix_assemble(int file_no)
   if (l_option) listing=get_mml_name(source);
   else listing=NULL;
   ide_status("mmixal running ...");
+
+   /* for the FILE instruction to work, the Current Directory 
+   should be set to the directory of the file we assemble.
+   */
+  { static char name[MAX_PATH+2], *tail;
+    GetFullPathName(source,MAX_PATH,name,&tail);
+    *tail=0;
+    SetCurrentDirectory(name);
+   }
+
   err_count = mmixal(source,NULL,listing,x_option,b_option);
   symtab_add_file(file_no,trie_root);
   trie_root=NULL;

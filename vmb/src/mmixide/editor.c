@@ -165,12 +165,26 @@ static void check_diskfile_change(void)
   if (full_mms_name==NULL) return;
   dtime=ftime(full_mms_name);
   if (CompareFileTime(&dtime,&(file_time[edit_file_no]))>0)
-  { int decision;
-    int dirty = (int)ed_send(SCI_GETMODIFY,0,0);
+  { int dirty = (int)ed_send(SCI_GETMODIFY,0,0);
+    int decision;
+    char msg[200];
+	SYSTEMTIME f,d;
+	FileTimeToSystemTime(&dtime,&d);
+	FileTimeToSystemTime(&(file_time[edit_file_no]),&f);
+
+
     if (dirty)
-      decision= MessageBox(hMainWnd, "File has changed on disk.\nDiscard changes and reload?", full_mms_name, MB_YESNO|MB_ICONWARNING);
+		sprintf(msg, "File %d/%d/%d,%d:%d:%d:%d has changed on disk %d/%d/%d,%d:%d:%d:%d.\nDiscard changes and reload?",
+	  d.wYear,d.wMonth,d.wDayOfWeek,d.wHour,d.wMinute,d.wSecond,d.wMilliseconds,
+	  f.wYear,f.wMonth,f.wDayOfWeek,f.wHour,f.wMinute,f.wSecond,f.wMilliseconds
+	  );
     else
-      decision= MessageBox(hMainWnd, "File has changed on disk.\nReload?", full_mms_name, MB_YESNO|MB_ICONQUESTION);			  if (decision == IDYES)
+		sprintf(msg, "File %d/%d/%d,%d:%d:%d:%d has changed on disk %d/%d/%d,%d:%d:%d:%d.\n Reload?",
+	  d.wYear,d.wMonth,d.wDayOfWeek,d.wHour,d.wMinute,d.wSecond,d.wMilliseconds,
+	  f.wYear,f.wMonth,f.wDayOfWeek,f.wHour,f.wMinute,f.wSecond,f.wMilliseconds
+	  );
+    decision= MessageBox(hMainWnd, msg, full_mms_name, MB_YESNO|MB_ICONWARNING);
+	if (decision == IDYES)
 	{ ed_read_file();
 	}
   }

@@ -134,7 +134,7 @@ char *unique_name(int file_no)
 
 static char *full_filename(char *filename, char **tail)
 /* compute and allocate the full filename for the given filename set tail to the shortname*/
-{ static char name[MAX_PATH+1], *head;
+{ static char name[MAX_PATH+2], *head;
   int n;
   if (filename==NULL) return NULL;
   n = GetFullPathName(filename,MAX_PATH,name,tail);
