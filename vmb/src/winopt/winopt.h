@@ -21,7 +21,7 @@ extern void win32_ferror(int line, char *format, char *str);
 extern void win32_log(char *msg);
 
 extern void win32_fatal_error(int line, char *message);
-
+extern void init_layout(int interactive);
 extern int xpos, ypos; /* Window position */
 extern int width,height; /* dimension of main window */
 

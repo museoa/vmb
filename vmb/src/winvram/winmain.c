@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.40 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.41 $ $Date: 2015-09-15 10:39:28 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -1221,7 +1221,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
-	
+	init_layout(0);
 	param_init();
 	SetWindowText(hMainWnd,defined);
     read_regtab(defined);

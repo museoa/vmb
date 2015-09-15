@@ -240,6 +240,10 @@
 				RelativePath="..\winopt\win32connect.rc"
 				>
 			</File>
+			<File
+				RelativePath="..\winopt\win32debug.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

@@ -255,6 +255,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\winopt\win32debug.rc"
+				>
+			</File>
+			<File
 				RelativePath="..\winopt\win32dedit.rc"
 				>
 			</File>

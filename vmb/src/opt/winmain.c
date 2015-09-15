@@ -91,7 +91,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
-	
+	init_layout(0);
 	param_init();
 	SetWindowText(hMainWnd,defined);
 	read_regtab(defined);

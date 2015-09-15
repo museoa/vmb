@@ -219,11 +219,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\opt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
@@ -266,6 +266,10 @@
 			</File>
 			<File
 				RelativePath="..\winopt\win32connect.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\winopt\win32debug.rc"
 				>
 			</File>
 		</Filter>

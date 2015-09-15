@@ -146,6 +146,19 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           p->ptMinTrackSize.y = minh;
 		}
 		return 0;
+		  /* change color of edit contols like trace */
+  case WM_CTLCOLOREDIT :
+  case WM_CTLCOLORSTATIC:
+		{ HDC hdc = (HDC)wparam;
+		  HWND hc = (HWND)lparam;
+		  if (hc==hLog)
+		  { SetTextColor(hdc,RGB(0,0,0));
+		    SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
+		    return (LRESULT)GetSysColorBrush(COLOR_BTNFACE);
+		  }
+		  else
+			 break;
+		}
   }
   return FALSE;
 }

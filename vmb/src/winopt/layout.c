@@ -8,7 +8,7 @@
 
 HFONT hFixedFont=NULL;
 HFONT hVarFont=NULL;
-int fixed_line_height=0;
+int fixed_line_height=10;
 int fixed_char_width=0;
 int fixed_char_height=0;
 int separator_width=0;

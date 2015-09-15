@@ -20,7 +20,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.28 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.29 $ $Date: 2015-09-15 10:39:28 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   
@@ -239,7 +239,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
-
+	init_layout(0);
 	param_init();
 	SetWindowText(hMainWnd,defined);
 	read_regtab(defined);
