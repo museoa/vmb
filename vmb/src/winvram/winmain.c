@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.41 $ $Date: 2015-09-15 10:39:28 $";
+char version[]="$Revision: 1.42 $ $Date: 2015-09-15 11:20:38 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -558,6 +558,7 @@ static int read_gpu(unsigned int offset, int size, unsigned char *buf)
 #define GPU_BLT			0x04
 #define GPU_BLT_IN		0x05
 #define GPU_BLT_OUT		0x06
+#define GPU_DIB			0x07
 
 
 
@@ -712,6 +713,7 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_BLT:
+		vmb_debug(VMB_DEBUG_PROGRESS,"BitBlockTransfer within GPU");
 		BitBlt(hCanvas,GPU_X,GPU_Y,GPU_W,GPU_H,hCanvas,GPU_X_2,GPU_Y_2,GPU_COMMAND_AUX);
 		y = GPU_Y;
 		h = GPU_H;
@@ -720,15 +722,23 @@ void gpu_put_payload(unsigned int offset,int size, unsigned char *payload)
 		GPU_STATUS=GPU_IDLE;
 		break;
 	case GPU_BLT_IN:
+		vmb_debug(VMB_DEBUG_PROGRESS,"BitBlockTransfer to GPU");
 		LeaveCriticalSection (&bitmap_section);
 		PostMessage(hMainWnd,WM_VMB_OTHER,0,0);
 		mem_update_i(2,offset,size);
 		return;
 	case GPU_BLT_OUT:
+		vmb_debug(VMB_DEBUG_PROGRESS,"BitBlockTransfer from GPU");
 		LeaveCriticalSection (&bitmap_section);
 	    PostMessage(hMainWnd,WM_VMB_OTHER+1,0,0);
 		mem_update_i(2,offset,size);
         return;
+	case GPU_DIB:
+		vmb_debug(VMB_DEBUG_PROGRESS,"DIB Transfer to GPU");
+		LeaveCriticalSection (&bitmap_section);
+		PostMessage(hMainWnd,WM_VMB_OTHER+2,0,0);
+		mem_update_i(2,offset,size);
+		return;
   }
 
   if (x<0) x=0;
@@ -1018,6 +1028,92 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  GPU_STATUS=GPU_IDLE;
 		  return 0;
 		}
+
+	case WM_VMB_OTHER+2: /* called for GPU_DIB */
+	    { int x,y,w,h,d;
+		  unsigned char *buf=NULL;
+          data_address da ={NULL,0,0,256*8,STATUS_INVALID};
+		  BITMAPFILEHEADER   *fh=NULL;
+		  BITMAPINFOHEADER   *pbmih=NULL;
+	      BITMAPINFO *pbmi=NULL;
+	      unsigned char *lpbits=NULL;
+	      int size;
+	      HBITMAP hb;
+	      unsigned char *signature;
+		  RECT rect;
+#define BLKSIZE (256*8)
+		  vmb_debug(VMB_DEBUG_INFO,"Incomming DIB Transfer");
+          d=BLKSIZE;
+	      buf = (unsigned char *)malloc(d);
+	      if (buf == NULL) return 0;
+		  da.address_hi = chartoint(gpu_mem+0x10);
+          da.address_lo = chartoint(gpu_mem+0x14);
+		  da.size = d;
+		  da.data = buf;
+		  da.status = STATUS_INVALID;
+		  vmb_load(&vmb_gpu, &da);
+		  vmb_wait_for_valid(&vmb_gpu, &da);
+		  if (da.address_lo+d<da.address_lo) da.address_hi++;
+			da.address_lo += d;
+
+          fh = (BITMAPFILEHEADER *)(buf + 0);
+	      signature = (unsigned char *)&fh->bfType;
+	      if (signature[0] != 'B' || signature[1]!= 'M') 
+		  { free(buf); return 0; }
+	      /* Bitmap Info Header */
+	      pbmi = (BITMAPINFO *)(buf + sizeof(BITMAPFILEHEADER));
+	      pbmih = &(pbmi->bmiHeader);
+		  w = pbmi->bmiHeader.biWidth;
+		  h = pbmi->bmiHeader.biHeight; 
+	      size = pbmi->bmiHeader.biSizeImage;
+	      if (pbmi->bmiHeader.biCompression == BI_RGB)
+	        size = ((w*pbmi->bmiHeader.biBitCount +31)/ 32)*4*h;
+	      size = size + fh->bfOffBits;
+	      if (size > d)
+	      { unsigned char * tmp=(unsigned char *)realloc(buf, size);
+		    if (tmp == NULL) { free(buf); return 0;}
+            buf=tmp;
+		    fh = (BITMAPFILEHEADER *)(buf + 0);
+		    pbmi = (BITMAPINFO *)(buf + sizeof(BITMAPFILEHEADER));
+		    pbmih = &(pbmi->bmiHeader);
+			da.data=buf+d;
+			size=size-d;
+	      }
+          while (size>0)
+		  { if (d>size) d = size;
+			da.size = d;
+		    vmb_load(&vmb_gpu, &da);
+		    vmb_wait_for_valid(&vmb_gpu, &da);
+			size=size-d;
+			da.data=da.data+d;
+			if (da.address_lo+d<da.address_lo) da.address_hi++;
+			da.address_lo += d;
+            da.status = STATUS_INVALID;
+		  }
+	      lpbits = buf + fh->bfOffBits;
+		  x = GPU_X;
+		  y = GPU_Y;
+		  EnterCriticalSection (&bitmap_section);
+		  hb= CreateDIBitmap(hCanvas, pbmih, CBM_INIT, lpbits, pbmi, DIB_RGB_COLORS);
+ 	      StretchDIBits(hCanvas, x,y, w,h,0, 0, w, h, lpbits, pbmi, DIB_RGB_COLORS, SRCCOPY);
+          LeaveCriticalSection (&bitmap_section);
+		  DeleteObject(hb);
+		  vmb_raise_interrupt(&vmb_gpu, gpu_interrupt);
+		  GPU_STATUS=GPU_IDLE;
+		  rect.top = (int)(y*zoom);
+		  rect.bottom = (int)((y+h)*zoom);
+		  rect.left = (int)(x*zoom);
+		  rect.right = (int)((x+w)*zoom);  
+		  EnterCriticalSection (&bitmap_section);
+          InvalidateRect(hMainWnd,&rect,FALSE);
+          LeaveCriticalSection (&bitmap_section);
+		  if (w>0 && h>0)
+            mem_update_i(0,(y*framewidth+x)*4,(h*framewidth+w)*4);
+		  /* free(buf); */
+		  return 0;
+		}
+
+
 	case WM_CREATE:
 		return (DefWindowProc(hWnd, message, wParam, lParam));
     case WM_COMMAND:
