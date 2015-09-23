@@ -21,7 +21,7 @@ device_info vmb;
 
 int main(int argc,char *argv[])
 {
-	char**boot_cur_arg;
+	char**boot_argv;
 	int boot_argc;
 	mmix_lib_initialize();
 	g[255].h= 0;
@@ -40,11 +40,11 @@ int main(int argc,char *argv[])
 	if (vmb.power) vmb_raise_reset(&vmb);
 	mmix_initialize();
 
-	boot_cur_arg= cur_arg;
+	boot_argv= cur_arg;
 	boot_argc= argc;
 boot:
 	argc= boot_argc;
-	cur_arg= boot_cur_arg;
+	cur_arg= boot_argv;
 
 	vmb.reset_flag=0;
 	printf("Power...");
@@ -58,7 +58,7 @@ boot:
   
 
 	if (cur_arg!=NULL && cur_arg[0]!=0) mmix_load_file(*cur_arg);
-	mmix_commandline(argc,argv);
+	mmix_commandline(argc,cur_arg);
 
 	while(vmb.connected){
 		if(interrupt&&!breakpoint)breakpoint= interacting= true,interrupt= false;
