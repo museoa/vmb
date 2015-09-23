@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.43 $ $Date: 2015-09-15 18:20:34 $";
+char version[]="$Revision: 1.44 $ $Date: 2015-09-23 14:26:50 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -22,7 +22,7 @@ int major_version=1, minor_version=8;
  *     The Screen Stuff
  *
  */
-extern int width, height, framewidth, frameheight, fontwidth, fontheight;
+extern int framewidth, frameheight, fontwidth, fontheight;
 extern double zoom;
 static HDC hCanvas = NULL;
 static CRITICAL_SECTION   bitmap_section;

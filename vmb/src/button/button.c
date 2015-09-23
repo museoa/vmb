@@ -1,6 +1,6 @@
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.16 $ $Date: 2015-09-13 10:04:00 $";
+char version[]="$Revision: 1.17 $ $Date: 2015-09-23 14:26:49 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";
@@ -19,7 +19,6 @@ char howto[]="The button device can be configured to send interrupts\n"
 
 HBITMAP hOn, hOff, hOnTemplate, hOffTemplate;
 HDC hCanvas = NULL;
-int height,width;
 int color;
 int upinterrupt;
 int pushbutton;

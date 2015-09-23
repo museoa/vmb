@@ -48,6 +48,7 @@ int port = 9002;
 int interrupt_no = 16;
 int disable_interrupt = 0;
 int xpos=0, ypos=0; /* Window position */
+int width=64,height=64; /* Window dimensions */
 int minimized = 0;  /* start the window minimized */
 
 

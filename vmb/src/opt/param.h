@@ -31,6 +31,8 @@
 extern char *host;
 extern int port;
 extern int xpos,ypos;
+extern int width,height; /* Window dimensions */
+
 extern int minimized;
 
 

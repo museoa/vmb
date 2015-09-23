@@ -25,7 +25,7 @@
 #include "param.h"
 #include "vmb.h"
 
-int width,height,framewidth,frameheight, fontwidth, fontheight;
+int framewidth,frameheight, fontwidth, fontheight;
 double zoom;
 uint64_t vmb_mouse_address, vmb_gpu_address;
 int move_interrupt, gpu_interrupt;

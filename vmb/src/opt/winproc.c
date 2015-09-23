@@ -120,6 +120,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     return 0;
 
   case WM_DESTROY:
+	set_xypos(hMainWnd);
 	write_regtab(defined);
     PostQuitMessage(0);
     return 0;

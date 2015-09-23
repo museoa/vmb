@@ -24,5 +24,5 @@ void get_xypos(void)
   if (xpos < 0 || xpos >w) xpos = 0;
   if (ypos < 0 || ypos >h) ypos = 0;
   if (width<=0 || xpos+width>w) width=w-xpos;
-  if (height<=0 || ypos+height>h) width=h-ypos;
+  if (height<=0 || ypos+height>h) height=h-ypos;
 }
