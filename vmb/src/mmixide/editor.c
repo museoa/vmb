@@ -142,7 +142,7 @@ static void ed_read_file(void)
   else {
     char data[ED_BLOCKSIZE];
     DWORD len;
-    GetFileTime(fh,NULL,NULL,&(file_time[edit_file_no]));
+	file_time[edit_file_no]=ftime(file2fullname(edit_file_no));
 	ed_send(SCI_SETTEXT,0,(sptr_t)"");
     while (ReadFile(fh,data,ED_BLOCKSIZE,&len,NULL) && len>0)
       ed_send(SCI_ADDTEXT, len, (sptr_t)data);
@@ -158,34 +158,28 @@ static void ed_read_file(void)
 #endif
 
 static void check_diskfile_change(void)
-{ FILETIME dtime;
+{ time_t dtime;
   char *full_mms_name;
   if (edit_file_no<0) return;
   full_mms_name=file2fullname(edit_file_no);
   if (full_mms_name==NULL) return;
   dtime=ftime(full_mms_name);
-  if (CompareFileTime(&dtime,&(file_time[edit_file_no]))>0)
+  if (dtime>file_time[edit_file_no])
   { int dirty = (int)ed_send(SCI_GETMODIFY,0,0);
     int decision;
     char msg[200];
-	SYSTEMTIME f,d;
-	FileTimeToSystemTime(&dtime,&d);
-	FileTimeToSystemTime(&(file_time[edit_file_no]),&f);
-
-
     if (dirty)
-		sprintf(msg, "File %d/%d/%d,%d:%d:%d:%d has changed on disk %d/%d/%d,%d:%d:%d:%d.\nDiscard changes and reload?",
-	  d.wYear,d.wMonth,d.wDayOfWeek,d.wHour,d.wMinute,d.wSecond,d.wMilliseconds,
-	  f.wYear,f.wMonth,f.wDayOfWeek,f.wHour,f.wMinute,f.wSecond,f.wMilliseconds
-	  );
+		sprintf(msg, "File (time %ld) has changed on disk (time %ld).\nDiscard changes and reload?",
+			(long)file_time[edit_file_no],(long)dtime);
     else
-		sprintf(msg, "File %d/%d/%d,%d:%d:%d:%d has changed on disk %d/%d/%d,%d:%d:%d:%d.\n Reload?",
-	  d.wYear,d.wMonth,d.wDayOfWeek,d.wHour,d.wMinute,d.wSecond,d.wMilliseconds,
-	  f.wYear,f.wMonth,f.wDayOfWeek,f.wHour,f.wMinute,f.wSecond,f.wMilliseconds
-	  );
+		sprintf(msg, "File (time %ld) has changed on disk (time %ld).\n Reload?",
+			(long)file_time[edit_file_no],(long)dtime);
     decision= MessageBox(hMainWnd, msg, full_mms_name, MB_YESNO|MB_ICONWARNING);
 	if (decision == IDYES)
 	{ ed_read_file();
+	}
+	else
+	{ file_time[edit_file_no]=dtime;
 	}
   }
 }
@@ -386,16 +380,6 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	  }
 	}
   return (DefWindowProc(hWnd, message, wParam, lParam));
-}
-
-FILETIME ftime(char *file_name)
-{ FILETIME t={0,0};
-  HANDLE h;
-  if (file_name==NULL || file_name[0]==0) return t;
-  h = CreateFile(file_name,FILE_READ_ATTRIBUTES,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-  if (h==INVALID_HANDLE_VALUE) return t;
-  GetFileTime(h,NULL,NULL,&t);
-  return t;
 }
 
 
@@ -755,8 +739,8 @@ static int ed_write_file(void)
 		    break;
 		  }
 		}
-		GetFileTime(fh,NULL,NULL,&(file_time[edit_file_no]));
 		CloseHandle(fh);
+	    file_time[edit_file_no]=ftime(name);
 		ed_send(SCI_SETSAVEPOINT,0,0);
     }
 	return ok;

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <windows.h>
 #include <commctrl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "error.h"
 #include "mmixlib.h"
 #define STATIC_BUILD
@@ -37,7 +40,7 @@ char needs_loading[MAX_FILES+1] ={0};			/* does this file need needs_loading */
 char needs_reading[MAX_FILES+1] ={0};   /* reading a file with a full filename can be delayed until displayed for the first time */
 static int next_file_no=0;				/* all used file numbers are below next_file_no */
 static int count_file_no=0;				/* number of used file numbers */
-FILETIME file_time[MAX_FILES+1] ={0};   /* filetime of disk file */
+time_t file_time[MAX_FILES+1] ={0};   /* filetime of disk file */
 
 extern void free_tree(trie_node *root);
 
@@ -83,7 +86,7 @@ static int alloc_file_no(void)
 #endif
 		execute[file_no]=0;
         needs_loading[file_no]=0;
-		file_time[file_no].dwHighDateTime=file_time[file_no].dwLowDateTime=0;
+		file_time[file_no]=0;
 		if (file_no>=next_file_no) next_file_no = file_no+1;
         return file_no;
       }
@@ -345,6 +348,13 @@ int get_inuse_file(void)
     for(file_no=0;file_no<next_file_no;file_no++)
       if(inuse(file_no)) return file_no;
   return -1;
+}
+
+
+time_t ftime(char *file_name)
+{ struct _stat buf;
+	_stat(file_name,&buf);
+	return buf.st_mtime;
 }
 
 

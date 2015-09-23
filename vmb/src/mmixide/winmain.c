@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.56 $ $Date: 2015-09-23 07:59:06 $";
+char version[]="$Revision: 1.57 $ $Date: 2015-09-23 12:40:27 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -656,10 +656,10 @@ BOOL InitInstance(HINSTANCE hInstance)
 
 
 int mmo_file_newer(char *full_mms_name)
-{ FILETIME mmsTime, mmoTime;
+{ time_t mmsTime, mmoTime;
   mmsTime=ftime(full_mms_name);
   mmoTime=ftime(get_mmo_name(full_mms_name));
-  if (CompareFileTime(&mmsTime,&mmoTime)>0)
+  if (mmsTime > mmoTime)
 	  return 1;
   else
 	  return 0;
