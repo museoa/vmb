@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.55 $ $Date: 2015-09-15 16:01:01 $";
+char version[]="$Revision: 1.56 $ $Date: 2015-09-23 07:59:06 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -135,13 +135,18 @@ static int check_load_count(void)
 { if (!load_single_file && !missing_app) return 1;
   load_count = 0;
   for_all_files(count_load_files);
-  if (load_count==0 && (missing_app|load_single_file))
-  { MessageBox(hMainWnd, "No mms file selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
-    return 0;
+  if (load_count==0 && missing_app)
+  { int decission;
+	decission= MessageBox(hMainWnd, "Debug Option \"Warn if no application\" selected.\r\n"
+                         "No files selected for loading. Continue?", "Warning: Missing application", 
+						 MB_ICONEXCLAMATION|MB_OKCANCEL);
+    if (decission!=IDOK) return 0;
   }
   if (load_count!=1 && load_single_file)
-  { MessageBox(hMainWnd, "Multiple mms files selected for loading.", "Warning", MB_ICONEXCLAMATION|MB_OK);
-    return 0;
+  { MessageBox(hMainWnd, "Source Option \"Load single file\" selected.",
+		load_count?"Error: No file selected for loading":"Error: Multiple files selected for loading",
+		MB_ICONEXCLAMATION|MB_OK);
+	return 0;
   }
   return 1;
 }
