@@ -34,10 +34,10 @@ extern int chartoint(const unsigned char buffer[4]);
 #define LOTETRA(x) ((unsigned int)((x)&0xFFFFFFFF))
 #define HIWYDE(x) ((unsigned int)(((x)>>16)&0xFFFF))
 #define LOWYDE(x) ((unsigned int)((x)&0xFFFF))
-//ifndef HIBYTE
-//define HIBYTE(x) ((unsigned int)(((x)>>8)&0xFF))
-//define LOBYTE(x) ((unsigned int)((x)&0xFF))
-//endif
+#ifndef HIBYTE
+#define HIBYTE(x) ((unsigned int)(((x)>>8)&0xFF))
+#define LOBYTE(x) ((unsigned int)((x)&0xFF))
+#endif
 
 #define GET2(a)   ((unsigned int)(((a)[0]<<8)+(a)[1]))
 #define GET4(a)   ((unsigned int)(((a)[0]<<24)+((a)[1]<<16)+((a)[2]<<8)+(a)[3]))

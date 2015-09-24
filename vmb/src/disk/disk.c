@@ -16,22 +16,24 @@
 #include "resource.h"
 extern HWND hMainWnd;
 extern HBITMAP hbussy;
+#include "inspect.h"
 #else
 #include <pthread.h>
 #include <unistd.h>
+/* make mem_update a no-op */
+#define mem_update(offset, size)
 #endif
 #include "vmb.h"
 #include "error.h"
 #include "bus-arith.h"
 #include "param.h"
-#include "inspect.h"
 
 int major_version=1, minor_version=8;
 extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.33 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.34 $ $Date: 2015-09-24 11:49:28 $";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"
@@ -90,6 +92,7 @@ char howto[] =
 "of buffers in physical memory where the next transfer takes place.\n"
 "\n";
 
+#ifdef WIN32
 struct register_def disk_regs[] = {
 	/* name no offset size chunk format */
 	{"Status"   ,0x00,4,tetra_chunk,hex_format},
@@ -131,6 +134,7 @@ struct register_def disk_regs[] = {
     {"DMAf Size",0x118,8,octa_chunk,unsigned_format},
 	{0}};
 
+#endif
 #define NUM_REGS 36
 #define DISK_MEM 0x120
 static unsigned char mem[DISK_MEM] = {0};
@@ -319,9 +323,8 @@ void start_disk_server(void)
 /* in the moment, I really dont use the handle */
     CloseHandle(hDiskThread);
 #else
-   int disk_tid;
    pthread_t disk_thr;
-   disk_tid = pthread_create(&disk_thr,NULL,disk_server,NULL);
+   pthread_create(&disk_thr,NULL,disk_server,NULL);
 #endif
 }
 }
@@ -408,7 +411,7 @@ static void diskInit(void) {
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
   if (vmb_filename != NULL) {
     /* try to install disk */
-    diskImage = win32_fopen(vmb_filename, "r+b");
+    diskImage = vmb_fopen(vmb_filename, "r+b");
     if (diskImage == NULL)
       vmb_error(__LINE__,"cannot open disk image");
     else
@@ -657,11 +660,13 @@ void disk_terminate(void)
 #endif
 }
 
+#ifdef WIN32
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
 	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,hex_format,octa_chunk,-1,8,NUM_REGS,disk_regs},
 	{0}
 };
+#endif
 
 void init_device(device_info *vmb)
 {	vmb_size = DISK_MEM;
@@ -678,7 +683,9 @@ void init_device(device_info *vmb)
   vmb->terminate=disk_terminate;
   vmb->put_payload=disk_put_payload;
   vmb->get_payload=disk_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
+#endif
 }
 
 #ifndef WIN32
