@@ -1,6 +1,6 @@
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.17 $ $Date: 2015-09-23 14:26:49 $";
+char version[]="$Revision: 1.18 $ $Date: 2015-09-24 11:26:46 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";
@@ -321,7 +321,7 @@ void process_input(unsigned char c)
   { pushstate = 1;
     vmb_debug(VMB_DEBUG_PROGRESS,"Button DOWN");
     if (enable_interrupts&1)
-  	  vmb_raise_interrupt(&vmb, interrupt);
+  	  vmb_raise_interrupt(&vmb, interrupt_no);
   }
 }
 
@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
   vmb_debugs(VMB_DEBUG_INFO, "host: %s ",host);
   vmb_debugi(VMB_DEBUG_INFO, "port: %d ",port);
   init_device(&vmb);
-  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt);
+  vmb_debugi(VMB_DEBUG_INFO, "interrupt: %d",interrupt_no);
   
   vmb_connect(&vmb,host,port); 
 
