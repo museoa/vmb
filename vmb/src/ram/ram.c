@@ -26,17 +26,17 @@
 #ifdef WIN32
 #include <windows.h>
 extern HWND hMainWnd;
+#include "winopt.h"
+#include "inspect.h"
 #else
 #include <unistd.h>
 #endif
 #include "bus-arith.h"
 #include "vmb.h"
 #include "param.h"
-#include "winopt.h"
-#include "inspect.h"
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.21 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.22 $ $Date: 2015-09-24 08:22:48 $";
 char title[] ="VMB RAM";
 
 char howto[] =
@@ -140,7 +140,9 @@ static int ram_write(unsigned int offset,int size,unsigned char *payload)
   n = ram_write_mid(i,offset,size,payload);
   if (n<size && i+1 < ROOTSIZE)
     n = n + ram_write_mid(i+1,0,size-n,payload+n);
+#ifdef WIN32
   mem_update(offset, size);
+#endif
   return n;
 }
 
@@ -167,9 +169,11 @@ static void ram_clean(void)
         }
       root[i]=NULL;
     }
+#ifdef WIN32
    inspector[0].address=vmb_address;
    inspector[0].size=vmb_size;
    mem_update(0, vmb_size);
+#endif
 }
 
 /* Interface to the virtual motherboard */
@@ -206,11 +210,13 @@ void ram_reset(void)
   ram_clean();
 }
 
+#ifdef WIN32
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
 	{"Memory",0,ram_read,ram_get_payload,ram_put_payload,0,0,-1, 8,0,NULL},
 	{0}
 };
+#endif
 
 void init_device(device_info *vmb)
 { ram_clean();
@@ -221,6 +227,8 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=ram_put_payload;
   vmb->get_payload=ram_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
   inspector[0].size=vmb_size;
+#endif
 }

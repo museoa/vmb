@@ -6,7 +6,7 @@ ARFLAGS = cru
 RANLIB = ranlib
 
 #VMBOPTOBJECTS = param.o option.o version.o optiontab.o
-VMBOPTOBJECTS = param.o  optiontab.o
+VMBOPTOBJECTS = param.o  option.o optiontab.o
 
 .PHONY:  clean
      

@@ -384,9 +384,7 @@ int  do_option_short(char cmd,char *arg)
 
 void option_usage(FILE *out)
 { option_spec *p;
-  int i;
-  
-  i=0;
+
   p= options;
   while(p->description!=NULL)
   { fprintf(out,"-%c  --%s",p->shortopt, p->longopt);
