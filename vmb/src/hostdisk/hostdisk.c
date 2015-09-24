@@ -16,26 +16,29 @@
 #include "resource.h"
 extern HWND hMainWnd;
 extern HBITMAP hbussy;
+#include "inspect.h"
 #else
 #include <pthread.h>
 #include <unistd.h>
+/* make mem_update a no-op */
+#define mem_update(offset, size)
 #endif
 #include "vmb.h"
 #include "message.h"
 #include "error.h"
 #include "bus-arith.h"
 #include "param.h"
-#include "inspect.h"
 
 extern device_info vmb;
 int major_version=1, minor_version=8;
 char title[] ="VMB Host Disk";
 
-char version[]="$Revision: 1.12 $ $Date: 2015-09-24 08:31:28 $";
+char version[]="$Revision: 1.13 $ $Date: 2015-09-24 12:41:34 $";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";
 
+#ifdef WIN32
 struct register_def disk_regs[] = {
 	/* name no offset size chunk format */
 	{"Status"   , 0,0x00,4,tetra_chunk,hex_format},
@@ -76,6 +79,7 @@ struct register_def disk_regs[] = {
     {"DMAf Addr",35,0x110,8,octa_chunk,hex_format},
     {"DMAf Size",36,0x118,8,octa_chunk,unsigned_format},
 	{0}};
+#endif
 
 #define NUM_REGS 36
 #define DISK_MEM 0x120
@@ -270,6 +274,7 @@ static void diskBussy(void);
 static void diskDone(void);
 
 static int disk_server_running = 0;
+static char *rootdir=NULL;
 
 #ifdef WIN32
 static DWORD WINAPI disk_server(LPVOID dummy)
@@ -301,15 +306,15 @@ static void *disk_server(void *_dummy)
 			}
 			getMemory(); /* filename */
 			{ char *name;
-			  if (filename==NULL)
+			  if (rootdir==NULL)
                             name=(char *)dma_buffer;
 			  else
-			  { int len = (int)strlen((char *)dma_buffer)+(int)strlen(filename);
+			  { int len = (int)strlen((char *)dma_buffer)+(int)strlen(rootdir);
 		        name = malloc(len+1);
 			    if (name==NULL)
 				  vmb_error(__LINE__,"Out of Memory");
 				else
-				{ strcpy(name,filename);
+				{ strcpy(name,rootdir);
 				  strcat(name,(char *)dma_buffer);
 				}
 			  }
@@ -321,7 +326,7 @@ static void *disk_server(void *_dummy)
 			  { diskStatus=diskStatus| DISK_ERR;
 			    break;
 			  }
-			  if (filename!=NULL)
+			  if (rootdir!=NULL)
 				  free(name);
 			}
 			break;
@@ -403,9 +408,8 @@ void start_disk_server(void)
 /* in the moment, I really dont use the handle */
     CloseHandle(hDiskThread);
 #else
-   int disk_tid;
    pthread_t disk_thr;
-   disk_tid = pthread_create(&disk_thr,NULL,disk_server,NULL);
+   pthread_create(&disk_thr,NULL,disk_server,NULL);
 #endif
 }
 
@@ -493,9 +497,9 @@ static void diskInit(void)
 {
   diskReset();
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
-  if (filename == NULL) 
+  if (rootdir == NULL) 
   { vmb_get_cwd();
-    set_option(&filename,vmb_cwd);
+    set_option(&rootdir,vmb_cwd);
   }
   start_disk_server();
   register_to_mem();
@@ -534,7 +538,7 @@ static void diskDone(void)
   SET_DISK_STAT(diskStatus);
   mem_update(0,4);
   if (diskCtrl & DISK_IEN) {
-    vmb_raise_interrupt(&vmb,interrupt);
+    vmb_raise_interrupt(&vmb,interrupt_no);
     vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
   }
 }
@@ -697,11 +701,13 @@ void disk_terminate(void)
 #endif
 }
 
+#ifdef WIN32
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
 	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,0,0,-1,0,NUM_REGS,disk_regs},
 	{0}
 };
+#endif
 
 void init_device(device_info *vmb)
 {	vmb_size = DISK_MEM;
@@ -718,10 +724,12 @@ void init_device(device_info *vmb)
   vmb->terminate=disk_terminate;
   vmb->put_payload=disk_put_payload;
   vmb->get_payload=disk_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
-  if (filename == NULL) 
+#endif
+  if (rootdir == NULL) 
   { vmb_get_cwd();
-    set_option(&filename,vmb_cwd);
+    set_option(&rootdir,vmb_cwd);
   }
 }
 
