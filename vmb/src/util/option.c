@@ -52,6 +52,7 @@
 
 char tmp_option[MAXTMPOPTION]= {0};
 char *programpath = NULL;
+char *program_name=NULL;
 char *programhelpfile = NULL;
 char *defined=NULL;
 static char * configFILE=NULL;
@@ -98,7 +99,7 @@ void uint64tohex(uint64_t u, char *c)
 }
 #endif
 
-uint64_t strtouint64(char *arg)
+static uint64_t strtouint64(char *arg)
 { uint64_t r = 0;
   while(isspace(*arg)) arg++;
   if (strncmp(arg,"0x",2)==0 || strncmp(arg,"0X",2)==0) /* hex */

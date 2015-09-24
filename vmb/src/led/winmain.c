@@ -472,6 +472,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
  	vmb_connect(&vmb,host,port);
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
+	if (vmb_verbose_flag) vmb_debug_mask=0; 
+	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
+	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
+
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	  if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
 	  { TranslateMessage(&msg);

@@ -156,14 +156,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\optiontab.c"
-				>
-			</File>
-			<File
-				RelativePath=".\param.c"
-				>
-			</File>
-			<File
 				RelativePath=".\windebug.c"
 				>
 			</File>
@@ -183,10 +175,6 @@
 			>
 			<File
 				RelativePath=".\opt.h"
-				>
-			</File>
-			<File
-				RelativePath=".\param.h"
 				>
 			</File>
 			<File

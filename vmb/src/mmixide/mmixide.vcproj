@@ -151,6 +151,7 @@
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
 				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
+				ShowProgress="0"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -327,11 +328,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File

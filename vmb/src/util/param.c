@@ -23,14 +23,12 @@
 
 #include <stdlib.h>
 #include <string.h>
-
 #include <sys/types.h>
 #include <ctype.h>
 
 #ifdef WIN32
 #include <windows.h>
 #pragma warning(disable : 4996)
-#include "opt.h"
 #else
 #include <unistd.h>
 #include <stdint.h>
@@ -142,6 +140,7 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
 
 
 #ifdef WIN32
+
 void param_init(void)
 { int argc;
   char *argv[MAXARG];
@@ -156,10 +155,6 @@ void param_init(int argc, char *argv[])
 //  argv = CommandLineToArgvW( GetCommandLine(),&argc);
 //  parse_commandstr(GetCommandLine());
     parse_commandline(argc, argv);
-#ifndef _CONSOLE
-  if (vmb_verbose_flag) vmb_debug_mask=0; 
-  CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
-#endif
 #else
   parse_commandline(argc, argv);
   if (vmb_verbose_flag) vmb_debug_mask=0; 

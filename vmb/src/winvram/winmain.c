@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-char version[]="$Revision: 1.44 $ $Date: 2015-09-23 14:26:50 $";
+char version[]="$Revision: 1.45 $ $Date: 2015-09-24 15:13:14 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
@@ -1338,6 +1338,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	vmb_begin();
 	connect_all();
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
+	if (vmb_verbose_flag) vmb_debug_mask=0; 
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 

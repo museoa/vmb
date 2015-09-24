@@ -45,6 +45,7 @@
 #define DIRCHAR ('/')
 #define DIRSTR  ("/")
 #endif
+
 #ifdef VMB
 #include "vmb.h"
 #else
@@ -69,7 +70,7 @@ char *defined=NULL;
 static char * configFILE=NULL;
 static char * configPATH=NULL;
 static char *fopen_file=NULL;
-char *win32_cwd = NULL;
+static char *vmb_cwd = NULL;
 static int cflen=0, cplen=0;
 
 void set_option(char **option, char *str)
@@ -499,26 +500,26 @@ static void set_PATH_FILE(char *file)
   configPATH[cplen]=0;
 }
 
-void win32_get_cwd(void)
-{ if (win32_cwd!=NULL) return;
+static void vmb_get_cwd(void)
+{ if (vmb_cwd!=NULL) return;
 #ifdef WIN32
-  win32_cwd = _getcwd(NULL,0);
+  vmb_cwd = _getcwd(NULL,0);
 #else
-  win32_cwd = getcwd(NULL,0);
+  vmb_cwd = getcwd(NULL,0);
 #endif
-  if (win32_cwd==NULL) 
+  if (vmb_cwd==NULL) 
   { win32_error(__LINE__,"Unable to get current working directory");
     return;
   }
-  win32_cwd = realloc(win32_cwd,strlen(win32_cwd)+2);
-  if (win32_cwd==NULL) 
+  vmb_cwd = realloc(vmb_cwd,strlen(vmb_cwd)+2);
+  if (vmb_cwd==NULL) 
   { win32_fatal_error(__LINE__,"Out of memory");
     return;
   }
-  strcat(win32_cwd,DIRSTR);
+  strcat(vmb_cwd,DIRSTR);
 }
 
-FILE *win32_fopen(char *filename, char *mode)
+FILE *vmb_fopen(char *filename, char *mode)
 /* open fiename, look in the configPATH and programpath before giving up */
 { FILE *in;
   char *search[3];
@@ -546,7 +547,7 @@ FILE *win32_fopen(char *filename, char *mode)
   }
   free(fopen_file);
   fopen_file = NULL;
-  win32_get_cwd();
+  vmb_get_cwd();
   search[0]=win32_cwd;
   search[1]=configPATH;
   search[2]=programpath;

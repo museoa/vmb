@@ -100,7 +100,7 @@ extern LRESULT CALLBACK
 OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
 
 #include <stdio.h>
-FILE *win32_fopen(char *filename, char *mode);
+FILE *vmb_fopen(char *filename, char *mode);
 /* open fiename, look in the configPATH and programpath before giving up */
 
 #endif

@@ -165,11 +165,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\intchar.c"
+				RelativePath=".\error.c"
 				>
 			</File>
 			<File
-				RelativePath=".\error.c"
+				RelativePath=".\intchar.c"
 				>
 			</File>
 			<File
@@ -178,6 +178,18 @@
 			</File>
 			<File
 				RelativePath=".\msgerror.c"
+				>
+			</File>
+			<File
+				RelativePath=".\option.c"
+				>
+			</File>
+			<File
+				RelativePath=".\optiontab.c"
+				>
+			</File>
+			<File
+				RelativePath=".\param.c"
 				>
 			</File>
 			<File
@@ -227,15 +239,23 @@
 				>
 			</File>
 			<File
-				RelativePath=".\intchar.h"
-				>
-			</File>
-			<File
 				RelativePath=".\error.h"
 				>
 			</File>
 			<File
+				RelativePath=".\intchar.h"
+				>
+			</File>
+			<File
 				RelativePath=".\message.h"
+				>
+			</File>
+			<File
+				RelativePath=".\option.h"
+				>
+			</File>
+			<File
+				RelativePath=".\param.h"
 				>
 			</File>
 			<File

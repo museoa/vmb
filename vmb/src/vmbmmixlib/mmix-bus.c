@@ -23,12 +23,12 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "bus-arith.h"
 #include "mmix-internals.h"
 #include "address.h"
 #include "vmb.h"
 #include "message.h"
 #include "cache.h"
+#include "bus-arith.h"
 
 extern device_info vmb;
 

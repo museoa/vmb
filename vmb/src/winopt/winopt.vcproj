@@ -172,10 +172,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\option.c"
-				>
-			</File>
-			<File
 				RelativePath=".\stdinbuf.c"
 				>
 			</File>
@@ -251,10 +247,6 @@
 			</File>
 			<File
 				RelativePath=".\inspect.h"
-				>
-			</File>
-			<File
-				RelativePath=".\option.h"
 				>
 			</File>
 			<File

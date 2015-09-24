@@ -48,6 +48,7 @@ extern uint64_t strtouint64(char *arg);
 extern char *programpath;
 extern char *programhelpfile;
 extern char *vmb_program_name;
+extern char *program_name;
 extern char *vmb_cwd;
 
 extern char *defined;

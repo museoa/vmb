@@ -7,8 +7,10 @@
 #include <time.h>
 #endif
 #include <stdio.h> 
-#include <setjmp.h> 
+#include <setjmp.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include "vmb.h"
 #include "mmixlib/libtype.h"
 #include "mmixlib/libglobals.h"
