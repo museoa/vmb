@@ -1,11 +1,12 @@
 
 CFLAGS= -g -Wall
 
-SUBDIRS  = util opt device mother\
-           mmix \
+SUBDIRS  = util device mother\
+           mmixcpu \
+	   mmixgdb \
            screen keyboard vram \
            ram rom flash \
-           disk hostdisk led timer button serial
+           disk hostdisk led timer button serial vram
 
 .PHONY: hardware $(SUBDIRS) clean
 
