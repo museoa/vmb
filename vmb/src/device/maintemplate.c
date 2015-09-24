@@ -31,6 +31,7 @@
 
 
 #include "vmb.h"
+#include "param.h"
 
 #ifdef WIN32
 #include <windows.h>

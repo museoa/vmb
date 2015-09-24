@@ -31,6 +31,8 @@
 
 #include <string.h>
 
+int major_version=1, minor_version=8;
+
 /* This device simulates RAMSIZE bytes of RAM */
 #define RAMSIZE 1024
 static unsigned char ram[RAMSIZE];
