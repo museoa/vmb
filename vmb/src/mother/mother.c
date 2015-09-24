@@ -74,7 +74,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=8;
-char version[] = "$Revision: 1.50 $ $Date: 2015-09-15 10:39:28 $";
+char version[] = "$Revision: 1.51 $ $Date: 2015-09-24 12:13:43 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -476,27 +476,25 @@ interpret_message (int source_slot)
       break;
     
     case (ID_REGISTER):
-	{ int i;
       memmove (slot[source_slot].from_addr, &mpayload[0], 8);
       memmove (slot[source_slot].to_addr, &mpayload[8], 8);
       slot[source_slot].hi_mask = chartoint (&mpayload[16]);
       slot[source_slot].low_mask = chartoint (&mpayload[20]);
       if (msize > 2)
-      {	int n;
-	    n = (int)strlen((char *)mpayload + 24) + 1;
-		i=(n+7)/8; /* number of octas used by name */
-		if (slot[source_slot].name!=NULL) free(slot[source_slot].name);
+      { int i, n;
+        n = (int)strlen((char *)mpayload + 24) + 1;
+	i=(n+7)/8; /* number of octas used by name */
+	if (slot[source_slot].name!=NULL) free(slot[source_slot].name);
 	    slot[source_slot].name = malloc (n);
-	    if (slot[source_slot].name == NULL)
+	if (slot[source_slot].name == NULL)
 	      vmb_error(__LINE__,"Out of memory");
-	    else
+	else
 	      strncpy ((char *)slot[source_slot].name, (char *)mpayload + 24,n);
-      }
-	  if (msize > 2+i)
-	  { slot[source_slot].major_version = chartoint (&mpayload[24+i*8]);
-	    slot[source_slot].minor_version = chartoint (&mpayload[24+i*8+4]);
-	  }
+	if (msize > 2+i)
+	{ slot[source_slot].major_version = chartoint (&mpayload[24+i*8]);
+	  slot[source_slot].minor_version = chartoint (&mpayload[24+i*8+4]);
 	}
+      }
       if (powerflag&&!slot[source_slot].has_power)
 	    power_on (source_slot);
       break;
