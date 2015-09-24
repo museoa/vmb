@@ -455,9 +455,13 @@ static void start_thread(thread_function_ptr f, thread_data d)
 
 
 
-static DWORD WINAPI gdb_read_loop(LPVOID dummy)
+static THREAD_FUNCTION(gdb_read_loop, dummy)
 { char *read_buffer;
+#ifdef WIN32
   int port = (int)(LPARAM)dummy;
+#else
+  int port = (int)dummy;
+#endif
 #ifdef DEBUG
   fprintf(stderr, "Starting read loop\n");
 #endif

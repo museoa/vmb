@@ -7,7 +7,8 @@
 #include <time.h> 
 #endif
 #include <stdio.h> 
-#include <setjmp.h> 
+#include <setjmp.h>
+#include <unistd.h>
 #include "vmb.h"
 #include "mmixlib/libtype.h"
 #include "mmixlib/libglobals.h"
@@ -59,7 +60,11 @@ boot:
 	  }
 	}
 	printf("ON\n");
+#ifdef WIN32
 	Sleep(50); /* give all devices some time to power up before loading the application */
+#else
+	usleep(50000);
+#endif
 	mmix_boot();
   
 	while(vmb.connected){
