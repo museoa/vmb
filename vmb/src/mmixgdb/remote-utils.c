@@ -658,8 +658,10 @@ int gdb_init(int port)
 #ifndef WIN32
   /* If we don't do this, then gdbserver simply exits when the remote side dies. */
   signal (SIGPIPE, catchpipe);	
-#endif
+  start_thread(gdb_read_loop,(thread_data)port);
+#else
   start_thread(gdb_read_loop,(thread_data)(LPARAM)port);
+#endif
   start_thread(gdb_loop,0);
   return 1;
 }

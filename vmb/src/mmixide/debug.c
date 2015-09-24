@@ -11,7 +11,7 @@
 #include "mmixrun.h"
 #include "uint64.h"
 #ifdef VMB
-#include "endian.h"
+#include "intchar.h"
 #endif
 
 

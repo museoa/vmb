@@ -1,4 +1,4 @@
-#include "endian.h"
+#include "intchar.h"
 
 void inttochar(int val, unsigned char buffer[4])
 {

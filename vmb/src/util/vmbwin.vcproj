@@ -165,7 +165,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\endian.c"
+				RelativePath=".\intchar.c"
 				>
 			</File>
 			<File
@@ -227,7 +227,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\endian.h"
+				RelativePath=".\intchar.h"
 				>
 			</File>
 			<File

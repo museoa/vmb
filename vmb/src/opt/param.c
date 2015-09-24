@@ -35,10 +35,11 @@
 #include <unistd.h>
 #include <stdint.h>
 #endif
-#include "vmb.h"
+
+#include "../util/vmb.h"
 #include "param.h"
-#include "option.h"
-#include "bus-arith.h"
+//#include "option.h"
+//#include "bus-arith.h"
 
 
 
