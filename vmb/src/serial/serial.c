@@ -21,13 +21,15 @@
 */
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.16 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.17 $ $Date: 2015-09-24 12:21:44 $";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";
 
 #ifdef WIN32
 #include <windows.h>
+#include "winopt.h"
+#include "inspect.h"
 extern HWND hMainWnd;
 #else
 #define _XOPEN_SOURCE 600
@@ -43,13 +45,13 @@ extern HWND hMainWnd;
 #include <sys/ioctl.h>
 #include <ctype.h>
 #include <errno.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 
 #include "vmb.h"
 #include "error.h"
 #include "bus-arith.h"
-#include "winopt.h"
-#include "inspect.h"
 #include "param.h"
 #include "option.h"
 
@@ -131,10 +133,6 @@ static void clear(struct buf *buf)
 { bufacquire(buf);
   buf->head=buf->tail=0;
   bufrelease(buf);
-}
-
-static int buf_size(struct buf *buf)
-{ return (buf->tail-buf->head)&buf->buf_mask;
 }
 
 static int is_empty(struct buf *buf)
@@ -757,7 +755,8 @@ void serial_init(void)
   buf_init(&outbuf);
   serial_null();
 }
-   
+  
+#ifdef WIN32
 int serial_reg_read(unsigned int offset, int size, unsigned char *buf)
 { if (offset>SERIAL_MEM) return 0;
   if (offset+size>SERIAL_MEM) size =SERIAL_MEM-offset;
@@ -781,7 +780,7 @@ struct inspector_def inspector[2] = {
 	{0}
 };
 
-
+#endif
 
 void init_device(device_info *vmb)
 { vmb_debug(VMB_DEBUG_PROGRESS,"Serial initializing");
