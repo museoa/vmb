@@ -1,4 +1,3 @@
-
 CFLAGS= -O3 -ggdb -D_REENTRANT -Wall -pg -I../util
 CC= gcc
 AR = ar

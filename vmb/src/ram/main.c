@@ -33,7 +33,6 @@
 device_info vmb = {0};
 extern void init_device(device_info *vmb);
 
-
 int main(int argc, char *argv[])
 {
   param_init(argc, argv);

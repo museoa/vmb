@@ -39,14 +39,16 @@ extern HWND hMainWnd;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
+#ifdef WIN32
 #include "winopt.h"
 #include "opt.h"
 #include "inspect.h"
+#endif
 
 int major_version=1, minor_version=8;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.24 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.25 $ $Date: 2015-09-24 09:56:49 $";
 
 char howto[] =
 "\n"
@@ -56,6 +58,7 @@ char howto[] =
 "\n"
 ;
 
+extern device_info vmb;
 static unsigned char *rom=NULL;
 static unsigned int registered_size=0;
 static uint64_t registered_address;
@@ -150,7 +153,7 @@ void open_file(void)
 	 vmb_error(__LINE__,"No filename for image file given");
 	else
 	{ vmb_debugs(VMB_DEBUG_PROGRESS, "Reading image file: %s",vmb_filename);
-      if ((f = win32_fopen(vmb_filename, "rb")) == NULL)
+      if ((f = vmb_fopen(vmb_filename, "rb")) == NULL)
         vmb_error2(__LINE__,"Unable to open image file",vmb_filename);
 	  else
 	  { c = strrchr(vmb_filename,'.');
@@ -180,14 +183,16 @@ void open_file(void)
 	  rom = malloc(vmb_size);
       if (rom==NULL) vmb_fatal_error(__LINE__,"Out of memory");
 	}
+#ifdef WIN32
 	inspector[0].address=vmb_address;
 	inspector[0].size=vmb_size;
 	mem_update(0,vmb_size);
+#endif
 	vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 	if ((vmb_size!=registered_size || vmb_address!=registered_address)&& vmb.connected && vmb.power)
-	{ 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
-        registered_size=vmb_size;
-		registered_address=vmb_address;
+	{ vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
+          registered_size=vmb_size;
+	  registered_address=vmb_address;
 	}
 }
 
@@ -204,13 +209,13 @@ unsigned char *rom_get_payload(unsigned int offset,int size)
 
 void rom_poweron(void)
 {  open_file();
-   mem_update(0,vmb_size);
 #ifdef WIN32
+   mem_update(0,vmb_size);
    PostMessage(hMainWnd,WM_VMB_ON,0,0);
 #endif
 }
 
-
+#ifdef WIN32
 static int rom_read(unsigned int offset,int size,unsigned char *buf)
 { if (offset>vmb_size) return 0;
   if (offset+size>vmb_size) size =vmb_size-offset;
@@ -218,12 +223,13 @@ static int rom_read(unsigned int offset,int size,unsigned char *buf)
   return size;
 }
 
+
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
 	{"Memory",0,rom_read,rom_get_payload, NULL,0,0,-1,8,0,NULL},
 	{0}
 };
-
+#endif
 
 void init_device(device_info *vmb)
 {  vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
