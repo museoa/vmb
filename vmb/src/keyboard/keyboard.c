@@ -29,23 +29,25 @@
 #include "resource.h"
 #include "winopt.h"
 extern HBITMAP hBmpActive, hBmpInactive;
+#include "inspect.h"
 #else
 #include <unistd.h>
 #include <termios.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 
 #include "bus-arith.h"
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
-#include "inspect.h"
 
 void display_char(char c);
 
 int major_version=1, minor_version=8;
 char title[] ="VMB Keyboard";
 
-char version[]="$Revision: 1.30 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.31 $ $Date: 2015-09-24 11:56:31 $";
 
 char howto[] =
 "\n"
@@ -128,7 +130,7 @@ void kb_terminate(void)
 void process_input_file(char *filename)
 { FILE *f;
   if (filename==NULL) return;
-  f = win32_fopen(filename,"rb");
+  f = vmb_fopen(filename,"rb");
   if (f==NULL) {vmb_debug(VMB_DEBUG_ERROR, "Unable to open input file"); return;}
   input_buffer_first = 0;
   input_buffer_last = (int)fread(input_buffer,1,MAXIBUFFER,f);
@@ -208,6 +210,7 @@ static void prepare_input(void)
 }
 #endif
 
+#ifdef WIN32
 struct register_def kbd_regs[] = {
 	/* name no offset size chunk format */
 	{"Error" ,ERROR,1,byte_chunk,hex_format},
@@ -227,6 +230,8 @@ struct inspector_def inspector[2] = {
 	{"Registers",5*8,kbd_reg_read,kb_get_payload,NULL,0,0,-1,8,4,kbd_regs},
 	{0}
 };
+
+#endif
 
 void kbd_poweron(void)
 /* this function is called when the virtual power is turned on */
@@ -262,7 +267,9 @@ void init_device(device_info *vmb)
   vmb->disconnected=vmb_disconnected;
   vmb->terminate=kb_terminate;
   vmb->get_payload=kb_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
+#endif
 }
 
 
