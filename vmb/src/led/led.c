@@ -29,18 +29,22 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
+#include "winopt.h"
+#include "inspect.h"
 #else
 #include <unistd.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "bus-arith.h"
-#include "winopt.h"
+
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
-#include "inspect.h"
+
 int major_version=1, minor_version=8;
 int nleds=8;
 char *label=NULL;
@@ -53,7 +57,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-char version[]="$Revision: 1.17 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.18 $ $Date: 2015-09-24 11:59:33 $";
 char title[] = "VMB LED";
 char howto[] =
 "\n"
@@ -109,6 +113,7 @@ void led_reset(void)
 #endif
 }
 
+#ifdef WIN32
 static int led_read(unsigned int offset,int size,unsigned char *buf)
 { *buf=led;
   return 1;
@@ -119,7 +124,7 @@ struct inspector_def inspector[2] = {
 	{"Mem",1,led_read,led_get_payload,led_put_payload,0,0,-1,8,0,NULL},
 	{0}
 };
-
+#endif
 
 
 void init_device(device_info *vmb)
@@ -135,6 +140,8 @@ void init_device(device_info *vmb)
    vmb->terminate=vmb_terminate;
    vmb->get_payload=led_get_payload;
    vmb->put_payload=led_put_payload;
+#ifdef WIN32
    inspector[0].address=vmb_address;
    mem_update(0,1);
+#endif
 }
