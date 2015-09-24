@@ -26,25 +26,27 @@
 #ifdef WIN32
 #include <windows.h>
 #include "resource.h"
+#include "winopt.h"
+#include "inspect.h"
 extern HWND hMainWnd;
 extern void setfont(void);
 #else
 #include <unistd.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 
 #include "bus-arith.h"
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
-#include "winopt.h"
-#include "inspect.h"
 
 static void display_char(char c);
 extern device_info vmb;
 char title[] ="VMB Screen";
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.20 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.21 $ $Date: 2015-09-24 12:17:14 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"
@@ -120,7 +122,7 @@ void screen_put_payload(unsigned int offset,int size, unsigned char *payload)
       vmb_raise_interrupt(&vmb,interrupt_no);
     mem_update(0,8);
 }
-
+#ifdef WIN32
 struct register_def screen_regs[] = {
 	/* name no offset size chunk format */
 	{"Error" ,ERROR,1,byte_chunk,hex_format},
@@ -140,7 +142,7 @@ struct inspector_def inspector[2] = {
 	{"Registers",5*8,screen_reg_read,screen_get_payload,screen_put_payload,0,0,-1,8,4,screen_regs},
 	{0}
 };
-
+#endif
 
 void init_device(device_info *vmb)
 { vmb_debugi(VMB_DEBUG_INFO, "address hi: %x",HI32(vmb_address));
@@ -159,7 +161,9 @@ void init_device(device_info *vmb)
   vmb->terminate=vmb_terminate;
   vmb->put_payload=screen_put_payload;
   vmb->get_payload=screen_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
+#endif
 }
 #ifdef WIN32
 #else
