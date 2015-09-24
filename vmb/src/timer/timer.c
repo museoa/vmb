@@ -24,16 +24,18 @@
 #ifdef WIN32
 #include <windows.h>
 extern HWND hMainWnd;
+#include "winopt.h"
+#include "inspect.h"
 #else
 #include <unistd.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 #include <string.h>
 #include "vmb.h"
 #include "bus-arith.h"
 #include "param.h"
 #include "option.h"
-#include "winopt.h"
-#include "inspect.h"
 #include "timer.h"
 
 /* contains operating system independent timer code */
@@ -83,6 +85,7 @@ tmem[1F]
 
 see help.html
 */
+#ifdef WIN32
 #define TIMER_REGS	14
 struct register_def timer_regs[TIMER_REGS+1] = {
 	/* name no offset size chunk format */
@@ -101,7 +104,7 @@ struct register_def timer_regs[TIMER_REGS+1] = {
     {"t0"               ,0x18,4,tetra_chunk,unsigned_format},
     {"dt"               ,0x1C,4,tetra_chunk,unsigned_format},
 	{0}};
-
+#endif
 unsigned int tt=0, ti=0, t0=0, dt=0; /* copies of tmem fields */
 
 /* functions to operate the timer simulation */
@@ -215,7 +218,7 @@ void timer_signal()
 int major_version=1, minor_version=8;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.17 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.18 $ $Date: 2015-09-24 12:24:20 $";
 
 char howto[] =
 "\n"
@@ -364,7 +367,7 @@ void timer_disconnected(void)
 #endif
 }
 
-
+#ifdef WIN32
 static int timer_mem_read(unsigned int offset, int size, unsigned char *buf)
 { if (offset+size>sizeof(tmem))
     size=sizeof(tmem)-offset;
@@ -380,6 +383,8 @@ struct inspector_def inspector[3] = {
 	{"Registers",TIMER_MEM,timer_mem_read,timer_get_payload,timer_put_payload,hex_format, byte_chunk,-1,8,TIMER_REGS,timer_regs},
 	{0}
 };
+
+#endif
 
 void init_device(device_info *vmb)
 { vmb_debug(VMB_DEBUG_PROGRESS,"Timer initializing");
@@ -397,7 +402,9 @@ void init_device(device_info *vmb)
   vmb->terminate=timer_terminate;
   vmb->put_payload=timer_put_payload;
   vmb->get_payload=timer_get_payload;
+#ifdef WIN32
   inspector[0].address=vmb_address;
   inspector[1].address=vmb_address;
+#endif
 }
 
