@@ -29,8 +29,12 @@
 #pragma warning(disable : 4996)
 extern HWND hMainWnd;
 #include <io.h>
+#include "winopt.h"
+#include "inspect.h"
 #else
 #include <unistd.h>
+/* make mem_update a no-op */
+#define  mem_update(offset,size)
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -39,13 +43,11 @@ extern HWND hMainWnd;
 #include "option.h"
 #include "param.h"
 #include "vmb.h"
-#include "winopt.h"
-#include "inspect.h"
 
 int major_version=1, minor_version=8;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.26 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.27 $ $Date: 2015-09-24 11:53:00 $";
 
 char howto[] =
 "\n"
@@ -70,7 +72,7 @@ void open_file(void)
   if (vmb_filename==NULL || strcmp(vmb_filename,"") == 0)
     vmb_error(__LINE__,"No filename for image file given");
   else
-  { f = win32_fopen(vmb_filename,"rb");
+  { f = vmb_fopen(vmb_filename,"rb");
 	if (f==NULL) 
 		vmb_debugs(VMB_DEBUG_NOTIFY,"Unable to open image file", vmb_filename);
 	else
@@ -95,9 +97,11 @@ void open_file(void)
 	else image_changed = 0;
 	fclose(f);
   }
+#ifdef WIN32
   inspector[0].address=vmb_address;
   inspector[0].size=vmb_size;
   mem_update(0,vmb_size);
+#endif
   vmb_debug(VMB_DEBUG_PROGRESS, "Done reading image file");
 }
 
@@ -182,6 +186,7 @@ void flash_disconnected(void)
 #endif
 }
 
+#ifdef WIN32
 static int flash_read(unsigned int offset,int size,unsigned char *buf)
 { if (offset>vmb_size) return 0;
   if (offset+size>vmb_size) size =vmb_size-offset;
@@ -194,7 +199,7 @@ struct inspector_def inspector[2] = {
 	{"Memory",0,flash_read,flash_get_payload,flash_put_payload,0,0,-1,8,0,NULL},
 	{0}
 };
-
+#endif
 
 void init_device(device_info *vmb)
 { vmb_debuga(VMB_DEBUG_INFO, "address: %#08x %08x",vmb_address); 

@@ -1,10 +1,9 @@
 PROG= flash
 UTILDIR = ../util
-OPTDIR = ../opt
 INSTALLDIR=../bin
 
-CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) -I$(OPTDIR)
-LDFLAGS= -L$(OPTDIR) -lvmbopt -L$(UTILDIR) -lvmb -lpthread
+CFLAGS= -g  -D_REENTRANT -Wall  -I$(UTILDIR) 
+LDFLAGS= -L$(UTILDIR) -lvmb -lpthread
 CC = gcc
 
 
@@ -12,14 +11,13 @@ all: $(PROG) TAGS
 
 utilities:
 	$(MAKE) -C  $(UTILDIR)
-	$(MAKE) -C  $(OPTDIR)
 
 
 $(PROG): $(PROG).c  main.c utilities
 	$(CC) $(CFLAGS) $(PROG).c main.c $(LDFLAGS) -o $(PROG)
 
 
-TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h $(OPTDIR)/*.c $(OPTDIR)/*.h
+TAGS: *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h 
 	etags *.c *.h $(UTILDIR)/*.c $(UTILDIR)/*.h
 
 install: $(PROG)
