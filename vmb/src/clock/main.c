@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
  vmb_debugi(0, "size: %x ",vmb_size);
  vmb_connect(host,port); 
  vmb_register(vmb_address_hi,vmb_address_lo,vmb_size,
-               0, 0, vmb_program_name);
+               0, 0, vmb_program_name,major_version,minor_version);
  vmb_wait_for_disconnect();
  return 0;
 }

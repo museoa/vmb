@@ -31,7 +31,7 @@ extern device_info vmb;
 int major_version=1, minor_version=8;
 char title[] ="VMB Host Disk";
 
-char version[]="$Revision: 1.11 $ $Date: 2015-09-13 10:04:01 $";
+char version[]="$Revision: 1.12 $ $Date: 2015-09-24 08:31:28 $";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";
@@ -744,7 +744,7 @@ int main(int argc, char *argv[])
   vmb_connect(&vmb,host,port); 
 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
-               0, 0, vmb_program_name);
+               0, 0, vmb_program_name,major_version,minor_version);
 
   vmb_wait_for_disconnect(&vmb);
   return 0;

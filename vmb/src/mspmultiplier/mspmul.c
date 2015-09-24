@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 	vmb_program_name = "Multiplier for MSP430";
 	init_device(&vmb);
 	vmb_connect(&vmb,host,port); 
-	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),memsize,0,0,vmb_program_name);
+	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),memsize,0,0,vmb_program_name,major_version,minor_version);
 	atexit(vmb_atexit);
 	vmb_debug_on();
 	

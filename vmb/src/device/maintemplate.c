@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
                0x00000000,0x00000000, /* the mask for the 64 interupt lines
                                          only interrups with the corresponding
                                          bit set will reach this device. */
-               "Simple RAM");         /* the name of this device */
+               "Simple RAM",major_version,minor_version);         /* the name of this device */
 
   /* now the virtual motherboard interface is set up.
      There is nothing left to do, because this is a pasive device

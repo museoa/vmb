@@ -76,7 +76,7 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
           port = GetDlgItemInt(hDlg,IDC_THE_PORT,NULL,FALSE);
 		  if (!vmb_connected)
 		  {  vmb_connect(host,port);
-		     vmb_register(address_hi, address_lo,ramsize,0,0,"Simple RAM");
+		     vmb_register(address_hi, address_lo,ramsize,0,0,"Simple RAM",major_version,minor_version);
 			 SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 		  }
 		  EndDialog(hDlg, TRUE);
@@ -290,7 +290,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	poskey = get_pos_key();
 	UpdateWindow(hMainWnd);
 	vmb_connect(host,port);
-	vmb_register(0,0,ramsize,0,0,"Simple RAM");
+	vmb_register(0,0,ramsize,0,0,"Simple RAM",major_version,minor_version);
     SendMessage(hMainWnd,WM_USER+3,0,0); /* the connect button */
 	if (vmb_debug_flag)
 	  SendMessage(hMainWnd,WM_COMMAND,(WPARAM)ID_DEBUG,0);

@@ -54,7 +54,7 @@ void initVMBInterface() {
   vmb_program_name = "MSP430";
   vmb.reset=initCore;
   vmb_connect(&vmb,host,port); 
-  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),0,-1,-1,vmb_program_name);
+  vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),0,-1,-1,vmb_program_name,major_version,minor_version);
   atexit(vmb_atexit);
   vmb_debug_on();
 }

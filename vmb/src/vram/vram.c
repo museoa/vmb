@@ -40,7 +40,7 @@
 
 device_info vmb = {0};
 
-char version[]="$Revision: 1.6 $ $Date: 2010-12-17 08:52:26 $";
+char version[]="$Revision: 1.7 $ $Date: 2015-09-24 08:31:28 $";
 
 char howto[] =
 "\n"
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
-               0, 0, vmb_program_name);
+               0, 0, vmb_program_name,major_version,minor_version);
 
   vmb_wait_for_disconnect(&vmb);
   vram_fini ();

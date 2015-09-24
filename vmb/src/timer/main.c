@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 
   vmb_connect(&vmb, host,port); 
   vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,
-               0, 0, vmb_program_name);
+               0, 0, vmb_program_name,major_version,minor_version);
 
  
   while (vmb.connected) 
