@@ -1,0 +1,227 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>VMB Disk Device Specification</title>
+	</head>
+
+	<BODY>
+		<H1>Soundcard Device Specification</H1>
+		<h2><img src="sound.gif" alt="" width="150" height="200" border="0"></h2>
+		<h2>Memory Layout</h2>
+		<table border=1>
+			<tr>
+				<th>Byte
+				<th>Mode
+				<th>Name
+				<th>Description
+
+			
+			<tr>
+				<td>00</td>
+				<td>RW</td>
+				<td>Control</td>
+				<td>Controll register, write to initiate soundcard operations </td>
+			</tr>
+			<tr>
+				<td>01<td>RW<td>Format<td>Format of the sound data.<tr>
+				<td>02</td>
+				<td>R</td>
+				<td>Playing</td>
+				<td>Number of the buffer currently playing.</td>
+			</tr>
+			<tr>
+				<td>03</td>
+				<td>R</td>
+				<td>Finished</td>
+				<td>Number of the buffer that  just finished playing</td>
+			</tr>
+			<tr>
+				<td>04<td>RW
+				<td>BufferNo0<td>Number of buffer to play
+			<tr>
+				<td>05</td>
+				<td>RW</td>
+				<td>BufferNo1</td>
+				<td>Number of buffer to play</td>
+			</tr>
+			<tr>
+				<td>06</td>
+				<td>RW</td>
+				<td>BufferNo2</td>
+				<td>Number of buffer to play</td>
+			</tr>
+			<tr>
+				<td>07</td>
+				<td>RW</td>
+				<td>BufferNo3</td>
+				<td>Number of buffer to play</td>
+			</tr>
+			<tr>
+				<td>08-0F</td>
+				<td>R</td>
+				<td>Position</td>
+				<td>Current position in the buffer just playing</td>
+			</tr>
+			<tr>
+				<td>10-17<td>RW
+				<td>DMA1.address<td>physical address of first  buffer where the next transfer takes place
+			<tr>
+				<td>18-1F</td>
+				<td>RW</td>
+				<td>DMA1.size</td>
+				<td>size of first buffer where the next transfer takes place</td>
+			</tr>
+			<tr>
+				<td>...</td>
+				<td>RW</td>
+				<td>DMA2-15</td>
+				<td> more DMA address and size registers</td>
+			</tr>
+			<tr>
+				<td>100-107</td>
+				<td>RW</td>
+				<td>DMA16.address</td>
+				<td>physical address of 16th and last buffer where the next transfer takes place</td>
+			</tr>
+			<tr>
+				<td>108-10F</td>
+				<td>RW</td>
+				<td>DMA16.size</td>
+				<td>size of 16th and last buffer where the next transfer takes place</td>
+			</tr>
+		</table>
+		<H2>Operation</H2>
+		The program will contact the motherboard at [host:]port and register itself with the given address and interrupt.
+		
+		
+		<p>Before we describe the control register, we explain the other registers.</p>
+		<p>The sound device simulates an advanced soundcard that can play different sound formats. As for now, PCM and MP3 Formats are implemented. The data format is specified in the <strong>Format</strong> register.</p>
+	
+		<table border=1>
+			<tr>
+				<th>Value
+				<th>Name
+				
+				<th>Description
+			<tr>
+				<td>0x01</td>
+				<td>MP3</td>
+				<td>The data is in MP3 Format</td>
+			</tr>
+			<tr>
+				<td>0x02</td>
+				<td>PCM</td>
+				<td>The data is in 16 bit PCM Format</td>
+			</tr>
+			<tr>
+				<td>0x00</td>
+				<td>HZ112</td>
+				<td>Sample frequency of PCM data is 11.25kHz</td>
+			</tr>
+			<tr>
+				<td>0x10</td>
+				<td>HZ225</td>
+				<td>Sample frequency of PCM data is 22.5kHz</td>
+			</tr>
+			<tr>
+				<td>0x20</td>
+				<td>HZ441</td>
+				<td>Sample frequency of PCM data is 44.1kHz</td>
+			</tr>
+			<tr>
+				<td>0x30</td>
+				<td>HZ480</td>
+				<td>Sample frequency of PCM data is 48.0kHz</td>
+			</tr>
+			<tr>
+				<td>0x40</td>
+				<td>Stereo</td>
+				<td>PCM data is stereo (interleaved)</td>
+			</tr>
+			<tr>
+				<td>0x80</td>
+				<td></td>
+				<td>Unused</td>
+			</tr>
+		</table>
+		<p>There are 16 <strong>DMA</strong> registers that specify a physical buffer <strong>address</strong> and its <strong>size</strong>. The <strong>Playing</strong> register contains a value from 1 to 16 indicating the buffer that is currently playing. A value of zero indicates that the sond device is currently idle.</p>
+		<p>If the Plaing register is nonzero, the <strong>Position</strong> register indicates the current position in the buffer; it is a value beween 0 and the buffer size. Data that preceedes this position is already played, and data that follows this position will be played in the future.</p>
+		<p>As soon as the souncard finishes playing the data in a buffer, the value from the Playing register is moved to the <strong>Finished</strong> register.</p>
+		<p>The memory buffers from where data is played ares determined by the contents of the 16 <strong>DMA</strong> register. Each DMA register consists of an <strong>address</strong> and a <strong>size</strong> register. It holds the physical address of the buffer and its size. Several buffers can be used together in a playing operation.</p>
+		<p>The registers <strong>BufferNo0</strong>, <strong>BufferNo1</strong>, <strong>BufferNo2</strong>, and <strong>BufferNo3</strong> specify up to four buffers to be used in the playing operation. Values between 1 and 16 indicate the buffer to be used. A BufferNo register with the value zero is ignored.</p>
+		<p>The Control register is used to give commands to the sound card device.The possible command values are:</p>
+		<ul>
+			<li><strong>Ignore</strong> (0x00)<br>
+				This command does nothing.
+			<li><strong>PlayOnce</strong> (0x01)<br>
+				Play the buffers indicated by <strong>BufferNo0</strong>, <strong>BufferNo1</strong>, <strong>BufferNo2</strong>, and <strong>BufferNo3</strong> in that order then stop.
+			<li><strong>PlayLoop</strong> (0x02)<br>
+				Play the buffers indicated by <strong>BufferNo0</strong>, <strong>BufferNo1</strong>, <strong>BufferNo2</strong>, and <strong>BufferNo3</strong> in that order then start over playing the buffers again and again in the given order. Use the <strong>Cancel</strong> command to stop playing.
+			<li><strong>Preload</strong> (0x03)<br>
+				The buffers indicated by <strong>BufferNo0</strong>, <strong>BufferNo1</strong>, <strong>BufferNo2</strong>, and <strong>BufferNo3</strong> incontain valid data, they will be played in the near future. The sound card may start now to load this data, the data in the buffer is considered constant and might be  cached localy on the sound card. The cached copy is valid until invalidated by a new Preload or Unload command.
+			<li><strong>Unload</strong> (0x04)<br>
+				Cached copied of the data in the buffers indicated by <strong>BufferNo0</strong>, <strong>BufferNo1</strong>, <strong>BufferNo2</strong>, and <strong>BufferNo3</strong> are no longer valid. Before playing these buffers must be reloaded.
+			<li><strong>BufferInterrupt</strong> (0x10)<br>
+				This value can be ORed with the previous Command values. It will cause the soundcard to raise an interrupt as soon as the given command finishes playing, loading, or unloading a buffer. Combining it with the ignore command gives an immediate interrupt.
+			<li><strong>Cancel</strong> (0x80)<br>
+				Cancel the current operation; abort loading and stop playing immediately.
+			<li><strong>Reset</strong> (0xFF)<br>
+				Reset the soundcard. Stop playing, unload all buffers, set all registers to zero.
+			
+		</ul>
+		<h2>Examples of Use</h2>
+		<h3>Playing preloaded sound</h3>
+		<p>Assume that a short sound, for example a Beep available as MP3 data, needs to be played multiple times.  To be specific, lets assume that the mp3 data is located at pysical address 0x100004000 and is 24800 bytes long. We choose DMA registers 7 to play this sound. </p>
+		<p>Preparation: We store the address value 0x100004000 at offset 0x70 and the size value 24800 at offset 0x78 into the sound device. Then we issue a Preload command by storing the following octabyte: 0x0300000007000000 at offset 0x00. The 03 is the Preload command, the next three bytes are ignored, then buffer number 7 is selected, and the last three zero bytes are ignored again. The sound device might now start to load this data into its local cache.</p>
+		<p>Playing the sound: To play the Beep sound, it is sufficient to store the following octabyte 0x0101000007000000 at offset 0x00. The first 01 is the PlayOnce command, the second 01 indicates MP3 data, the next two byte are ignored, the 07 selects buffer 7 for playing, and the next three zero byte are ignored. If the buffer data of buffer no 7 is not yet in the local cache, the sound device will immediately start load the buffer data.  In any case, the sound device will wait until the buffer data has been loaded completely.  If some sound is currently playing, playing this sound will be terminated immediately. Then the sound device will start playing the data, interpreting it as MP3 data, from buffer 7 and the Beep can be heard. Upon reaching the end of the buffer data (as given by the size register), the soundcard will stop playing.</p>
+		<p>While the  Beep is playing, reading the Playing register (the byte at offset  0x02) will return the value 7 and reading the Position register (the octabyte at offset 0x08) will return any value between 0 and 24800. Reading the Finished register (the byte at offset 0x03) will return zero if no sound was interrupted in playing and the number of the corresponding buffer if playing the beep did in deed interupt some other sound in playing.</p>
+		<p>Playing the beep a second time, just requires storing again the octabyte 0x0101000007000000 at offset 0x00. We can assume that this time the data is already in the local cache. So playing this sound repeatedly requires very little bus activity (just storing one octabyte).</p>
+		<h3>Playing large sound files with three buffers</h3>
+		<p>Assume that we want to play a large sound file, containing MP3 data, stored on the harddisk. To do so, we allocate three buffers each 16kByte long at the pysical address 0x1000060000,  0x1000064000, and  0x1000068000. We choose DMA registers 1, 2, and 3 to play the file.</p>
+		<p>Preparation: We fill the three buffers with the first 48KByte of MP3 data from the file. We store address 0x1000060000 at offset 0x10 (DMA1.address) and size 0x4000 (16kByte) at offset 0x18 (DMA1.size); we store address 0x1000064000 at offset 0x20 (DMA2.address) and size 0x4000 (16kByte) at offset 0x28 (DMA2.size); and we store address 0x1000068000 at offset 0x30 (DMA3.address) and size 0x4000 (16kByte) at offset 0x38 (DMA3.size).</p>
+		<p>Playing the sound: To start playing the sound file, we store the following octabyte 0x1201000001020300 at offset 0x00. The first 12 is the PlayLoop command combined with the BufferInterrupt command, the second 01 indicates MP3 data, the next two byte are ignored, the 010203 selects buffers 1, 2, and 3 for playing, and the last zero byte is ignored.</p>
+		<p>The soundcard will load the data from buffer 1 and starts playing it.  While playing, it will also start loading the data from buffer 2, the next buffer. During this time, reading the Playing register (the byte at offset 0x02) will return the value 1 and reading the Position register (the octabyte at offset 0x08) will return any value between 0 and 0x4000. Reading the Finished register (the byte at offset 0x03) will return zero. </p>
+		<p>As soon as the data in buffer 1 has finished playing, the sound device will raise an interrupt, because the BufferInterrupt bit (0x10) is set in the Control register. It will then continue playing with data from buffer 2.  Assuming that the loading of buffer 2 has completed by then, this will result in a continuos playing of sound.  While playing the data in buffer 2, it will also start loading the data from buffer 3, the next buffer. During this time, reading the Playing register (the byte at offset 0x02) will return the value 2 and reading the Position register (the octabyte at offset 0x08) will return any value between 0 and 0x4000. Reading the Finished register (the byte at offset 0x03) will return 1.</p>
+		<p>Upon receiving the interrupt, the CPU can check the Finished register (or use its own counter) to determine that buffer 1 has just finished playing. It should then load the next 16kByte of data from the file into buffer 1.</p>
+		<p>As soon as the data in buffer 2 has finished playing, the sound device will raise again an interrupt, because the BufferInterrupt bit (0x10) is set in the Control register. It will then continue playing with data from buffer 3. While playing the data in buffer 3, it will also start loading the data from buffer 1, the next buffer.  This is done because the command PlayLoop (0x02) was given;&nbsp;hence the three buffers 1, 2 and 3 are played repeatedly in that order. While playing buffer 3, reading the Playing register (the byte at offset 0x02) will return the value 3 and reading the Finished register (the byte at offset 0x03) will return 2.</p>
+		<p>Upon receiving the interrupt, the CPU should then load the next 16kByte of data from the file into buffer 2; upon receiving the next interrupt, the CPU should load the next 16kByte of data from the file into buffer 3; and  upon receiving the next interrupt, the CPU should load the next 16kByte of data from the file again into buffer 1. </p>
+		<p>This process is repeated until the end of file is reached. In this case, the last buffer might contain less than 16kByte of valid data. The CPU should then store the correct size value in the buffers size register. When the next interrupt arrives, there is no more data to be stored in the next buffer. Instead its size value is set to zero. When all three buffers involved in the PlayLoop command have a size value of zero, the playing stops automatically. There is no need to issue a Cancel command upon receiving the interrupt caused by finishing the last non-empty buffer.</p>
+		<h3>Playing sound files with two buffers</h3>
+		<p>Normal sound cards usually work with double buffering, assuming that the sound cards access to main memory is fast enough, to switch from one buffer to the next without causing an audible interruption in the playing of sound. Depending on the speed of the virtual bus, this might not be possible when using the Virtual Motherboard.  In any case, we need to delay the loading of sound data to the sound device until the new data in the buffer is ready. Here is how we can do it:</p>
+		<p>Assume that we want to play a large sound file, containing MP3 data, stored on the harddisk. To do so, we allocate two buffers each 16kByte long at the pysical address 0x1000060000 and 0x1000064000. We choose DMA registers 1 and 2 to play the file.</p>
+		<p>Preparation: We fill the two buffers with the first 32KByte of MP3 data from the file. We store address 0x1000060000 at offset 0x10 (DMA1.address) and size 0x4000 (16kByte) at offset 0x18 (DMA1.size); and we store address 0x1000064000 at offset 0x20 (DMA2.address) and size 0x4000 (16kByte) at offset 0x28 (DMA2.size).</p>
+		<p>Then we issue a Preload command by storing the following octabyte: 0x0300000001020000 at offset 0x00. The 03 is the Preload command, the next three bytes are ignored, then buffer number 1 and 2 are selected, and the last two zero bytes are ignored again. The sound device might now start to load this data into its local cache.</p>
+		<p>Playing the sound: To start playing the sound file, we store the following octabyte 0x1201000001020000 at offset 0x00. The first 12 is the PlayLoop command combined with the BufferInterrupt command, the second 01 indicates MP3 data, the next two byte are ignored, the 0102 selects buffers 1 and  2 for playing, and the last two zero bytes are ignored.</p>
+		<p>The soundcard will complete loading the data from buffer 1 and starts playing it. During this time, reading the Playing register (the byte at offset 0x02) will return the value 1. </p>
+		<p>As soon as the data in buffer 1 has finished playing, the sound device will raise an interrupt, because the BufferInterrupt bit (0x10) was set in the Control register. It will then continue playing with data from buffer 2. Assuming that the loading of buffer 2 has completed by then, this will result in a continuos playing of sound. While playing the data in buffer 2, it will  not start loading the data from buffer 1, the next buffer, because the data was preloaded, and the soundcard assumes that the data has not changed yet. During this time, reading the Playing register (the byte at offset 0x02) will return the value 2  and reading the Finished register (the byte at offset 0x03) will return 1.</p>
+		<p>Upon receiving the interrupt, the CPU can check the Finished register (or use its own counter) to determine that buffer 1 has just finished playing. It should then load the next 16kByte of data from the file into buffer 1 and issue a new preload command by storing the following octabyte: 0x0300000001000000 at offset 0x00.  This will initiate loading the new content of buffer 1 which will (hopefully) finish before the data in buffer 2 has finished playing.</p>
+		<p>As soon as the data in buffer 2 has finished playing, the sound device will raise again an interrupt, because the BufferInterrupt bit (0x10) is set in the Control register. It will then continue playing with  the new data from buffer 1.</p>
+		<p>Upon receiving this interrupt, the CPU should load the next 16kByte of data from the file into buffer 2 and issue a new preload command by storing the following octabyte: 0x0300000002000000 at offset 0x00. This will initiate loading the new content of buffer 2 which will (hopefully) finish before the data in buffer 1 has finished playing.</p>
+		<p>This process is repeated until the end of file is reached. In this case, the last buffer might contain less than 16kByte of valid data. The CPU should then store the correct size value in the buffers size register before issuing the Preload command. When the next interrupt arrives, there is no more data to be stored in the next buffer. Instead its size value is set to zero before issuing a further Preload command. When both buffers involved in the PlayLoop command have a size value of zero, the playing stops automatically. There is no need to issue a Cancel command upon receiving the interrupt caused by finishing the last non-empty buffer.</p>
+		<h2>Configuration</h2>
+		
+		
+		The disk has the following configurable parameters:
+		<table>
+<tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
+<tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
+<tr> <td>address   <td> default <td> address where the resource is located </tr>
+			<tr>
+				<td>interrupt</td>
+				<td>not set</td>
+				<td>interrupt sent when character is ready</td>
+			</tr>
+			<tr> <td> x        <td> 0<td>the x position of the window </tr>
+			<tr> <td> y        <td> 0<td>the y position of the window </tr>
+			<tr> <td> minimized<td> false<td>start with a minimized window </tr>
+			<tr> <td> debug    <td> false<td>to generate debug output </tr>
+<tr> <td> debugmask <td> 0xFFF0 <td>set mask to hide debug output </tr>
+<tr> <td> verbose  <td> false<td>make debugging verbose, sets debug mask to zero </tr>
+<tr> <td> define   <td> not set<td>to define a name for conditionals</tr>
+<tr> <td> config   <td> not set<td>filename for a configuration file</tr>
+<tr> <td> help     <td> false<td>to print information</tr>
+</table>
+		<p>These can be set in default.vmb</p>
+	</BODY>
+</HTML>
