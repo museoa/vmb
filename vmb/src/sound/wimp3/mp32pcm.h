@@ -16,8 +16,9 @@
 #define MP3_ERROR_NO_BUFFER -8
 #define MP3_ERROR_NO_SIZE -9
 #define SCALEFACTOR_ERROR 0x0010                                     /* 114 */
-#define MP3_EQ_UNITGAIN 210                                          /* 446 */
+#define MP3_EQ_UNITGAIN 210                                          /* 447 */
 typedef short int mp3_sample;                                        /*  14 */
+
 typedef struct mp3_info
 {                                                                    /*  23 */
   int id;
@@ -52,8 +53,9 @@ typedef struct mp3_info
   int changes;                                                       /* 183 */
   int ms_stereo;                                                     /* 283 */
   int i_stereo;
-  int fixed_size;                                                    /* 431 */
+  int fixed_size;                                                    /* 432 */
 } mp3_info;
+
 typedef struct mp3_options
 {                                                                    /*  19 */
   int flags;                                                         /*  20 */
@@ -75,14 +77,17 @@ typedef struct mp3_options
     );
 #define MP3_DONT_FLUSH 0x0200                                        /*  73 */
 #define MP3_NO_PARTIAL_FRAME 0x1000                                  /* 331 */
-  unsigned char (*equalizer)[32];                                    /* 444 */
+  unsigned char (*equalizer)[32];                                    /* 445 */
 } mp3_options;
+
 extern int mp3_open (                                                /*  11 */
                       int (*input_read) (int id, void *buffer, size_t size)     /*  12 */
                       , mp3_options * option_pointer                 /*  18 */
   );
+
 extern int
 mp3_read (int id, mp3_sample * buffer, int size)                     /*  13 */
  ;
+
      extern int mp3_close (int id)                                   /*  16 */
  ;

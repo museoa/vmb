@@ -3,8 +3,9 @@
 #define SHIFTBLOCKS (2*BLOCKS + WINDOWBLOCKS-1)
 #define SHIFTSIZE (SHIFTBLOCKS*SUBBANDS)
 #define CHANNELS 2
-extern void windowing (const double *v, mp3_sample * x);             /*   5 */
-extern void dct32 (const double *y, double *v);
+extern void dct32 (const double *y, double *v);                      /*   5 */
+
+extern void windowing (const double *v, mp3_sample * x);
 
 #define STREAMS 512                                                  /*  41 */
 #define END_OF_OUTPUT           0x0001                               /*  59 */
@@ -26,7 +27,8 @@ tag_read (int id, void *buffer, int count)                           /*  38 */
 
 #define GROUPS 3                                                     /* 203 */
      static unsigned short int                                       /* 212 */
-       bitcrc (unsigned short int crc, unsigned short int bit, int n);
+       bitcrc (unsigned short int crc, unsigned short int bits, int n);
+
      extern void dct18 (const double *z, double *t);                 /* 220 */
 
 #define LONG_BLOCK  0                                                /* 226 */
@@ -59,7 +61,7 @@ tag_read (int id, void *buffer, int count)                           /*  38 */
 #define REPEAT   6
 #define REPAIR   7
 #define SKIP     8
-#ifndef max                                                          /* 437 */
+#ifndef max                                                          /* 438 */
 #define max(a,b) ((a) >  (b) ? (a) : (b))
 #endif
 #ifndef min
@@ -68,7 +70,7 @@ tag_read (int id, void *buffer, int count)                           /*  38 */
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338328
 #endif
-#define twotom32th(m)  power132[m]                                   /* 449 */
+#define twotom32th(m)  power132[m]                                   /* 450 */
 #include <math.h>                                                    /* 138 */
      static mp3_sample mk_sample (register double x)
 {
@@ -93,7 +95,7 @@ tag_read (int id, void *buffer, int count)                           /*  38 */
 
 void
 windowing (const double *v, mp3_sample * x)
-{ {                                                                  /* 412 */
+{ {                                                                  /* 413 */
     x[2 * 0] =
       mk_sample (0.0003128982862089532 * v[48] + 0.002298183305883584 * v[80] +
                  0.004952423160365843 * v[112] + 0.021978401160177793 * v[144] +
@@ -432,11 +434,12 @@ windowing (const double *v, mp3_sample * x)
                  0.000010296900482261932 * v[495]);
 }
 }
+
 void
 dct32 (const double *y, double *v)
 {
   {
-    double f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19,    /* 411 */
+    double f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19,    /* 412 */
      
       f20, f21, f22, f23, f24, f25, f26, f27, f28, f29, f30, f31, f32, f33, f34,
       f35, f36, f37, f38, f39, f40, f41, f42, f43, f44, f45, f46, f47, f48, f49,
@@ -722,7 +725,7 @@ dct32 (const double *y, double *v)
   }
 }
 
-#define DK(name, value)  const double name =  ((double)(value))      /* 413 */
+#define DK(name, value)  const double name =  ((double)(value))      /* 414 */
 void
 dct18 (const double *I, double *O)
 {
@@ -878,7 +881,8 @@ dct18 (const double *I, double *O)
     }
   }
 }
-void                                                                 /* 414 */
+
+void                                                                 /* 415 */
 dct6 (const double *z, double *t)
 {
   double f0,

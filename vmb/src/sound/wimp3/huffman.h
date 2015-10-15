@@ -1,4 +1,4 @@
-short int htab1[] = {
+static short int htab1[] = {
   0x0311,                                                            /*0: 0x00 -> '0x1 0x1' 3 bit used */
   0x0311,                                                            /*1: 0x01 -> '0x1 0x1' 3 bit used */
   0x0311,                                                            /*2: 0x02 -> '0x1 0x1' 3 bit used */
@@ -64,7 +64,8 @@ short int htab1[] = {
   0x0100,                                                            /*62: 0x3E -> '0x0 0x0' 1 bit used */
   0x0100                                                             /*63: 0x3F -> '0x0 0x0' 1 bit used */
 };
-short int htab2[] = {
+
+static short int htab2[] = {
   0x0622,                                                            /*0: 0x00 -> '0x2 0x2' 6 bit used */
   0x0602,                                                            /*1: 0x01 -> '0x0 0x2' 6 bit used */
   0x0512,                                                            /*2: 0x02 -> '0x1 0x2' 5 bit used */
@@ -130,7 +131,8 @@ short int htab2[] = {
   0x0100,                                                            /*62: 0x3E -> '0x0 0x0' 1 bit used */
   0x0100                                                             /*63: 0x3F -> '0x0 0x0' 1 bit used */
 };
-short int htab3[] = {
+
+static short int htab3[] = {
   0x0622,                                                            /*0: 0x00 -> '0x2 0x2' 6 bit used */
   0x0602,                                                            /*1: 0x01 -> '0x0 0x2' 6 bit used */
   0x0512,                                                            /*2: 0x02 -> '0x1 0x2' 5 bit used */
@@ -196,7 +198,8 @@ short int htab3[] = {
   0x0200,                                                            /*62: 0x3E -> '0x0 0x0' 2 bit used */
   0x0200                                                             /*63: 0x3F -> '0x0 0x0' 2 bit used */
 };
-short int htab5[] = {
+
+static short int htab5[] = {
   -1022,                                                             /*0: 0xFC02 0x00 -> extension 0 with 2 bit, offset 64 */
   0x0631,                                                            /*1: 0x01 -> '0x3 0x1' 6 bit used */
   -1087,                                                             /*2: 0xFBC1 0x02 -> extension 1 with 1 bit, offset 68 */
@@ -276,7 +279,8 @@ short int htab5[] = {
   0x0130,                                                            /*0: 0x06 -> '0x3 0x0' 1 bit used */
   0x0122                                                             /*1: 0x07 -> '0x2 0x2' 1 bit used */
 };
-short int htab6[] = {
+
+static short int htab6[] = {
   -1023,                                                             /*0: 0xFC01 0x00 -> extension 0 with 1 bit, offset 64 */
   0x0623,                                                            /*1: 0x01 -> '0x2 0x3' 6 bit used */
   0x0632,                                                            /*2: 0x02 -> '0x3 0x2' 6 bit used */
@@ -346,7 +350,8 @@ short int htab6[] = {
   0x0133,                                                            /*0: 0x00 -> '0x3 0x3' 1 bit used */
   0x0103                                                             /*1: 0x01 -> '0x0 0x3' 1 bit used */
 };
-short int htab7[] = {
+
+static short int htab7[] = {
   -1020,                                                             /*0: 0xFC04 0x00 -> extension 0 with 4 bit, offset 64 */
   -1277,                                                             /*1: 0xFB03 0x01 -> extension 1 with 3 bit, offset 80 */
   -1406,                                                             /*2: 0xFA82 0x02 -> extension 2 with 2 bit, offset 88 */
@@ -464,7 +469,8 @@ short int htab7[] = {
   0x0130,                                                            /*0: 0x0C -> '0x3 0x0' 1 bit used */
   0x0122                                                             /*1: 0x0D -> '0x2 0x2' 1 bit used */
 };
-short int htab8[] = {
+
+static short int htab8[] = {
   -1019,                                                             /*0: 0xFC05 0x00 -> extension 0 with 5 bit, offset 64 */
   -1533,                                                             /*1: 0xFA03 0x01 -> extension 1 with 3 bit, offset 96 */
   -1662,                                                             /*2: 0xF982 0x02 -> extension 2 with 2 bit, offset 104 */
@@ -592,7 +598,8 @@ short int htab8[] = {
   0x0203,                                                            /*2: 0x12 -> '0x0 0x3' 2 bit used */
   0x0230                                                             /*3: 0x13 -> '0x3 0x0' 2 bit used */
 };
-short int htab9[] = {
+
+static short int htab9[] = {
   -1021,                                                             /*0: 0xFC03 0x00 -> extension 0 with 3 bit, offset 64 */
   -1150,                                                             /*1: 0xFB82 0x01 -> extension 1 with 2 bit, offset 72 */
   -1215,                                                             /*2: 0xFB41 0x02 -> extension 2 with 1 bit, offset 76 */
@@ -692,7 +699,8 @@ short int htab9[] = {
   0x0133,                                                            /*0: 0x0A -> '0x3 0x3' 1 bit used */
   0x0140                                                             /*1: 0x0B -> '0x4 0x0' 1 bit used */
 };
-short int htab10[] = {
+
+static short int htab10[] = {
   -1019,                                                             /*0: 0xFC05 0x00 -> extension 0 with 5 bit, offset 64 */
   -1532,                                                             /*1: 0xFA04 0x01 -> extension 1 with 4 bit, offset 96 */
   -1788,                                                             /*2: 0xF904 0x02 -> extension 2 with 4 bit, offset 112 */
@@ -862,7 +870,8 @@ short int htab10[] = {
   0x0130,                                                            /*0: 0x0E -> '0x3 0x0' 1 bit used */
   0x0122                                                             /*1: 0x0F -> '0x2 0x2' 1 bit used */
 };
-short int htab11[] = {
+
+static short int htab11[] = {
   -1019,                                                             /*0: 0xFC05 0x00 -> extension 0 with 5 bit, offset 64 */
   -1532,                                                             /*1: 0xFA04 0x01 -> extension 1 with 4 bit, offset 96 */
   -1790,                                                             /*2: 0xF902 0x02 -> extension 2 with 2 bit, offset 112 */
@@ -1042,7 +1051,8 @@ short int htab11[] = {
   0x0103,                                                            /*0: 0x18 -> '0x0 0x3' 1 bit used */
   0x0130                                                             /*1: 0x19 -> '0x3 0x0' 1 bit used */
 };
-short int htab12[] = {
+
+static short int htab12[] = {
   -1020,                                                             /*0: 0xFC04 0x00 -> extension 0 with 4 bit, offset 64 */
   -1277,                                                             /*1: 0xFB03 0x01 -> extension 1 with 3 bit, offset 80 */
   -1406,                                                             /*2: 0xFA82 0x02 -> extension 2 with 2 bit, offset 88 */
@@ -1200,7 +1210,8 @@ short int htab12[] = {
   0x0140,                                                            /*0: 0x20 -> '0x4 0x0' 1 bit used */
   0x0103                                                             /*1: 0x21 -> '0x0 0x3' 1 bit used */
 };
-short int htab13[] = {
+
+static short int htab13[] = {
   -1018,                                                             /*0: 0xFC06 0x00 -> extension 0 with 6 bit, offset 64 */
   -2042,                                                             /*1: 0xF806 0x01 -> extension 1 with 6 bit, offset 128 */
   -3067,                                                             /*2: 0xF405 0x02 -> extension 2 with 5 bit, offset 192 */
@@ -1776,7 +1787,8 @@ short int htab13[] = {
   0x01FE,                                                            /*0: 0x00 -> '0xF 0xE' 1 bit used */
   0x01FC                                                             /*1: 0x01 -> '0xF 0xC' 1 bit used */
 };
-short int htab15[] = {
+
+static short int htab15[] = {
   -1018,                                                             /*0: 0xFC06 0x00 -> extension 0 with 6 bit, offset 64 */
   -2042,                                                             /*1: 0xF806 0x01 -> extension 1 with 6 bit, offset 128 */
   -3067,                                                             /*2: 0xF405 0x02 -> extension 2 with 5 bit, offset 192 */
@@ -2246,7 +2258,8 @@ short int htab15[] = {
   0x01AE,                                                            /*0: 0x3E -> '0xA 0xE' 1 bit used */
   0x010F                                                             /*1: 0x3F -> '0x0 0xF' 1 bit used */
 };
-short int htab16[] = {
+
+static short int htab16[] = {
   -1019,                                                             /*0: 0xFC05 0x00 -> extension 0 with 5 bit, offset 64 */
   -1530,                                                             /*1: 0xFA06 0x01 -> extension 1 with 6 bit, offset 96 */
   -2554,                                                             /*2: 0xF606 0x02 -> extension 2 with 6 bit, offset 160 */
@@ -2888,7 +2901,8 @@ short int htab16[] = {
   0x0197,                                                            /*0: 0x1AA -> '0x9 0x7' 1 bit used */
   0x0188                                                             /*1: 0x1AB -> '0x8 0x8' 1 bit used */
 };
-short int htab24[] = {
+
+static short int htab24[] = {
   -1022,                                                             /*0: 0xFC02 0x00 -> extension 0 with 2 bit, offset 64 */
   -1086,                                                             /*1: 0xFBC2 0x01 -> extension 1 with 2 bit, offset 68 */
   -1150,                                                             /*2: 0xFB82 0x02 -> extension 2 with 2 bit, offset 72 */
@@ -3380,7 +3394,8 @@ short int htab24[] = {
   0x0103,                                                            /*0: 0x50 -> '0x0 0x3' 1 bit used */
   0x0130                                                             /*1: 0x51 -> '0x3 0x0' 1 bit used */
 };
-struct
+
+static struct
 {
   short int *h;
   short int linbits;
@@ -3421,7 +3436,8 @@ htab24, 9}, {
 htab24, 11}, {
 htab24, 13}
 };
-unsigned char htabA[] = {
+
+static unsigned char htabA[] = {
   0xB6,                                                              /*0x00 -> 0xB, 6 bit used */
   0xF6,                                                              /*0x01 -> 0xF, 6 bit used */
   0xD6,                                                              /*0x02 -> 0xD, 6 bit used */
@@ -3487,7 +3503,8 @@ unsigned char htabA[] = {
   0x01,                                                              /*0x3E -> 0x0, 1 bit used */
   0x01                                                               /*0x3F -> 0x0, 1 bit used */
 };
-struct
+
+static struct
 {
   unsigned int n:8;
   signed int u0:2;

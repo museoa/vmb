@@ -46,7 +46,7 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 }
 
 /* from wimp3.c */
-extern void stop_mp3_sound(void);
+extern void stop_sound(void);
 extern void start_sound_server(void);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -77,11 +77,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 	case WM_CLOSE:
     case WM_DESTROY:
-		stop_mp3_sound();
+		stop_sound();
 		break;
 
 
-      stop_mp3_sound();
+      stop_sound();
 
   default:
     return (OptWndProc(hWnd, message, wParam, lParam));

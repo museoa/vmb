@@ -238,10 +238,6 @@
 				RelativePath=".\wimp3\tables.h"
 				>
 			</File>
-			<File
-				RelativePath="..\winopt\win32connect.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

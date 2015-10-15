@@ -33,6 +33,7 @@
 #include "mp32pcm.h"
 #include "resource.h"
 #include "winopt.h"
+#include "error.h"
 
 
 
@@ -41,8 +42,7 @@ extern HINSTANCE hInst;
 static HFONT hbigfont=NULL;
 static HWAVEOUT hwaveout;
 static BOOL device_open=FALSE;	// device open status
-static BOOL stream_open=FALSE;
-static BOOL mp3_playing=FALSE;
+static BOOL playing=FALSE;
 
 static WAVEFORMATEX wavefmtex={0};
 static WAVEHDR wavehdr[2] ={0};
@@ -53,11 +53,12 @@ static int bufindex;
 static int MoreBuffers=0;
 
 static int MP3Stream = -1;
-
+static int PCMStream = -1;
   
 /* Display Information */
 static HBITMAP hmono = 0, hjoint_stereo=0, hstereo=0;
 
+extern void pcm_get_info(WAVEFORMATEX *fmt);
 
 static void DisplayMode(int mode)
 { static int old=-1;
@@ -94,9 +95,9 @@ static void DisplayVersion(int version, int layer)
 { static int oldv =-1, oldl=-1;
 
 static char *v[3][4]={
-	{"1 I","-","2 I","2.5 I"},
-	{"1 II","-","2 II","2.5 II"},
-	{"1 III","-","2 III","2.5 III"}};
+	{"1 I","2 I","2.5 I","",},
+	{"1 II","2 II","2.5 II","",},
+	{"1 III","2 III","2.5 III",""}};
   if (version!=oldv || layer != oldl)
   {	SetDlgItemText(hMainDialog,IDC_VERSION,v[layer-1][version]);
     oldv=version; oldl=layer;
@@ -122,7 +123,9 @@ static mp3_info stream_info;
 static double stream_time = 0.0;
 
 static void UpdateDisplay(void)
-{  DisplayTime(stream_time);
+{  if (hMainDialog==NULL) return;
+	
+	DisplayTime(stream_time);
    DisplayMode(stream_info.mode);
    DisplayInt(IDC_BITRATE,(stream_info.bit_rate+500)/1000);
    DisplayInt(IDC_FREQUENCY, stream_info.sample_rate);
@@ -157,36 +160,35 @@ static int info_callback(mp3_info *p)
    return MP3_CONTINUE;
 }
 
-extern int mp3_input_read(int id, void *buffer, size_t size);
+extern int input_read(int id, void *buffer, size_t size);
 
 
+static void close_mp3_stream(void)
+{  if (MP3Stream>=0)
+	  mp3_close(MP3Stream);
+   MP3Stream = -1;
+}
+static void close_pcm_stream(void)
+{  PCMStream = -1;
+}
 
-static int open_stream(void)
+
+static int open_mp3_stream(void)
 { mp3_options options;
 
-    if (MP3Stream>=0)
-	  mp3_close(MP3Stream);
-	stream_open=FALSE;
-
+	close_mp3_stream(); /* just in case */
     options.flags = MP3_INFO_ONCE | MP3_INFO_FRAME | MP3_INFO_PCM;
 	options.info_callback = info_callback;
 	options.equalizer = NULL;
 	options.tag_handler=NULL;
-    MP3Stream = mp3_open(mp3_input_read,&options);
+    MP3Stream = mp3_open(input_read,&options);
 	if (MP3Stream < 0)
 	{   win32_error(__LINE__,"Unable to open MP3 Decoder");
 		return 0;
 	}
-	stream_open=TRUE;
 	return 1;
 }
 
-
-static void close_stream(void)
-{	  mp3_close(MP3Stream);
-      MP3Stream = -1;
-	  stream_open=FALSE;
-}
 
 
 
@@ -198,8 +200,10 @@ static void CloseDevice(void)
 	{	if( waveOutUnprepareHeader( hwaveout, wavehdr+0, sizeof(WAVEHDR) ) ||
 			waveOutUnprepareHeader( hwaveout, wavehdr+1, sizeof(WAVEHDR) ) )
 				win32_error(__LINE__, "Error unpreparing play header.");
+	    vmb_debug(VMB_DEBUG_PROGRESS, "Unprepared buffers");
 		if( waveOutClose( hwaveout ) ) 
 				win32_error(__LINE__, "Error closing wave play device.");
+	    vmb_debug(VMB_DEBUG_PROGRESS, "Closed sound device");
 		hwaveout=NULL;
 	}
     if (wavemem[0]!=NULL) { free(wavemem[0]); wavemem[0]=NULL;}
@@ -207,12 +211,9 @@ static void CloseDevice(void)
 	device_open = FALSE;
 }
 extern DWORD dwSoundThreadId;
-static int OpenDevice(HWND hwnd)
-{	if (device_open)
-      return 0;
-	if (!stream_open && !open_stream())
-		return 0;
-	mp3_read(MP3Stream,NULL,0);
+
+static void mp3_get_info(void)
+{	mp3_read(MP3Stream,NULL,0);
 	wavefmtex.wFormatTag = WAVE_FORMAT_PCM;
 	wavefmtex.wBitsPerSample = stream_info.bit_per_sample;
 	wavefmtex.nChannels = stream_info.channels;
@@ -220,13 +221,18 @@ static int OpenDevice(HWND hwnd)
 	wavefmtex.nSamplesPerSec = stream_info.sample_rate;
 	wavefmtex.nAvgBytesPerSec = wavememsize = stream_info.sample_rate *stream_info.channels*(stream_info.bit_per_sample/8);
 	wavefmtex.cbSize = 0;
+}
+
+static int OpenDevice(void)
+{	if (device_open)
+      return 0;
 	// wavememsize was set to be enough for one second of data
-	// we make it a halve of a second
+	// we make it a tenth of a second
 	wavememsize = wavememsize/2;
 	//and round up to the next multiple of 2*1152 
-	//to be able to contain a full stereo layer II/III frames
+	//to be able to contain a full stereo layer II/III frame
  
-    wavememsize = ((wavememsize + 2*1152-1)/(2*1152))*2*1152; 
+    wavememsize = ((wavememsize + 2*1152-1)/(2*1152))*(2*1152); 
     if (wavemem[0]!=NULL) { free(wavemem[0]); wavemem[0]=NULL;}
 	wavemem[0] = malloc(wavememsize);
 	if (wavemem[0]==NULL) 
@@ -243,8 +249,7 @@ static int OpenDevice(HWND hwnd)
 	{ win32_error(__LINE__, "Error opening wave out device.");
 	  return 0;
 	}
-
-
+	vmb_debugi(VMB_DEBUG_PROGRESS, "Opened sound device %dHz", wavefmtex.nSamplesPerSec);
 	bufindex = 0;
 	memset( wavehdr+0, 0, sizeof(WAVEHDR) );
 	memset( wavehdr+1, 0, sizeof(WAVEHDR) );
@@ -258,19 +263,30 @@ static int OpenDevice(HWND hwnd)
 		win32_error(__LINE__, "Error preparing header for playing.");
 		return 0;
 	}
-		
+	vmb_debug(VMB_DEBUG_PROGRESS, "Buffers prepared");
+
 	device_open = TRUE;
 	return 1;
 }
 	
-void stop_mp3_sound(void)
+void stop_sound(void)
 {
 	// if the device isn't open, just return...
-	if(!mp3_playing) return;
+	if(!playing) return;
 	waveOutReset( hwaveout );
+		vmb_debug(VMB_DEBUG_PROGRESS, "Reset Sound Device");
+
+	while (!wavehdr[0].dwFlags & WHDR_DONE) continue; 
+    waveOutUnprepareHeader( hwaveout, wavehdr+0, sizeof(WAVEHDR) );
+	while (!wavehdr[1].dwFlags & WHDR_DONE) continue; 
+    waveOutUnprepareHeader( hwaveout, wavehdr+1, sizeof(WAVEHDR) );
+		vmb_debug(VMB_DEBUG_PROGRESS, "Unprepared buffers");
+
 	CloseDevice();
-	close_stream();
-	mp3_playing=FALSE;
+	close_mp3_stream();
+	close_pcm_stream();
+	playing=FALSE;
+	MoreBuffers=0;
 }
 
 static int ReadSound( void )
@@ -282,6 +298,8 @@ static int ReadSound( void )
 	if (MP3Stream >= 0)
 	  size = mp3_read(MP3Stream, wavemem[bufindex],
 		wavememsize/2); /* size in number of samples */
+	else if (PCMStream>=0)
+		size = input_read(PCMStream,wavemem[bufindex],wavememsize)/2; /* returns size in byte */
     else
 	  size = 0;
 	if (size >0 )
@@ -301,10 +319,11 @@ static int play_sound()
 	if(ReadSound())
 	{	wavehdr[bufindex].dwFlags = (DWORD)WHDR_PREPARED;
 		if( waveOutWrite( hwaveout, wavehdr+bufindex, sizeof(WAVEHDR) ) )
-		{	stop_mp3_sound();
+		{	stop_sound();
 			win32_error(__LINE__, "Error writing wave buffer.");
 			return 0;
 		}
+		vmb_debugi(VMB_DEBUG_INFO, "Playing buffer %d",bufindex);
 		// switch to next buffer...
 		bufindex = 1 - bufindex;
 		return 1;
@@ -313,16 +332,36 @@ static int play_sound()
 }
 
 
-void start_mp3_sound( HWND hwnd )
-{ 	if(mp3_playing)
+void start_mp3_sound(void)
+{ 	if(playing)
 	  return;
-    if (!device_open && !OpenDevice(hwnd))
-	  return;
-	mp3_playing=TRUE;
+    if (!device_open)
+	{ if (MP3Stream<0 && !open_mp3_stream())
+		return;
+	  mp3_get_info();
+	  if (!OpenDevice())
+		return;
+	}
+	playing=TRUE;
 	MoreBuffers = 1;
 	play_sound() && play_sound();
 }
 
+
+void start_pcm_sound(void)
+{ 	if(playing)
+	  return;
+    if (!device_open)
+	{ pcm_get_info(&wavefmtex);
+	  wavememsize = wavefmtex.nSamplesPerSec*wavefmtex.nChannels*(wavefmtex.wBitsPerSample/8);
+	  PCMStream=0;
+	  if (!OpenDevice())
+		return;
+	}	
+	playing=TRUE;
+	MoreBuffers = 1;
+	play_sound() && play_sound();
+}
 
 static BOOL APIENTRY  
 MainDialogProc( HWND hDlg, UINT mId, WPARAM wparam, LPARAM lparam )
@@ -371,8 +410,8 @@ MainDialogProc( HWND hDlg, UINT mId, WPARAM wparam, LPARAM lparam )
  
    case WM_DESTROY:
 	  if (hbigfont!=NULL) DeleteObject(hbigfont);
-
-          return TRUE;
+	  hMainDialog=NULL;
+      return TRUE;
  
 
   }
@@ -391,7 +430,7 @@ void mp3_buffer_done(void)
 {		if( MoreBuffers )
 			play_sound();
 		else
-			stop_mp3_sound();
+			stop_sound();
 }
 
 
