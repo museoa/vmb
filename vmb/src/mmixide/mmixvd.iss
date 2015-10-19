@@ -14,11 +14,11 @@ DefaultGroupName=mmix
 AllowNoIcons=yes
 ChangesAssociations=yes
 ChangesEnvironment=yes
-LicenseFile=C:\home\mmixvd\license.txt
-WizardImageFile="C:\home\mmixvd\lsetup.bmp"
+LicenseFile=C:\home\mmixvd\mmixide\licensevd.txt
+WizardImageFile="C:\home\mmixvd\mmixide\lsetupvd.bmp"
 WizardImageBackColor=$127917
 WizardImageStretch=no
-WizardSmallImageFile="C:\home\mmixvd\ssetup.bmp"
+WizardSmallImageFile="C:\home\mmixvd\mmixide\ssetupvd.bmp"
 
 [Components]
 Name: "mmix"; Description: "MMIX Command Line Tools"; Types: full compact custom;
@@ -28,17 +28,17 @@ Name: helloapp; Description: "Put the hello world Application on your dektop"
 Name: modifypath; Description: "Add application directory to your environment path"
 
 [Files]
-Source: "C:\home\mmixvd\Release\mmixvd.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\Icons\mmixvd.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
-Source: "C:\home\mmixvd\license.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\copying.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\mmixvd.chm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\hello.mms"; DestDir: "{userdesktop}"; Flags: ignoreversion; Tasks: helloapp
+Source: "C:\home\mmixvd\mmixide\Release\mmixvd.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\mmixvd\mmixide\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\mmixvd\mmixide\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\mmixvd\mmixide\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\mmixvd\mmixide\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\mmixvd\mmixide\Icons\mmixvd.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\mmixvd\mmixide\readmevd.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
+Source: "C:\home\mmixvd\mmixide\licensevd.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\mmixvd\mmixide\copying.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\mmixvd\mmixide\mmixvd.chm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\mmixvd\mmixide\hello.mms"; DestDir: "{userdesktop}"; Flags: ignoreversion; Tasks: helloapp
 
 [Icons]
 ;Name: "{userdesktop}\hello.mms"; Filename: "{app}\readme.vmb"; Tasks: desktopicon
