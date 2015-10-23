@@ -225,7 +225,7 @@ void prego_instruction_cache(octa address, int size)
 }
 
 void preload_data_cache(octa address, int size)
-/* load the instruction cache starting at address for size byte */
+/* load the data cache starting at address for size byte */
 { int i;
   for (i = -(int)(address.l&LINEMASK); i<size;i=i+LINESIZE)
   { vmb_cache_preload(&vmb,&vmb_d_cache, address.h, address.l);

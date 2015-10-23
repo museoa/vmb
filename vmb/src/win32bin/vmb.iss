@@ -43,6 +43,7 @@ Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: i
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixide.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixide.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion

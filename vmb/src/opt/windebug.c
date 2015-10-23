@@ -5,12 +5,15 @@
 #include "winopt.h"
 #include "inspect.h"
 #include "winlog.h"
+#include "option.h"
 
 
 static HWND hMemory=NULL;
 static HWND hDebug=NULL; /* debug output goes to this window, if not NULL */
 static HWND hFilter=NULL; 
-
+static HWND hExtraDebug=NULL;
+extern HWND (*addExtraDebug)(HWND hDebug)=NULL;
+static int extraTabCtrl=-1;
 
 
 static void show_filter(void)
@@ -32,6 +35,7 @@ static void resize_dialog(HWND hDlg,int w, int h)
   if (hLog!=NULL) MoveWindow(hLog,10,30,w-20,h-40,TRUE); 
   MoveWindow(hMemory,10,30,w-20,h-40,TRUE);
   MoveWindow(hFilter,10,30,w-20,h-40,TRUE);
+  if (hExtraDebug!=NULL)  MoveWindow(hExtraDebug,10,30,w-20,h-40,TRUE);
 }
 
 
@@ -98,11 +102,25 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i+2, &tie);
 		i++;
 	  }
+	  if (addExtraDebug!=NULL) hExtraDebug=addExtraDebug(hDlg);
+	  if (hExtraDebug!=NULL) 
+	  { register_subwindow(hExtraDebug);
+		GetWindowText(hExtraDebug,tmp_option,MAXTMPOPTION);
+	    tie.pszText = tmp_option;  
+	    TabCtrl_InsertItem (GetDlgItem (hDlg, IDC_TAB_DEBUG), i+2, &tie);
+		extraTabCtrl=i+2;
+	  }
 	  TabCtrl_SetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG), 0);
 	  ShowWindow(hLog,SW_SHOW);
 	  GetWindowRect(hDlg,&rect);
       minw = rect.right-rect.left;
 	  minh = rect.bottom-rect.top;
+	  if (hExtraDebug!=NULL)
+	  {	GetWindowRect(hExtraDebug,&rect);
+       if (minw < rect.right-rect.left+30) minw = rect.right-rect.left+30;
+       if (minh < rect.bottom-rect.top+40) minh = rect.bottom-rect.top+40;
+	  }
+      SetWindowPos(hDlg,HWND_TOP,0,0,minw,minh,SWP_NOMOVE);
 	  GetClientRect(hDlg,&rect);
       resize_dialog(hDlg,rect.right-rect.left,rect.bottom-rect.top);
 	}
@@ -114,9 +132,10 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       { int i = TabCtrl_GetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG));
 	    ShowWindow(hLog,i==0?SW_SHOW:SW_HIDE);
         ShowWindow(hFilter,i==1?SW_SHOW:SW_HIDE);
-		ShowWindow(hMemory,i>1?SW_SHOW:SW_HIDE); 
+		ShowWindow(hMemory,(i!=extraTabCtrl && i>1)?SW_SHOW:SW_HIDE); 
+        ShowWindow(hExtraDebug,i==extraTabCtrl?SW_SHOW:SW_HIDE);
 	    if (i==1) show_filter();
-		else if (i>1)
+		else if (i>1 && i!=extraTabCtrl)
 		{ cur_insp=i-2;
 		  SetInspector(hMemory, &inspector[cur_insp]);
 		}
@@ -180,7 +199,8 @@ void win32_error_init(int on)
 }
 
 void mem_update(unsigned int offset, int size)
-{ MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
+{ if (cur_insp<0) return;
+  MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
 }
 
 void mem_update_i(int i, unsigned int offset, int size)

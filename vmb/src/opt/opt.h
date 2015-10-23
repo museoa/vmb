@@ -10,6 +10,8 @@ extern device_info vmb;
 extern HWND hpower;
 
 extern void win32_error_init(int on);
+/* set hExtraDebug to a window handle to get an extra debug tab */
+extern HWND (*addExtraDebug)(HWND hDebug);
 extern void mem_update(unsigned int offset, int size);
 /* call this function to tell a specific memory inspector i that an update is due */
 extern void mem_update_i(int i, unsigned int offset, int size);

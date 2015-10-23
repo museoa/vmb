@@ -67,9 +67,6 @@ extern HWND hMainWnd;
 
 void usage(char *message)
 {
- if (programhelpfile==NULL)
-    WinHelp(hMainWnd,(LPCTSTR)"mmixide.hlp",HELP_CONTENTS, 0L);
-  else
     WinHelp(hMainWnd,programhelpfile,HELP_CONTENTS, 0L);
 }
 

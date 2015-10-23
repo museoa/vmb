@@ -131,7 +131,7 @@ const unsigned char *vmb_cache_read(device_info *vmb, vmb_cache *c, unsigned int
 /* return a pointer to the requested byte.
    there is no alignment check or enforcement 
    and access must not cross line boundaries
-   make sure alignment is propper and linesizes ar multiples of the maximum
+   make sure alignment is propper and linesizes are multiples of the maximum
    alignment requirements.
 */
 { vmb_cache_line *line = get_valid_line(vmb, c, address_hi, LINESTART(address_lo));
