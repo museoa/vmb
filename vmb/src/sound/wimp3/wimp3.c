@@ -245,7 +245,7 @@ static int OpenDevice(void)
 	{ win32_error(__LINE__, "Error allocating wave memory.");
 	  return 0;
 	}	
-	if( waveOutOpen( &hwaveout, (UINT)WAVE_MAPPER, &wavefmtex, dwSoundThreadId, (DWORD)NULL, (DWORD)(CALLBACK_THREAD|WAVE_ALLOWSYNC) ) )
+	if( waveOutOpen( &hwaveout, (UINT)WAVE_MAPPER, &wavefmtex, dwSoundThreadId, (DWORD)0, (DWORD)(CALLBACK_THREAD|WAVE_ALLOWSYNC) ) )
 	{ win32_error(__LINE__, "Error opening wave out device.");
 	  return 0;
 	}
@@ -318,10 +318,12 @@ static int play_sound()
 	UpdateDisplay();
 	if(ReadSound())
 	{	wavehdr[bufindex].dwFlags = (DWORD)WHDR_PREPARED;
+	    if (hwaveout==NULL) 
+		  return 0;
 		if( waveOutWrite( hwaveout, wavehdr+bufindex, sizeof(WAVEHDR) ) )
-		{	stop_sound();
-			win32_error(__LINE__, "Error writing wave buffer.");
-			return 0;
+		{  stop_sound();
+		   win32_error(__LINE__, "Error writing wave buffer.");
+		   return 0;
 		}
 		vmb_debugi(VMB_DEBUG_INFO, "Playing buffer %d",bufindex);
 		// switch to next buffer...
@@ -363,7 +365,7 @@ void start_pcm_sound(void)
 	play_sound() && play_sound();
 }
 
-static BOOL APIENTRY  
+static INT_PTR CALLBACK  
 MainDialogProc( HWND hDlg, UINT mId, WPARAM wparam, LPARAM lparam )
 { 
   switch ( mId )
@@ -404,7 +406,7 @@ MainDialogProc( HWND hDlg, UINT mId, WPARAM wparam, LPARAM lparam )
 	   SetTextColor(hDC,0x000000FF);
 	 }
    case WM_CTLCOLORDLG:
-	 return (BOOL)GetStockObject(BLACK_BRUSH);
+	 return (INT_PTR)GetStockObject(BLACK_BRUSH);
 #endif
 
  

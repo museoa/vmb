@@ -26,7 +26,7 @@ extern device_info vmb;
 
 char title[] ="VMB Sound";
 
-char version[]="$Revision: 1.2 $ $Date: 2015-10-15 12:26:45 $";
+char version[]="$Revision: 1.3 $ $Date: 2015-10-23 12:58:24 $";
 
 char howto[] =
 "This simulates a sound card, see the HTML Help.\n";
@@ -302,6 +302,9 @@ void set_soundCtrl(void)
 	 case SOUND_RESET:	
 		 PostThreadMessage(dwSoundThreadId, WM_SOUND_RESET,0,0); 
 		 return;
+	 default:
+		 vmb_debugi(VMB_DEBUG_PROGRESS, "Unrecognized command (flags 0x%x)",SOUND_CTRL);
+		 return;
   }
 }
 
@@ -322,7 +325,7 @@ extern void stop_sound(void);
 static unsigned char buffers[2];
 static int buffer_index=0; 
 static int load_interrupts=0;
-static enum {IDLE, MP3ONCE,PCMONCE} mode;
+static enum {IDLE, ONCE, LOOP} mode=IDLE;
 
 #define is_cached(i) (soundDma[i].loaded==soundDma[i].size)
 #define needs_more_cacheing(i) (soundDma[i].loaded<soundDma[i].allocated)
@@ -385,7 +388,7 @@ static DWORD WINAPI sound_server(LPVOID dummy)
 		   SET2(buffers, msg.lParam);
 		   position=0;
 		   load_interrupts=msg.wParam&(1<<31);
-		   mode=MP3ONCE;
+		   mode=ONCE;
 		   buffer_index=0;
 		   playing=buffers[buffer_index];
 		   register_update();
@@ -394,6 +397,7 @@ static DWORD WINAPI sound_server(LPVOID dummy)
        case WM_SOUND_PLAYLOOP_MP3:
 	     break;
        case WM_SOUND_PLAYONCE_PCM:
+	   case WM_SOUND_PLAYLOOP_PCM:
 		   stop_sound(); /* just in case */
 		   SET2(buffers, msg.lParam);
 		   position=0;
@@ -401,13 +405,12 @@ static DWORD WINAPI sound_server(LPVOID dummy)
 		   pcm_channels=(msg.wParam>>24)&0x7F;
 		   pcm_bps=(msg.wParam>>16)&0xFF;
 		   pcm_samplerate=msg.wParam&0xFFFF;
-		   mode=PCMONCE;
+		   mode=((msg.message==WM_SOUND_PLAYONCE_PCM)?ONCE:LOOP);
 		   buffer_index=0;
 		   playing=buffers[buffer_index];
 		   register_update();
 		   start_pcm_sound();
 		   break;
-       case WM_SOUND_PLAYLOOP_PCM:
 	     break;
 	   case MM_WOM_DONE:
 	     if (((LPWAVEHDR)msg.lParam)->dwFlags&WHDR_INQUEUE) 
@@ -522,16 +525,15 @@ int get_buffer_data(int i, unsigned char *data, unsigned int position, unsigned 
 
 
 int input_read(int id, void *data, size_t size)
-/* this function is called when we play an mp3 stream and need more data 
-   0<=playing<=16 is the currently playing buffer, 0 if no buffer is playing
-   position is the position in this buffer.
-   buffers[0], ..., buffers[3], are the buffers to be played, eventualy as a loop
+/* this function is called when we play a stream and need more data 
+   position is the position in the buffer.
+   buffers[0] and buffers[1], are the buffers to be played, eventualy as a loop
    buffer_index gives the current buffer.
 */
 { if (position>=soundDma[buffers[buffer_index]-1].size)
   { /* we need to advance to the next buffer */
 	if (buffer_index==0 && buffers[1]!=0 && soundDma[buffers[1]-1].size>0) buffer_index=1;
-	else if (mode!=MP3ONCE && mode!=PCMONCE && 
+	else if (mode!=ONCE && 
 		     buffers[0]!=0 && soundDma[buffers[0]-1].size>0) buffer_index=0;
 	else 
 	{ playing =0;
