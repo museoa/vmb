@@ -524,6 +524,11 @@ void display_profile(void)
 	show_profile_range(0,(int)ed_send(SCI_GETLINECOUNT,0,0));
 }
 
+void clear_profile(void)
+{ clear_profile_data();
+  ed_send(SCI_MARGINTEXTCLEARALL,0,0);
+}
+
 void set_tabwidth(void)
 {   ed_send(SCI_SETTABWIDTH,tabwidth,0);
 }

@@ -191,6 +191,7 @@ void mmix_run(void)
           breakpoint=0;
 		  tracing=false;
 		  update_symtab();
+		  clear_profile();
 		  init_fake_stdin();
           MMIXThread();
 }
@@ -206,6 +207,7 @@ void mmix_debug(void)
           breakpoint=0;
 //		  vmb.reset=mmix_reset; currently no need for this.
 		  update_symtab();
+		  clear_profile();
 		  init_fake_stdin();
 		  MMIXThread();
 }

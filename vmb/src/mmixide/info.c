@@ -245,7 +245,7 @@ static void aux_clear_mem_file(octa loc, mem_tetra *dat)
 }
 
 static void clear_mem_file(int file_no)
-/* returns the frequency count for this line  or -1 if none found*/
+/* removes information for this file */
 { clear_file_no=file_no;
   mem_iterator(aux_clear_mem_file);
 }
@@ -322,6 +322,13 @@ void line2freq(int file_no,int from, int to, unsigned int *freq)
   mem_iterator(get_max_freq);
 }
 
+static void aux_clear_profile(octa loc, mem_tetra *dat)
+{ dat->freq=0;
+}
+void clear_profile_data(void)
+{  mem_iterator(aux_clear_profile);
+   
+}
 
 
 void symtab_add_file(int file_no,trie_node *t)

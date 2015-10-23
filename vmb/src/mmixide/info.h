@@ -78,7 +78,8 @@ extern int get_inuse_file(void);
 /* return a file that is in use */
 extern void line2freq(int file_no,int from, int to, unsigned int *freq);
 /* returns the frequency count for this line  or -1 if none found*/
-
+extern void clear_profile_data(void);
+/* resets profile information */
 extern void mem_iterator(void f(octa loc, mem_tetra *dat));
 /* iterate f over all mem tetras */
 
