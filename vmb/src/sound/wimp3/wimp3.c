@@ -123,9 +123,11 @@ static mp3_info stream_info;
 static double stream_time = 0.0;
 
 static void UpdateDisplay(void)
-{  if (hMainDialog==NULL) return;
-	
-	DisplayTime(stream_time);
+{ 
+   if (hMainDialog==NULL) return;
+   if (!IsWindowVisible(hMainDialog))return;     
+
+   DisplayTime(stream_time);
    DisplayMode(stream_info.mode);
    DisplayInt(IDC_BITRATE,(stream_info.bit_rate+500)/1000);
    DisplayInt(IDC_FREQUENCY, stream_info.sample_rate);
