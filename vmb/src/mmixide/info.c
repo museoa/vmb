@@ -300,24 +300,26 @@ void for_all_files(void f(int i))
 }
 
 /* auxiliar variables and function for line2freq */
-static tetra freq_max=0;
 static int freq_file_no=-1;
-static int freq_line_no=0;
+static int freq_from=0;
+static int freq_to=0;
+static int *freq_freq=NULL;
 
 static void get_max_freq(octa loc, mem_tetra *dat)
-{ if (dat->line_no==freq_line_no &&
-	  dat->file_no==freq_file_no && 
-      dat->freq>freq_max) 
-	  freq_max=dat->freq;
+{ if (dat->line_no>=freq_from+1 && dat->line_no<=freq_to+1 &&
+	  dat->file_no==freq_file_no &&
+      (int)(dat->freq)>freq_freq[dat->line_no-1]) 
+	  freq_freq[dat->line_no-1]=dat->freq;
 }
 
-int line2freq(int file_no,int line_no)
-/* returns the frequency count for this line  or -1 if none found*/
-{ freq_max=0;
+void line2freq(int file_no,int from, int to, unsigned int *freq)
+/* stores frequency counts in freq[from..to] */
+{ 
   freq_file_no=file_no;
-  freq_line_no=line_no;
+  freq_from=from;
+  freq_to=to;
+  freq_freq=freq;
   mem_iterator(get_max_freq);
-  return freq_max;
 }
 
 

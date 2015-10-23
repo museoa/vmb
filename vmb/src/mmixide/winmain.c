@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.57 $ $Date: 2015-09-23 12:40:27 $";
+char version[]="$Revision: 1.58 $ $Date: 2015-10-23 09:40:11 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -159,9 +159,10 @@ int ide_prepare_mmix(void)
   }
   if (!ed_save_all(1)) return 0;
   ed_refresh_breaks(); 
+  warning_count=0;
   if (!assemble_all_needed()) return 0;
   set_break_at_Main();
-  if (auto_close_errors&& hError!=NULL) 
+  if (warning_count==0 && auto_close_errors && hError!=NULL) 
   { DestroyWindow(hError); hError=NULL; }
   if (!check_load_count()) return 0;
   if (!execute_commands()) return 0;
@@ -384,9 +385,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case ID_MMIX_ASSEMBLE:
 		  if (!ed_save_changes(1)) return 0;
 		  ed_refresh_breaks();
+		  warning_count=0;
 		  if (mmix_assemble(edit_file_no)==0)
 		  { 
-			if (auto_close_errors && hError!=NULL) 
+			if (warning_count==0 && auto_close_errors && hError!=NULL) 
 			  {DestroyWindow(hError); hError=NULL; }
 			if (file2loading(edit_file_no) && mmix_active() 
 #ifdef VMB

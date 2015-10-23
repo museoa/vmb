@@ -93,6 +93,8 @@
 #define IDC_CHECK_AUTOASSEMBLE          1016
 #define IDC_SHOW_RQ                     1017
 #define IDC_CHECK_OS                    1017
+#define IDC_CHECK_LISTING2              1017
+#define IDC_CHECK_WARNERROR             1017
 #define IDC_SHOW_RR                     1018
 #define IDC_CHECK_LOCALS                1018
 #define IDC_SELECT_SPECIALS2            1018

@@ -76,7 +76,7 @@ extern void close_file(int file_no);
 /* remove a file from the database */
 extern int get_inuse_file(void);
 /* return a file that is in use */
-extern int line2freq(int file_no,int line_no);
+extern void line2freq(int file_no,int from, int to, unsigned int *freq);
 /* returns the frequency count for this line  or -1 if none found*/
 
 extern void mem_iterator(void f(octa loc, mem_tetra *dat));

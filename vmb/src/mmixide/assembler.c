@@ -10,13 +10,15 @@
 #include "breakpoints.h"
 #include "assembler.h"
 
+#pragma warning(disable : 4996)
 
 extern jmp_buf mmixal_exit;
 
-
+int warning_count=0;
 int x_option = 0;
 int b_option = 80;
 int l_option = 0;
+int warn_as_error = 0;
 int auto_assemble=0;
 int auto_close_errors=0;
 
@@ -27,6 +29,7 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
   { case WM_INITDIALOG:
       CheckDlgButton(hDlg,IDC_CHECK_X,x_option?BST_CHECKED:BST_UNCHECKED);
       CheckDlgButton(hDlg,IDC_CHECK_LISTING,l_option?BST_CHECKED:BST_UNCHECKED); 
+      CheckDlgButton(hDlg,IDC_CHECK_WARNERROR,warn_as_error?BST_CHECKED:BST_UNCHECKED); 
       CheckDlgButton(hDlg,IDC_CHECK_AUTOASSEMBLE,auto_assemble?BST_CHECKED:BST_UNCHECKED); 
       CheckDlgButton(hDlg,IDC_CHECK_AUTOCLOSE_ERRORS,auto_close_errors?BST_CHECKED:BST_UNCHECKED); 
 	  SetDlgItemInt(hDlg,IDC_BUFFERSIZE,b_option,FALSE);
@@ -42,6 +45,7 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
       if( wparam == IDOK )
       { x_option=IsDlgButtonChecked(hDlg,IDC_CHECK_X);
         l_option=IsDlgButtonChecked(hDlg,IDC_CHECK_LISTING);
+        warn_as_error=IsDlgButtonChecked(hDlg,IDC_CHECK_WARNERROR);
         auto_assemble=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOASSEMBLE);
         auto_close_errors=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOCLOSE_ERRORS);
 		b_option=GetDlgItemInt(hDlg,IDC_BUFFERSIZE,NULL,FALSE);
@@ -72,15 +76,24 @@ static char *get_mml_name(char *full_mms_name)
 }
 
 void report_error(char*message,int file_no,int line_no)
-{ if(message[0]=='!') /* fatal error */
-  { ide_add_error(message+1,file_no,line_no);
-    ide_status(message+1);
+{ char buf[512];
+  if(message[0]=='!') /* fatal error */
+  { _snprintf(buf,512,"Fatal error: %s",message+1);
+	ide_add_error(buf,file_no,line_no);
+    ide_status(buf);
+	err_count++;
   } 
   else if(message[0]=='*') /* warning */
-	ide_add_error(message+1,file_no,line_no);
+  {	_snprintf(buf,512,"Warning: %s",message+1);
+    ide_add_error(buf,file_no,line_no);
+    if (warn_as_error) err_count++;
+	else warning_count++;
+  }
   else /* error */
-	ide_add_error(message,file_no,line_no);
-  err_count++;
+  {	_snprintf(buf,512,"Error: %s",message);
+    ide_add_error(buf,file_no,line_no);
+    err_count++;
+  }
   if(listing_file){
     if(!line_listed)flush_listing_line("****************** ");
     if(message[0]=='*')fprintf(listing_file,
@@ -115,7 +128,6 @@ int mmix_assemble(int file_no)
     *tail=0;
     SetCurrentDirectory(name);
    }
-
   err_count = mmixal(source,NULL,listing,x_option,b_option);
   symtab_add_file(file_no,trie_root);
   trie_root=NULL;

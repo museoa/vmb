@@ -491,11 +491,19 @@ void set_profile_width(void)
 
 static void show_profile_range(int from, int to)
 { int line_no;
-	for (line_no=from;line_no<=to; line_no++)
+  int *freq;
+  freq=malloc(sizeof(int)*(to-from+1));
+  if (freq==NULL)
+  { win32_error(__LINE__, "Out of memory");
+    return;
+  }
+  memset(freq,0xFF,sizeof(int)*(to-from+1)); /* initialize with -1 */
+  freq=freq-from; /* now we have freq[from..to] */
+  line2freq(edit_file_no,from,to,freq);
+  for (line_no=from;line_no<=to; line_no++)
   { char number[21];
-    int freq = line2freq(edit_file_no,line_no+1); /* this is very inefficient, iteration over all the memory for each line */
-	if (freq<=0) continue;
-    sprintf(number,"%d",freq);
+	if (freq[line_no]<=0) continue;
+    sprintf(number,"%d",freq[line_no]);
 	ed_send(SCI_MARGINSETTEXT,line_no, (sptr_t)number);
     ed_send(SCI_MARGINSETSTYLE,line_no, STYLE_PROFILE);
   }

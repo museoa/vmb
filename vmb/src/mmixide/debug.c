@@ -585,7 +585,7 @@ void set_localreg_inspector(void)
 	  else
 		name = regnames[r];
 	  reg_names[i].name=name;
-	  reg_names[i].offset=(b+i)*8;
+	  reg_names[i].offset=((b+i)&lring_mask)*8;
 	  reg_names[i].options=opt;
 	}
 }

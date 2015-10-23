@@ -73,4 +73,5 @@ regtable regtab= {
 	{KEY_FLAGS,&find_escape,27},
 	{KEY_FLAGS ,&auto_close_errors,28},
 	{"traceexceptions",&tracing_exceptions,TYPE_DWORD},
+	{KEY_FLAGS ,&warn_as_error,29},
 	{NULL,NULL,0}};
