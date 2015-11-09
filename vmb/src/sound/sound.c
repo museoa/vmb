@@ -26,7 +26,7 @@ extern device_info vmb;
 
 char title[] ="VMB Sound";
 
-char version[]="$Revision: 1.3 $ $Date: 2015-10-23 12:58:24 $";
+char version[]="$Revision: 1.4 $ $Date: 2015-11-09 09:15:38 $";
 
 char howto[] =
 "This simulates a sound card, see the HTML Help.\n";
@@ -34,7 +34,7 @@ char howto[] =
 #define NUM_REGS 43
 struct register_def sound_regs[NUM_REGS+1] = {
 	/* name offset size chunk format */
-	{"Control"  ,0x00,1,byte_chunk,unsigned_format},
+	{"Control"  ,0x00,1,byte_chunk,hex_format},
 	{"DMA No 0" ,0x01,1,byte_chunk,unsigned_format},
 	{"DMA No 1" ,0x02,1,byte_chunk,unsigned_format},
 	{"DataFormat"	,0x03,1,byte_chunk,hex_format},
@@ -177,7 +177,7 @@ static void register_to_mem(int offset, int size)
 }
 
 static void register_update(void)
-/* updates finished playing position */
+/* updates finished and playing position */
 { mem_update(0xA,6);
 }
 
@@ -384,17 +384,17 @@ static DWORD WINAPI sound_server(LPVOID dummy)
          }
 	     break;
        case WM_SOUND_PLAYONCE_MP3:
+	   case WM_SOUND_PLAYLOOP_MP3:
 		   stop_sound(); /* just in case */
 		   SET2(buffers, msg.lParam);
 		   position=0;
 		   load_interrupts=msg.wParam&(1<<31);
-		   mode=ONCE;
+		   mode=((msg.message==WM_SOUND_PLAYONCE_MP3)?ONCE:LOOP);
 		   buffer_index=0;
 		   playing=buffers[buffer_index];
 		   register_update();
 		   start_mp3_sound();
 		   break;
-       case WM_SOUND_PLAYLOOP_MP3:
 	     break;
        case WM_SOUND_PLAYONCE_PCM:
 	   case WM_SOUND_PLAYLOOP_PCM:
@@ -450,6 +450,7 @@ static int vmb_load_sector(int i, unsigned char *buffer, unsigned int position, 
    from position into buffer
 */
 { uint64_t address;
+  vmb_debugi(VMB_DEBUG_INFO, "requested %d byte of sound data",size);
   if (size>SECTOR_SIZE)
      size = SECTOR_SIZE;
   if (size>soundDma[i].size-position)
@@ -512,13 +513,15 @@ int get_buffer_data(int i, unsigned char *data, unsigned int position, unsigned 
   else
   { unsigned int k, n;
 	available = (unsigned int)(soundDma[i].size-position); 
-	if (available<size) size=available;
+	if (available<size) 
+		size=available;
     /* now we have a buffer that is not preloaded */
 	n=0;
-	while ((k = vmb_load_sector(i, data+n, position+n, size-n))>0)
+	while (n<size && (k = vmb_load_sector(i, data+n, position+n, size-n))>0)
 		n=n+k;
+	size = n;
   }
-  if (available-size == 0) 
+  if (available-size <= 0) 
     finished_loading(i,load_interrupts);
   return size;
 }
@@ -530,11 +533,19 @@ int input_read(int id, void *data, size_t size)
    buffers[0] and buffers[1], are the buffers to be played, eventualy as a loop
    buffer_index gives the current buffer.
 */
-{ if (position>=soundDma[buffers[buffer_index]-1].size)
+{ if (size<=0) 
+	return size;
+  if (position>=soundDma[buffers[buffer_index]-1].size)
   { /* we need to advance to the next buffer */
-	if (buffer_index==0 && buffers[1]!=0 && soundDma[buffers[1]-1].size>0) buffer_index=1;
+	if (buffer_index==0 && buffers[1]!=0 && soundDma[buffers[1]-1].size>0) 
+	{ buffer_index=1;
+	  vmb_debug(VMB_DEBUG_INFO, "switching to buffer 1");
+	}
 	else if (mode!=ONCE && 
-		     buffers[0]!=0 && soundDma[buffers[0]-1].size>0) buffer_index=0;
+		     buffers[0]!=0 && soundDma[buffers[0]-1].size>0)
+	{ buffer_index=0;
+	  vmb_debug(VMB_DEBUG_INFO, "switching to buffer 0");
+    }
 	else 
 	{ playing =0;
 	  position=0;
@@ -587,8 +598,6 @@ static void soundExit(void)
 static void finished_loading(int i, int interrupt)
 {   finished=i+1;
     if (interrupt)
-	{ vmb_raise_interrupt(&vmb,interrupt_no);
-      vmb_debug(VMB_DEBUG_PROGRESS, "Raised interrupt");
-	}
+	  vmb_raise_interrupt(&vmb,interrupt_no);
 }
 

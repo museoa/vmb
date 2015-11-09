@@ -521,6 +521,8 @@ decode_header (mp3_info * info, unsigned char *frame)
   if (info->layer == 3 && info->version != MP3_V1_0)                 /* 376 */
     info->frame_size =
       1 * (info->padding + 72 * info->bit_rate / info->sample_rate);
+  if (info->frame_size > MAX_FRAME)
+    return 0;
   return 1;
 }
 
@@ -839,7 +841,8 @@ synchronize (stream * s)
           int frame_size = HEADER_SIZE;                              /* 168 */
 
           do {
-            frame_size++;
+            if (++frame_size > MAX_FRAME)
+              break;
             while (s->frame + frame_size + HEADER_SIZE > s->finish)  /* 170 */
               if (s->state & END_OF_INPUT)
                 return NULL;
@@ -896,11 +899,8 @@ synchronize (stream * s)
                 if (decode_header
                     (info, s->frame + s->info.frame_size + info->frame_size))
                   return s->frame;
-                else {
-                  s->frame = NULL;
-                  s->byte_pointer++;
+                else
                   break;
-                }
               }
               else
                 return s->frame;
@@ -948,9 +948,9 @@ synchronize (stream * s)
                 return s->frame;
             }
           }
-          s->frame = NULL;
-          s->byte_pointer++;
         }
+        s->frame = NULL;
+        s->byte_pointer++;
       }
     }
     else {
@@ -2388,6 +2388,8 @@ mp3_read (int id, mp3_sample * buffer, int size)
             for (ch = 0; ch < s->info.channels; ch++) {
               main_data_bit[gr][ch] = getbit (s, 12);                /* 340 */
               big_values[gr][ch] = getbit (s, 9);                    /* 342 */
+              if (big_values[gr][ch] > FREQUENCIES / 2)
+                big_values[gr][ch] = FREQUENCIES / 2;
               global_gain[gr][ch] = getbit (s, 8);                   /* 344 */
               s->slength[gr][ch] = slength_v1[getbit (s, 4)];        /* 345 */
               window_switching[gr][ch] = getbit (s, 1);              /* 348 */
@@ -3381,6 +3383,8 @@ mp3_read (int id, mp3_sample * buffer, int size)
         for (ch = 0; ch < s->info.channels; ch++) {
           main_data_bit[gr][ch] = getbit (s, 12);                    /* 340 */
           big_values[gr][ch] = getbit (s, 9);                        /* 342 */
+          if (big_values[gr][ch] > FREQUENCIES / 2)
+            big_values[gr][ch] = FREQUENCIES / 2;
           global_gain[gr][ch] = getbit (s, 8);                       /* 344 */
           {
             int sfc = getbit (s, 9);                                 /* 380 */

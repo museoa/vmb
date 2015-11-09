@@ -3405,7 +3405,7 @@ NULL, 0},                                                            /* all zero
 htab1, 0}, {
 htab2, 0}, {
 htab3, 0}, {
-NULL, 0},                                                            /* not used */
+htab3, 0},                                                           /* not used */
 {
 htab5, 0}, {
 htab6, 0}, {
@@ -3416,7 +3416,7 @@ htab10, 0}, {
 htab11, 0}, {
 htab12, 0}, {
 htab13, 0}, {
-NULL, 0},                                                            /* not used */
+htab13, 0},                                                          /* not used */
 {
 htab15, 0}, {
 htab16, 1}, {

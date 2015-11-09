@@ -40,7 +40,7 @@
 static HWND hMainDialog;
 extern HINSTANCE hInst;
 static HFONT hbigfont=NULL;
-static HWAVEOUT hwaveout;
+static HWAVEOUT hwaveout = NULL;
 static BOOL device_open=FALSE;	// device open status
 static BOOL playing=FALSE;
 
@@ -203,7 +203,7 @@ static void CloseDevice(void)
 			waveOutUnprepareHeader( hwaveout, wavehdr+1, sizeof(WAVEHDR) ) )
 				win32_error(__LINE__, "Error unpreparing play header.");
 	    vmb_debug(VMB_DEBUG_PROGRESS, "Unprepared buffers");
-		if( waveOutClose( hwaveout ) ) 
+		if( waveOutClose( hwaveout )!=MMSYSERR_NOERROR ) 
 				win32_error(__LINE__, "Error closing wave play device.");
 	    vmb_debug(VMB_DEBUG_PROGRESS, "Closed sound device");
 		hwaveout=NULL;
@@ -226,11 +226,12 @@ static void mp3_get_info(void)
 }
 
 static int OpenDevice(void)
-{	if (device_open)
+{ MMRESULT mmr;
+	if (device_open)
       return 0;
 	// wavememsize was set to be enough for one second of data
-	// we make it a tenth of a second
-	wavememsize = wavememsize/2;
+	// we make it two tenth of a second
+	wavememsize = wavememsize/5;
 	//and round up to the next multiple of 2*1152 
 	//to be able to contain a full stereo layer II/III frame
  
@@ -247,8 +248,9 @@ static int OpenDevice(void)
 	{ win32_error(__LINE__, "Error allocating wave memory.");
 	  return 0;
 	}	
-	if( waveOutOpen( &hwaveout, (UINT)WAVE_MAPPER, &wavefmtex, dwSoundThreadId, (DWORD)0, (DWORD)(CALLBACK_THREAD|WAVE_ALLOWSYNC) ) )
-	{ win32_error(__LINE__, "Error opening wave out device.");
+	if( mmr=waveOutOpen( &hwaveout, (UINT)WAVE_MAPPER, &wavefmtex, dwSoundThreadId, (DWORD)0, (DWORD)(CALLBACK_THREAD|WAVE_ALLOWSYNC) ) )
+	{ 	    vmb_debugi(VMB_DEBUG_ERROR, "Error opening device %d",mmr);
+		win32_error(__LINE__, "Error opening wave out device.");
 	  return 0;
 	}
 	vmb_debugi(VMB_DEBUG_PROGRESS, "Opened sound device %dHz", wavefmtex.nSamplesPerSec);
@@ -272,12 +274,16 @@ static int OpenDevice(void)
 }
 	
 void stop_sound(void)
-{
+{ MMRESULT r;
 	// if the device isn't open, just return...
+	if (hwaveout!=NULL)
+	{ r = waveOutReset( hwaveout );
+	  if (r==MMSYSERR_NOERROR)
+	  vmb_debug(VMB_DEBUG_PROGRESS, "Reset Sound Device");
+	else
+	  vmb_debugi(VMB_DEBUG_ERROR, "Unable to reset Sound Device %d",r);
+	}
 	if(!playing) return;
-	waveOutReset( hwaveout );
-		vmb_debug(VMB_DEBUG_PROGRESS, "Reset Sound Device");
-
 	while (!wavehdr[0].dwFlags & WHDR_DONE) continue; 
     waveOutUnprepareHeader( hwaveout, wavehdr+0, sizeof(WAVEHDR) );
 	while (!wavehdr[1].dwFlags & WHDR_DONE) continue; 
