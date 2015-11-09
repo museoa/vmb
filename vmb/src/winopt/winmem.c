@@ -17,11 +17,42 @@ static int top_height, sb_width=0;
 
 static void invalidate_mem(inspector_def *insp)
 { RECT r;
+if (insp->hWnd==NULL) return;
   r.top=top_height-separator_height;
   r.bottom=insp->height;
   r.left=0;
   r.right=insp->width;
   InvalidateRect(insp->hWnd,&r,TRUE);
+}
+
+static void invalidate_registers(inspector_def *insp, unsigned int from, unsigned int size)
+{ RECT rec;
+  int nr, i;
+  int first, last, max_size;
+  if (insp->hWnd==NULL) return;
+  if (insp->regs==NULL) return;
+  nr = insp->num_regs;
+  if (nr>insp->lines) 
+	  nr=insp->lines;
+  first=nr;
+  last=0;
+  max_size=0;
+  for (i=0; i<nr;i++)
+  {	struct register_def *r;
+	r = &insp->regs[insp->sb_cur+i];
+	if ((unsigned)r->offset>=from+size || r->offset+(unsigned int)r->size<=from)
+	  continue;
+    if (i<first)first=i;
+	if (i>last) last=i;
+	if (max_size<r->size) max_size=r->size;
+  }
+  if (max_size<=0) return;
+  if (last<first) return;
+  rec.left=insp->address_width;;
+  rec.right=rec.left+(max_size+1)*2*(fixed_char_width+separator_width); /* upper bound */
+  rec.top=top_height+first*fixed_line_height;
+  rec.bottom=top_height+last*fixed_line_height+fixed_line_height-separator_height;
+  InvalidateRect(insp->hWnd,&rec,TRUE);
 }
 
 static void sb_range(inspector_def *insp)
@@ -710,17 +741,17 @@ HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
 
 void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size)
 /* called if size byte in memory at offset have changed */
-{ if (hMemory==NULL) return;
+{ if (insp->hWnd==NULL) return;
   if (insp->regs==NULL) adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
   if (offset>=insp->mem_base+insp->mem_size || offset+size<=insp->mem_base) 
     return;
   else
-  { unsigned int from, to;
+  { unsigned int from;
     refresh_old_mem(insp);
     if (offset<insp->mem_base) from=insp->mem_base; else from=offset;
-	if (offset+size<insp->mem_base+insp->mem_size) to = offset+size; else to = insp->mem_base+insp->mem_size;
-	if (insp->get_mem) insp->get_mem(from, to-from, insp->mem_buf+(from-insp->mem_base));
-	invalidate_mem(insp);
+	if (offset+size>insp->mem_base+insp->mem_size)  size = insp->mem_base+insp->mem_size-offset;
+	if (insp->get_mem) insp->get_mem(from, size, insp->mem_buf+(from-insp->mem_base));
+	invalidate_registers(insp, from, size);
   }
 }
 

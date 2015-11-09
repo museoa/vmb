@@ -83,11 +83,12 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   switch ( message )
   { case WM_INITDIALOG :
   	hDebug=hDlg;
+	register_subwindow(hDebug);
 	hMemory=CreateMemoryDialog(hInst,hDlg);
+    register_subwindow(hMemory);
 	hLog = CreateLog(hDlg,hInst);
 	hFilter=CreateDialog(hInst,MAKEINTRESOURCE(IDD_FILTER),hDlg,FilterProc);
     register_subwindow(hFilter);
-	register_subwindow(hDebug);
 	{ TCITEM tie;
 	  RECT rect;
 	  int i=0;
@@ -146,8 +147,16 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if( wparam == SC_CLOSE ) 
       { unregister_subwindow(hFilter);
 	    DestroyWindow(hFilter);
+		hFilter=NULL;
+		unregister_subwindow(hMemory);
 		DestroyWindow(hMemory);
-//		DestroyWindow(hLog);
+		hMemory=NULL;
+        if (hExtraDebug!=NULL)
+		{ unregister_subwindow(hExtraDebug);
+		  DestroyWindow(hExtraDebug);
+		  hExtraDebug=NULL;
+		} 
+		/* hLog is destroyed by its own window procedure */
 		vmb_debug_flag=0;
 	    CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|MF_UNCHECKED);
 		unregister_subwindow(hDebug);
