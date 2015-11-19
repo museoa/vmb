@@ -83,21 +83,7 @@ void set_option(char **option, char *str)
   }
   strcpy(*option, str);
 }
-#if 0
-#define hexdigit(c) ((c)<10? (c)+'0':(c-10)+'A')
 
-void uint64tohex(uint64_t u, char *c)
-/* converts to hex respresetnation. c needs at least 19 characters */
-{ int i;
-  c[18] = 0;
-  for (i=17;i>1;i--)
-  {  c[i] = hexdigit((unsigned char)(u&0xF));
-     u = u>> 4;
-  }
-  c[1] = 'x';
-  c[0] = '0';
-}
-#endif
 
 static uint64_t strtouint64(char *arg)
 { uint64_t r = 0;

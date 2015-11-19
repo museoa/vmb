@@ -16,7 +16,7 @@ install:
 	done
 
 source:
-	tar -cvzf src_1_3.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
+	tar -cvzf src_1_8.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
 
 
 www: wwwdoc
@@ -34,6 +34,10 @@ wwwdoc: util $(helpfiles)
 	    cp $$file htdocs;  \
 	  done; \
 	done
+	cp -r src/mmixide/help/* htdocs/mmixide
+	rm -f htdocs/mmixide/mmixvd.html
+	cp htdocs/mmixide/mmixide.html  htdocs/mmixide/index.html 
+	cp  src/mmixide/Icons/mmixide256.png htdocs/Icons/mmixide256.png
 	cp src/VMBLogo/vmb128.jpg src/VMBLogo/vmb200.jpg src/VMBLogo/vmb64.gif htdocs
 
 clean:
