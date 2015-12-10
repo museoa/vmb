@@ -74,7 +74,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=1, minor_version=8;
-char version[] = "$Revision: 1.51 $ $Date: 2015-09-24 12:13:43 $";
+char version[] = "$Revision: 1.52 $ $Date: 2015-12-10 15:13:23 $";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"
@@ -213,8 +213,6 @@ create_server ()
     fcntl (mother_fd, F_SETFL, flags);
   }
 #endif
-
-
   vmb_debugi(VMB_DEBUG_PROGRESS,"Created server at Port %d", port);
 }
 
@@ -683,9 +681,11 @@ process_read_fdset (int fd)
 	receive_msg (&(slot[i].fd), &mtype, &msize, &mslot, &mid, &mtime,
 		     maddress, mpayload);
       if (error < 0)
-	remove_slot (i);
+	  { vmb_error2(__LINE__, "Unable to read message, closing ", (char *)slot[i].name);
+	    remove_slot (i);
+	  }
       else if (error > 0)
-	interpret_message (i);
+	    interpret_message (i);
 	  /* ignore error == 0 */
 	  return;
     }
