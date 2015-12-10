@@ -746,12 +746,11 @@ void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, i
   if (offset>=insp->mem_base+insp->mem_size || offset+size<=insp->mem_base) 
     return;
   else
-  { unsigned int from;
-    refresh_old_mem(insp);
-    if (offset<insp->mem_base) from=insp->mem_base; else from=offset;
+  { refresh_old_mem(insp);
+    if (offset<insp->mem_base) { size = size-(insp->mem_base-offset); offset=insp->mem_base; }
 	if (offset+size>insp->mem_base+insp->mem_size)  size = insp->mem_base+insp->mem_size-offset;
-	if (insp->get_mem) insp->get_mem(from, size, insp->mem_buf+(from-insp->mem_base));
-	invalidate_registers(insp, from, size);
+	if (insp->get_mem) insp->get_mem(offset, size, insp->mem_buf+(offset-insp->mem_base));
+	invalidate_registers(insp, offset, size);
   }
 }
 
