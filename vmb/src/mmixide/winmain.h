@@ -29,6 +29,8 @@ extern void set_edit_file(int file_no);
 extern void show_stop_marker(int file_no, int line_no);
 extern void set_lineno_width(void);
 extern void set_profile_width(void);
+extern void reset_profile_width(void);
+extern unsigned int max_profile_data;
 extern void update_profile(void);
 extern void display_profile(void);
 extern void set_tabwidth(void);

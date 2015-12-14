@@ -223,7 +223,7 @@ static void store_mem(int segment, unsigned int offset, int size, unsigned char 
   addr.h=(tetra)(a>>32);
   addr.l=(tetra)(a&0xFFFFFFFF);
   mmputchars(buf, size, addr);
-  MemoryDialogUpdate(memory_insp[segment].hWnd,&memory_insp[segment],offset,size);
+  MemoryDialogUpdate(&memory_insp[segment],offset,size);
 }
 
 /* specialized routines for the various segments */
@@ -487,7 +487,7 @@ void mem_to_locals(int from, int to)
   }
   if (to>max)
    memset(local_mem+max*8,0,to-max*8);
-  MemoryDialogUpdate(register_insp[REG_LOCAL].hWnd,&register_insp[REG_LOCAL],to*8,(to-from)*8);
+  MemoryDialogUpdate(&register_insp[REG_LOCAL],to*8,(to-from)*8);
 }
 
 
@@ -532,9 +532,9 @@ void mem_to_globals(int from, int to)
 	  o->l=chartoint(global_mem+(i*8)+4);
     }
   if (from<32)
-	  MemoryDialogUpdate(register_insp[REG_SPECIAL].hWnd,&register_insp[REG_SPECIAL],from*8,8*(to-from));
+	  MemoryDialogUpdate(&register_insp[REG_SPECIAL],from*8,8*(to-from));
   else if (to>=G)
-  	  MemoryDialogUpdate(register_insp[REG_GLOBAL].hWnd,&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from-G].offset,8*(to-from));
+  	  MemoryDialogUpdate(&register_insp[REG_GLOBAL],register_insp[REG_GLOBAL].regs[from-G].offset,8*(to-from));
 }
 
 
@@ -639,11 +639,11 @@ void memory_update(void)
 { int i;
   for (i=0; i<MAXMEM; i++)
 	if(memory_insp[i].hWnd)
-	  MemoryDialogUpdate(memory_insp[i].hWnd,&memory_insp[i], 0,memory_insp[i].size );
+	  MemoryDialogUpdate(&memory_insp[i], 0,memory_insp[i].size );
   set_register_inspectors();
   for (i=0; i<MAXREG; i++)
 	if(register_insp[i].hWnd)
-	{ MemoryDialogUpdate(register_insp[i].hWnd,&register_insp[i], 0,register_insp[i].size );
+	{ MemoryDialogUpdate(&register_insp[i], 0,register_insp[i].size );
 	  adjust_mem_display(&register_insp[i]);
     }
 }

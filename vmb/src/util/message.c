@@ -133,7 +133,7 @@ static int read_socket(int *socket, unsigned char *msg, int size)
 #ifdef WIN32 
 		i = WSAGetLastError();
 		if (i == WSAEWOULDBLOCK)
-		{  /* if the socket was used in nonblocking mode (motherboadr) 
+		{  /* if the socket was used in nonblocking mode (motherboard) 
 		      it might return 0 */
 			return 0;
 		}

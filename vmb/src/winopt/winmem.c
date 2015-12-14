@@ -147,7 +147,7 @@ static void sb_range(inspector_def *insp)
 
 
 
-static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
+static void sb_move(inspector_def *insp,WPARAM wparam)
 { switch (LOWORD(wparam)) 
 	  { case SB_LINEUP:
 	      insp->sb_cur--; /* we catch a negative value in sb_range */
@@ -179,7 +179,7 @@ static void sb_move(HWND hMemory,inspector_def *insp,WPARAM wparam)
 }
 
 
-static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto_addr)
+static uint64_t adjust_goto_addr(inspector_def *insp, uint64_t goto_addr)
 {  char hexstr[20];
 	if (!insp->change_address)
     { if (goto_addr<insp->address)
@@ -190,7 +190,8 @@ static uint64_t adjust_goto_addr(HWND hMemory,inspector_def *insp, uint64_t goto
       }
     }
     uint64_to_hex(goto_addr,hexstr);
-    SetDlgItemText(hMemory,IDC_GOTO,hexstr);
+	if (insp->hWnd!=NULL)
+      SetDlgItemText(insp->hWnd,IDC_GOTO,hexstr);
 	return goto_addr;
 }
 
@@ -250,10 +251,10 @@ int chunk_len(enum mem_fmt f, int chunk_size)
 }
 
 
-static void resize_memory_dialog(HWND hMemory,inspector_def *insp)
+static void resize_memory_dialog(inspector_def *insp)
 { 
 
-  MoveWindow(GetDlgItem(hMemory,IDC_MEM_SCROLLBAR),
+  MoveWindow(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),
 	         insp->width-sb_width,top_height,sb_width,insp->height-top_height,TRUE);
 
 
@@ -551,38 +552,38 @@ void SetInspector(HWND hMemory, inspector_def * insp)
 { RECT r;
   SetWindowLongPtr(hMemory,DWLP_USER,(LONG)(LONG_PTR)insp);
   insp->hWnd=hMemory;
-  GetClientRect(hMemory,&r);
+  GetClientRect(insp->hWnd,&r);
   insp->width=r.right-r.left;
   insp->height=r.bottom-r.top;
   update_max_regnames(insp);
-  resize_memory_dialog(hMemory,insp);
+  resize_memory_dialog(insp);
   if (insp->regs==NULL)
   { RECT r;
 	POINT p;
     int xButton;
-    adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
-	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_SHOW);
-	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_SHOW);
-	GetWindowRect(GetDlgItem(hMemory,IDC_GOTO),&r);
+    adjust_goto_addr(insp,insp->address+insp->mem_base);
+	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO_PROMPT),SW_SHOW);
+	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO),SW_SHOW);
+	GetWindowRect(GetDlgItem(insp->hWnd,IDC_GOTO),&r);
 	p.x=r.right;
 	p.y=r.top;
-    ScreenToClient(hMemory,&p);
+    ScreenToClient(insp->hWnd,&p);
 	xButton=p.x+fixed_char_width;
-	GetWindowRect(GetDlgItem(hMemory,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),xButton,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),xButton,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
   }
   else
   { RECT r;
-	ShowWindow(GetDlgItem(hMemory,IDC_GOTO),SW_HIDE);
-  	ShowWindow(GetDlgItem(hMemory,IDC_GOTO_PROMPT),SW_HIDE);
-	GetWindowRect(GetDlgItem(hMemory,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(hMemory,IDC_FORMAT),fixed_char_width,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(hMemory,IDC_CHUNK),2*fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO),SW_HIDE);
+  	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO_PROMPT),SW_HIDE);
+	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),fixed_char_width,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),2*fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
 
   }
-  SetDlgItemText(hMemory,IDC_FORMAT,format_names[insp->format]);
-  SetDlgItemText(hMemory,IDC_CHUNK,chunk_names[insp->chunk]);
+  SetDlgItemText(insp->hWnd,IDC_FORMAT,format_names[insp->format]);
+  SetDlgItemText(insp->hWnd,IDC_CHUNK,chunk_names[insp->chunk]);
 }
 
 static INT_PTR CALLBACK   
@@ -639,7 +640,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  char value[MAXVALUE];
           GetDlgItemText(hDlg,IDC_GOTO,value,MAXVALUE);
     	  goto_addr = strtouint64(value);
-		  goto_addr=adjust_goto_addr(hDlg,insp,goto_addr);
+		  goto_addr=adjust_goto_addr(insp,goto_addr);
 		  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
 		    insp->sb_base = (unsigned int)(goto_addr-insp->address);
 		  else /* move base address of inspector */
@@ -663,7 +664,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  { insp->chunk=tetra_chunk;
             SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
 		  } 
-     	  resize_memory_dialog(hDlg,insp);
+     	  resize_memory_dialog(insp);
 	    } 
 	    else if ((HWND)lparam==GetDlgItem(hDlg,IDC_CHUNK))
 	    { if (insp->format==float_format && insp->chunk==octa_chunk)
@@ -674,14 +675,14 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		    insp->chunk++; 
 		  if (insp->chunk>last_chunk) insp->chunk=0;
 		  SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
-     	  resize_memory_dialog(hDlg,insp);
+     	  resize_memory_dialog(insp);
 	    }
 	  }
 	  return FALSE;
 	case WM_VSCROLL: 
 	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 	    if (insp==NULL) return FALSE;
-        sb_move(hDlg,insp,wparam);
+        sb_move(insp,wparam);
 	  }
        return TRUE; 
     case SBM_SETRANGE:
@@ -711,7 +712,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		if (insp!=NULL) 
 		{ insp->width=LOWORD(lparam);
 		  insp->height=HIWORD(lparam);
-		  resize_memory_dialog(hDlg,insp);
+		  resize_memory_dialog(insp);
 		}
 	}
 	  break;
@@ -739,10 +740,10 @@ HWND CreateMemoryDialog(HINSTANCE hInst,HWND hParent)
 }
 
 
-void MemoryDialogUpdate(HWND hMemory,inspector_def *insp, unsigned int offset, int size)
+void MemoryDialogUpdate(inspector_def *insp, unsigned int offset, int size)
 /* called if size byte in memory at offset have changed */
 { if (insp->hWnd==NULL) return;
-  if (insp->regs==NULL) adjust_goto_addr(hMemory,insp,insp->address+insp->mem_base);
+  if (insp->regs==NULL) adjust_goto_addr(insp,insp->address+insp->mem_base);
   if (offset>=insp->mem_base+insp->mem_size || offset+size<=insp->mem_base) 
     return;
   else
@@ -762,7 +763,6 @@ void de_disconnect(inspector_def *insp)
     InvalidateRect(insp->hWnd,&insp->edit_rect,TRUE);
   insp->de_offset=-1;
   set_edit_rect(insp);
-//  refresh_display(hMemory, insp);
 }
 
 

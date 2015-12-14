@@ -309,7 +309,10 @@ static void get_max_freq(octa loc, mem_tetra *dat)
 { if (dat->line_no>=freq_from+1 && dat->line_no<=freq_to+1 &&
 	  dat->file_no==freq_file_no &&
       (int)(dat->freq)>freq_freq[dat->line_no-1]) 
-	  freq_freq[dat->line_no-1]=dat->freq;
+  { freq_freq[dat->line_no-1]=dat->freq;
+    if (dat->freq>max_profile_data) 
+		max_profile_data=dat->freq;
+  }
 }
 
 void line2freq(int file_no,int from, int to, unsigned int *freq)
@@ -320,6 +323,7 @@ void line2freq(int file_no,int from, int to, unsigned int *freq)
   freq_to=to;
   freq_freq=freq;
   mem_iterator(get_max_freq);
+
 }
 
 static void aux_clear_profile(octa loc, mem_tetra *dat)
@@ -327,7 +331,7 @@ static void aux_clear_profile(octa loc, mem_tetra *dat)
 }
 void clear_profile_data(void)
 {  mem_iterator(aux_clear_profile);
-   
+   max_profile_data=0;   
 }
 
 

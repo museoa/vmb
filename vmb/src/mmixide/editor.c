@@ -477,13 +477,44 @@ void set_lineno_width(void)
   ed_send(SCI_SETMARGINWIDTHN,MMIX_LINE_MARGIN,width);
 }
 
+static int profile_digits=2;
+unsigned int max_profile_data=0;
+static unsigned int limit_profile_data=100;
+
+void reset_profile_width(void)
+{ profile_digits=2;
+  max_profile_data=0;
+  limit_profile_data=100;
+  set_profile_width();
+}
+
+
 void set_profile_width(void)
 { int width;
+static int old_width=-1;
+#define MAX_PROFILE_DIGITS 11
+  static char zeroes[MAX_PROFILE_DIGITS+1]="00000000000";
   if (show_profile)
-    width =(int) ed_send(SCI_TEXTWIDTH,MMIX_PROFILE_MARGIN,(sptr_t)"000000");
+#if 0  
+  width =(int) ed_send(SCI_TEXTWIDTH,MMIX_PROFILE_MARGIN,(sptr_t)"000000");
+#else
+  { while (max_profile_data>=limit_profile_data && profile_digits<MAX_PROFILE_DIGITS)
+    { limit_profile_data=limit_profile_data*10;
+      profile_digits++;
+    }
+	width =separator_width+(int) ed_send(SCI_TEXTWIDTH,MMIX_PROFILE_MARGIN,(sptr_t)(zeroes+sizeof(zeroes)-1-profile_digits));
+  }
+#endif
   else
     width = 0;
+#if 0
   ed_send(SCI_SETMARGINWIDTHN,MMIX_PROFILE_MARGIN,width);
+#else
+  if (width!=old_width)
+  { ed_send(SCI_SETMARGINWIDTHN,MMIX_PROFILE_MARGIN,width);
+    old_width=width;
+  }
+#endif
 }
 
 #define STYLE_PROFILE (STYLE_LASTPREDEFINED+1)
@@ -491,15 +522,18 @@ void set_profile_width(void)
 
 static void show_profile_range(int from, int to)
 { int line_no;
-  int *freq;
-  freq=malloc(sizeof(int)*(to-from+1));
-  if (freq==NULL)
+  int *p,*freq;
+  p=malloc(sizeof(int)*(to-from+1));
+  if (p==NULL)
   { win32_error(__LINE__, "Out of memory");
     return;
   }
-  memset(freq,0xFF,sizeof(int)*(to-from+1)); /* initialize with -1 */
-  freq=freq-from; /* now we have freq[from..to] */
+  memset(p,0xFF,sizeof(int)*(to-from+1)); /* initialize with -1 */
+  freq=p-from; /* now we have freq[from..to] */
   line2freq(edit_file_no,from,to,freq);
+#if 1
+  set_profile_width();
+#endif
   for (line_no=from;line_no<=to; line_no++)
   { char number[21];
 	if (freq[line_no]<=0) continue;
@@ -507,6 +541,7 @@ static void show_profile_range(int from, int to)
 	ed_send(SCI_MARGINSETTEXT,line_no, (sptr_t)number);
     ed_send(SCI_MARGINSETSTYLE,line_no, STYLE_PROFILE);
   }
+  free(p);
 }
 
 void update_profile(void)
@@ -527,6 +562,7 @@ void display_profile(void)
 void clear_profile(void)
 { clear_profile_data();
   ed_send(SCI_MARGINTEXTCLEARALL,0,0);
+  reset_profile_width();
 }
 
 void set_tabwidth(void)
@@ -546,7 +582,7 @@ void new_edit(void)
   /* configure the style */
    ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
    ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
-   ed_send(SCI_STYLESETBOLD,STYLE_DEFAULT,(sptr_t)1);
+   ed_send(SCI_STYLESETWEIGHT,STYLE_DEFAULT, SC_WEIGHT_BOLD);
    ed_send(SCI_SETSCROLLWIDTH,80*fixed_char_width,0);
    ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_STRICT,5);
    set_text_style();
@@ -558,7 +594,6 @@ void new_edit(void)
    /* profile margin */
    ed_send(SCI_SETMARGINTYPEN,MMIX_PROFILE_MARGIN,SC_MARGIN_RTEXT);
    ed_send(SCI_SETMARGINMASKN,MMIX_PROFILE_MARGIN,0);
-
    ed_send(SCI_STYLESETFORE,STYLE_PROFILE, RGB(0x00,0x00,0xD0));
    ed_send(SCI_STYLESETBACK,STYLE_PROFILE, ed_send(SCI_STYLEGETBACK,STYLE_LINENUMBER,0));
 

@@ -209,10 +209,10 @@ void win32_error_init(int on)
 
 void mem_update(unsigned int offset, int size)
 { if (cur_insp<0) return;
-  MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
+  MemoryDialogUpdate(&inspector[cur_insp], offset, size);
 }
 
 void mem_update_i(int i, unsigned int offset, int size)
 { if (i!=cur_insp) return;
-  MemoryDialogUpdate(hMemory,&inspector[cur_insp], offset, size);
+  MemoryDialogUpdate(&inspector[cur_insp], offset, size);
 }

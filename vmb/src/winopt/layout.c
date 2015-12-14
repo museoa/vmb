@@ -55,6 +55,7 @@ void init_layout(int interactive)
     hFixedFont = GetStockObject(ANSI_FIXED_FONT); 
 
   holdfnt=SelectObject(hdc, hFixedFont);
+  GetTextFace(hdc, sizeof(lf.lfFaceName)-1,lf.lfFaceName); 
   GetTextMetrics(hdc,&tm);
   SelectObject(hdc,holdfnt);
   fixed_char_width=tm.tmAveCharWidth;
