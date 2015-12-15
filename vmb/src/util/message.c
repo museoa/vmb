@@ -190,8 +190,13 @@ int receive_msg(int *socket,
 
     /*recieve rest of message */
     while (msg_size > len)
-    { rcv = read_socket(socket,msg+len,msg_size-len);
-      if (rcv <0 )
+    { int sleepcount=0;
+	  rcv = read_socket(socket,msg+len,msg_size-len);
+	  if (rcv==0)
+	  { if (sleepcount++ > 5) return -1;
+	    Sleep(50); /* sleep 50 ms */
+	  }
+	  else if (rcv <0 )
         return rcv;
 	  len = len+rcv;
     }

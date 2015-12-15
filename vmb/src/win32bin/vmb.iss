@@ -39,6 +39,7 @@ Source: "C:\home\vmb\src\win32bin\Release\ram.exe"; DestDir: "{app}"; Flags: ign
 Source: "C:\home\vmb\src\win32bin\Release\rom.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\screen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\sound.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
