@@ -26,7 +26,7 @@ extern device_info vmb;
 
 char title[] ="VMB Sound";
 
-char version[]="$Revision: 1.4 $ $Date: 2015-11-09 09:15:38 $";
+char version[]="$Revision: 1.5 $ $Date: 2015-12-16 10:06:40 $";
 
 char howto[] =
 "This simulates a sound card, see the HTML Help.\n";
@@ -339,7 +339,7 @@ static DWORD WINAPI sound_server(LPVOID dummy)
      { case WM_SOUND_IGNORE: break;
        case WM_SOUND_UNLOAD:
 		 if (1<=msg.lParam && msg.lParam<=16)
-		 { int i = msg.lParam-1;
+		 { int i = (int)msg.lParam-1;
 		   if (soundDma[i].buffer) 
 		   { free(soundDma[i].buffer);
 		     soundDma[i].buffer=NULL;
@@ -351,11 +351,11 @@ static DWORD WINAPI sound_server(LPVOID dummy)
 		 break;
 	   case WM_SOUND_PRELOAD:
 		 if (1<=msg.lParam && msg.lParam<=16 && !is_cached(msg.lParam-1))
-		 { fill_bufer_cache(msg.lParam-1);
+		 { fill_bufer_cache((int)msg.lParam-1);
 		   if (needs_more_cacheing(msg.lParam-1))
 			 PostThreadMessage(dwSoundThreadId, WM_SOUND_PRELOAD,msg.wParam,msg.lParam); 
 		   else 
-			 finished_loading(msg.lParam,msg.wParam);
+			 finished_loading((int)msg.lParam,(int)msg.wParam);
 		 }
          break;
        case WM_SOUND_CANCEL:
@@ -388,7 +388,7 @@ static DWORD WINAPI sound_server(LPVOID dummy)
 		   stop_sound(); /* just in case */
 		   SET2(buffers, msg.lParam);
 		   position=0;
-		   load_interrupts=msg.wParam&(1<<31);
+		   load_interrupts=(int)msg.wParam&(1<<31);
 		   mode=((msg.message==WM_SOUND_PLAYONCE_MP3)?ONCE:LOOP);
 		   buffer_index=0;
 		   playing=buffers[buffer_index];
@@ -401,10 +401,10 @@ static DWORD WINAPI sound_server(LPVOID dummy)
 		   stop_sound(); /* just in case */
 		   SET2(buffers, msg.lParam);
 		   position=0;
-		   load_interrupts=msg.wParam&(1<<31);
-		   pcm_channels=(msg.wParam>>24)&0x7F;
-		   pcm_bps=(msg.wParam>>16)&0xFF;
-		   pcm_samplerate=msg.wParam&0xFFFF;
+		   load_interrupts=(int)msg.wParam&(1<<31);
+		   pcm_channels=((int)msg.wParam>>24)&0x7F;
+		   pcm_bps=((int)msg.wParam>>16)&0xFF;
+		   pcm_samplerate=(int)msg.wParam&0xFFFF;
 		   mode=((msg.message==WM_SOUND_PLAYONCE_PCM)?ONCE:LOOP);
 		   buffer_index=0;
 		   playing=buffers[buffer_index];
@@ -534,7 +534,7 @@ int input_read(int id, void *data, size_t size)
    buffer_index gives the current buffer.
 */
 { if (size<=0) 
-	return size;
+	return (int)size;
   if (position>=soundDma[buffers[buffer_index]-1].size)
   { /* we need to advance to the next buffer */
 	if (buffer_index==0 && buffers[1]!=0 && soundDma[buffers[1]-1].size>0) 
@@ -556,10 +556,10 @@ int input_read(int id, void *data, size_t size)
 	playing = buffers[buffer_index];
 	register_update();
   }
-  size = get_buffer_data(playing-1, data, position, size);
+  size = get_buffer_data(playing-1, data, position, (unsigned int)size);
   position=position+size;
   position_update();
-  return size;
+  return (int)size;
 }
 
 /* Operating the Sound */
@@ -585,6 +585,7 @@ static void soundInit(void)
 {
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Sound");
   memset(mem,0,sizeof(mem));
+  mem_update(0,sizeof(mem));
   PostThreadMessage(dwSoundThreadId, WM_SOUND_RESET,0,0);
 }
 
