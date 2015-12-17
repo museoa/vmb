@@ -356,6 +356,31 @@ void sync_breakpoints(void)
 /* function to determine the name for a breakpoint as displayed in the breakpoint window */
 
 #define MAX_BREAK_NAME 64
+#define hexdigit(c) ((c)<10? (c)+'0':((c)-10)+'A')
+
+void sprint_address(char *str, octa loc)
+/* store a short representation of the given location in the string */
+{ uint64_t a;
+  int i;
+  a= loc.h;
+  a = (a<<32) | loc.l;
+  *(str++)='#';
+  if (a==0) 
+    i=4;
+  else
+  {	i=16;
+	if ((a&0xF000000000000000)!=0 && (a&0x0FFFF00000000000)==0) /* segment */
+	{ *(str++)=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
+	  *(str++)='.'; *(str++)='.';	*(str++)='.'; /* add ... */
+	}
+  }
+  while ((a&0xF000000000000000)==0 && i>4) 
+  { i--; a = a<<4; } /* skip leading zeros */
+  while (i>0) /* print remaining digits */
+  { *(str++)=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
+  }
+  *str=0;
+}
 
 char *break_name(int i)
 { static char name[MAX_BREAK_NAME];
@@ -368,28 +393,7 @@ char *break_name(int i)
 	n -=k;
   }
   if (!loc_unknown(i))
-  { unsigned int hhb, hlb, mh, ml,l;
-    if (n<MAX_BREAK_NAME-1)
-	{ k=sprintf_s(str,n,": "); str+=k; n -=k; }
-    hhb = (breakpoints[i].loc.h>>24)&0xFF;
-    hlb = (breakpoints[i].loc.h>>16)&0xFF;
-    mh  =   breakpoints[i].loc.h&0xFFFF;
-    ml  =   (breakpoints[i].loc.l>>16)&0xFFFF;
-    l   =   breakpoints[i].loc.l&0xFFFF;
-
-	k=sprintf_s(str,n,"#%02X",hhb); str+=k; n -=k; 
-	if (hlb)
-	{ k=sprintf_s(str,n,"%02X",hhb); str+=k; n -=k; }
-	if (mh)
-	{ k=sprintf_s(str,n,"%04X",mh); str+=k; n -=k; }
-	if (ml)
-	{ k=sprintf_s(str,n,"%04X",ml); str+=k; n -=k; }
-    if (!(hlb&&mh&&ml)) 
-	{ k=sprintf_s(str,n,"..."); str+=k; n -=k; }
-	k=sprintf_s(str,n,"%04X",l); str+=k; n -=k;
-	if (breakpoints[i].loc.l<breakpoints[i].loc_last.l)
-	{ k=sprintf_s(str,n,"->...%04X",breakpoints[i].loc_last.l); str+=k; n -=k; }
-  } 
+    sprint_address(str,breakpoints[i].loc);
   if (n==MAX_BREAK_NAME-1)
 	  return "ERROR";
   return name;
