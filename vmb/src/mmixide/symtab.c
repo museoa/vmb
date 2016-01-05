@@ -57,7 +57,7 @@ OptionSymtabDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 void symtab_reset(void)
-{  SendMessage(hSymbolTable,LB_RESETCONTENT,0,0);	
+{  if (hSymbolTable!=NULL) SendMessage(hSymbolTable,LB_RESETCONTENT,0,0);	
 }
 
 static void symtab_add(char *symbol, sym_node *sym)
@@ -103,19 +103,19 @@ sym_node *find_symbol(char *symbol,int file_no)
   return NULL;
 }
 
-static char symtab_buf[1000];
+#define MAX_SYMBOL_STR 1024
+static char symtab_buf[MAX_SYMBOL_STR+1];
 
-static void enumerate_symtab(trie_node *t, char *sym_ptr)
+static void enumerate_symtab(trie_node *t, int i)
 {
-
-  if (t->left) enumerate_symtab(t->left,sym_ptr);
-  *sym_ptr=(char)t->ch;
+  if (t->left) enumerate_symtab(t->left,i);
+  symtab_buf[i]=(char)t->ch;
   if (t->sym)
-  { *(sym_ptr+1)=0;
+  { symtab_buf[i+1]=0;
      symtab_add(symtab_buf+1,t->sym); /* skip leading : */
   }
-  if (t->mid) enumerate_symtab(t->mid,sym_ptr+1);
-  if (t->right) enumerate_symtab(t->right,sym_ptr);
+  if (t->mid && i+1<MAX_SYMBOL_STR) enumerate_symtab(t->mid,i+1);
+  if (t->right) enumerate_symtab(t->right,i);
 }
 
 static void symtab_add_file_no(int file_no)
@@ -123,7 +123,7 @@ static void symtab_add_file_no(int file_no)
   if (!file2assembly(file_no)) return;
   t= (trie_node*)file2symbols(file_no);
   if (t!=NULL)
-     enumerate_symtab(t, symtab_buf);
+     enumerate_symtab(t, 0);
 }
 
 
@@ -133,47 +133,44 @@ void update_symtab(void)
   for_all_files(symtab_add_file_no);
 }
 void create_symtab(void)
-{ sp_create_options(1,1,0.15,0,hEdit);
+{ if (hSymbolTable!=NULL) return;
+  sp_create_options(1,1,0.15,0,hEdit);
   hSymbolTable = CreateWindow("LISTBOX","Symbol Table",
-		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
+		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|
+			 LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
              0,0,0,0,
 	         hSplitter, NULL, hInst, NULL);
-    SendMessage(hSymbolTable,WM_SETFONT,(WPARAM)hFixedFont,0);
+  SendMessage(hSymbolTable,WM_SETFONT,(WPARAM)hVarFont,0);
+  CheckMenuItem(hMenu,ID_VIEW_SYMBOLTABLE,MF_BYCOMMAND|MF_CHECKED);
   update_symtab();
 }
 
 int symtab_measureitem(LPMEASUREITEMSTRUCT lm)
-{   lm->itemHeight = 20; 
+{   lm->itemHeight = var_line_height; 
 	return 1;
 }
 
-extern int symtab_drawitem(LPDRAWITEMSTRUCT di)
-{ int len;
-  char *str;
-  TEXTMETRIC tm; 
-  int y; 
-  COLORREF cr;
+int symtab_drawitem(LPDRAWITEMSTRUCT di)
+{ int y; 
+  COLORREF cb, cf;
   if (di->itemID <0 ) return 0;
   switch (di->itemAction) 
   { case ODA_SELECT: 
-    case ODA_DRAWENTIRE: 
-      len = (int)SendMessage(di->hwndItem, LB_GETTEXTLEN, di->itemID, 0); 
-	  str = malloc(len+1);
-	  if (str==NULL) 
-	  { win32_error(__LINE__,"Out of memory");
-	    return 0;
-	  }
-      SendMessage(di->hwndItem, LB_GETTEXT, di->itemID, (LPARAM)str); 
-      GetTextMetrics(di->hDC, &tm); 
-      y = (di->rcItem.bottom + di->rcItem.top - tm.tmHeight) / 2;
+    case ODA_DRAWENTIRE:
+      SendMessage(di->hwndItem, LB_GETTEXT, di->itemID, (LPARAM)symtab_buf); 
+      y = (di->rcItem.bottom + di->rcItem.top - var_char_height) / 2;
       if (di->itemState & ODS_SELECTED)
-		  cr = SetBkColor(di->hDC,RGB(0x80,0x80,0xff));
+	  {  cb =SetBkColor(di->hDC,SELECT_COLOR);
+		 cf =SetTextColor(di->hDC,RGB(0xff,0xff,0xff));
+	  }
 	  else
-		  cr =SetBkColor(di->hDC,RGB(0xff,0xff,0xff));
-	  ExtTextOut(di->hDC, 15, y,ETO_CLIPPED|ETO_OPAQUE, &di->rcItem,str,len,NULL);
-	  SetBkColor(di->hDC,cr);
-	  free(str);
-
+	  {  cb =SetBkColor(di->hDC,RGB(0xff,0xff,0xff));
+		 cf =SetTextColor(di->hDC,RGB(0x00,0x00,0x00));
+	  }
+	  ExtTextOut(di->hDC, separator_width, y,ETO_CLIPPED|ETO_OPAQUE, 
+		         &di->rcItem,symtab_buf,(int)strlen(symtab_buf),NULL);
+	  SetBkColor(di->hDC,cb);
+	  SetTextColor(di->hDC,cf);
     return 1;
   } 
   return 0;

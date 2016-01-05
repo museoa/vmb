@@ -191,7 +191,8 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 void set_debug_windows(void)
-{ if (show_debug_local) new_register_view(0);
+{ if (show_trace) show_trace_window();
+  if (show_debug_local) new_register_view(0);
   if (show_debug_global) new_register_view(1);
   if (show_debug_special) new_register_view(2);
   if (show_debug_text) new_memory_view(0);
@@ -309,6 +310,33 @@ void new_memory_view(int i)
   h = CreateMemoryDialog(hInst,hSplitter);
   SetInspector(h, &memory_insp[i]);
   ShowWindow(h,SW_SHOW);
+  if (i==0) CheckMenuItem(hMenu,ID_MEM_TEXTSEGMENT,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==1) CheckMenuItem(hMenu,ID_MEM_DATASEGMENT,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==2) CheckMenuItem(hMenu,ID_MEM_POOLSEGMENT,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==3) CheckMenuItem(hMenu,ID_MEM_STACKSEGMENT,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==4) CheckMenuItem(hMenu,ID_MEM_NEGATIVESEGMENT,MF_BYCOMMAND|MF_CHECKED);
+}
+
+int uncheck_memory_view(HWND hWnd)
+{ int k;
+  for (k=0; k<MAXMEM; k++)
+	  if (memory_insp[k].hWnd==hWnd)
+	  { if (k==0) CheckMenuItem(hMenu,ID_MEM_TEXTSEGMENT,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==1) CheckMenuItem(hMenu,ID_MEM_DATASEGMENT,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==2) CheckMenuItem(hMenu,ID_MEM_POOLSEGMENT,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==3) CheckMenuItem(hMenu,ID_MEM_STACKSEGMENT,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==4) CheckMenuItem(hMenu,ID_MEM_NEGATIVESEGMENT,MF_BYCOMMAND|MF_UNCHECKED);
+        return 1;
+      }
+  return 0;
+}
+
+int close_memory_view(int i)
+{ if (i>=0 && i< MAXMEM && memory_insp[i].hWnd!=NULL)
+  { SendMessage(memory_insp[i].hWnd,WM_CLOSE,0,0);
+    return 1;
+  }
+  return 0;
 }
 
 /* REgisters */
@@ -575,17 +603,23 @@ void set_localreg_inspector(void)
     register_insp[REG_LOCAL].num_regs=n;
 	opt=0;
 	for (r=L-1,i=n-1;i>=0;i--,r--)/* registerstack */
-	{ char *name;
-	  static char empty[]="- ";
+	{ static char empty[]="> ";
 	  if (r<0) 
 	  { r=l[(b+i)&lring_mask].l;
-	    name = empty;
+	    reg_names[i].name = empty;
+	    reg_names[i].format=unsigned_format;
+		reg_names[i].chunk=byte_chunk;
+		reg_names[i].offset=((b+i)&lring_mask)*8+7;
+		reg_names[i].size=1;
 		opt=REG_OPT_DISABLED;
 	  }
 	  else
-		name = regnames[r];
-	  reg_names[i].name=name;
-	  reg_names[i].offset=((b+i)&lring_mask)*8;
+	  {	reg_names[i].name = regnames[r];
+	    reg_names[i].format=user_format;
+		reg_names[i].chunk=user_chunk;
+		reg_names[i].size=8;
+		reg_names[i].offset=((b+i)&lring_mask)*8;
+	  }
 	  reg_names[i].options=opt;
 	}
 }
@@ -630,8 +664,30 @@ void new_register_view(int i)
   set_register_inspectors();
   adjust_mem_display(&register_insp[i]);
   ShowWindow(h,SW_SHOW);
+  if (i==0) CheckMenuItem(hMenu,ID_REGISTERS_LOCAL,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==1) CheckMenuItem(hMenu,ID_REGISTERS_GLOBAL,MF_BYCOMMAND|MF_CHECKED);
+  else if (i==2) CheckMenuItem(hMenu,ID_REGISTERS_SPECIAL,MF_BYCOMMAND|MF_CHECKED);
 }
 
+int uncheck_register_view(HWND hWnd)
+{ int k;
+  for (k=0; k<MAXREG; k++)
+	  if (register_insp[k].hWnd==hWnd)
+	  { if (k==0) CheckMenuItem(hMenu,ID_REGISTERS_LOCAL,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==1) CheckMenuItem(hMenu,ID_REGISTERS_GLOBAL,MF_BYCOMMAND|MF_UNCHECKED);
+		else if (k==2) CheckMenuItem(hMenu,ID_REGISTERS_SPECIAL,MF_BYCOMMAND|MF_UNCHECKED);
+        return 1;
+      }
+  return 0;
+}
+
+int close_register_view(int i)
+{ if (i>=0 && i< MAXREG && register_insp[i].hWnd!=NULL)
+  { SendMessage(register_insp[i].hWnd,WM_CLOSE,0,0);
+    return 1;
+  }
+  return 0;
+}
 
 
 
@@ -661,4 +717,16 @@ int is_inspector(HWND h)
 	h=GetParent(h);
   }
   return 0;
+}
+
+
+void change_mem_font(void)
+{ int i;
+  for (i=0; i<MAXMEM; i++)
+	if(memory_insp[i].hWnd)
+		resize_memory_dialog(&(memory_insp[i]));
+		/* InvalidateRect(memory_insp[i].hWnd,NULL,TRUE); */
+  for (i=0; i<MAXREG; i++)
+	if(register_insp[i].hWnd)
+		InvalidateRect(register_insp[i].hWnd,NULL,TRUE);
 }

@@ -7,6 +7,7 @@ extern void set_break_at_Main(void);
 extern void sync_breakpoints(void);
 /* remove all breakpoints for this file */
 extern HWND hBreakpoints;
+extern HWND hBreakList;
 extern int break_at_symbol(int file_no, char *symbol);
 /* get associations of files, lines, and locations */
 extern void add_line_loc(int file_no,int line_no,octa loc);

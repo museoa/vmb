@@ -38,7 +38,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=1, minor_version=8;
-char version[]="$Revision: 1.58 $ $Date: 2015-10-23 09:40:11 $";
+char version[]="$Revision: 1.59 $ $Date: 2016-01-05 18:38:42 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -173,17 +173,28 @@ int ide_prepare_mmix(void)
   return 1;
 }
 
-void toggle_view(HWND *hWnd, UINT MenuID, void create(void))
-{
-  if (menu_toggle(MenuID))
-  { if (*hWnd!=NULL) return;
- 	create();
-  }
-  else if (*hWnd!=NULL)
-  { DestroyWindow(*hWnd);
-	*hWnd=NULL;
+
+
+static void change_lb_font(HWND hLB)
+{ if (!hLB) return;
+  SendMessage(hLB,WM_SETFONT,(WPARAM)hVarFont,0);
+  SendMessage(hLB,LB_SETITEMHEIGHT ,0,(LPARAM)var_line_height);
+  InvalidateRect(hLB,NULL,TRUE);
+}
+
+
+static void font_has_changed(void)
+{ ed_zoom(fontsize);
+  change_lb_font(hSymbolTable);
+  change_lb_font(hBreakList);
+  change_lb_font(hError);
+  change_mem_font();
+  if (hLog) 
+  { SendMessage(hLog,WM_SETFONT,(WPARAM)hFixedFont,0);
+    InvalidateRect(hLog,NULL,TRUE);
   }
 }
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { 	
@@ -221,6 +232,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  { CheckMenuItem(hMenu,ID_VIEW_SYMBOLTABLE,MF_BYCOMMAND|MF_UNCHECKED);
 		    hSymbolTable=NULL;
 		  }
+		  else  if (uncheck_memory_view(hChildWnd)) return 1;
+		  else  if (uncheck_register_view(hChildWnd)) return 1;
 		}
 		return 1;
 
@@ -238,7 +251,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   case WM_COMMAND:
     if (lParam==0)
 	{ /* if (HIWORD(wParam)==0)  Menu */
-      switch(LOWORD(wParam))
+
+#define TOGGLE_VIEW(create,destroy) if (GetMenuState(hMenu,LOWORD(wParam),MF_BYCOMMAND)&MF_CHECKED) {destroy;} else {create;}
+
+		switch(LOWORD(wParam))
 	  { case ID_FILE_EXIT:
 	      if (ed_close_all(1))
 		    DestroyWindow(hWnd);
@@ -310,19 +326,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ed_toggle_break(write_bit);
 			return 0;
 		case ID_VIEW_SYMBOLTABLE:
-			toggle_view(&hSymbolTable,ID_VIEW_SYMBOLTABLE,create_symtab);
+			TOGGLE_VIEW(create_symtab(),DestroyWindow(hSymbolTable));
 		    return 0;
   	    case ID_VIEW_TRACE:
-			toggle_view(&hLog,ID_VIEW_TRACE,show_trace_window);
+			TOGGLE_VIEW(show_trace_window(),DestroyWindow(hLog));
 		    return 0;
 		case ID_VIEW_BREAKPOINTS:
-			toggle_view(&hBreakpoints,ID_VIEW_BREAKPOINTS,create_breakpoints);
+			TOGGLE_VIEW(create_breakpoints(),DestroyWindow(hBreakpoints));
 		    return 0;
 	    case ID_VIEW_ZOOMIN:
-		  ed_zoom_in();
+		  change_font_size(1);
+		  font_has_changed();
 		  return 0;
 	    case ID_VIEW_ZOOMOUT:
-		  ed_zoom_out();
+		  change_font_size(-1);
+		  font_has_changed();
 		  return 0;
 		case ID_VIEW_WHITESPACE:
           set_whitespace(menu_toggle(ID_VIEW_WHITESPACE));
@@ -370,8 +388,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  { mmix_continue('c');
 		  }
 		  else 
-		  { if (show_trace) show_trace_window();
-			if (!ide_prepare_mmix()) return 0;
+		  { if (!ide_prepare_mmix()) return 0;
 		    set_debug_windows();
 		    mmix_debug();
 		  }
@@ -415,40 +432,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 	    case ID_MEM_TEXTSEGMENT:
 		  if (!ide_connect()) return 0;
-		  new_memory_view(0);
+		  TOGGLE_VIEW(new_memory_view(0),close_memory_view(0));
 		  return 0;
 	    case ID_MEM_DATASEGMENT:
 		  if (!ide_connect()) return 0;
-		  new_memory_view(1);
+		  TOGGLE_VIEW(new_memory_view(1),close_memory_view(1));
 		  return 0;
 	    case ID_MEM_POOLSEGMENT:
 		  if (!ide_connect()) return 0;
-		  new_memory_view(2);
+		  TOGGLE_VIEW(new_memory_view(2),close_memory_view(2));
 		  return 0;
 	    case ID_MEM_STACKSEGMENT:
 		  if (!ide_connect()) return 0;
-		  new_memory_view(3);
+		  TOGGLE_VIEW(new_memory_view(3),close_memory_view(3));
 		  return 0;
 	    case ID_MEM_NEGATIVESEGMENT:
 		  if (!ide_connect()) return 0;
-		  new_memory_view(4);
+  		  TOGGLE_VIEW(new_memory_view(4),close_memory_view(4));
 		  return 0;
 	    case ID_REGISTERS_LOCAL:
-		  new_register_view(REG_LOCAL);
+  		  TOGGLE_VIEW(new_register_view(REG_LOCAL),close_register_view(REG_LOCAL));
 		  return 0;
 	    case ID_REGISTERS_GLOBAL:
-		  new_register_view(REG_GLOBAL);
+  		  TOGGLE_VIEW(new_register_view(REG_GLOBAL),close_register_view(REG_GLOBAL));
 		  return 0;
 	    case ID_REGISTERS_SPECIAL:
-		  new_register_view(REG_SPECIAL);
+  		  TOGGLE_VIEW(new_register_view(REG_SPECIAL),close_register_view(REG_SPECIAL));
 		  return 0;
 		case ID_REGISTERS_STACK:
 		  show_debug_regstack=!show_debug_regstack;
 		  CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
 		  if (show_debug_regstack)
 		    new_register_view(REG_LOCAL);
-		  else
-			regstack_update();
+		  regstack_update();
 		  return 0;
 		case ID_OPTIONS_EDITOR:
 		  DialogBox(hInst,MAKEINTRESOURCE(IDD_OPTIONS_EDITOR),hWnd,OptionEditorDialogProc);
@@ -797,10 +813,10 @@ int execute_commands(void)
 void new_errorlist(void)
 {   sp_create_options(0,0,0.2,0,hEdit);
 	hError = CreateWindow("LISTBOX", "Errorlist" ,
-				WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT 
-,
+				WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT,
                 0,0,0,0,
 	            hSplitter, NULL, hInst, NULL);
+	SendMessage(hError,WM_SETFONT,(WPARAM)hVarFont,0);
 }
 
 
@@ -864,7 +880,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR));
 	sp_init(hInstance);
     bb_init(hInstance);
-
 	if (!InitInstance (hInstance)) return FALSE;
 	InitCommonControls(); /* needed for TAB Controls */
 	init_layout(0);
@@ -882,6 +897,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	param_init ();
 	read_regtab(defined);
 	get_xypos();
+	set_font_size(fontsize);
+	ed_zoom(fontsize);
 	CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VIEW_WHITESPACE,MF_BYCOMMAND|(show_whitespace?MF_CHECKED:MF_UNCHECKED));
 	set_whitespace(show_whitespace);
@@ -902,7 +919,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				WS_CHILD|WS_VISIBLE|SS_RIGHT,
                 r.right-r.left-status_width,0, status_width,BB_HEIGHT,
 	            hMainWnd, NULL, hInstance, NULL);
-	SendMessage(hStatus,WM_SETFONT,(WPARAM)hVarFont,0);
+	SendMessage(hStatus,WM_SETFONT,(WPARAM)hGUIFont,0);
     ide_status(version);
 #ifdef VMB
     vmb_program_name="mmixide";

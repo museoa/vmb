@@ -15,7 +15,7 @@
 #include "breakpoints.h"
 
 /* the breakpoint window */
-static HWND hBreakList=NULL;
+HWND hBreakList=NULL;
 /* functions to update the breakpoint window */
 static void add_breakpoint(int i);
 static void del_breakpoint(int i);
@@ -358,28 +358,33 @@ void sync_breakpoints(void)
 #define MAX_BREAK_NAME 64
 #define hexdigit(c) ((c)<10? (c)+'0':((c)-10)+'A')
 
-void sprint_address(char *str, octa loc)
-/* store a short representation of the given location in the string */
+int sprint_address(char *str, octa loc)
+/* store a short representation of the given location in the string 
+   writes a maximum of 17 characters
+   return number of characters written, not counting final zero byte
+*/
 { uint64_t a;
   int i;
+  int n=0;
   a= loc.h;
   a = (a<<32) | loc.l;
-  *(str++)='#';
+  str[n++]='#';
   if (a==0) 
     i=4;
   else
   {	i=16;
 	if ((a&0xF000000000000000)!=0 && (a&0x0FFFF00000000000)==0) /* segment */
-	{ *(str++)=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
-	  *(str++)='.'; *(str++)='.';	*(str++)='.'; /* add ... */
+	{ str[n++]=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
+	  str[n++]='.'; str[n++]='.';	str[n++]='.'; /* add ... */
 	}
   }
   while ((a&0xF000000000000000)==0 && i>4) 
   { i--; a = a<<4; } /* skip leading zeros */
   while (i>0) /* print remaining digits */
-  { *(str++)=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
+  { str[n++]=hexdigit((unsigned char)(a>>60)); a=a<<4; i--;
   }
-  *str=0;
+  str[n]=0;
+  return n;
 }
 
 char *break_name(int i)
@@ -388,12 +393,15 @@ char *break_name(int i)
   int n =MAX_BREAK_NAME-1;
   int k;
   if (!file_unknown(i))
-  { k = sprintf_s(str,n,"%s(%d)",unique_name(breakpoints[i].file_no),breakpoints[i].line_no);
+  { k = sprintf_s(str,n,"%s(%d) ",unique_name(breakpoints[i].file_no),breakpoints[i].line_no);
     str +=k;
 	n -=k;
   }
-  if (!loc_unknown(i))
-    sprint_address(str,breakpoints[i].loc);
+  if (!loc_unknown(i) && n>17)
+  {  k=sprint_address(str,breakpoints[i].loc);
+     str +=k;
+	 n -=k;
+  }
   if (n==MAX_BREAK_NAME-1)
 	  return "ERROR";
   return name;
@@ -463,6 +471,7 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         SendDlgItemMessage(hDlg,IDC_TRACE,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hBreakT);
       { RECT r,d;
 		hBreakList=GetDlgItem(hDlg,IDC_LIST_BREAKPOINTS);
+		SendMessage(hBreakList,WM_SETFONT,(WPARAM)hVarFont,0);
 	    GetWindowRect(hBreakList,&d);
 		list.x=d.left; list.y=d.top;
 		ScreenToClient(hDlg,&list);
@@ -476,9 +485,11 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  }
       return TRUE;
   case WM_CLOSE:
+	  DestroyWindow(hDlg);
+	  return TRUE;
+  case WM_DESTROY:
       hBreakpoints=NULL;
 	  hBreakList=NULL;
-	  DestroyWindow(hDlg);
 	  CheckMenuItem(hMenu,ID_VIEW_BREAKPOINTS,MF_BYCOMMAND|MF_UNCHECKED);
 	  DestroyIcon(hBreakX);
 	  DestroyIcon(hBreakR);
@@ -558,8 +569,8 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	return 0;
   case WM_MEASUREITEM: 
 	  { LPMEASUREITEMSTRUCT lpmis; 
-        lpmis = (LPMEASUREITEMSTRUCT) lparam; 
-        lpmis->itemHeight = 16+4; 
+        lpmis = (LPMEASUREITEMSTRUCT) lparam;
+		lpmis->itemHeight= var_line_height;
         return TRUE; 
 	  }
   case WM_COMPAREITEM:
@@ -582,51 +593,64 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		return (BOOL)0;
 	  }
    case WM_DRAWITEM: 
-	   { LPDRAWITEMSTRUCT lpdis; 
+	   { LPDRAWITEMSTRUCT di; 
 		 int i;
 		 int x=0;
+		 int y;
+		 int w;
 		 char *name;
 		 unsigned char bkpt;
-		 COLORREF oldBC;
-		 lpdis = (LPDRAWITEMSTRUCT) lparam;
-         if (lpdis->itemID == -1) break;
-         switch (lpdis->itemAction) 
+		 COLORREF cb, cf;
+		 di = (LPDRAWITEMSTRUCT) lparam;
+         if (di->itemID == -1) break;
+         switch (di->itemAction) 
          { case ODA_SELECT: 
            case ODA_DRAWENTIRE: 
-			   		i = (int)SendMessage(hBreakList,LB_GETITEMDATA,lpdis->itemID,0);
-					bkpt=breakpoints[i].bkpt;
-                    if (lpdis->itemState & ODS_SELECTED) 
-					     oldBC=SetBkColor(lpdis->hDC,RGB(0x80,0x80,0xFF)); 
-					else
-					     oldBC=SetBkColor(lpdis->hDC,RGB(0xFF,0xFF,0xFF)); 
-					SetTextAlign(lpdis->hDC,TA_LEFT|TA_TOP|TA_NOUPDATECP);
-					x = (bkpt&0x5)+((bkpt&0xA)>>1); /* count bits in bkpt */
-					x = (x&0x3)+((x&0xC)>>2);
-					x = x*16+4;
-					name=break_name(i);
-					ExtTextOut(lpdis->hDC,x,lpdis->rcItem.top+2,ETO_OPAQUE,&lpdis->rcItem,name,(int)strlen(name),NULL);
-					x=0;
-                    if (bkpt&exec_bit)
-					{ DrawIconEx(lpdis->hDC,x, lpdis->rcItem.top+2,hBreakX,16,16,0,NULL,DI_NORMAL);
-					 x+=16;
-					}
-					if (bkpt&read_bit)
-					{ DrawIconEx(lpdis->hDC,x, lpdis->rcItem.top+2,hBreakR,16,16,0,NULL,DI_NORMAL);
-					  x+=16;
-					}
-					if (bkpt&write_bit)
-					{ DrawIconEx(lpdis->hDC,x, lpdis->rcItem.top+2,hBreakW,16,16,0,NULL,DI_NORMAL);
-					  x+=16;
-					}
-					if (bkpt&trace_bit)
-					{ DrawIconEx(lpdis->hDC,x, lpdis->rcItem.top+2,hBreakT,16,16,0,NULL,DI_NORMAL);
-					  x+=16;
-					}
+			   i = (int)SendMessage(hBreakList,LB_GETITEMDATA,di->itemID,0);
+			   bkpt=breakpoints[i].bkpt;
+			   if (di->itemState & ODS_SELECTED)
+			   {  cb =SetBkColor(di->hDC,SELECT_COLOR);
+			      cf =SetTextColor(di->hDC,RGB(0xff,0xff,0xff));
+			   }
+			   else
+			   {  cb =SetBkColor(di->hDC,RGB(0xff,0xff,0xff));
+			      cf =SetTextColor(di->hDC,RGB(0x00,0x00,0x00));
+			   }
+			   SetTextAlign(di->hDC,TA_LEFT|TA_TOP|TA_NOUPDATECP);
+			   x = (bkpt&0x5)+((bkpt&0xA)>>1); /* count bits in bkpt */
+			   x = (x&0x3)+((x&0xC)>>2);
+			   x = x*16+separator_width;
+			   y = (di->rcItem.bottom + di->rcItem.top - var_char_height) / 2;
+			   name=break_name(i);
+			   ExtTextOut(di->hDC,x,y,ETO_OPAQUE,
+				   &di->rcItem,name,(int)strlen(name),NULL);
+			   w = di->rcItem.bottom - di->rcItem.top;
+			   if (w>18) w=16;
+			   else w=w-2;
+			   y = (di->rcItem.bottom + di->rcItem.top - w) / 2;
+			   x=0;
+			   if (bkpt&exec_bit)
+			   { DrawIconEx(di->hDC,x,y,hBreakX,w,w,0,NULL,DI_NORMAL);
+			   x+=16;
+			   }
+			   if (bkpt&read_bit)
+			   { DrawIconEx(di->hDC,x,y,hBreakR,w,w,0,NULL,DI_NORMAL);
+			   x+=16;
+			   }
+			   if (bkpt&write_bit)
+			   { DrawIconEx(di->hDC,x,y,hBreakW,w,w,0,NULL,DI_NORMAL);
+			   x+=16;
+			   }
+			   if (bkpt&trace_bit)
+			   { DrawIconEx(di->hDC,x,y,hBreakT,w,w,0,NULL,DI_NORMAL);
+			   x+=16;
+			   }
 
-				    SetBkColor(lpdis->hDC,oldBC); 
+		       SetBkColor(di->hDC,cb);
+	           SetTextColor(di->hDC,cf);
 
-                    break; 
- 
+			   break; 
+
                 case ODA_FOCUS: 
  
                     // Do not process focus changes. The focus caret 
@@ -650,5 +674,6 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
  { if (hBreakpoints!=NULL) return;
    sp_create_options(0,1,0.2,0,NULL);
    hBreakpoints = CreateDialog(hInst,MAKEINTRESOURCE(IDD_BREAKPOINTS),hSplitter,BreakpointsDialogProc); 
+   CheckMenuItem(hMenu,ID_VIEW_BREAKPOINTS,MF_BYCOMMAND|MF_CHECKED);
  }
 

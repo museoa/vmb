@@ -12,8 +12,7 @@ extern int ed_save_all(int cancel);
 extern int ed_close(void);
 extern int ed_close_all(int cancel);
 
-extern void ed_zoom_in(void);
-extern void ed_zoom_out(void);
+extern void ed_zoom(int fontsize);
 extern void ed_set_ascii(void);
 extern void ed_set_utf8(void);
 extern void set_whitespace(int ws);

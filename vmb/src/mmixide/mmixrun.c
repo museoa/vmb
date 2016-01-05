@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <setjmp.h>
+#include "resource.h"
 #include "splitter.h"
 #ifdef VMB
 #include "vmb.h"
@@ -25,6 +26,7 @@
 #include "runoptions.h"
 #include "breakpoints.h"
 #include "mmixrun.h"
+
 /* Running MMIX */
 // maximum mumber of lines the output console should have
 
@@ -216,6 +218,7 @@ void show_trace_window(void)
 { if (hLog!=NULL) return;
   sp_create_options(0,0,0.2,0,NULL);
   hLog=CreateLog(hSplitter,hInst);
+  CheckMenuItem(hMenu,ID_VIEW_TRACE,MF_BYCOMMAND|MF_CHECKED);
 }
 
 char * mmix_status_str[]={"Disconnected", "Connected","Off", "On", "Stopped", "Running", "Halted"};

@@ -291,7 +291,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			           WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
 		               0,0,0,0,hWnd,NULL,hInst,NULL);
 		 TabCtrl_SetImageList(hTabs,hFileMarkers);
-         SendMessage(hTabs,WM_SETFONT,(WPARAM)GetStockObject(DEFAULT_GUI_FONT),0);
+         SendMessage(hTabs,WM_SETFONT,(WPARAM)hVarFont,0);
 		 DragAcceptFiles(hWnd,TRUE);
 	     return 0;
     case WM_SIZE:
@@ -374,7 +374,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		{ HWND hControl = (HWND)lParam;
 	      if (hControl==hSCe && HIWORD(wParam)==SCEN_SETFOCUS)
 		  { check_diskfile_change();
-		    update_symtab();
+		    /* update_symtab(); */
 		  }
 		}
 	  }
@@ -384,12 +384,8 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 
 
-void ed_zoom_in(void)
-{ ed_send(SCI_ZOOMIN,0,0);
-  set_lineno_width();
-}
-void ed_zoom_out(void)
-{  ed_send(SCI_ZOOMOUT,0,0);
+void ed_zoom(int fontsize)
+{ ed_send(SCI_SETZOOM,fontsize-DEFAULT_FONT_SIZE,0);
   set_lineno_width();
 }
 
@@ -581,7 +577,7 @@ void new_edit(void)
   if (hEdit==NULL) create_edit();
   /* configure the style */
    ed_send(SCI_STYLESETFONT,STYLE_DEFAULT,(sptr_t)"Courier New");
-   ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)12);
+   ed_send(SCI_STYLESETSIZE,STYLE_DEFAULT,(sptr_t)DEFAULT_FONT_SIZE);
    ed_send(SCI_STYLESETWEIGHT,STYLE_DEFAULT, SC_WEIGHT_BOLD);
    ed_send(SCI_SETSCROLLWIDTH,80*fixed_char_width,0);
    ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_STRICT,5);
@@ -904,8 +900,6 @@ void ide_clear_mmix_line(void)
    previous_mmix_line_no=-1;
 }
 
-
-int fontsize;
 int show_whitespace=0;
 int syntax_highlighting = 0;
 int codepage=0;
