@@ -1,0 +1,385 @@
+                   //
+                   // Lorentz Attractor
+                   //
+                   // Equation:
+                   //  dx/dt = sigma * (y - x)
+                   //  dy/dt = rho * x - y - x * z
+                   //  dz/dt = x * y - beta * z
+                   //
+                   // Parameters:
+                   //  sigma = 10.0
+                   //  rho   = 28.0
+                   //  beta  = 8/3
+                   //
+                   // Initial conditions:
+                   //  x_0 = 10.0
+                   //  y_0 = 20.0
+                   //  z_0 = 28.0
+                   //
+                   // Runge-Kutta 4th order:
+                   //
+                   //  k_0 = f(y)
+                   //  k_1 = f(y + h/2 * k_0)
+                   //  k_2 = f(y + h/2 * k_1)
+                   //  k_3 = f(y + h * k_2)
+                   //  y_h = y + h/6*(k_0 + 2 * k_1 + 2 * k_2 + k_3)
+                   //
+                   //  h = 0.003
+                   //
+                   // Plotting (x,y) for N=100000 steps in
+                   //  x [-22,22]
+                   //  y [-30,30]
+                   // with nicely changing colors (not meaningful, mind you)
+                   //
+($254=#00000000    XSize           GREG    640
+         00000280)
+($253=#00000000    YSize           GREG    480
+         000001e0)
+($252=#00000000    CPack           GREG    #100401
+         00100401)
+                                   LOC     #5000000000000000
+($251=#50000000    VBase           GREG    @
+         00000000)
+                   
+                                   LOC     Data_Segment
+2000000000000000:  N               OCTA    2000000
+ ...000: 00000000
+ ...004: 001e8480
+ ...008: 00000000  x0              OCTA    #0                // 0.0
+ ...00c: 00000000
+ ...010: 40340000  y0              OCTA    #4034000000000000 // 20.0
+ ...014: 00000000
+ ...018: 403d0000  z0              OCTA    #403d000000000000 // 29.0
+ ...01c: 00000000
+ ...020: 40240000  sigma           OCTA    #4024000000000000 // 10.0
+ ...024: 00000000
+ ...028: 403c0000  rho             OCTA    #403c000000000000 // 28.0
+ ...02c: 00000000
+ ...030: 40055555  beta            OCTA    #4005555555555556 // 8/3
+ ...034: 55555556
+ ...038: 3f60624d  h               OCTA    #3f60624dd2f1a9fc // 0.002
+ ...03c: d2f1a9fc
+ ...040: ffffffff  h2              OCTA    -1                // h/2
+ ...044: ffffffff
+ ...048: ffffffff  h6              OCTA    -1                // h/6
+ ...04c: ffffffff
+ ...050: c0360000  Xshift          OCTA    #c036000000000000 // -22.0
+ ...054: 00000000
+ ...058: 402d1745  Xscale          OCTA    #402d1745d1745d36 // 640.0/44.0
+ ...05c: d1745d36
+ ...060: c03e0000  Yshift          OCTA    #c03e000000000000 // -30.0
+ ...064: 00000000
+ ...068: 40200000  Yscale          OCTA    #4020000000000000 // 480.0/60.0
+ ...06c: 00000000
+ ...070: 0000ff00  CMask           OCTA    #ff00ff00ff00
+ ...074: ff00ff00
+ ...078: 00000000  Color0          OCTA    #0000000000ff
+ ...07c: 000000ff
+ ...080: 00000000  Colors          OCTA    #000000ff0000
+ ...084: 00ff0000
+ ...088: 00000000                  OCTA    #000000000001
+ ...08c: 00000001
+ ...090: 000000ff                  OCTA    #00ff00000000
+ ...094: 00000000
+ ...098: 00000000                  OCTA    #000000010000
+ ...09c: 00010000
+ ...0a0: 00000000                  OCTA    #0000000000ff
+ ...0a4: 000000ff
+ ...0a8: 00000001                  OCTA    #000100000000
+ ...0ac: 00000000
+($250=#20000000    Base            GREG    N
+         00000000)
+                   
+                   
+                                   LOC     #100
+                                                   // init values
+0000000000000100:  Main            FLOT    $0,2
+ ...100: 09000002
+ ...104: 8d01fa38                  LDO     $1,h
+ ...108: 14000100                  FDIV    $0,$1,$0
+ ...10c: ad00fa40                  STO     $0,h2
+ ...110: 09000006                  FLOT    $0,6
+ ...114: 14000100                  FDIV    $0,$1,$0
+ ...118: ad00fa48                  STO     $0,h6
+($000)             i       IS      $0
+($001)             k       IS      $1
+($002)             c       IS      $2
+($003)             cval    IS      $3
+($004)             cstep   IS      $4
+($005)             x       IS      $5
+($006)             y       IS      $6
+($007)             z       IS      $7
+($008)             args    IS      $8
+ ...11c: 8d00fa00                  LDO     i,N
+ ...120: c6010101                  XOR     k,k,k
+ ...124: c6020202                  XOR     c,c,c
+ ...128: 8d03fa78                  LDO     cval,Color0
+ ...12c: 8d08fa70                  LDO     args,CMask
+ ...130: c0030308                  OR      cval,cval,args
+ ...134: 8d04fa80                  LDO     cstep,Colors
+ ...138: 8d05fa08                  LDO     x,x0
+ ...13c: 8d06fa10                  LDO     y,y0
+ ...140: 8d07fa18                  LDO     z,z0
+                                                   // start main loop
+                                                   // compute next point
+ ...144: c00a0505  1H              OR      args+2,x,x                
+ ...148: c00b0606                  OR      args+3,y,y                
+ ...14c: c00c0707                  OR      args+4,z,z                
+ ...150: f209xxxx                  PUSHJ   args+1,:RK4
+                                                   // store point
+ ...154: c0050909                  OR      x,args+1,args+1
+ ...158: c0060a0a                  OR      y,args+2,args+2
+ ...15c: c0070b0b                  OR      z,args+3,args+3
+                                                   // paint the point
+ ...160: c00b0303                  OR      args+3,cval,cval
+ ...164: f208xxxx                  PUSHJ   args,:Paint
+                                                   // advance color
+ ...168: 310801ff                  CMP     args,k,#ff
+ ...16c: 5008xxxx                  PBN     args,2F
+ ...170: c6010101                  XOR     k,k,k
+ ...174: 8d08fa70                  LDO     args,CMask
+ ...178: c0030308                  OR      cval,cval,args
+ ...17c: 31080205                  CMP     args,c,5
+ ...180: 5008xxxx                  PBN     args,3F
+ ...184: 25020206                  SUB     c,c,6
+ ...188: 21020201  3H              ADD     c,c,1
+ ...18c: 2308fa80                  LDA     args,Colors
+ ...190: 2c080208                  8ADDU   args,c,args
+ ...194: 8d040800                  LDO     cstep,args,0
+ ...198: 21010101  2H              ADD     k,k,1
+ ...19c: d2030304                  WDIF    cval,cval,cstep                
+                                                   // ready for the next step
+ ...1a0: 25000001                  SUB     i,i,1
+ ...1a4: 5b00ffe8                  PBNZ    i,1B
+                                                   // well done.
+ ...1a8: 00000000                  TRAP    0,Halt,0
+                   
+                                   PREFIX  :Paint
+($000)             arg_x   IS      $0
+($001)             arg_y   IS      $1
+($002)             arg_cx  IS      $2
+($003)             local   IS      $3
+                   
+ ...1ac: 8d03fa50  :Paint          LDO     local+0,:Xshift
+ ...1b0: 8d04fa58                  LDO     local+1,:Xscale
+ ...1b4: 06030003                  FSUB    local+0,arg_x,local+0
+ ...1b8: 10030304                  FMUL    local+0,local+0,local+1
+ ...1bc: 05030003                  FIX     local+0,local+0
+ ...1c0: 4003xxxx                  BN      local+0,1F
+ ...1c4: 300403fe                  CMP     local+1,local+0,:XSize
+ ...1c8: 4804xxxx                  BNN     local+1,1F
+ ...1cc: 8d04fa60                  LDO     local+1,:Yshift
+ ...1d0: 8d05fa68                  LDO     local+2,:Yscale
+ ...1d4: 06040104                  FSUB    local+1,arg_y,local+1
+ ...1d8: 10040405                  FMUL    local+1,local+1,local+2
+ ...1dc: 05040004                  FIX     local+1,local+1
+ ...1e0: 2404fd04                  SUB     local+1,:YSize,local+1
+ ...1e4: 4004xxxx                  BN      local+1,1F
+ ...1e8: 300504fd                  CMP     local+2,local+1,:YSize
+ ...1ec: 4805xxxx                  BNN     local+2,1F
+ ...1f0: 180404fe                  MUL     local+1,local+1,:XSize
+ ...1f4: 20030304                  ADD     local+0,local+0,local+1
+ ...1f8: 39030302                  SL      local+0,local+0,2
+ ...1fc: dc0202fc                  MOR     arg_cx,arg_cx,:CPack
+                   
+                   
+                   //              we use either direct acces at VBase 
+                   //                STT     arg_cx,:VBase,local+0
+                   //              SET     $255,0
+                   //		TRAP    0,#10,0    // to force a sync 5
+                   
+                   //              or we use a TRAP instead of direct access at VBase
+ ...200: 39ff0320                  SL      $255,local+0,32     Hi Tetra is Address
+ ...204: c0ffff02                  OR      $255,$255,arg_cx    LoTetra is RGB
+ ...208: 00001000                  TRAP    0,#10,0             The GPutPixel TRAP
+                   
+ ...20c: f8000000  1H              POP     0,0
+                   
+                   
+                   // Runge-Kutta
+                                   PREFIX  :RK4
+($000)             arg_x   IS      $0
+($001)             arg_y   IS      $1
+($002)             arg_z   IS      $2
+($003)             ra      IS      $3
+($004)             h       IS      $4
+($005)             h2      IS      $5
+($006)             h6      IS      $6
+                   
+($007)             k0_x    IS      $7
+($008)             k0_y    IS      $8
+($009)             k0_z    IS      $9
+                   
+($010)             k1_x    IS      $10
+($011)             k1_y    IS      $11
+($012)             k1_z    IS      $12
+                   
+($013)             k2_x    IS      $13
+($014)             k2_y    IS      $14
+($015)             k2_z    IS      $15
+                   
+($016)             k3_x    IS      $16
+($017)             k3_y    IS      $17
+($018)             k3_z    IS      $18
+                   
+($002)             res_x   IS      $2
+($000)             res_y   IS      $0
+($001)             res_z   IS      $1
+                   
+ ...210: fe030004  :RK4            GET     ra,:rJ
+ ...214: 8d04fa38                  LDO     h,:h
+ ...218: 8d05fa40                  LDO     h2,:h2
+ ...21c: 8d06fa48                  LDO     h6,:h6
+ ...220: c0080000                  OR      k0_x+1,arg_x,arg_x
+ ...224: c0090101                  OR      k0_y+1,arg_y,arg_y
+ ...228: c00a0202                  OR      k0_z+1,arg_z,arg_z
+ ...22c: f207xxxx                  PUSHJ   k0_x,:Lorentz
+ ...230: 100b0705                  FMUL    k1_x+1,k0_x,h2
+ ...234: 100c0805                  FMUL    k1_y+1,k0_y,h2
+ ...238: 100d0905                  FMUL    k1_z+1,k0_z,h2
+ ...23c: 040b0b00                  FADD    k1_x+1,k1_x+1,arg_x
+ ...240: 040c0c01                  FADD    k1_y+1,k1_y+1,arg_y
+ ...244: 040d0d02                  FADD    k1_z+1,k1_z+1,arg_z
+ ...248: f20axxxx                  PUSHJ   k1_x,:Lorentz
+ ...24c: 100e0a05                  FMUL    k2_x+1,k1_x,h2
+ ...250: 100f0b05                  FMUL    k2_y+1,k1_y,h2
+ ...254: 10100c05                  FMUL    k2_z+1,k1_z,h2
+ ...258: 040e0e00                  FADD    k2_x+1,k2_x+1,arg_x
+ ...25c: 040f0f01                  FADD    k2_y+1,k2_y+1,arg_y
+ ...260: 04101002                  FADD    k2_z+1,k2_z+1,arg_z
+ ...264: f20dxxxx                  PUSHJ   k2_x,:Lorentz
+ ...268: 10110d04                  FMUL    k3_x+1,k2_x,h
+ ...26c: 10120e04                  FMUL    k3_y+1,k2_y,h
+ ...270: 10130f04                  FMUL    k3_z+1,k2_z,h
+ ...274: 04111100                  FADD    k3_x+1,k3_x+1,arg_x
+ ...278: 04121201                  FADD    k3_y+1,k3_y+1,arg_y
+ ...27c: 04131302                  FADD    k3_z+1,k3_z+1,arg_z
+ ...280: f210xxxx                  PUSHJ   k3_x,:Lorentz
+ ...284: 04070710                  FADD    k0_x,k0_x,k3_x                
+ ...288: 04080811                  FADD    k0_y,k0_y,k3_y
+ ...28c: 04090912                  FADD    k0_z,k0_z,k3_z                
+ ...290: 040a0a0d                  FADD    k1_x,k1_x,k2_x                
+ ...294: 040b0b0e                  FADD    k1_y,k1_y,k2_y
+ ...298: 040c0c0f                  FADD    k1_z,k1_z,k2_z                
+ ...29c: 040a0a0a                  FADD    k1_x,k1_x,k1_x                
+ ...2a0: 040b0b0b                  FADD    k1_y,k1_y,k1_y
+ ...2a4: 040c0c0c                  FADD    k1_z,k1_z,k1_z                
+ ...2a8: 0407070a                  FADD    k0_x,k0_x,k1_x                
+ ...2ac: 0408080b                  FADD    k0_y,k0_y,k1_y
+ ...2b0: 0409090c                  FADD    k0_z,k0_z,k1_z                
+ ...2b4: 10070706                  FMUL    k0_x,k0_x,h6
+ ...2b8: 10080806                  FMUL    k0_y,k0_y,h6
+ ...2bc: 10090906                  FMUL    k0_z,k0_z,h6
+ ...2c0: f6040003                  PUT     :rJ,ra
+ ...2c4: c0030000                  OR      ra,arg_x,arg_x
+ ...2c8: 04000108                  FADD    res_y,arg_y,k0_y
+ ...2cc: 04010209                  FADD    res_z,arg_z,k0_z
+ ...2d0: 04020307                  FADD    res_x,ra,k0_x
+ ...2d4: f8030000                  POP     3,0
+                   
+                                   PREFIX  :Lorentz
+($000)             x       IS      $0
+($001)             y       IS      $1
+($002)             z       IS      $2
+($003)             sigma   IS      $3
+($004)             rho     IS      $4
+($005)             beta    IS      $5
+($006)             y_x     IS      $6
+($007)             rhoX    IS      $7
+($008)             xz      IS      $8
+($009)             betaZ   IS      $9
+($010)             xy      IS      $10
+                   
+($002)             res_x   IS      $2
+($000)             res_y   IS      $0
+($001)             res_z   IS      $1
+ ...2d8: 8d03fa20  :Lorentz        LDO     sigma,:sigma
+ ...2dc: 8d04fa28                  LDO     rho,:rho
+ ...2e0: 8d05fa30                  LDO     beta,:beta
+ ...2e4: 06060100                  FSUB    y_x,y,x
+ ...2e8: 10070400                  FMUL    rhoX,rho,x
+ ...2ec: 10080002                  FMUL    xz,x,z
+ ...2f0: 100a0001                  FMUL    xy,x,y
+ ...2f4: 10090502                  FMUL    betaZ,beta,z
+ ...2f8: 06070701                  FSUB    rhoX,rhoX,y
+ ...2fc: 10020306                  FMUL    res_x,sigma,y_x
+ ...300: 06000708                  FSUB    res_y,rhoX,xz
+ ...304: 06010a09                  FSUB    res_z,xy,betaZ
+ ...308: f8030000                  POP     3,0
+
+Symbol table:
+ Base = $250 (23)
+ CMask = #2000000000000070 (20)
+ CPack = $252 (4)
+ Color0 = #2000000000000078 (21)
+ Colors = #2000000000000080 (22)
+ Lorentz = #00000000000002d8 (61)
+ Lorentzbeta = $005 (67)
+ LorentzbetaZ = $009 (71)
+ Lorentzres_x = $002 (73)
+ Lorentzres_y = $000 (74)
+ Lorentzres_z = $001 (75)
+ Lorentzrho = $004 (66)
+ LorentzrhoX = $007 (69)
+ Lorentzsigma = $003 (65)
+ Lorentzx = $000 (62)
+ Lorentzxy = $010 (72)
+ Lorentzxz = $008 (70)
+ Lorentzy = $001 (63)
+ Lorentzy_x = $006 (68)
+ Lorentzz = $002 (64)
+ Main = #0000000000000100 (1)
+ N = #2000000000000000 (6)
+ Paint = #00000000000001ac (34)
+ Paintarg_cx = $002 (37)
+ Paintarg_x = $000 (35)
+ Paintarg_y = $001 (36)
+ Paintlocal = $003 (38)
+ RK4 = #0000000000000210 (33)
+ RK4arg_x = $000 (39)
+ RK4arg_y = $001 (40)
+ RK4arg_z = $002 (41)
+ RK4h = $004 (43)
+ RK4h2 = $005 (44)
+ RK4h6 = $006 (45)
+ RK4k0_x = $007 (46)
+ RK4k0_y = $008 (47)
+ RK4k0_z = $009 (48)
+ RK4k1_x = $010 (49)
+ RK4k1_y = $011 (50)
+ RK4k1_z = $012 (51)
+ RK4k2_x = $013 (52)
+ RK4k2_y = $014 (53)
+ RK4k2_z = $015 (54)
+ RK4k3_x = $016 (55)
+ RK4k3_y = $017 (56)
+ RK4k3_z = $018 (57)
+ RK4ra = $003 (42)
+ RK4res_x = $002 (58)
+ RK4res_y = $000 (59)
+ RK4res_z = $001 (60)
+ VBase = $251 (5)
+ XSize = $254 (2)
+ Xscale = #2000000000000058 (17)
+ Xshift = #2000000000000050 (16)
+ YSize = $253 (3)
+ Yscale = #2000000000000068 (19)
+ Yshift = #2000000000000060 (18)
+ args = $008 (32)
+ beta = #2000000000000030 (12)
+ c = $002 (26)
+ cstep = $004 (28)
+ cval = $003 (27)
+ h = #2000000000000038 (13)
+ h2 = #2000000000000040 (14)
+ h6 = #2000000000000048 (15)
+ i = $000 (24)
+ k = $001 (25)
+ rho = #2000000000000028 (11)
+ sigma = #2000000000000020 (10)
+ x = $005 (29)
+ x0 = #2000000000000008 (7)
+ y = $006 (30)
+ y0 = #2000000000000010 (8)
+ z = $007 (31)
+ z0 = #2000000000000018 (9)

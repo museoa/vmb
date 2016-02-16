@@ -1,0 +1,22 @@
+[OPTIONS]
+Auto Index=Yes
+Auto TOC=2
+Compatibility=1.1 or later
+Compiled file=help.chm
+Contents file=help.hhc
+Default Font=,10,0
+Default Window=All
+Default topic=help.html
+Display compile progress=No
+Error log file=log.txt
+Full-text search=Yes
+Index file=help.hhk
+Language=0x409 Englisch (USA)
+Title=VMB Help
+
+
+[FILES]
+help.html
+
+[INFOTYPES]
+
