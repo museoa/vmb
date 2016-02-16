@@ -1,0 +1,88 @@
+Date: Sun, 9 Dec 2012 05:43:31 -0500
+Subject: VMB on OS X
+From: Joel Heikkila
+To: ruckert@cs.hm.edu
+
+Hello,
+
+I hope I have the right person and address for this. I tried to build
+VMB version 1.3 under OS X 10.8 and it failed.
+
+It took two small changes to the source to build mother/ and util/
+without errors, which I have included as a patch.
+
+clock_gettime does not exist on Mac OS X (despite being mandated in
+POSIX) so I wrote a quick replacement, although precise timings may be
+off since its accurate only to usec precision.
+
+terminate_flag was declared extern within a ifdef for WIN32 in
+mother/mother.c, making it break on non-Windows, so there's that too.
+
+mmix/ was missing several .c source files and the Makefile was
+assuming the CWEB files to be available.  I commented out those
+targets to regenerate the .c source and copied the generated .c files
+from the current MMIX distribution over to vmb/mmix/ which allowed it
+to build since that seems to be the practice preferred for VMB.  The
+missing files were abstime.c mmix-arith.c mmotype.c .
+
+vmb/mmix/ also tries to link against librt, which doesn't exist on OS
+X.  It does build without any linking errors without that, though.
+
+At that point, I get a number of:
+
+ERROR (rom, 120): Locking event mutex failed
+ERROR (ram, 120): Locking event mutex failed
+ERROR (screen, 120): Locking event mutex failed
+Power...ERROR (MMIX CPU, 98): Locking event mutex failed
+...
+
+errors and getting to the bottom of that is out of my depth though
+I'll let you know if I make any progress.  I hope it's not librt or my
+clock_gettime changes!
+
+So, it compiles, but doesn't run.
+
+Hope this helps at least somewhat,
+
+Joel Heikkila
+
+
+diff -r 603ca5b0c3fe mother/mother.c
+--- a/mother/mother.c	Sun Dec 09 04:29:48 2012 -0500
++++ b/mother/mother.c	Sun Dec 09 04:50:07 2012 -0500
+@@ -51,6 +51,8 @@
+
+ #else
+
++extern int terminate_flag;
++
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+diff -r 603ca5b0c3fe util/vmbtimewait.c
+--- a/util/vmbtimewait.c	Sun Dec 09 04:29:48 2012 -0500
++++ b/util/vmbtimewait.c	Sun Dec 09 04:50:07 2012 -0500
+@@ -12,6 +12,23 @@
+ #include "vmb.h"
+ #include "error.h"
+
++#ifdef __MACH__
++#include <sys/time.h>
++#define CLOCK_REALTIME 0 /* this is a nonce value */
++/* clock_gettime is not implemented on OS X which
++unfortunately seems to lack any nanosecond-precise timer
++so we'll fake one with gettimeofday's usec value */
++int clock_gettime(int clk_id, struct timespec* t)
++{
++  struct timeval now;
++  int rv = gettimeofday(&now, NULL);
++  if (rv) return rv;
++  t->tv_sec  = now.tv_sec;
++  t->tv_nsec = now.tv_usec * 1000;
++  return 0;
++}
++#endif
++
+ int vmb_wait_for_event_timed(device_info *vmb, int ms)
+ /* waits for a  power off, reset, disconnect, or an interrupt
+    or until the Time in ms expires.
