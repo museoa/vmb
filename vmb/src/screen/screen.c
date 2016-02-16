@@ -45,8 +45,8 @@ static void display_char(char c);
 extern device_info vmb;
 char title[] ="VMB Screen";
 
-int major_version=1, minor_version=8;
-char version[]="$Revision: 1.21 $ $Date: 2015-09-24 12:17:14 $";
+int major_version=1, minor_version=9;
+char version[]="$Revision: 1.22 $ $Date: 2016-02-16 09:49:16 $";
 
 char howto[] =
 "The program will contact the motherboard at [host:]port\r\n"

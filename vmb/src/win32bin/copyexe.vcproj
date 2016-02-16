@@ -188,30 +188,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\mmixide\mmixide.chm"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Copy MMIXIDE Compiled Html Help"
-						CommandLine="copy $(InputPath) $(SolutionDir)release\$(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(SolutionDir)release\$(InputFileName)"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Copy MMIXIDE Compiled Html Help"
-						CommandLine="copy $(InputPath) $(SolutionDir)release\$(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(SolutionDir)release\$(InputFileName)"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\mmixcpu\release\mmixcpu.exe"
 				>
 				<FileConfiguration

@@ -30,10 +30,10 @@ extern HBITMAP hbussy;
 #include "param.h"
 
 extern device_info vmb;
-int major_version=1, minor_version=8;
+int major_version=1, minor_version=9;
 char title[] ="VMB Host Disk";
 
-char version[]="$Revision: 1.13 $ $Date: 2015-09-24 12:41:34 $";
+char version[]="$Revision: 1.14 $ $Date: 2016-02-16 09:49:15 $";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";

@@ -13,39 +13,42 @@ static ATOM SplitterBarClass, SplitterClass;
 /* Layout */
 #define SPLITWIDTH (8)
 /* Colors for the spliterbar and its border */
-#define COLOR_SPLIT COLOR_MENUBAR
-#define COLOR_SPLIT_HI RGB(255,255,255))
-#define COLOR_SPLIT_MH RGB(GetRVakue(COLOR_SPLIT)+5,GetGVakue(COLOR_SPLIT)+6,GetBVakue(COLOR_SPLIT)+10)
-#define COLOR_SPLIT_ML RGB(GetRVakue(COLOR_SPLIT)-64,GetGVakue(COLOR_SPLIT)-65,GetBVakue(COLOR_SPLIT)-63)
-#define COLOR_SPLIT_LO RGB(GetRVakue(COLOR_SPLIT)-123,GetGVakue(COLOR_SPLIT)-122,GetBVakue(COLOR_SPLIT)-116)
+#define COLOR_SPLIT COLOR_BTNFACE
+/*COLOR_WINDOWFRAME
+ COLOR_MENUBAR*/
+#define COLOR_SPLIT_HI RGB(255,255,255)
+#define COLOR_SPLIT_MH RGB(GetRValue(COLOR_SPLIT)+5,GetGValue(COLOR_SPLIT)+6,GetBValue(COLOR_SPLIT)+10)
+#define COLOR_SPLIT_ML RGB(GetRValue(COLOR_SPLIT)-64,GetGValue(COLOR_SPLIT)-65,GetBValue(COLOR_SPLIT)-63)
+#define COLOR_SPLIT_LO RGB(GetRValue(COLOR_SPLIT)-123,GetGValue(COLOR_SPLIT)-122,GetBValue(COLOR_SPLIT)-116)
 #define ARROWWIDTH 8
 #define ARROWHEIGHT 10
 #define MAXMID (ARROWHEIGHT+CLOSEHEIGHT+ 2*SPLITWIDTH)
 
-/* darkness to produce the arrow bitmaps */
-static const double Arrow[ARROWHEIGHT][ARROWWIDTH] = { 
-1.0,0.75,1.0,1.0,1.0,1.0,1.0,1.0,
-0.75,0.0,0.25,1.0,1.0,1.0,1.0,1.0,
-1.0,0.0,0.0,0.0,0.5,1.0,1.0,1.0,
-1.0,0.0,0.0,0.0,0.0,0.25,0.75,1.0,
-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.75,
-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.75,
-1.0,0.0,0.0,0.0,0.0,0.25,0.75,1.0,
-1.0,0.0,0.0,0.0,0.5,1.0,1.0,1.0,
-0.75,0.0,0.25,1.0,1.0,1.0,1.0,1.0,
-1.0,0.75,1.0,1.0,1.0,1.0,1.0,1.0
+/* alpha value to produce the arrow bitmaps */
+static const unsigned char Arrow[ARROWHEIGHT][ARROWWIDTH] = { 
+0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,
+0x40,0xFF,0xC0,0x00,0x00,0x00,0x00,0x00,
+0x00,0xFF,0xFF,0xFF,0x80,0x00,0x00,0x00,
+0x00,0xFF,0xFF,0xFF,0xFF,0xC0,0x40,0x00,
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x40,
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x40,
+0x00,0xFF,0xFF,0xFF,0xFF,0xC0,0x40,0x00,
+0x00,0xFF,0xFF,0xFF,0x80,0x00,0x00,0x00,
+0x40,0xFF,0xC0,0x00,0x00,0x00,0x00,0x00,
+0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00
 };
 #define CLOSEWIDTH 8
 #define CLOSEHEIGHT 8
 /* darkness to produce the close bitmap */
-static const double Close[CLOSEHEIGHT][CLOSEWIDTH] = { 
-1.0,0.5,1.0,1.0,1.0,1.0,0.5,1.0,0.5,0.0,
-0.25,1.0,1.0,0.25,0.0,0.5,1.0,0.25,0.0,0.25,
-0.25,0.0,0.25,1.0,1.0,1.0,0.25,0.0,0.0,0.25,
-1.0,1.0,1.0,1.0,0.25,0.0,0.0,0.25,1.0,1.0,
-1.0,0.25,0.0,0.25,0.25,0.0,0.25,1.0,0.5,0.0,
-0.25,1.0,1.0,0.25,0.0,0.5,1.0,0.5,1.0,1.0,
-1.0,1.0,0.5,1.0
+static const unsigned char Close[CLOSEHEIGHT][CLOSEWIDTH] = { 
+0x00,0x80,0x00,0x00,0x00,0x00,0x80,0x00,
+0x80,0xFF,0xC0,0x00,0x00,0xC0,0xFF,0x80,
+0x00,0xC0,0xFF,0xC0,0xC0,0xFF,0xC0,0x00,
+0x00,0x00,0xC0,0xFF,0xFF,0xC0,0x00,0x00,
+0x00,0x00,0xC0,0xFF,0xFF,0xC0,0x00,0x00,
+0x00,0xC0,0xFF,0xC0,0xC0,0xFF,0xC0,0x00,
+0x80,0xFF,0xC0,0x00,0x00,0xC0,0xFF,0x80,
+0x00,0x80,0x00,0x00,0x00,0x00,0x80,0x00
 };
 /* the arrow bitmaps and the restore bitmaps */
 static HDC TopDC, BottomDC, LeftDC, RightDC, CloseDC, DragDC;
@@ -57,12 +60,16 @@ static HCURSOR hHCursor = NULL;
 static HCURSOR hXCursor = NULL;
 static HCURSOR hCCursor = NULL;
 static HBRUSH hDragBrush, holdDragBrush; 
-static HBRUSH hDragPen, holdDragPen;  
+static HPEN hDragPen, holdDragPen;  
+static HPEN hHIPen, hMHPen, hMLPen,hLOPen;  
 
-static void init_layout(HWND hSpliterBase)
+static void init_sp_layout(HWND hSpliterBase)
 { HBITMAP  hBmp;
   HDC imgDC;
   int x,y;
+  LOGBRUSH lb;
+  BITMAPINFO bmi;
+  VOID *TopBits,*BottomBits, *LeftBits, *RightBits, *CloseBits; 
   COLORREF SplitColor=GetSysColor(COLOR_SPLIT);
   BYTE SplitR, SplitG, SplitB;
   SplitR = GetRValue(SplitColor);
@@ -74,48 +81,57 @@ static void init_layout(HWND hSpliterBase)
   hHCursor = LoadCursor(NULL, IDC_SIZENS); 
   hXCursor = LoadCursor(NULL, IDC_SIZEALL); 
   hCCursor = LoadCursor(NULL, IDC_ARROW);
-
-
+  lb.lbStyle=BS_SOLID;
+  lb.lbColor=COLOR_SPLIT_HI;
+  hHIPen =  ExtCreatePen(PS_COSMETIC | PS_SOLID, 1, &lb, 0, NULL); 
+  lb.lbColor=COLOR_SPLIT_MH;
+  hMHPen =  ExtCreatePen(PS_COSMETIC | PS_SOLID, 1, &lb, 0, NULL); 
+  lb.lbColor=COLOR_SPLIT_ML;
+  hMLPen =  ExtCreatePen(PS_COSMETIC | PS_SOLID, 1, &lb, 0, NULL); 
+  lb.lbColor=COLOR_SPLIT_LO;
+  hLOPen =  ExtCreatePen(PS_COSMETIC | PS_SOLID, 1, &lb, 0, NULL); 
   imgDC = GetDC(hSpliterBase);
-  TopDC = CreateCompatibleDC(imgDC);
-  hBmp = CreateCompatibleBitmap(imgDC,ARROWWIDTH,ARROWHEIGHT);
+  ZeroMemory(&bmi, sizeof(BITMAPINFO));
+  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  bmi.bmiHeader.biPlanes = 1;
+  bmi.bmiHeader.biBitCount = 32;         // four 8-bit components
+  bmi.bmiHeader.biCompression = BI_RGB;
+  bmi.bmiHeader.biWidth = ARROWWIDTH;
+  bmi.bmiHeader.biHeight = ARROWHEIGHT;
+  bmi.bmiHeader.biSizeImage = ARROWWIDTH * ARROWHEIGHT * 4;
+  TopDC = CreateCompatibleDC(imgDC); 
+  hBmp = CreateDIBSection(TopDC, &bmi, DIB_RGB_COLORS, &TopBits, NULL, 0x0);
   hOldTopBmp = (HBITMAP)SelectObject(TopDC, hBmp);
   BottomDC = CreateCompatibleDC(imgDC);
-  hBmp = CreateCompatibleBitmap(imgDC,ARROWWIDTH,ARROWHEIGHT);
+  hBmp = CreateDIBSection(BottomDC, &bmi, DIB_RGB_COLORS, &BottomBits, NULL, 0x0);
   hOldBottomBmp = (HBITMAP)SelectObject(BottomDC, hBmp);
+  bmi.bmiHeader.biWidth = ARROWHEIGHT;
+  bmi.bmiHeader.biHeight = ARROWWIDTH;
+  bmi.bmiHeader.biSizeImage = ARROWWIDTH * ARROWHEIGHT * 4;
   LeftDC = CreateCompatibleDC(imgDC);
-  hBmp = CreateCompatibleBitmap(imgDC,ARROWHEIGHT,ARROWWIDTH);
+  hBmp = CreateDIBSection(LeftDC, &bmi, DIB_RGB_COLORS, &LeftBits, NULL, 0x0);
   hOldLeftBmp = (HBITMAP)SelectObject(LeftDC, hBmp);
   RightDC = CreateCompatibleDC(imgDC);
-  hBmp = CreateCompatibleBitmap(imgDC,ARROWHEIGHT,ARROWWIDTH);
+  hBmp = CreateDIBSection(RightDC, &bmi, DIB_RGB_COLORS, &RightBits, NULL, 0x0);
   hOldRightBmp = (HBITMAP)SelectObject(RightDC, hBmp);
+  bmi.bmiHeader.biWidth = CLOSEWIDTH;
+  bmi.bmiHeader.biHeight = CLOSEHEIGHT;
+  bmi.bmiHeader.biSizeImage = CLOSEWIDTH * CLOSEHEIGHT * 4;
   CloseDC = CreateCompatibleDC(imgDC);
-  hBmp = CreateCompatibleBitmap(imgDC,CLOSEHEIGHT,CLOSEWIDTH);
+  hBmp = CreateDIBSection(CloseDC, &bmi, DIB_RGB_COLORS, &CloseBits, NULL, 0x0);
   hOldCloseBmp = (HBITMAP)SelectObject(CloseDC, hBmp);
   ReleaseDC(hSpliterBase,imgDC);
 
   for(y=0;y<ARROWHEIGHT;y++)
     for(x=0;x<ARROWWIDTH;x++)
-	{ COLORREF rgb;
-	  BYTE r,g,b;
-	  r = (BYTE)(SplitR*Arrow[y][x]);
-	  g = (BYTE)(SplitG*Arrow[y][x]);
-	  b = (BYTE)(SplitB*Arrow[y][x]);
-	  rgb=RGB(r,g,b);
-      SetPixel(TopDC,x,y,rgb);
-      SetPixel(BottomDC,ARROWWIDTH-x-1,y,rgb);
-      SetPixel(LeftDC,y,x,rgb);
-      SetPixel(RightDC,y,ARROWWIDTH-x-1,rgb);
+	{ ((UINT32 *)TopBits)[x + y * ARROWWIDTH] = 
+	  ((UINT32 *)BottomBits)[ARROWWIDTH-x-1 + y * ARROWWIDTH] = 
+	  ((UINT32 *)RightBits)[x*ARROWHEIGHT + y] = 
+	  ((UINT32 *)LeftBits)[(ARROWWIDTH-x-1 )*ARROWHEIGHT + y] = ((UINT32)Arrow[y][x] << 24) | 0x00000; /*BLACK */
 	}
     for(y=0;y<CLOSEHEIGHT;y++)
     for(x=0;x<CLOSEWIDTH;x++)
-	{ COLORREF rgb;
-	  BYTE r,g,b;
-	  r = (BYTE)(SplitR*Close[y][x]);
-	  g = (BYTE)(SplitG*Close[y][x]);
-	  b = (BYTE)(SplitB*Close[y][x]);
-	  rgb=RGB(r,g,b);
-      SetPixel(CloseDC,x,y,rgb);
+	{ ((UINT32 *)CloseBits)[x + y * CLOSEWIDTH] = ((UINT32)Close[y][x] << 24) | 0x00000; /*BLACK */
 	}
 	DragDC= GetDC(hSpliterBase);
     hDragBrush=GetStockObject(LTGRAY_BRUSH);
@@ -626,7 +642,7 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 	{
 	case WM_CREATE:
 		hSpliterBase=hWnd;
-        init_layout(hSpliterBase);
+        init_sp_layout(hSpliterBase);
 		return 0;
 	case WM_SIZE:
 		if (wParam==SIZE_RESTORED ||wParam==SIZE_MAXIMIZED)
@@ -888,22 +904,44 @@ static LRESULT CALLBACK SplitterBarProc(HWND hWnd, UINT message, WPARAM wParam, 
 	case WM_PAINT:
 		{ 	PAINTSTRUCT ps;
 		    HDC hdc;
+			BLENDFUNCTION bf;   
             hdc = BeginPaint(hWnd, &ps);
+			SelectObject(hdc, hSplitterBrush); 
+            bf.BlendOp = AC_SRC_OVER;
+            bf.BlendFlags = 0;
+            bf.AlphaFormat = AC_SRC_ALPHA;   
+            bf.SourceConstantAlpha = 0xff;  
+
 			if (sp->o.sp.vertical)
-			{ BitBlt(hdc, 0, SPLITWIDTH/2, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, 0, 3*SPLITWIDTH/2+CLOSEHEIGHT, ARROWWIDTH, ARROWHEIGHT, TopDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, 0, sp->h/2-ARROWHEIGHT, ARROWWIDTH, ARROWHEIGHT, BottomDC, 0, 0, SRCCOPY);
-			  BitBlt(hdc, 0, sp->h/2, ARROWWIDTH, ARROWHEIGHT, TopDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, 0, sp->h-3*SPLITWIDTH/2-CLOSEHEIGHT-ARROWHEIGHT, ARROWWIDTH, ARROWHEIGHT, BottomDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, 0, sp->h-CLOSEHEIGHT-SPLITWIDTH/2, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, SRCCOPY);
+			{ SelectObject(hdc,hHIPen);
+			  MoveToEx(hdc, 0,sp->h-1, NULL);
+			  LineTo(hdc,0,0);
+			  LineTo(hdc,SPLITWIDTH-1,0);
+			  SelectObject(hdc,hLOPen);
+			  LineTo(hdc,SPLITWIDTH-1,sp->h-1);
+			  LineTo(hdc,0,sp->h-1);
+
+     AlphaBlend(hdc, 0, SPLITWIDTH/2, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, CLOSEWIDTH, CLOSEHEIGHT, bf);
+     AlphaBlend(hdc, 0, 3*SPLITWIDTH/2+CLOSEHEIGHT, ARROWWIDTH, ARROWHEIGHT, TopDC, 0, 0, ARROWWIDTH, ARROWHEIGHT, bf);
+     AlphaBlend(hdc, 0, sp->h/2-ARROWHEIGHT, ARROWWIDTH, ARROWHEIGHT, BottomDC, 0, 0, ARROWWIDTH, ARROWHEIGHT, bf);
+     AlphaBlend(hdc, 0, sp->h/2, ARROWWIDTH, ARROWHEIGHT, TopDC, 0, 0, ARROWWIDTH, ARROWHEIGHT, bf);
+     AlphaBlend(hdc, 0, sp->h-3*SPLITWIDTH/2-CLOSEHEIGHT-ARROWHEIGHT, ARROWWIDTH, ARROWHEIGHT, BottomDC, 0, 0, ARROWWIDTH, ARROWHEIGHT, bf);
+     AlphaBlend(hdc, 0, sp->h-CLOSEHEIGHT-SPLITWIDTH/2, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, CLOSEWIDTH, CLOSEHEIGHT,bf);
 			}
 			else
-			{ BitBlt(hdc, SPLITWIDTH/2, 0, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, 3*SPLITWIDTH/2+CLOSEHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, LeftDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, sp->w/2-ARROWHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, RightDC, 0, 0, SRCCOPY);
-			  BitBlt(hdc, sp->w/2, 0, ARROWHEIGHT, ARROWWIDTH, LeftDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, sp->w-3*SPLITWIDTH/2-CLOSEHEIGHT-ARROWHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, RightDC, 0, 0, SRCCOPY);
-              BitBlt(hdc, sp->w-CLOSEHEIGHT-SPLITWIDTH/2, 0, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, SRCCOPY);
+			{ SelectObject(hdc,hHIPen);
+			  MoveToEx(hdc, 0,SPLITWIDTH-1, NULL);
+			  LineTo(hdc,0,0);
+			  LineTo(hdc,sp->w-1,0);
+			  SelectObject(hdc,hLOPen);
+			  LineTo(hdc,sp->w-1,SPLITWIDTH-1);
+			  LineTo(hdc,0,SPLITWIDTH-1);
+			  AlphaBlend(hdc, SPLITWIDTH/2, 0, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0,  CLOSEWIDTH, CLOSEHEIGHT,bf);
+              AlphaBlend(hdc, 3*SPLITWIDTH/2+CLOSEHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, LeftDC, 0, 0, ARROWHEIGHT, ARROWWIDTH,bf);
+              AlphaBlend(hdc, sp->w/2-ARROWHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, RightDC, 0, 0, ARROWHEIGHT, ARROWWIDTH,bf);
+			  AlphaBlend(hdc, sp->w/2, 0, ARROWHEIGHT, ARROWWIDTH, LeftDC, 0, 0, ARROWHEIGHT, ARROWWIDTH,bf);
+              AlphaBlend(hdc, sp->w-3*SPLITWIDTH/2-CLOSEHEIGHT-ARROWHEIGHT, 0, ARROWHEIGHT, ARROWWIDTH, RightDC, 0, 0, ARROWHEIGHT, ARROWWIDTH,bf);
+              AlphaBlend(hdc, sp->w-CLOSEHEIGHT-SPLITWIDTH/2, 0, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0,  CLOSEWIDTH, CLOSEHEIGHT,bf);
 			}
 		    EndPaint(hWnd, &ps);
 		}

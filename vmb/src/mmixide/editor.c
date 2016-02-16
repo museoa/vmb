@@ -52,7 +52,7 @@ static void create_edit(void)
 {  
    sp_create_options(1,0,0.8,0,NULL);
    hEdit = CreateWindow("MMIXEDITORCLASS", NULL ,
-				WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN|WS_BORDER,
+				WS_CHILD|WS_VISIBLE|WS_TABSTOP|WS_CLIPCHILDREN,
                 CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
 	            hSplitter, NULL, hInst, NULL);
 }
@@ -291,7 +291,7 @@ static LRESULT CALLBACK EditorProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			           WS_CHILD|WS_TABSTOP|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
 		               0,0,0,0,hWnd,NULL,hInst,NULL);
 		 TabCtrl_SetImageList(hTabs,hFileMarkers);
-         SendMessage(hTabs,WM_SETFONT,(WPARAM)hVarFont,0);
+         SendMessage(hTabs,WM_SETFONT,(WPARAM)hGUIFont,0);
 		 DragAcceptFiles(hWnd,TRUE);
 	     return 0;
     case WM_SIZE:

@@ -109,9 +109,7 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	  DialogBox(hInst,MAKEINTRESOURCE(IDD_CONFIGURATION),hWnd,ConfigurationDialogProc);
 	  return 0; 
 	case ID_HELP:
-#if 0
-      HtmlHelp(hWnd,"help.html",HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
-#endif
+	  HtmlHelp(hWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
 	  return 0; 
 	case ID_MINIMIZE:
 	  CloseWindow(hWnd);

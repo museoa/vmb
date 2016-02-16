@@ -10,7 +10,7 @@
 		<h1><img src="mother.gif" alt="" width="305" height="102" border="0"></h1>
 		<h2>Operation</h2>
 		The motherboard provides 256 slots, each of which can be used to connect a VMB device to the motherboard. The motherboard implements the Virtual Bus Specification and forwards messages (see <a href="../messages.html">Message Specification</a>) between the devices connected.
-		<p>Once started, the motherboard reads the file default.mmc. From this file it will get the port number where the motherboard opens a server socket. Through this socket it will accept connections from the devices and establishes point-to-point TCP/IP connections with the devices. The devices are expected to send a registrations message as the first message.</p>
+		<p>Once started, the motherboard reads the file default.vmb. From this file it will get the port number where the motherboard opens a server socket. Through this socket it will accept connections from the devices and establishes point-to-point TCP/IP connections with the devices. The devices are expected to send a registrations message as the first message.</p>
 		<h2>Unix</h2>
 		The implementation under UNIX is a command line application. It accepts the following commands:
 		<table border="1" cellspacing="2" cellpadding="0">
@@ -92,7 +92,7 @@
 			</tr>
 		</table>
 		
-These can be set in default.mmc
+These can be set in default.vmb
 
 </BODY>
 </HTML>

@@ -176,7 +176,7 @@ HWND CreateLog(HWND hParent,HINSTANCE hInst)
 { 
   InitializeCriticalSection (&msg_section);
 	hLog = CreateWindow("EDIT",
-						NULL,WS_CHILD|WS_VISIBLE|WS_BORDER|WS_VSCROLL|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, //|ES_READONLY,
+						NULL,WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_HSCROLL|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, //|ES_READONLY,
 						0,0,100,10,
 						hParent,NULL,hInst,0);
     StaticWndProc = (WNDPROC)(LONG_PTR)SetWindowLongPtr(hLog, GWLP_WNDPROC,(LONG)(LONG_PTR)LogWndProc);
@@ -194,6 +194,7 @@ HWND CreateLog(HWND hParent,HINSTANCE hInst)
 	}
 #endif
     SendMessage(hLog,WM_SETFONT,(WPARAM)hFixedFont,0);
+	PostMessage(hLog,WM_VMB_MSG,0,0);
     return hLog;
 }
 

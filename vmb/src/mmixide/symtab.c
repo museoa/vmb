@@ -136,7 +136,7 @@ void create_symtab(void)
 { if (hSymbolTable!=NULL) return;
   sp_create_options(1,1,0.15,0,hEdit);
   hSymbolTable = CreateWindow("LISTBOX","Symbol Table",
-		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|
+		     WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|
 			 LBS_NOINTEGRALHEIGHT|LBS_SORT|LBS_HASSTRINGS|LBS_OWNERDRAWFIXED,
              0,0,0,0,
 	         hSplitter, NULL, hInst, NULL);

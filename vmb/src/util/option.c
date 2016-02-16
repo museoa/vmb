@@ -50,7 +50,7 @@
  
 /* a string to store teporarily an option */
 
-char tmp_option[MAXTMPOPTION]= {0};
+char tmp_option[MAXTMPOPTION+1]= {0};
 char *programpath = NULL;
 char *program_name=NULL;
 char *programhelpfile = NULL;

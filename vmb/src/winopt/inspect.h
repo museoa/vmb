@@ -41,7 +41,7 @@ struct inspector_def {
 	int num_regs;      /* number of registers if register_def!=NULL */
 	struct register_def *regs; /* NULL if memory */
 	/* the rest can be initialized with zero */
-	int address_width;   /*size of addess or register names column*/
+	int address_width;   /*size of addess or register names column in characters*/
 	uint64_t address;  /* used for memory only */
 	RECT edit_rect;
 	HWND hWnd; /* the window where the edit rectangle is displayed */
@@ -52,7 +52,6 @@ struct inspector_def {
 	int width;  /* width in pixel */
 	int height; /* height in pixel */
     int columns; 
-	int column_width; /* column width in pixel */
 	int column_digits; /* number of output characters per column */
     unsigned int mem_base;
 	unsigned int mem_size; /* page currently displayed  from offset mem_base to mem_base+memsize*/
@@ -79,9 +78,10 @@ extern void SetInspector(HWND hWnd, inspector_def * insp);
 void MemoryDialogUpdate(inspector_def *insp, unsigned int offset, int size);
 
 extern void mem_update(unsigned int offset, int size);
-/* call this function to tell a specific memory inspector i that an update is due */
+/* call this function to tell a specific memory inspector that an update is due */
 extern void adjust_mem_display(inspector_def *insp);
-
+/* call this function if the number or size of columns is about to change */
+extern void resize_memory_dialog(inspector_def *insp);
 #else
 /* make it a no-op */
 #define mem_update(offset, size)

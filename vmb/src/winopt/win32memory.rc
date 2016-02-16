@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "resource."
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -27,15 +27,15 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDD_MEMORY DIALOGEX 0, 0, 204, 133
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD 
 EXSTYLE WS_EX_APPWINDOW
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     SCROLLBAR       IDC_MEM_SCROLLBAR,185,18,12,109,SBS_VERT
-    EDITTEXT        IDC_GOTO,24,2,85,12,ES_AUTOHSCROLL | NOT WS_BORDER | WS_GROUP,WS_EX_CLIENTEDGE
-    LTEXT           "Go to:",IDC_GOTO_PROMPT,2,2,21,8
-    PUSHBUTTON      "Format",IDC_FORMAT,116,0,39,14
-    PUSHBUTTON      "Size",IDC_CHUNK,158,0,39,14
+    EDITTEXT        IDC_GOTO,24,3,85,12,ES_AUTOHSCROLL | NOT WS_BORDER | WS_GROUP,WS_EX_CLIENTEDGE
+    LTEXT           "Go to:",IDC_GOTO_PROMPT,2,4,21,8
+    PUSHBUTTON      "Format",IDC_FORMAT,117,2,39,14
+    PUSHBUTTON      "Size",IDC_CHUNK,158,2,39,14
 END
 
 
@@ -67,10 +67,14 @@ BEGIN
     "resource.\0"
 END
 
-
 3 TEXTINCLUDE 
 BEGIN
     "\r\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -85,7 +89,6 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

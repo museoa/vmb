@@ -45,10 +45,10 @@ extern HWND hMainWnd;
 #include "inspect.h"
 #endif
 
-int major_version=1, minor_version=8;
+int major_version=1, minor_version=9;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.25 $ $Date: 2015-09-24 09:56:49 $";
+char version[]="$Revision: 1.26 $ $Date: 2016-02-16 09:49:16 $";
 
 char howto[] =
 "\n"

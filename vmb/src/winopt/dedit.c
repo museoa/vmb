@@ -281,6 +281,22 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    de->hWnd=hDlg;
 	    SetDlgItemText(hDlg,IDC_FORMAT,format_names[de->format]);
 	    SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[de->chunk]);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE0,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE1,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE2,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE3,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE4,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE5,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE6,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE7,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITWYDE0,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITWYDE1,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITWYDE2,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITWYDE3,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITTETRA0,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITTETRA1,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITOCTA0,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_NAME,WM_SETFONT,(WPARAM)hFixedFont,0);
 
 		show_edit_mem(de);
 		show_edit_windows(de);

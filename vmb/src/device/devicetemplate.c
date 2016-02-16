@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-int major_version=1, minor_version=8;
+int major_version=1, minor_version=9;
 
 /* This device simulates RAMSIZE bytes of RAM */
 #define RAMSIZE 1024

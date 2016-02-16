@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib  comctl32.lib"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib  comctl32.lib"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib Htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -205,6 +205,25 @@
 				RelativePath=".\winmain.c"
 				>
 			</File>
+			<File
+				RelativePath=".\help.hhp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="HtmlHelp Compiler"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0"
+						AdditionalDependencies="$(InputDir)\help.html"
+						Outputs="$(InputDir)\help.chm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\help.html"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -259,6 +278,10 @@
 			</File>
 			<File
 				RelativePath="..\winopt\win32connect.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\winopt\win32memory.rc"
 				>
 			</File>
 			<File

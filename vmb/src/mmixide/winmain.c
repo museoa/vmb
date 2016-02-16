@@ -37,8 +37,8 @@
 
 #pragma warning(disable : 4996)
 
-int major_version=1, minor_version=8;
-char version[]="$Revision: 1.59 $ $Date: 2016-01-05 18:38:42 $";
+int major_version=1, minor_version=9;
+char version[]="$Revision: 1.60 $ $Date: 2016-02-16 09:49:15 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
@@ -218,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				status_width=version_width;
 			MoveWindow(hButtonBar, 0,0,LOWORD(lParam)-status_width,BB_HEIGHT, TRUE);
 		    MoveWindow(hStatus, LOWORD(lParam)-status_width,0,status_width,BB_HEIGHT, TRUE);
-			MoveWindow(hSplitter, 0,BB_HEIGHT,LOWORD(lParam),HIWORD(lParam)-BB_HEIGHT, TRUE);
+			MoveWindow(hSplitter, 0,BB_HEIGHT+1,LOWORD(lParam),HIWORD(lParam)-BB_HEIGHT-1, TRUE);
 		}
 		return 1;
   case WM_PARENTNOTIFY:
@@ -653,7 +653,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 	wcex.hInstance		= hInstance;
 	wcex.hIcon			= LoadIcon(hInstance,MAKEINTRESOURCE(IDI_ICON));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_MENUBAR+1);
+	wcex.hbrBackground	= (HBRUSH)(COLOR_BTNSHADOW+1);
 	wcex.lpszMenuName	= MAKEINTRESOURCE(IDR_MENU);
 	wcex.lpszClassName = classname;
 	wcex.hIconSm		= LoadIcon(hInstance,MAKEINTRESOURCE(IDI_ICON_SMALL));
@@ -813,7 +813,7 @@ int execute_commands(void)
 void new_errorlist(void)
 {   sp_create_options(0,0,0.2,0,hEdit);
 	hError = CreateWindow("LISTBOX", "Errorlist" ,
-				WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_BORDER|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT,
+				WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT,
                 0,0,0,0,
 	            hSplitter, NULL, hInst, NULL);
 	SendMessage(hError,WM_SETFONT,(WPARAM)hVarFont,0);
@@ -887,7 +887,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
 		0, 0, r.right-r.left-status_width, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
 	hSplitter = sp_CreateSplitter("The Splitter", WS_CHILD|WS_VISIBLE,
-                  0, BB_HEIGHT, r.right-r.left, r.bottom-r.top-BB_HEIGHT, hMainWnd, NULL, hInst, NULL);
+                  0, BB_HEIGHT+1, r.right-r.left, r.bottom-r.top-BB_HEIGHT-1, hMainWnd, NULL, hInst, NULL);
     add_buttons();
     printer_init();
 	init_edit(hInstance);

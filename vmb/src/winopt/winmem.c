@@ -7,7 +7,7 @@
 #include "inspect.h"
 #include "dedit.h"
 #include "winde.h"
-#include "winopt.h"
+
 
 #pragma warning(disable : 4996)
 
@@ -48,7 +48,7 @@ static void invalidate_registers(inspector_def *insp, unsigned int from, unsigne
   }
   if (max_size<=0) return;
   if (last<first) return;
-  rec.left=insp->address_width;;
+  rec.left=insp->address_width*fixed_char_width+separator_width;
   rec.right=rec.left+(max_size+1)*2*(fixed_char_width+separator_width); /* upper bound */
   rec.top=top_height+first*fixed_line_height;
   rec.bottom=top_height+last*fixed_line_height+fixed_line_height-separator_height;
@@ -250,9 +250,9 @@ int chunk_len(enum mem_fmt f, int chunk_size)
   return column_digits;
 }
 
-
-static void resize_memory_dialog(inspector_def *insp)
+void resize_memory_dialog(inspector_def *insp)
 { 
+  int left_margin;
 
   MoveWindow(GetDlgItem(insp->hWnd,IDC_MEM_SCROLLBAR),
 	         insp->width-sb_width,top_height,sb_width,insp->height-top_height,TRUE);
@@ -262,15 +262,10 @@ static void resize_memory_dialog(inspector_def *insp)
   if (insp->lines<1) insp->lines=1;
   
   insp->column_digits=chunk_len(insp->format,1<<insp->chunk);
-
-  insp->column_width=insp->column_digits*fixed_char_width+separator_width;
-  insp->columns = (insp->width-sb_width-insp->address_width)/insp->column_width;
+  left_margin=insp->address_width*fixed_char_width+separator_width;
+  insp->columns = (insp->width-sb_width-left_margin)/(insp->column_digits*fixed_char_width+separator_width);
   if (insp->columns<1)
-  { insp->columns=1;
-    insp->column_width=insp->width-sb_width-insp->address_width;
-	if (insp->column_digits*fixed_char_width>insp->column_width)
-      insp->column_digits=insp->column_width/fixed_char_width;
-  }
+    insp->columns=1;
   insp->line_range = insp->columns*(1<<insp->chunk);
   adjust_mem_display(insp);
 }
@@ -373,7 +368,7 @@ void update_max_regnames(inspector_def *insp)
 	  if (n> max_regname) max_regname=n;
     }
   }
-  insp->address_width=max_regname*fixed_char_width+separator_width;
+  insp->address_width=max_regname;
 }
 
 void display_registers(inspector_def *insp,HDC hdc)
@@ -390,11 +385,11 @@ void display_registers(inspector_def *insp,HDC hdc)
      struct register_def *r;
 	 r = &insp->regs[insp->sb_cur+i];
      y=top_height+i*fixed_line_height;
-     x=insp->address_width;
+     x=insp->address_width*fixed_char_width+separator_width;
      SelectObject(hdc, hFixedFont);
      SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
 	 if (r->options&REG_OPT_DISABLED)
-	   SetTextColor(hdc,GetSysColor(COLOR_GRAYTEXT));
+	   SetTextColor(hdc,RGB(0,0,0xFF));/* GetSysColor(COLOR_GRAYTEXT)); */
 	 else
  	   SetTextColor(hdc,GetSysColor(COLOR_BTNTEXT));
      SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
@@ -414,7 +409,9 @@ void display_registers(inspector_def *insp,HDC hdc)
 	   len = chunk_len(format,chunk_size);
 	   //if (len>insp->column_digits) len=insp->column_digits;
 	   len = chunk_to_str(str, insp->mem_buf+r->offset+k*chunk_size-insp->mem_base, format,chunk_size,len);
-       if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
+	   if (r->options&REG_OPT_DISABLED)
+	     SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
+	   else if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
 	     SetBkColor(hdc,HOT);
 	   else
 	     SetBkColor(hdc,COLD);
@@ -467,15 +464,15 @@ void display_memory(inspector_def *insp,HDC hdc)
 	     l=0;
          SetBkColor(hdc,COLD);
 	   }
-	   x = insp->address_width+separator_width+k*insp->column_width;
+	   x = insp->address_width*fixed_char_width+separator_width+separator_width+k*(insp->column_digits*fixed_char_width+separator_width);
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   r.top=y;
        r.left=x;
-       r.right=x+insp->column_width-separator_width;
+       r.right=x+insp->column_digits*fixed_char_width;
        r.bottom=y+fixed_line_height-separator_height;
 
-       ExtTextOut(hdc,x+insp->column_width-separator_width,y,
-		   ETO_OPAQUE,&r,str,l,NULL);
+       ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
+		   ETO_OPAQUE|ETO_CLIPPED,&r,str,l,NULL);
 	 }
    } 
 }
@@ -519,13 +516,13 @@ void set_edit_rect(struct inspector_def *insp)
     if (page_offset<0 || page_offset>=(int)insp->mem_size) return;
     edit_line= page_offset/insp->line_range;
     line_offset= page_offset-edit_line*insp->line_range;
-	edit_width=insp->column_width;
+	edit_width=insp->column_digits*fixed_char_width+separator_width;
   }
   if (edit_line<0) 
 	  return;
   insp->edit_rect.top=top_height+edit_line*fixed_line_height;
   insp->edit_rect.bottom=insp->edit_rect.top+fixed_line_height-separator_height;
-  insp->edit_rect.left=insp->address_width+separator_width+(line_offset/(1<<insp->chunk))*edit_width;
+  insp->edit_rect.left=insp->address_width*fixed_char_width+separator_width+separator_width+(line_offset/(1<<insp->chunk))*edit_width;
   insp->edit_rect.right=insp->edit_rect.left+edit_width-separator_width;
   InflateRect(&insp->edit_rect,separator_height,separator_height);
 }
@@ -533,7 +530,7 @@ void set_edit_rect(struct inspector_def *insp)
 void  set_edit_offset(inspector_def *insp,int x, int y)
 /* determine edit_offset from the position */
 { int i = (y-top_height)/fixed_line_height;
-  if (x<=insp->address_width) return;
+  if (x<=insp->address_width*fixed_char_width+separator_width) return;
   insp->de_offset=-1;
   if (i<0 || i >= insp->lines) return;
   if (insp->regs!=NULL)
@@ -542,7 +539,7 @@ void  set_edit_offset(inspector_def *insp,int x, int y)
   }
   else
   { unsigned int offset = insp->mem_base+i*insp->line_range;
-    offset+=(1<<insp->chunk)*((x-insp->address_width)/insp->column_width);
+    offset+=(1<<insp->chunk)*((x-insp->address_width*fixed_char_width-separator_width)/(insp->column_digits*fixed_char_width+separator_width));
 	if (offset>=insp->size) return;
     insp->de_offset=offset;
   }
@@ -570,16 +567,16 @@ void SetInspector(HWND hMemory, inspector_def * insp)
     ScreenToClient(insp->hWnd,&p);
 	xButton=p.x+fixed_char_width;
 	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),xButton,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),xButton,border_size,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,border_size,r.right-r.left,r.bottom-r.top,TRUE);
   }
   else
   { RECT r;
 	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO),SW_HIDE);
   	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO_PROMPT),SW_HIDE);
 	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),fixed_char_width,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),2*fixed_char_width+r.right-r.left,separator_height,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),fixed_char_width,border_size,r.right-r.left,r.bottom-r.top,TRUE);
+	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),2*fixed_char_width+r.right-r.left,border_size,r.right-r.left,r.bottom-r.top,TRUE);
 
   }
   SetDlgItemText(insp->hWnd,IDC_FORMAT,format_names[insp->format]);
@@ -588,7 +585,7 @@ void SetInspector(HWND hMemory, inspector_def * insp)
 
 static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ static int mem_min_height=0;
+{ 
   switch ( message )
   { case WM_INITDIALOG :
       if (sb_width==0)
@@ -596,12 +593,10 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         GetWindowRect(GetDlgItem(hDlg,IDC_MEM_SCROLLBAR),&sbRect);
         sb_width=sbRect.right-sbRect.left;
 		GetWindowRect(GetDlgItem(hDlg,IDC_FORMAT),&sbRect);
-		top_height = separator_height*2+(sbRect.bottom-sbRect.top);
+		top_height = border_size*2+(sbRect.bottom-sbRect.top);
 	  }
-	  mem_min_height= top_height+separator_height+fixed_line_height;
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
-	  SetFocus(GetDlgItem(hDlg,IDOK));
 	  hDataEditInstance=hInst;
 	  register_subwindow(hDlg);
 	  return FALSE;
@@ -720,10 +715,10 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
 	  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 	  if (insp!=NULL)
-		  p->ptMinTrackSize.x = insp->address_width+16*fixed_char_width+2*separator_width+sb_width;
+		  p->ptMinTrackSize.x = insp->address_width*fixed_char_width+separator_width+16*fixed_char_width+2*separator_width+sb_width;
 	  else
 	      p->ptMinTrackSize.x = 36*fixed_char_width+2*separator_width+sb_width;
-      p->ptMinTrackSize.y = mem_min_height;
+      p->ptMinTrackSize.y = top_height+separator_height+fixed_line_height;
 	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
 	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
 	}

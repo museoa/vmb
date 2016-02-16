@@ -215,10 +215,10 @@ void timer_signal()
 
 
 
-int major_version=1, minor_version=8;
+int major_version=1, minor_version=9;
 char title[] ="VMB Timer";
 
-char version[]="$Revision: 1.18 $ $Date: 2015-09-24 12:24:20 $";
+char version[]="$Revision: 1.19 $ $Date: 2016-02-16 09:49:16 $";
 
 char howto[] =
 "\n"

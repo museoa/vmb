@@ -59,7 +59,7 @@ extern char *defined;
 
 /* a string to store temporarily an option */
 #define MAXTMPOPTION 1024
-extern char tmp_option[MAXTMPOPTION];
+extern char tmp_option[MAXTMPOPTION+1];
 
 extern void set_option(char **option, char *str);
 /* deallocate *option if necessary, allocate if necesarry, and fill with the given string */

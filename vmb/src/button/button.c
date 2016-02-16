@@ -1,6 +1,6 @@
 
-int major_version=1, minor_version=8;
-char version[]="$Revision: 1.18 $ $Date: 2015-09-24 11:26:46 $";
+int major_version=1, minor_version=9;
+char version[]="$Revision: 1.19 $ $Date: 2016-02-16 09:49:15 $";
 char title[]="VMB Button";
 char howto[]="The button device can be configured to send interrupts\n"
              "on button up or button down events.";

@@ -40,8 +40,8 @@
 
 device_info vmb = {0};
 
-int major_version=1, minor_version=8;
-char version[]="$Revision: 1.8 $ $Date: 2015-09-24 13:07:28 $";
+int major_version=1, minor_version=9;
+char version[]="$Revision: 1.9 $ $Date: 2016-02-16 09:49:16 $";
 
 char howto[] =
 "\n"

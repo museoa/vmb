@@ -19,8 +19,8 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
-int major_version=1, minor_version=8;
-char version[]="$Revision: 1.29 $ $Date: 2015-09-15 10:39:28 $";
+int major_version=1, minor_version=9;
+char version[]="$Revision: 1.30 $ $Date: 2016-02-16 09:49:16 $";
 char title[] ="VMB Sevensegment";
 
 INT_PTR CALLBACK   

@@ -64,7 +64,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib Msimg32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -150,7 +150,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib Msimg32.lib"
 				ShowProgress="0"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
@@ -328,11 +328,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\winopt\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
@@ -418,7 +418,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Icons\mmixide.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixide.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixide16.ico"
 				>
 			</File>
 			<File
@@ -431,14 +439,6 @@
 			</File>
 			<File
 				RelativePath=".\Icons\mmixidesmall.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixvd.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixvd16.ico"
 				>
 			</File>
 			<File
@@ -522,10 +522,44 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\winopt\resource"
+		<Filter
+			Name="Helpfiles"
 			>
-		</File>
+			<File
+				RelativePath=".\help\mmixide.css"
+				>
+			</File>
+			<File
+				RelativePath=".\mmixide.hhp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="HtmlHelp Compiler"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixide.html"
+						Outputs="$(InputDir)\mmixide.chm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="HtmlHelp Compiler"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixide.html"
+						Outputs="$(InputDir)\mmixide.chm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\help\mmixide.html"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

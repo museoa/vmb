@@ -17,13 +17,18 @@ static LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPA
   switch ( message )
   { case WM_CREATE :
     { RECT rect;
+	  int x,y;
 	  HWND hDataEdit = CreateDataEdit(hDataEditInstance,hWnd);
 	  SetWindowLongPtr(hWnd,GWLP_USERDATA,(LONG)(LONG_PTR)hDataEdit);
       GetWindowRect(hDataEdit,&rect);
+	  x=rect.left;
+	  y=rect.top;
 	  AdjustWindowRect(&rect,WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,FALSE);
 	  min_w = rect.right-rect.left;
 	  min_h = rect.bottom-rect.top;
-	  SetWindowPos(hWnd,HWND_TOP,0,0,min_w,min_h,SWP_NOMOVE|SWP_NOZORDER|SWP_SHOWWINDOW);
+	  if (y>screen_height-min_h) y=screen_height-min_h;
+	  if (x>screen_width-min_w) x=screen_width-min_w;
+	  SetWindowPos(hWnd,HWND_TOP,x,y,min_w,min_h,SWP_NOZORDER|SWP_SHOWWINDOW);
       UpdateWindow(hWnd);
 	}
   	 return 0;

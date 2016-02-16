@@ -21,12 +21,12 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "param.h"
 
-int major_version=1, minor_version=8;
+int major_version=1, minor_version=9;
 extern device_info vmb;
 
 char title[] ="VMB Sound";
 
-char version[]="$Revision: 1.5 $ $Date: 2015-12-16 10:06:40 $";
+char version[]="$Revision: 1.6 $ $Date: 2016-02-16 09:49:16 $";
 
 char howto[] =
 "This simulates a sound card, see the HTML Help.\n";

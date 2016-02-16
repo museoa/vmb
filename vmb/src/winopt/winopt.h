@@ -22,6 +22,9 @@ extern void win32_log(char *msg);
 
 extern void win32_fatal_error(int line, char *message);
 extern void init_layout(int interactive);
+extern void set_font_size(int size);
+#define DEFAULT_FONT_SIZE 10
+extern void change_font_size(int scale);
 extern int xpos, ypos; /* Window position */
 extern int width,height; /* dimension of main window */
 
@@ -80,12 +83,21 @@ extern void parse_commandline(int argc, char *argv[]);
 
 extern HFONT hFixedFont;
 extern HFONT hVarFont;
+extern HFONT hGUIFont;
 extern int fixed_line_height;
+extern int var_line_height;
 extern int fixed_char_width;
 extern int fixed_char_height;
+extern int var_char_height;
 extern int separator_width;
-extern int separator_height; 
+extern int separator_height;
+extern int border_size;
 extern int version_width; /* length of the version string in VarFont */
+extern int fontsize;
+extern int screen_width;
+extern int screen_height;
+#define SELECT_COLOR (RGB(0x80,0x80,0xff))
+
 extern int minimized;
 
 #ifdef WIN32

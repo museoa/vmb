@@ -17,6 +17,8 @@ void uint64_to_hex(uint64_t u, char *c)
 uint64_t hex_to_uint64(char *str)
 { uint64_t u=0;
   while (isspace(*str)) str++;
+  if (*str=='0' && (*(str+1)=='x' || *(str+1)=='X')) str=str+2;
+  else if (*str=='#') str=str+1;
   while (*str!=0)
   { if (isdigit(*str))
       u=u*16+((*str)-'0');

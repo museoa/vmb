@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=vmb
-AppVerName=vmb version 1.8, Virtual Hardware for the Real World
+AppVerName=vmb version 1.9, Virtual Hardware for the Real World
 AppVersion=1.0
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
@@ -29,22 +29,36 @@ Name: modifypath; Description: Add application directory to your environmental p
 
 [Files]
 Source: "C:\home\vmb\src\win32bin\Release\mother.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mother.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\button.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\button.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\serial.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\serial.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\disk.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\disk.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\flash.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\flash.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\keyboard.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\keyboard.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\led.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\led.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\ram.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\ram.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\rom.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\rom.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\screen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\screen.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\sevensegment.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\sevensegment.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\sound.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\sound.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\timer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\timer.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\winvram.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\winvram.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixide.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmixide.chm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\home\vmb\src\win32bin\Release\mmixcpu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\vmb\src\win32bin\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\vmb\src\win32bin\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion
