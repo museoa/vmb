@@ -34,6 +34,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#define Sleep(x) usleep((x)*1000)
 #endif
 #include <fcntl.h>
 #include <errno.h>
