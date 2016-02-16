@@ -1,120 +1,102 @@
 <HTML>
 
-	<head>
-		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
-		<title>Virtual Motherboard Homepage</title>
-	</head>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+<title>Virtual Motherboard Homepage</title>
+</head>
 
-	<BODY>
+<BODY>
 <H1 align="center"> The Virtual Motherboard Homepage</H1>
-		<h1 align="center"><img src="vmb128.jpg" alt="" height="128" width="128" border="0"></h1>
-		
+<h1 align="center"><img src="vmb128.jpg" alt="" height="128" width="128" border="0"></h1>
+
 
 The Virtual Motherboard is hosted under sourceforge
 (see: <A HREF="http://sourceforge.net/projects/vmb/">
-http://sourceforge.net/projects/vmb/</A>). There you can get
-source code and browse the CVS repository.
+http://sourceforge.net/projects/vmb/</A>). There you can get source
+code and browse the subversion repository.
 
-		<p>
-Here you find documents, specifications for individual devices
-and links to ready to run binary examples.
-
-		<H2> Latest Version: 1.8 </H2>
-Win32 Setup file: <a href="http://sourceforge.net/projects/vmb/files/vmb/Version%201.7/setup_vmb_1_8.exe/download">setup_1_8-exe</a>
-		<H2> Device Documentation </H2>
-		<UL>
-<LI><a href="mother_help.html">mother</a> - the motherboard herself
-			<li><A HREF="serial_help.html">serial </A>- a simple serial communication device
-			<li><A HREF="winvram_help.html">winvram </A>- Framebuffer Device with Mouse and GPU
-
-			<LI><A HREF="timer_help.html">timer</A> - Timer Device to generate interrupts and get the current time and date.
-			<LI><A HREF="led_help.html">led</A> - LEDs to turn on and off
-			<li><a href="button_help.html">button</a> - push button sending interrupts to the system
-			
-			<li><a href="sevensegment_help.html">sevensegment</a> - a sevensegment display for numbers
-			<li><a href="sound_help.html">sound</a> - <strong>NEW:</strong> a sound card that plays PCM or MP3 data  (Win32)
-			<li><a href="screen_help.html">screen</a> - serial output device to display characters
-			<li><a href="keyboard_help.html">keyboard</a> - serial input device to read characters from the keyboard or from a File
-			<li><a href="disk_help.html">disk</a> - hard disk controller to read and write blocks in a disk (image).
-		
-			<li><a href="ram_help.html">RAM</a> - from 1 Byte to 4 GByte RAM
-			<li><a href="rom_help.html">ROM</a> - Read only memory defined by an image file 
-			<li><a href="flash_help.html">FLASH</a> - Read/Write memory made persistent through an image file
-			<li><a href="mmix_help.html">mmix</a> - the MMIX CPU
-			<li><a href="mmixide/index.html">MMIXIDE</a> -  <strong>NEW:</strong> the MMIX Integrated Development Envoronment (Win32)
-
-		</UL>
-		<h2>General Documentation</h2>
-		<ul>
-			<li><a href="configuration.html">Configuration Files</a>
-			<li><a href=messages.html>Message Specification</a>
-			<li><a href=cache.html>Cache Specification</a>
-		</ul>
-		<h2>Installation</h2>
-		<div align="left">
-			<ul>
-				<li>Windows<br>
-					Currently, the simplest way to install the VMB devices is available for Windows users. <br>
-					Download the <strong>
-<a href="http://sourceforge.net/projects/vmb/files/vmb/Version%201.7/setup_vmb_1_7.exe/download">setup file</a></strong>, 
-double click it, and you are done. <br>
-		If all goes well, it will start a simple
-					configuration: from the file
-					readme.vmb: a screen, a
-					keyboard, a MMIX CPU, a ROM,
-					and a ROM&nbsp;image. The
-					keyboard will initially take
-					input from the file
-					readme.txt. The CPU will take
-					instructions from ROM, and
-					these will take input from the
-					keyboard and send it to the
-					screen. So you should see the
-					readme file.
 <p>
-<p>You can also load the executables individually from this 
-<a href="http://mmix.cs.hm.edu/exe/vmb">directory</a>.
+Here you find documents, specifications for individual devices and
+links to ready to run binary examples.
+
+<H2> Latest Version: 1.9 </H2> Win32 Setup
+file: <a href="http://sourceforge.net/projects/vmb/files/vmb/Version%201.9/setup_vmb_1_9.exe/download">setup_1_9.exe</a>
+<H2> Device Documentation </H2>
+<UL>
+<LI><a href="mother_help.html">mother</a> - the motherboard herself
+<li><A HREF="serial_help.html">serial </A>- a simple serial communication device
+<li><A HREF="winvram_help.html">winvram </A>- Framebuffer Device with Mouse and GPU
+<LI><A HREF="timer_help.html">timer</A> - Timer Device to generate interrupts and get the current time and date.
+<LI><A HREF="led_help.html">led</A> - LEDs to turn on and off
+<li><a href="button_help.html">button</a> - push button sending interrupts to the system
+<li><a href="sevensegment_help.html">sevensegment</a> - a sevensegment display for numbers
+<li><a href="sound_help.html">sound</a> - <strong>NEW:</strong> a sound card that plays PCM or MP3 data (Win32)
+<li><a href="screen_help.html">screen</a> - serial output device to display characters
+<li><a href="keyboard_help.html">keyboard</a> - serial input device to read characters from the keyboard or from a File
+<li><a href="disk_help.html">disk</a> - hard disk controller to read and write blocks in a disk (image).
+<li><a href="hostdisk_help.html">disk</a> - a pseudo hard disk to read and write files from the host system.
+<li><a href="ram_help.html">RAM</a> - from 1 Byte to 4 GByte RAM
+<li><a href="rom_help.html">ROM</a> - Read only memory defined by an image file
+<li><a href="flash_help.html">FLASH</a> - Read/Write memory made persistent through an image file
+<li><a href="mmix_help.html">mmix</a> - the MMIX CPU
+<li><a href="mmixide/index.html">MMIXIDE</a> - <strong>NEW:</strong> the MMIX Integrated Development Envoronment (Win32)
+
+</UL>
+<h2>General Documentation</h2>
+<ul>
+<li><a href="configuration.html">Configuration Files</a>
+<li><a href=messages.html>Message Specification</a>
+<li><a href=cache.html>Cache Specification</a>
+</ul>
+<h2>Installation</h2>
+<div align="left">
+<ul>
+<li>Windows<br> Currently, the simplest way to install the VMB devices
+is available for Windows users. <br> Download the <strong>
+<a href="http://sourceforge.net/projects/vmb/files/vmb/Version%201.9/setup_vmb_1_9.exe/download">setup
+file</a></strong>, double click it, and you are done. <br> If all goes
+well, it will start a simple configuration: from the file readme.vmb:
+a screen, a keyboard, a MMIX CPU, a ROM, and a ROM&nbsp;image. The
+keyboard will initially take input from the file readme.txt. The CPU
+will take instructions from ROM, and these will take input from the
+keyboard and send it to the screen. So you should see the readme file.
 <p>
 To compile the executables yourself, you need to download the sources
 (see below) and use Visual Studio. The sources contain the necessary
 project and solution files.
-			</ul>
-		</div>
-		<ul>
-			<li>Linux<br>
-				Linux users have to compile the
-devices from sources.  Either obtained from cvs
+</ul>
+</div>
+<ul>
+<li>Linux<br> Linux users have to compile the devices from sources obtained from svn 
 (see: <strong><A HREF="http://sourceforge.net/projects/vmb/">
-http://sourceforge.net/projects/vmb/</A></strong>) or as
-a <strong><a href="http://sourceforge.net/projects/vmb/files/vmb/Version%201.5/src_1_5.tgz/download">tgzfile</a></strong>. 
-The sources come with Makefiles. If you have make
-and gcc, just execute make in the top source directory.
-		</ul>
+http://sourceforge.net/projects/vmb/</A></strong>).
+Unfortunately, the Linux version has fallen somewhat in disrepair.
+Currently I do most of the development under Windows and I do not have
+the time to keep up with the Linux version.
+<!--
+The sources come with Makefiles. If you have make and gcc, just
+execute make in the top source directory.
+-->
+</ul>
 
 
 <h2>Known Bugs and Fixes</h2>
 <ul>
-<li>Currently, the support for OS X is not very good. But demand for this platform
-is increasing, and I hope to be able to take care of a basic working set of devices
-soon. For now, 
-<a href="VMBonOSX.eml">I post here an email to me</a> summarizing the current state of affairs.
-Any improvements or suggestions are welcome.
+<li>Currently, the support for OS X is not very good. But demand for
+this platform is increasing, and I hope to be able to take care of a
+basic working set of devices soon. For now,
+<a href="VMBonOSX.eml">I post here an email to me</a> summarizing the
+current state of affairs.  Any improvements or suggestions are
+welcome.
 
 </ul>
 
 
 
 
-		<h2>Examples</h2>
-		
-		
-		To avoid duplication of efforts, examples and binaries have moved to the <a
-		href="http://mmix.cs.hm.edu">MMIX Homepage</a>.
+<h2>Examples</h2>
+To avoid duplication of efforts, examples have moved to
+the <a href="http://mmix.cs.hm.edu">MMIX Homepage</a>.
 
-
-
-
-
-
-	</BODY>
+</BODY>
 </HTML>
