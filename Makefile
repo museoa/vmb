@@ -16,7 +16,7 @@ install:
 	done
 
 source:
-	tar -cvzf src_1_8.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
+	tar -cvzf src_1_9.tgz src/*/Makefile src/*/*.ico src/*/*.bmp src/*/*.c src/*/*.h src/*/*.vcproj src/*/*.sln src/*/*.rc
 
 
 www: wwwdoc
