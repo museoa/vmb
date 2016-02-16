@@ -19,7 +19,7 @@ $(UTILDIR)/libvmb.a:
 	$(MAKE) -C  $(UTILDIR)
 
 $(MMIXLIBDIR)/libmmix.a: $(MMIXLIBDIR)/libconfig.h  $(MMIXLIBDIR)/libimport.h
-	$(MAKE) -C $(MMIXLIBDIR)
+	$(MAKE) -C $(MMIXLIBDIR) libmmix.a
 
 $(MMIXLIBDIR)/libconfig.h: $(MMIXLIBDIR)/libconfig.cpu
 	cp $< $@
@@ -27,7 +27,8 @@ $(MMIXLIBDIR)/libconfig.h: $(MMIXLIBDIR)/libconfig.cpu
 $(MMIXLIBDIR)/libimport.h: $(MMIXLIBDIR)/libimport.cpu
 	cp $< $@
 
-
+$(VMBMMIXLIBDIR)/libvmbmmix.a:
+	$(MAKE) -C  $(VMBMMIXLIBDIR) libvmbmmix.a
 
 $(PROG): $(PROG).c libraries
 	$(CC) $(CFLAGS) $(PROG).c $(LDFLAGS) -o $(PROG)

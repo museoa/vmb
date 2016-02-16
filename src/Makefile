@@ -10,7 +10,7 @@ SUBDIRS  = util device mother\
 
 .PHONY: hardware $(SUBDIRS) clean
 
-hardware: $(GENERICS) $(SUBDIRS)
+hardware: $(SUBDIRS)
 
 $(SUBDIRS):
 	$(MAKE) -C $@

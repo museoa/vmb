@@ -20,7 +20,7 @@ $(UTILDIR)/libvmb.a:
 	$(MAKE) -C  $(UTILDIR)
 
 $(MMIXLIBDIR)/libmmix.a: $(MMIXLIBDIR)/libconfig.h  $(MMIXLIBDIR)/libimport.h
-	$(MAKE) -C $(MMIXLIBDIR)
+	$(MAKE) -C $(MMIXLIBDIR) libmmix.a
 
 $(MMIXLIBDIR)/libconfig.h: $(MMIXLIBDIR)/libconfig.gdb
 	cp $< $@

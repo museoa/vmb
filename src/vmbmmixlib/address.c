@@ -132,13 +132,13 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
    use the alorithm as given by Don Knuth in section 47 of mmix-doc.
    modified according to my letter to don.
      */
-{  octa base, pte, ptp;
+{  octa ptp, pte;
    int limit;
    int a[5];
    PTE e;
 
-   base.h = r->h;
-   base.l = r->l + (b[i]<<13); /* address of first page table */
+   ptp.h = r->h;
+   ptp.l = r->l + (b[i]<<13); /* address of first page table */
    limit = (b[i+1]-b[i])*2;
 
    address->h = address->h&0x1FFFFFFF; /*remove sign and segment */ 
@@ -150,70 +150,65 @@ static int translate_v2p(int b[5], int s, octa *r, unsigned int n, int i, octa *
    if (limit <= 0) goto pagetable_error;
    limit = limit-2;
 
-   ptp = base;
    a[0] = address->l&0x3FF;
    *address = shift_right(*address,10,1); /* remove a0 */   
    if (address->h!=0 || address->l!=0)
      { if (limit <= 0) goto pagetable_error;
        limit = limit-2;
-       base.l = base.l+0x2000;
-       ptp = base;
+       ptp.l = ptp.l+0x2000;
        a[1] =  address->l&0x3FF;
        *address = shift_right(*address,10,1); /* remove a1 */
        if (address->h!=0 || address->l!=0)
 	 { if (limit <= 0) goto pagetable_error;
            limit = limit-2;
-           base.l = base.l+0x2000;
-           ptp = base;
+           ptp.l = ptp.l+0x2000;
            a[2] =  address->l&0x3FF;
            *address = shift_right(*address,10,1); /* remove a2 */
            if (address->h!=0 || address->l!=0)
 	     { if (limit <= 0) goto pagetable_error;
                limit = limit-2;
-               base.l = base.l+0x2000;
-               ptp = base;
+               ptp.l = ptp.l+0x2000;
                a[3] =  address->l&0x3FF;
                *address = shift_right(*address,10,1); /* remove a3 */
                a[4] =  address->l&0x3FF;
 	       if (a[4] != 0)
 		 { if (limit <= 0) goto pagetable_error;
                    limit = limit-2;
-                   base.l = base.l+0x2000;
-                   ptp = base;
-	           base.l = base.l+8*a[4];
-                   load_cached_data(8,&base,base,0);
-                   if (base.h==0 && base.l==0) return 0;
-                   if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
+                   ptp.l = ptp.l+0x2000;
+	           ptp.l = ptp.l+8*a[4];
+                   load_cached_data(8,&ptp,ptp,0);
+                   if (ptp.h==0 && ptp.l==0) return 0;
+                   if (((ptp.h&0x80000000)==0) || ((ptp.l>>3)&0x3FF)!=n)
 		     goto pagetable_error;
-                   base.l = base.l & (~0x1FFF);
-                   base.h = base.h & 0x7FFFFFFF;
+                   ptp.l = ptp.l & (~0x1FFF);
+                   ptp.h = ptp.h & 0x7FFFFFFF;
 		 }
-	         base.l = base.l+8*a[3];
-                 load_cached_data(8,&base,base,0);
-                 if (base.h==0 && base.l==0) return 0;
-                 if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
+	         ptp.l = ptp.l+8*a[3];
+                 load_cached_data(8,&ptp,ptp,0);
+                 if (ptp.h==0 && ptp.l==0) return 0;
+                 if (((ptp.h&0x80000000)==0) || ((ptp.l>>3)&0x3FF)!=n)
 		   goto pagetable_error;
-                 base.l = base.l & (~0x1FFF);
-                 base.h = base.h & 0x7FFFFFFF;
+                 ptp.l = ptp.l & (~0x1FFF);
+                 ptp.h = ptp.h & 0x7FFFFFFF;
 	     }
-             base.l = base.l+8*a[2];
-             load_cached_data(8,&base,base,0);
-             if (base.h==0 && base.l==0) return 0;
-             if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
+             ptp.l = ptp.l+8*a[2];
+             load_cached_data(8,&ptp,ptp,0);
+             if (ptp.h==0 && ptp.l==0) return 0;
+             if (((ptp.h&0x80000000)==0) || ((ptp.l>>3)&0x3FF)!=n)
 	       goto pagetable_error;
-             base.l = base.l & (~0x1FFF);
-             base.h = base.h & 0x7FFFFFFF;
+             ptp.l = ptp.l & (~0x1FFF);
+             ptp.h = ptp.h & 0x7FFFFFFF;
 	 }
-         base.l = base.l+8*a[1];
-         load_cached_data(8,&base,base,0);
-         if (base.h==0 && base.l==0) return 0;
-         if (((base.h&0x80000000)==0) || ((base.l>>3)&0x3FF)!=n)
+         ptp.l = ptp.l+8*a[1];
+         load_cached_data(8,&ptp,ptp,0);
+         if (ptp.h==0 && ptp.l==0) return 0;
+         if (((ptp.h&0x80000000)==0) || ((ptp.l>>3)&0x3FF)!=n)
            goto pagetable_error;
-         base.l = base.l & (~0x1FFF);
-         base.h = base.h & 0x7FFFFFFF;
+         ptp.l = ptp.l & (~0x1FFF);
+         ptp.h = ptp.h & 0x7FFFFFFF;
      }
-   base.l = base.l+8*a[0];
-   load_cached_data(8,&pte,base,0);
+   ptp.l = ptp.l+8*a[0];
+   load_cached_data(8,&pte,ptp,0);
    if (pte.h==0 && pte.l==0)
      return 0;
    unpack_pte(&e,&pte,s);
