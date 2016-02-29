@@ -46,8 +46,13 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+#ifdef VMB
+IDI_ICON                ICON                    "Icons\\mmixide.ico"
+IDI_ICON_SMALL          ICON                    "Icons\\mmixide16.ico"
+#else
 IDI_ICON                ICON                    "Icons\\mmixvd.ico"
 IDI_ICON_SMALL          ICON                    "Icons\\mmixvd16.ico"
+#endif
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
@@ -281,6 +286,9 @@ BEGIN
     CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,65,119,10
     CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,80,59,10
+#ifdef VMB	
+    CONTROL         "Create image file",IDC_CHECK_IMAGEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,95,70,10
+#endif
     CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,110,74,10
     EDITTEXT        IDC_EDIT_COMMAND,32,125,286,15,ES_AUTOHSCROLL
     CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_CLIPSIBLINGS | WS_TABSTOP,7,30,318,115,WS_EX_TRANSPARENT
@@ -500,6 +508,9 @@ BEGIN
         MENUITEM "&Editor ...",                 ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
         MENUITEM "&Assembler ...",              ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
         MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
+#ifdef VMB
+        MENUITEM "&Motherboard ...",            ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
+#endif
         MENUITEM "&Run ...",                    ID_OPTIONS_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM "Symbol &table  ...",          ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
         MENUITEM "&Sources ...",                ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
