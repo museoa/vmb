@@ -26,6 +26,7 @@
 #include "runoptions.h"
 #include "breakpoints.h"
 #include "mmixrun.h"
+#include "address.h"
 
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -345,7 +346,13 @@ boot:
   for_all_files(mmix_load);
   sync_breakpoints();
   show_breakpoints();
-  mmix_commandline(argc, argv);
+  { octa pool;
+    pool.h= 0x60000000,pool.l= 0x00;
+    if (valid_address(pool))
+      mmix_commandline(argc, argv);
+  }
+  Sleep(50); /* give all devices some time finish loading the files and commandline */
+  new_Q.h=new_Q.l=g[rQ].h=g[rQ].l=0; /* remove error flags */
 #ifdef VMB
   if (interacting && (!(loc.h&sign_bit)||show_operating_system))
   { mmix_stopped(loc); breakpoint=trace_bit; }

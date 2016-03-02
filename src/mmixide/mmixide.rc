@@ -101,12 +101,19 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Martin Ruckert ruckert@cs.hm.edu"
+#ifdef VMB
             VALUE "FileDescription", "Integrated Development Environment for MMIX"
-            VALUE "FileVersion", "1, 0, 0, 1"
             VALUE "InternalName", "mmixide"
-            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
-            VALUE "OriginalFilename", "mmixide.exe"
+			VALUE "OriginalFilename", "mmixide.exe"
             VALUE "ProductName", "MMIX IDE"
+#else
+            VALUE "FileDescription", "Visual Debugger for MMIX"
+            VALUE "InternalName", "mmixvd"
+            VALUE "OriginalFilename", "mmixvd.exe"
+            VALUE "ProductName", "MMIX VD"
+#endif
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
             VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END

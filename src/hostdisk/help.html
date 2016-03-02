@@ -2,13 +2,16 @@
 
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
-		<title>VMB Disk Device Specification</title>
+		<title>VMB Hostdisk Device Specification</title>
 	</head>
 
 	<BODY>
 		<H1>Host-Disk Device Specification</H1>
-		<h2><img src="hostdisk.gif" alt="" width="314" height="114" border="0"></h2>
+		<img src="hostdisk.gif" alt="" width="314" height="114" border="0">
 		<h2>Memory Layout</h2>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Memory Layout">
+</OBJECT>
 		<table border=1>
 			<tr>
 				<th>Byte
@@ -20,11 +23,17 @@
 			<tr>
 				<td>00-03</td>
 				<td>R</td>
-				<td>Status</td>
+				<td>Status
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Status">
+</OBJECT>				
 				<td>Status register, is negativ if an error occured,  0 if idle, 1 if bussy.</td>
 			</tr>
 			<tr>
 				<td>04-07<td>RW<td>Control
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Control">
+</OBJECT>
 				<td>Controll register, write to initiate disk operations
 			<tr>
 				<td>08-0F</td>
@@ -191,6 +200,9 @@
 		<h3><a id="tellcommand" name="tellcommand"></a>Tell</h3>
 		The command needs a handle and sets the position register to the current file position measured in bytes from the beginning of the file.
 		<h2>Configuration</h2>
+<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+	<param name="Keyword" value="Configuration">
+</OBJECT>
 		The host-disk has the following configurable parameters:<table>
 <tr> <td>host      <td> localhost <td>the host where the bus is located </tr>
 <tr> <td>port      <td> 9002 <td> the port where the bus is located</tr>
