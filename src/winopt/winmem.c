@@ -276,7 +276,7 @@ void resize_memory_dialog(inspector_def *insp)
 
 /* Color management */
 
-#define COLD RGB(0xFD,0xFD,0xFF)
+#define COLD RGB(0xFF,0xFF,0xFF)
 #define HOT RGB(0xFF,0xA0,0xA0)
 
 

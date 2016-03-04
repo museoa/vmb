@@ -10,7 +10,6 @@ static WNDPROC StaticWndProc=NULL;
 #define WM_VMB_MSG			(WM_APP+1)
 #define WM_VMB_GETS			(WM_APP+2)
 
-
 #define MAX_MSG_BUFFER	0x10000
 #define MAX_MSG_FILL (MAX_MSG_BUFFER/2)
 #define MSG_BUFFER_MASK (MAX_MSG_BUFFER-1)
@@ -85,38 +84,45 @@ extern char *stdin_buf_start; /* current position in that buffer */
 extern char *stdin_buf_end; /* current end of that buffer */
 static int loginput=0;
 
-static UINT mes[10009]={0};
-static int mesc=0;
-
 extern void destroy_log(HWND hLog);
 
 extern LRESULT CALLBACK   
 LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
-{ 
+{ static int timeout=0;
   switch(message)
   { case WM_VMB_MSG:
 	{ int n; 
+	  if (timeout) return 0;
 	  EnterCriticalSection (&msg_section);
 	  n = normalize_msg();
-	  msg_changed = 0;
 	  CallWindowProc(StaticWndProc,hWnd,WM_SETTEXT,0,(LPARAM)msg_buffer);
+	  msg_changed = 0;
 	  LeaveCriticalSection (&msg_section);
       SendMessage(hWnd,EM_SETSEL,n,n);
       SendMessage(hWnd,EM_SCROLLCARET,0,0); 
+	  timeout=1;
+	  SetTimer(hWnd,0,100,NULL);
 	  return 0;
 	}
+  case WM_TIMER:
+	  KillTimer(hWnd,wparam);
+	  timeout=0;
+	  if (msg_changed!=0) 
+		  PostMessage(hWnd,WM_VMB_MSG,0,0);
+	  return 0;
 	case WM_VMB_GETS:
 	  SetFocus(hWnd);
 	  ShowCaret(hWnd);
 	  loginput=1;
-	  mesc=0;
 	  return 0;
 	case WM_DESTROY:  
+	  destroy_log(hLog);
+	  hLog=NULL;
+	  msg_changed=0;
+	  timeout=0;
 	  DeleteCriticalSection(&msg_section);
       CloseHandle(hGets); 
       hGets=NULL;
-	  destroy_log(hLog);
-	  hLog=NULL;
 	  break;
 	case WM_CHAR:
 	{ if (!loginput) return 0;
@@ -165,8 +171,6 @@ LogWndProc( HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam )
   { if (message==WM_MOUSEMOVE) return 0;
     else if (message  >=WM_MOUSEFIRST && message <=WM_MOUSELAST)
 	{ SetFocus(hWnd); return 0;}
-	else 
-	  mes[mesc++]=message;
   }
   return CallWindowProc(StaticWndProc, hWnd, message, wparam, lparam);
 }
