@@ -598,7 +598,7 @@ void new_edit(void)
 
    /* errors */
    ed_send(SCI_MARKERDEFINE, MMIX_ERROR_MARKER,SC_MARK_BACKGROUND);
-   ed_send(SCI_MARKERSETBACK, MMIX_ERROR_MARKER,RGB(0xFF,0xE0,0xE0));
+   ed_send(SCI_MARKERSETBACK, MMIX_ERROR_MARKER,RGB(0xFF,0xA0,0xA0));
    ed_send(SCI_MARKERSETFORE, MMIX_ERROR_MARKER,RGB(0,0,0));
 
    /* break points */
