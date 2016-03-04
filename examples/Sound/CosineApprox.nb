@@ -1,0 +1,2639 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[    128118,       2630]
+NotebookOptionsPosition[     69409,       1386]
+NotebookOutlinePosition[    126588,       2581]
+CellTagsIndexPosition[    126545,       2578]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Funktionsgraphen und Vektoren", "Subtitle"],
+
+Cell["Funktionen haben einen Graph, den man plotten kann.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"Clear", "[", "\"\<Global`*\>\"", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"a", "=", 
+   RowBox[{"2", "^", "13"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"z", "=", "128"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"f", "[", "x_", "]"}], ":=", 
+   RowBox[{"a", "*", 
+    RowBox[{"Cos", "[", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"Pi", "/", "2"}], ")"}], "*", 
+      RowBox[{"x", "/", "z"}]}], "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot", "[", 
+  RowBox[{
+   RowBox[{"f", "[", "x", "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", "0", ",", "z"}], "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.6543461426457906`*^9, 3.6543461780376825`*^9}, {
+  3.6543462439462886`*^9, 3.6543463420747766`*^9}, {3.6543463926547084`*^9, 
+  3.654346443281542*^9}, {3.6543464748295174`*^9, 3.6543465000647984`*^9}, {
+  3.654346568754781*^9, 3.6543465928181157`*^9}, {3.654493063546418*^9, 
+  3.654493089734824*^9}, {3.654599157799587*^9, 3.6545991662530127`*^9}, {
+  3.654599320211645*^9, 3.6545993237586203`*^9}, {3.6575104781622515`*^9, 
+  3.657510478724774*^9}, {3.658468189249992*^9, 3.658468197578413*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[{{}, {}, 
+   {Hue[0.67, 0.6, 0.6], LineBox[CompressedData["
+1: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
+mVT02RFlFje2x/yVB+Uuq3epkU74GdM1ZXwuF5uNIuJlNzpDhx94QT+ZA4/V
+L6fnv3HG0+t6BXEfsjH1PLrPN2wfDm75VuE0kolbwszf7FVdwF2fzt6z4iGW
+dxenLOC6wM02bVsOMrDwfJjjf/1cETrsK3ecSsO8TGZun7QbWo/Kpxq5p+DM
+7dxo6adu0HTdsuXErmRUrbssInXKHXvyE0OOBrIhZXVGJ1zcA9budy/sSrqF
+D+tfvQms9EBUlxnP/ng88u5RqgPM/fiiaDL/SmAs9ucaSinO7ccJw0FF0w1X
+cCHyftiHLCaiN9n98briAjiDinfEbVhIbP3Oi8n0w+W7kZ7dtizYrKaKxg/4
+4aD9F7UcOxaavarU7RT8oFBZmbd7HwvKzs+kpWJ8cTXGvS7qAAui/ZSr3NAp
+HDX8m78kkAXNAL7WWIgPVCJW7FycwcKGhocWW7O8MGd8blnHQxYCAj92jip4
+ofNLf2tGNgsZ4Q9kk2M8EbuvcL9FPguGOZSD0DATAm17/8hKFnIGTTnhoW74
+8DrmntAbFlL82aE+WXZ4fPGb95t2FvI0KqtqY/YifgtLK/UdC/eW6zubDdvC
+Op1RtK2bBeNnOvbZoVYoD2huDBtiwT0790ZglhkS1hvE2PFYmCi8wXQZNoVf
+H9tReYyFx+FCQlWhm6Fpc6KnZpKFHsnnXRFZehCe35YW+40Fwe4DIa9CtdFb
+vMXHc4aFRznf6YQsZVT6pG7Q/clCsuMb57IsKSQqiU0JBCzo6UW39BvoUf8H
+vKrYeQ==
+     "]]}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->True,
+  AxesLabel->{None, None},
+  AxesOrigin->{0, 0},
+  Method->{},
+  PlotRange->{{0, 128}, {0., 8191.999999999995}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{
+    Scaled[0.02], 
+    Scaled[0.02]}]], "Output",
+ CellChangeTimes->{
+  3.6543461554899726`*^9, {3.6543462567748485`*^9, 3.6543462754473915`*^9}, 
+   3.6543463102923837`*^9, 3.6543463430904293`*^9, 3.654346396217332*^9, 
+   3.6543464444847107`*^9, 3.654346501439844*^9, 3.6543465935681677`*^9, {
+   3.654493084718996*^9, 3.6544930904692144`*^9}, 3.6545178392225084`*^9, 
+   3.6545989377141204`*^9, {3.6545990645931287`*^9, 3.65459907749981*^9}, 
+   3.6545991218295245`*^9, 3.6545991714875536`*^9, 3.654599325899321*^9, 
+   3.6575104859750156`*^9, 3.6584657492460136`*^9, 3.6584661045712156`*^9, 
+   3.658466231623104*^9, 3.658468994929722*^9}]
+}, Open  ]],
+
+Cell["\<\
+Man kann Funktionen einen Vektor zuordenen, indem man sich den Vektor an \
+bestimmten stellen anschaut, etwa an f\[UDoubleDot]nf oder sechs (oder zehn) \
+Punkten\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"n", " ", "=", " ", "30"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"b", "=", 
+  RowBox[{"Table", "[", 
+   RowBox[{
+    RowBox[{"f", "[", "x", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"x", ",", "0.0", ",", "z", ",", 
+      RowBox[{"z", "/", 
+       RowBox[{"(", 
+        RowBox[{"n", "-", "1"}], ")"}]}]}], "}"}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"dots", "=", 
+  RowBox[{"ListPlot", "[", 
+   RowBox[{
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{"f", "[", "x", "]"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", "0.0", ",", "z", ",", 
+        RowBox[{"z", "/", 
+         RowBox[{"(", 
+          RowBox[{"n", "-", "1"}], ")"}]}]}], "}"}]}], "]"}], ",", 
+    RowBox[{"PlotStyle", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"AbsolutePointSize", "[", "8", "]"}], "}"}]}]}], 
+   "]"}]}]}], "Input",
+ CellChangeTimes->{{3.6543464021706715`*^9, 3.6543464032488613`*^9}, {
+  3.65434646318848*^9, 3.6543464647198095`*^9}, {3.6543465238781767`*^9, 
+  3.6543465426757226`*^9}, {3.6543467462142515`*^9, 3.654346746386109*^9}, {
+  3.6543467783091497`*^9, 3.6543467957941504`*^9}, {3.6545180856529427`*^9, 
+  3.654518085809182*^9}, {3.6545184043046*^9, 3.654518404617111*^9}, {
+  3.6545990482644186`*^9, 3.654599048358173*^9}, {3.6584657656215963`*^9, 
+  3.658465776684492*^9}, {3.6584659357370796`*^9, 3.6584659397840767`*^9}, {
+  3.658465993051631*^9, 3.658465993770403*^9}, {3.658466112150087*^9, 
+  3.658466113071992*^9}, {3.6584679285119224`*^9, 3.658467942121783*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "8192.`", ",", "8179.985726268406`", ",", "8143.978145008514`", ",", 
+   "8084.082872660182`", ",", "8000.47559237703`", ",", "7893.401538717474`", 
+   ",", "7763.174778329518`", ",", "7610.177288739155`", ",", 
+   "7434.85783794448`", ",", "7237.73066810182`", ",", "7019.373987164891`", 
+   ",", "6780.4282729012475`", ",", "6521.594394260634`", ",", 
+   "6243.631555605598`", ",", "5947.355069834288`", ",", "5633.633966927244`",
+    ",", "5303.388444932732`", ",", "4957.587170867325`", ",", 
+   "4597.244439448636`", ",", "4223.417197994162`", ",", "3837.201946212681`",
+    ",", "3439.7315199816876`", ",", "3032.17176854458`", ",", 
+   "2615.7181348739477`", ",", "2191.5921492313782`", ",", 
+   "1761.0378462087103`", ",", "1325.3181157602496`", ",", 
+   "885.7109989289318`", ",", "443.50593913174106`", ",", 
+   "5.016153289307559`*^-13"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.654346543988242*^9, 3.6543467474642725`*^9, {3.654346778934142*^9, 
+   3.6543467969816628`*^9}, 3.654493102110252*^9, 3.654517839269384*^9, 
+   3.6545180869810867`*^9, 3.6545184055389905`*^9, 3.6545989414017506`*^9, {
+   3.654599050967611*^9, 3.65459906715569*^9}, 3.654599331946412*^9, 
+   3.657510486006267*^9, {3.6584657492928843`*^9, 3.6584657777939043`*^9}, 
+   3.6584659408778605`*^9, {3.6584659955516925`*^9, 3.658466024458976*^9}, {
+   3.6584661075556965`*^9, 3.658466114165777*^9}, 3.6584662348419685`*^9, 
+   3.658467943746838*^9, 3.6584689949609737`*^9}],
+
+Cell[BoxData[
+ GraphicsBox[{{}, 
+   {RGBColor[0.24720000000000014`, 0.24, 0.6], AbsolutePointSize[8], 
+    PointBox[CompressedData["
+1:eJxTTMoPSmViYGCQA2IQjQoOOEyrlkrcuVzQYW5rX8Sfz/uhfEWHALFt6b/O
+73cASU6r1nIwb1UxF50Ckzd0mMSZc6DSYb9DDVi7mcPC07an067ug6q3cgg5
+6bpPJ3ifg1vEu8yWp3YO8ytOJ+nu2gvV7+hwvsZl9m2uvQ6cp217N9xxduiZ
+KMC723UP1Dw3h9Ci+Xvjs3c7gHTPc/NwmP/Da3FuzS6o+V4OUc8stGZU7nS4
+wgEywMdh2fkFaxcm74Da5+cg4Hf7aZT1doe7l0EKAhychFd4L2LcBrU/0CGp
+S6EwefsWB39lne8mh4IcgiuuBEyL3Qx1T7DDvtypk+2+bnQ4VARSEeLw6E7N
+2az6DVD3hTlwlNWlpv9a62AKVhDuUFB9srPs/iqoeyMcXnzi/hS+YbnDCkGQ
+jZEORafj1+fnL4G6P8rBTk5fT19+oQPYuGnRDgeFNA6qtcyG+ifGodRL+YDr
+1ikOQMcAfRDrwHbLRGHD2m6o/+IcmjsXBkvsqHaAxGOCA3uMiLHaskRbAAKq
+0qY=
+     "]]}, {}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->True,
+  AxesLabel->{None, None},
+  AxesOrigin->{0, 0},
+  Method->{},
+  PlotRange->{{0, 128.}, {0, 8192.}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{{2.56, 2.56}, {163.84, 163.84}}]], "Output",
+ CellChangeTimes->{
+  3.654346543988242*^9, 3.6543467474642725`*^9, {3.654346778934142*^9, 
+   3.6543467969816628`*^9}, 3.654493102110252*^9, 3.654517839269384*^9, 
+   3.6545180869810867`*^9, 3.6545184055389905`*^9, 3.6545989414017506`*^9, {
+   3.654599050967611*^9, 3.65459906715569*^9}, 3.654599331946412*^9, 
+   3.657510486006267*^9, {3.6584657492928843`*^9, 3.6584657777939043`*^9}, 
+   3.6584659408778605`*^9, {3.6584659955516925`*^9, 3.658466024458976*^9}, {
+   3.6584661075556965`*^9, 3.658466114165777*^9}, 3.6584662348419685`*^9, 
+   3.658467943746838*^9, 3.6584689949765997`*^9}]
+}, Open  ]],
+
+Cell["\<\
+Wir besorgen uns jetzt noch m andere Funktionen, n\[ADoubleDot]mlich Polynome.\
+\>", "Text",
+ CellChangeTimes->{{3.6543468322642045`*^9, 3.6543468395300894`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"m", "=", "3"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"poly", "=", 
+   RowBox[{"{", 
+    RowBox[{"1", ",", 
+     RowBox[{"x", "^", "2"}], ",", " ", 
+     RowBox[{"x", "^", "4"}]}], "}"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.654346842561419*^9, 3.6543468528430653`*^9}, {
+   3.6543469697222447`*^9, 3.6543469845509005`*^9}, {3.654347030927559*^9, 
+   3.6543470322713575`*^9}, {3.6545988288508782`*^9, 3.654598863164606*^9}, 
+   3.6545989148383036`*^9, {3.658465793982011*^9, 3.6584657993728275`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"m", "=", "2"}], "\[IndentingNewLine]", 
+ RowBox[{"poly", "=", 
+  RowBox[{"{", 
+   RowBox[{"1", ",", 
+    RowBox[{"x", "^", "2"}]}], "}"}]}]}], "Input"],
+
+Cell[BoxData["2"], "Output",
+ CellChangeTimes->{
+  3.6543465537229624`*^9, 3.6543467505112514`*^9, 3.654346853702444*^9, 
+   3.654346986863456*^9, 3.6543470361152472`*^9, {3.654493107251027*^9, 
+   3.654493114657542*^9}, 3.6545178393475113`*^9, 3.6545988666490774`*^9, {
+   3.654598905306709*^9, 3.654598946183173*^9}, 3.657510486053142*^9, 
+   3.658465749308508*^9, 3.658465802951054*^9, 3.6584659539877043`*^9, 
+   3.6584661198691053`*^9, 3.658466243529806*^9, 3.6584689949922237`*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1", ",", 
+   SuperscriptBox["x", "2"]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.6543465537229624`*^9, 3.6543467505112514`*^9, 3.654346853702444*^9, 
+   3.654346986863456*^9, 3.6543470361152472`*^9, {3.654493107251027*^9, 
+   3.654493114657542*^9}, 3.6545178393475113`*^9, 3.6545988666490774`*^9, {
+   3.654598905306709*^9, 3.654598946183173*^9}, 3.657510486053142*^9, 
+   3.658465749308508*^9, 3.658465802951054*^9, 3.6584659539877043`*^9, 
+   3.6584661198691053`*^9, 3.658466243529806*^9, 3.6584689949922237`*^9}]
+}, Open  ]],
+
+Cell["\<\
+und f\[UDoubleDot]r jedes Polynom einen Vektor (schon wieder). Diesmal sehen \
+aber die Vektoren ganz anders aus, sie bestehen n\[ADoubleDot]mlich aus den \
+Werten, die die Polynome im Intervall 0 bis z an sechs Stellen haben.\
+\>", "Text",
+ CellChangeTimes->{{3.6543468619371185`*^9, 3.654346865155977*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"A", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"poly", "[", 
+        RowBox[{"[", "i", "]"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "1", ",", "m"}], "}"}]}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.0", ",", "z", ",", 
+       RowBox[{"z", "/", 
+        RowBox[{"(", 
+         RowBox[{"n", "-", "1"}], ")"}]}]}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"A", "//", "MatrixForm"}]}], "Input",
+ CellChangeTimes->{{3.6543465623170505`*^9, 3.6543465651452765`*^9}, {
+  3.654346607959278*^9, 3.6543466085218287`*^9}, {3.654346666383272*^9, 
+  3.6543466734303994`*^9}, {3.6543468888912296`*^9, 3.654346889266243*^9}, {
+  3.654518055448772*^9, 3.6545180556675043`*^9}, {3.654518412648611*^9, 
+  3.654518412945525*^9}, {3.6584658541872883`*^9, 3.6584658693909316`*^9}, {
+  3.6584660164899426`*^9, 3.65846601961508*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"(", "\[NoBreak]", GridBox[{
+     {"1", "0.`"},
+     {"1", "19.48156956004756`"},
+     {"1", "77.92627824019024`"},
+     {"1", "175.33412604042806`"},
+     {"1", "311.70511296076097`"},
+     {"1", "487.0392390011891`"},
+     {"1", "701.3365041617122`"},
+     {"1", "954.5969084423305`"},
+     {"1", "1246.8204518430439`"},
+     {"1", "1578.0071343638526`"},
+     {"1", "1948.1569560047565`"},
+     {"1", "2357.2699167657547`"},
+     {"1", "2805.346016646849`"},
+     {"1", "3292.3852556480383`"},
+     {"1", "3818.387633769322`"},
+     {"1", "4383.353151010702`"},
+     {"1", "4987.2818073721755`"},
+     {"1", "5630.173602853744`"},
+     {"1", "6312.0285374554105`"},
+     {"1", "7032.8466111771695`"},
+     {"1", "7792.627824019026`"},
+     {"1", "8591.372175980976`"},
+     {"1", "9429.079667063019`"},
+     {"1", "10305.750297265162`"},
+     {"1", "11221.384066587396`"},
+     {"1", "12175.980975029725`"},
+     {"1", "13169.541022592153`"},
+     {"1", "14202.064209274673`"},
+     {"1", "15273.550535077287`"},
+     {"1", "16384.`"}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Center}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[0.7]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}], "\[NoBreak]", ")"}],
+  Function[BoxForm`e$, 
+   MatrixForm[BoxForm`e$]]]], "Output",
+ CellChangeTimes->{
+  3.6543466798212247`*^9, 3.654346753058218*^9, 3.6543468902350006`*^9, 
+   3.6543469912229853`*^9, 3.6543470391153264`*^9, 3.654493121470268*^9, 
+   3.6545178393943872`*^9, 3.6545180578082*^9, 3.6545184146955576`*^9, 
+   3.6545989229167147`*^9, 3.6545989625275064`*^9, 3.6575104860687685`*^9, 
+   3.6584657493241353`*^9, 3.6584658100450573`*^9, 3.6584658721722784`*^9, {
+   3.658465950503232*^9, 3.6584659561127806`*^9}, 3.6584660204900837`*^9, 
+   3.6584661268068542`*^9, 3.658466248311201*^9, 3.6584679819669685`*^9, 
+   3.6584689950078506`*^9}]
+}, Open  ]],
+
+Cell["\<\
+Wir k\[ODoubleDot]nnen nun versuchen den Graph von Cosinus, genauer den \
+daraus gewonnenen Vektor t als linearkombination der polynomvektoren \
+darzustellen:\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"xdach", " ", "=", " ", 
+  RowBox[{"LinearSolve", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Transpose", "[", "A", "]"}], ".", "A"}], ",", 
+    RowBox[{
+     RowBox[{"Transpose", "[", "A", "]"}], ".", "b"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.6543469214548707`*^9, 3.6543469265332007`*^9}, {
+  3.6584658827351837`*^9, 3.6584658967512894`*^9}, {3.658465966597535*^9, 
+  3.658465968269492*^9}, {3.658466029490416*^9, 3.658466038584508*^9}, {
+  3.6584662180132694`*^9, 3.6584662185914145`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"8025.368883441758`", ",", 
+   RowBox[{"-", "0.5127750130248133`"}]}], "}"}]], "Output",
+ CellChangeTimes->{3.6543466918842173`*^9, 3.65434675633959*^9, 
+  3.654346928330113*^9, 3.654347006426656*^9, 3.654347042599825*^9, 
+  3.6544931256110396`*^9, 3.654517839472516*^9, 3.6545180674960365`*^9, 
+  3.65451809807522*^9, 3.654518418523815*^9, 3.6545989670120406`*^9, 
+  3.65751048610002*^9, 3.6584657493553867`*^9, 3.6584658989857388`*^9, 
+  3.658465969066373*^9, 3.6584660393188815`*^9, 3.658466132025791*^9, 
+  3.6584662538426523`*^9, 3.658467988529688*^9, 3.658468995023475*^9}]
+}, Open  ]],
+
+Cell["\<\
+Die Linerakombination der Polynom-Vektoren ist gleich dem Vektor t der \
+Cosinusfunktion. \
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"p", " ", "=", " ", 
+  RowBox[{
+  "A", ".", "xdach"}]}], "\[IndentingNewLine]", "b", "\[IndentingNewLine]", 
+ RowBox[{"e", "=", 
+  RowBox[{"b", "-", "p"}]}]}], "Input",
+ CellChangeTimes->{{3.6584659030171595`*^9, 3.658465913642538*^9}, {
+  3.6584659726446323`*^9, 3.658465974832203*^9}, {3.658466043069018*^9, 
+  3.658466054256921*^9}, {3.6584662232321825`*^9, 3.6584662238572283`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "8025.368883441758`", ",", "8015.37922135686`", ",", "7985.410235102169`", 
+   ",", "7935.461924677683`", ",", "7865.534290083403`", ",", 
+   "7775.627331319328`", ",", "7665.741048385459`", ",", "7535.875441281795`",
+    ",", "7386.030510008338`", ",", "7216.206254565085`", ",", 
+   "7026.402674952038`", ",", "6816.6197711691975`", ",", 
+   "6586.857543216562`", ",", "6337.1159910941315`", ",", 
+   "6067.395114801908`", ",", "5777.694914339889`", ",", "5468.015389708076`",
+    ",", "5138.356540906469`", ",", "4788.718367935066`", ",", 
+   "4419.100870793871`", ",", "4029.5040494828795`", ",", 
+   "3619.9279040020947`", ",", "3190.372434351516`", ",", 
+   "2740.837640531141`", ",", "2271.3235225409735`", ",", 
+   "1781.8300803810116`", ",", "1272.3573140512535`", ",", 
+   "742.9052235517029`", ",", "193.47380888235784`", ",", 
+   RowBox[{"-", "375.9369299567834`"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.6543466961499615`*^9, 3.6543467590115566`*^9, 3.6543469365804358`*^9, 
+   3.6543470088173676`*^9, {3.654347044724901*^9, 3.654347048865671*^9}, 
+   3.6544931312206073`*^9, 3.654517839503769*^9, 3.654518111200674*^9, 
+   3.654518421633298*^9, 3.6545989701527777`*^9, 3.6575104861156454`*^9, 
+   3.6584657493710113`*^9, 3.6584659159863443`*^9, 3.658465976316634*^9, {
+   3.658466047303541*^9, 3.658466055944476*^9}, 3.658466136650957*^9, 
+   3.658466258702197*^9, 3.658467994873664*^9, 3.658468995023475*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "8192.`", ",", "8179.985726268406`", ",", "8143.978145008514`", ",", 
+   "8084.082872660182`", ",", "8000.47559237703`", ",", "7893.401538717474`", 
+   ",", "7763.174778329518`", ",", "7610.177288739155`", ",", 
+   "7434.85783794448`", ",", "7237.73066810182`", ",", "7019.373987164891`", 
+   ",", "6780.4282729012475`", ",", "6521.594394260634`", ",", 
+   "6243.631555605598`", ",", "5947.355069834288`", ",", "5633.633966927244`",
+    ",", "5303.388444932732`", ",", "4957.587170867325`", ",", 
+   "4597.244439448636`", ",", "4223.417197994162`", ",", "3837.201946212681`",
+    ",", "3439.7315199816876`", ",", "3032.17176854458`", ",", 
+   "2615.7181348739477`", ",", "2191.5921492313782`", ",", 
+   "1761.0378462087103`", ",", "1325.3181157602496`", ",", 
+   "885.7109989289318`", ",", "443.50593913174106`", ",", 
+   "5.016153289307559`*^-13"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.6543466961499615`*^9, 3.6543467590115566`*^9, 3.6543469365804358`*^9, 
+   3.6543470088173676`*^9, {3.654347044724901*^9, 3.654347048865671*^9}, 
+   3.6544931312206073`*^9, 3.654517839503769*^9, 3.654518111200674*^9, 
+   3.654518421633298*^9, 3.6545989701527777`*^9, 3.6575104861156454`*^9, 
+   3.6584657493710113`*^9, 3.6584659159863443`*^9, 3.658465976316634*^9, {
+   3.658466047303541*^9, 3.658466055944476*^9}, 3.658466136650957*^9, 
+   3.658466258702197*^9, 3.658467994873664*^9, 3.658468995023475*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "166.63111655824196`", ",", "164.60650491154593`", ",", 
+   "158.56790990634454`", ",", "148.62094798249927`", ",", 
+   "134.9413022936269`", ",", "117.77420739814625`", ",", 
+   "97.43372994405854`", ",", "74.30184745736005`", ",", 
+   "48.827327936141955`", ",", "21.524413536734755`", ",", 
+   RowBox[{"-", "7.028687787146737`"}], ",", 
+   RowBox[{"-", "36.19149826795001`"}], ",", 
+   RowBox[{"-", "65.26314895592805`"}], ",", 
+   RowBox[{"-", "93.48443548853356`"}], ",", 
+   RowBox[{"-", "120.0400449676199`"}], ",", 
+   RowBox[{"-", "144.06094741264496`"}], ",", 
+   RowBox[{"-", "164.62694477534387`"}], ",", 
+   RowBox[{"-", "180.76937003914372`"}], ",", 
+   RowBox[{"-", "191.47392848643085`"}], ",", 
+   RowBox[{"-", "195.6836727997088`"}], ",", 
+   RowBox[{"-", "192.3021032701986`"}], ",", 
+   RowBox[{"-", "180.1963840204071`"}], ",", 
+   RowBox[{"-", "158.20066580693583`"}], ",", 
+   RowBox[{"-", "125.11950565719326`"}], ",", 
+   RowBox[{"-", "79.73137330959526`"}], ",", 
+   RowBox[{"-", "20.792234172301278`"}], ",", "52.96080170899609`", ",", 
+   "142.80577537722888`", ",", "250.03213024938321`", ",", 
+   "375.9369299567839`"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.6543466961499615`*^9, 3.6543467590115566`*^9, 3.6543469365804358`*^9, 
+   3.6543470088173676`*^9, {3.654347044724901*^9, 3.654347048865671*^9}, 
+   3.6544931312206073`*^9, 3.654517839503769*^9, 3.654518111200674*^9, 
+   3.654518421633298*^9, 3.6545989701527777`*^9, 3.6575104861156454`*^9, 
+   3.6584657493710113`*^9, 3.6584659159863443`*^9, 3.658465976316634*^9, {
+   3.658466047303541*^9, 3.658466055944476*^9}, 3.658466136650957*^9, 
+   3.658466258702197*^9, 3.658467994873664*^9, 3.658468995023475*^9}]
+}, Open  ]],
+
+Cell["\<\
+Die linearkombination der Polynome ist (fast) gleich dem Cosinus\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"lp", " ", "=", " ", 
+  RowBox[{"poly", ".", "xdach"}]}], "\[IndentingNewLine]", 
+ RowBox[{"InputForm", "[", "xdach", "]"}]}], "Input",
+ CellChangeTimes->{{3.6543477492657223`*^9, 3.654347833409385*^9}, {
+  3.6543480019779143`*^9, 3.654348014415859*^9}, {3.6545178152373295`*^9, 
+  3.654517826315817*^9}, {3.6545178604419937`*^9, 3.654517869801695*^9}, {
+  3.6545181304044914`*^9, 3.6545181684526577`*^9}, {3.654518436821351*^9, 
+  3.6545184437903166`*^9}, {3.6584660756795845`*^9, 3.658466085820549*^9}, {
+  3.6584662709214106`*^9, 3.6584662883751364`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"8025.368883441758`", "\[VeryThinSpace]", "-", 
+  RowBox[{"0.5127750130248133`", " ", 
+   SuperscriptBox["x", "2"]}]}]], "Output",
+ CellChangeTimes->{
+  3.65434669999382*^9, 3.654346762714814*^9, 3.654346944268184*^9, 
+   3.6543470115674725`*^9, 3.6543470513189135`*^9, {3.6543477577660313`*^9, 
+   3.65434778829837*^9}, {3.6543478219089465`*^9, 3.6543478342375126`*^9}, {
+   3.6543480067124567`*^9, 3.654348015728376*^9}, 3.6544931429866395`*^9, {
+   3.6545178318628764`*^9, 3.654517839535017*^9}, 3.654517874129994*^9, {
+   3.6545181206228757`*^9, 3.654518169483944*^9}, 3.6545184449778557`*^9, 
+   3.654598974449808*^9, 3.6575104861312714`*^9, 3.6584657493866367`*^9, 
+   3.658466087101841*^9, 3.6584661473388395`*^9, {3.6584662743277545`*^9, 
+   3.658466289125162*^9}, 3.6584680099523287`*^9, 3.6584689950391006`*^9}],
+
+Cell["{8025.368883441758, -0.5127750130248133}", "Output",
+ CellChangeTimes->{
+  3.65434669999382*^9, 3.654346762714814*^9, 3.654346944268184*^9, 
+   3.6543470115674725`*^9, 3.6543470513189135`*^9, {3.6543477577660313`*^9, 
+   3.65434778829837*^9}, {3.6543478219089465`*^9, 3.6543478342375126`*^9}, {
+   3.6543480067124567`*^9, 3.654348015728376*^9}, 3.6544931429866395`*^9, {
+   3.6545178318628764`*^9, 3.654517839535017*^9}, 3.654517874129994*^9, {
+   3.6545181206228757`*^9, 3.654518169483944*^9}, 3.6545184449778557`*^9, 
+   3.654598974449808*^9, 3.6575104861312714`*^9, 3.6584657493866367`*^9, 
+   3.658466087101841*^9, 3.6584661473388395`*^9, {3.6584662743277545`*^9, 
+   3.658466289125162*^9}, 3.6584680099523287`*^9, 3.6584689950391006`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"fp", "=", 
+   RowBox[{"Plot", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"f", "[", "x", "]"}], ",", "lp"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0", ",", "z"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{"fp", ",", "dots"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.6543467063847017`*^9, 3.654346724432224*^9}, {
+  3.658466304813249*^9, 3.6584663371581326`*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[{{{}, {}, 
+    {Hue[0.67, 0.6, 0.6], LineBox[CompressedData["
+1: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
+mVT02RFlFje2x/yVB+Uuq3epkU74GdM1ZXwuF5uNIuJlNzpDhx94QT+ZA4/V
+L6fnv3HG0+t6BXEfsjH1PLrPN2wfDm75VuE0kolbwszf7FVdwF2fzt6z4iGW
+dxenLOC6wM02bVsOMrDwfJjjf/1cETrsK3ecSsO8TGZun7QbWo/Kpxq5p+DM
+7dxo6adu0HTdsuXErmRUrbssInXKHXvyE0OOBrIhZXVGJ1zcA9budy/sSrqF
+D+tfvQms9EBUlxnP/ng88u5RqgPM/fiiaDL/SmAs9ucaSinO7ccJw0FF0w1X
+cCHyftiHLCaiN9n98briAjiDinfEbVhIbP3Oi8n0w+W7kZ7dtizYrKaKxg/4
+4aD9F7UcOxaavarU7RT8oFBZmbd7HwvKzs+kpWJ8cTXGvS7qAAui/ZSr3NAp
+HDX8m78kkAXNAL7WWIgPVCJW7FycwcKGhocWW7O8MGd8blnHQxYCAj92jip4
+ofNLf2tGNgsZ4Q9kk2M8EbuvcL9FPguGOZSD0DATAm17/8hKFnIGTTnhoW74
+8DrmntAbFlL82aE+WXZ4fPGb95t2FvI0KqtqY/YifgtLK/UdC/eW6zubDdvC
+Op1RtK2bBeNnOvbZoVYoD2huDBtiwT0790ZglhkS1hvE2PFYmCi8wXQZNoVf
+H9tReYyFx+FCQlWhm6Fpc6KnZpKFHsnnXRFZehCe35YW+40Fwe4DIa9CtdFb
+vMXHc4aFRznf6YQsZVT6pG7Q/clCsuMb57IsKSQqiU0JBCzo6UW39BvoUf8H
+vKrYeQ==
+      "]]}, 
+    {Hue[0.9060679774997897, 0.6, 0.6], LineBox[CompressedData["
+1:eJwV03k4lGsbAHB7E7KUFmMZZiHSkCxFee+oMJbsTJZRyNJiLUtFRNsh+Tjy
+HWpkiySMLev7dizntFCY6kiN5aiQku+QUON7zh/39Vy/676e+4970Twa7hIk
+JiIicgvFvy8raLKfmOq24DAZ4X5sHCSsyBEjyiXYNJVt/q93cvMK6pTrsbnL
+37m+yBOq9ORYrQ4sxlf8lg+yXe9r3i3lLiymON7QG5merla6SnmMfWV7+7OR
+f7ACbh7R6sMmL5RreSJPp/K7juT2Yz5bjqS5IXsGLrb/R5mPOWiknXNG7rIi
+N3UWvMJa8pRkHZENaHtr5ilDWHGyvBELuUDMv4JRPIyRhk/PH0AmjacUeWgJ
+sOkSa4d9yC2jA72dbqOYzUiqxR7kCKdAlk/uGEa9tv1PE+R3+petMpQnMPsd
+j0p0kXO4WwiG93ssf/v9RRoyS/7eno6CD9ix38T+VkVu/PLMeJYyhUV1z6Ws
+Qz7h58e7fGQa4128ZiqJTO2bZWoUf8JO8a6n/vDC4XrV+q3OWl8wnyNDH6eQ
+D6iVlEwFz2IZYxThCHJiz28Kj9y+YuYD/fdfIhuZ6GWwc+cwGcm4QRy5cOOh
+S9eU57HEmt4Dmchne292ebTMY1n14ZQUZI+0UTGa9wKmqXM+KwZZdiEyqbXg
+G9YQ8MbCCzmOnxM3Q1nCatVvd5CRXdPfNT4klrCysnxvaWTmfq2F1CPL2Bau
+RNaSJ5pnXVOkWvEKFjm2pfsVsnP2mzBHLSG2UMlySUfWs6NVkP8QYr1Nxbw4
+ZJL4iY8fglcxTaOQykBkTrOwFncTAYvEncfMkTfq3GB65YqCndegyIQHDsmk
+Ou2ryhJQR9v1RBNZ1zrrCi9CAh645yVIIg+khU8N/yEBvyaZ1066o/0R16tk
+npEEzVZWbRVyz88SJn9ACsz603/sQJb9J9eYkr4WguO5OM0Nh4Ydp3Nt/l4L
+srr6/FVXHPwiXBcjzaShYEA0fBi5+rN8c9ekNJyTiTDNQnaZvLIn7IAsmKtG
+bFh0wSHvXYJVg1AOGpuFi5XOOOxTZZcI3OVBcqo94gLy9GFTSVKVPGAKRLgb
+svpMfEDVdgWIOpghsuKEQ3ioCUPkrQK8drY7aYm8PrC6vHTXeuBOuEe3OOLg
+xb5T/XVOCWjLJTsO2eEwO+wmXUTeCHr7Nb23IF/yIwW5Wm2Ehm0J5DEWDnUB
+4eTGnI1gN/jocCSy3Km9aWdNN8HF1PKxdFsculOGDkud3wy08EFSjTUOhvcV
+pVRJZKAHcdvKrHB4zOz27zUggwOn+s5RZP/auNZENhm+fctXVUfOaByJGLtH
+hl6hND/bEodJomq4zEEF0iLANmEfDrdf2tbuyFYF7bckh50YDjKryT7W6hTY
+xpdvcTdD/Qr19NM7SIFH1ex5SWQ6X89f8RQF8mq5fzbsxsGi4nXAcDsFSFs1
+MCXk5orchiamBsyP/C/gmSkOn11n2uz6NODH2ZF0HWMc3MtvPo1eR4XuwJfe
+N/XRffum2B/TpEICqeSlGfL4+pO9XsZUiBg4NfWOifp93vL5Xl8qUIa+C6jI
+V10+D6yposKVWoFouR4O7T8s3+Tb0+Dq9Tktrg4ODOcvk52/0MF6aecXoOFA
+TrI2C75Dhyd3sxr7qDgoVBX+It1Eh9NDE1I+yMskV6bzOB2seo5jpzVxeEE0
+RQt2MaC1e0W+iIJDgkGy8Pt7Bqj70PXfq+DQJ6+kxARtqPlwM0hRCYfYvt1Y
+3rwOrIkm1YmKo/kxG94/JulCX8xl1bNiOJRkGKSvqOpCenOc2rwoDv322kN+
+B3Thswzv/YQIDtueKkUzcnXBgp+U+UjYASN/zJbxTLcB7Z/LNsHLHWD9qFSu
+N0EPVkJZToFzHbC5XlEgKqoPAvO8RrqgAxrHrZ4932MIQQevvnrxoAN+D7ul
+wp4xgrzgh6XjcR2woLVXvuqkKWTHbbafwjpAbKlSQYVhBh7hrHPDy+1gsurf
+6PpgD0iRbXmZde3wLNWor0cXg/sB7fNWwe1AufFpqeILQBA2GuK0rh0+LY4I
+XhpYgq2ZcKKM1wYl061P5K5bQcL7EzLStm0gp3Z3dmJiP+QsehR8GWqF9NCG
+Y4X0g3Bwisp7cLwVvkHlREiSNdBDTMRHZlogxrCrflOnDUy7e55uCm+BkQdd
+v/RrskDuqohq3WgzrITx83US7GDUfa7pqX0zbNu3Rnis1R4kjIvbKG0PwbpI
+M7h2syPcMGFUf9/8EGLVONQxn0MwLZ2W/Sa2CfRm3GVeOzjBzFJQUgy/ETbI
+fyV1LTtBztce+1WVRpDA86tpBc6wqh3TrhLaAMeNWofW2rlAjNPgwltuPVTa
+Hi3s+OYCUrQn3q8H6mDhE1nhQ64rJC8ZZi3I1kGDq7V4zn434L9SPq6iz4Mk
+mzRu/Qc3aLaiyBiya0HzHeuv4jR3WBu1sUcluQbMTFNzlA09IPTa2fh59Wrw
+UX++JDroATbHn6gXOVbBwpOM8YhkTxB72jlWZFMJeRJ+MS50L5gRfKMZeFbA
+BkFDkViXF9T8qr8p7+hdkDyf7LY7kg3316iV6hiXgkiFX/X4+sNgJM+NOUwp
+hqjfqjPW/34YZM3ZV1T6CqF92xWS4ilv8Ap/7hQ1VwCKrCi9FDkf2FpZnmR6
+Lg/ebn8xGN/mAwVhsUOlV7Oh5jZGn/DzBVCO7C3jZoBvtYmimtAXvDTU9Gy3
+psKFtDvJb+/5weizn3P7XKOhalItX86eAyJdKZn3+hnElVtp/gJH5MvOpJV0
+AyLQ5TPjgTNyYE5S0Q4TQrWtrcbBE5mqbGveAcS1TO+e9KPIdh+LlWXtiRCT
+/85Jx3MAgqntq2w2QU1VsllTxgENWvK0yroQQrjr3LrX5ciSfufvdoYQQ5//
+Hiir5EDhXkVrq4RQ4oZnne/BWg741y0nVn4MI1Z1XaLT2pB5QxcsOk8Sb/sz
+b4sPcuDFz4BjTR2RxMNLiwGDLznwlZH2IZEcReSYc3SK/+JATbxiiuOZKMKu
+lFlvKeCAQfFxGSlmNNES1/s4eQrlVxnBr27FELnbjTOdZzhw42Lh74KlGCJy
+vMBNcxblDS/tnnU/TWy1PzFCzHMgYkN2/Fa5M4SEKL/kxiIHFA60WDqHnSFG
+G8zD/JdR/SJ77ZSeM0RbWLG+wU/0X5el3UqNJW5SZBZWV1F9Ac/yR2Is8X90
+eol9
+      "]]}}, {{}, 
+    {RGBColor[0.24720000000000014`, 0.24, 0.6], AbsolutePointSize[8], 
+     PointBox[CompressedData["
+1:eJxTTMoPSmViYGCQA2IQjQoOOEyrlkrcuVzQYW5rX8Sfz/uhfEWHALFt6b/O
+73cASU6r1nIwb1UxF50Ckzd0mMSZc6DSYb9DDVi7mcPC07an067ug6q3cgg5
+6bpPJ3ifg1vEu8yWp3YO8ytOJ+nu2gvV7+hwvsZl9m2uvQ6cp217N9xxduiZ
+KMC723UP1Dw3h9Ci+Xvjs3c7gHTPc/NwmP/Da3FuzS6o+V4OUc8stGZU7nS4
+wgEywMdh2fkFaxcm74Da5+cg4Hf7aZT1doe7l0EKAhychFd4L2LcBrU/0CGp
+S6EwefsWB39lne8mh4IcgiuuBEyL3Qx1T7DDvtypk+2+bnQ4VARSEeLw6E7N
+2az6DVD3hTlwlNWlpv9a62AKVhDuUFB9srPs/iqoeyMcXnzi/hS+YbnDCkGQ
+jZEORafj1+fnL4G6P8rBTk5fT19+oQPYuGnRDgeFNA6qtcyG+ifGodRL+YDr
+1ikOQMcAfRDrwHbLRGHD2m6o/+IcmjsXBkvsqHaAxGOCA3uMiLHaskRbAAKq
+0qY=
+      "]]}, {}}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->True,
+  AxesLabel->{None, None},
+  AxesOrigin->{0, 0},
+  ImageSize->{976., Automatic},
+  Method->{},
+  PlotRange->{{0, 128}, {-375.93658704634527`, 8191.999999999995}},
+  PlotRangeClipping->True,
+  PlotRangePadding->{
+    Scaled[0.02], 
+    Scaled[0.02]}]], "Output",
+ CellChangeTimes->{3.6584663378612785`*^9, 3.6584679541065836`*^9, 
+  3.658468014890007*^9, 3.6584689950547266`*^9}]
+}, Open  ]],
+
+Cell["Zusammenfassung", "Subtitle"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"costab", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"Round", "[", "lp", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0", ",", "z"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fcos", "[", "i_", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"t", "=", 
+        RowBox[{"Mod", "[", 
+         RowBox[{"i", ",", 
+          RowBox[{"(", 
+           RowBox[{"4", "*", "z"}], ")"}]}], "]"}]}], ",", " ", 
+       RowBox[{"tt", "=", "0"}]}], "}"}], ",", " ", 
+     RowBox[{
+      RowBox[{"tt", "=", 
+       RowBox[{"If", "[", " ", 
+        RowBox[{
+         RowBox[{"t", ">=", 
+          RowBox[{"2", "*", "z"}]}], ",", 
+         RowBox[{
+          RowBox[{"4", "*", "z"}], "-", "t"}], ",", "t"}], "]"}]}], ";", " ", 
+      
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"tt", ">=", " ", "z"}], ",", 
+        RowBox[{"-", 
+         RowBox[{"costab", "[", 
+          RowBox[{"[", 
+           RowBox[{
+            RowBox[{"2", "*", "z"}], "-", "tt", "+", "1"}], "]"}], "]"}]}], 
+        ",", 
+        RowBox[{"costab", "[", 
+         RowBox[{"[", 
+          RowBox[{"tt", "+", "1"}], "]"}], "]"}]}], "]"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"freq", " ", "=", " ", "22050"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ton", " ", "=", " ", "440"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"schwingungen", "=", 
+   RowBox[{"freq", "/", "ton"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"step", "=", 
+   RowBox[{"Round", "[", 
+    RowBox[{"4", "*", 
+     RowBox[{"z", "/", "schwingungen"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"longtab", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"fcos", "[", 
+      RowBox[{"i", "*", "step"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", "0", ",", 
+       RowBox[{"freq", "*", "4"}]}], "}"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.654518545668847*^9, 3.6545186084053917`*^9}, {
+   3.6545187612544584`*^9, 3.654518815709444*^9}, {3.654518865523694*^9, 
+   3.654518869820697*^9}, {3.6545189210099635`*^9, 3.654518935307361*^9}, {
+   3.654519037060884*^9, 3.6545191350486526`*^9}, {3.6545192469900255`*^9, 
+   3.654519638581708*^9}, {3.6545197490855093`*^9, 3.6545197783678*^9}, {
+   3.6545198253537793`*^9, 3.6545198683396645`*^9}, {3.6545199177945023`*^9, 
+   3.6545199437641525`*^9}, {3.6545199951252832`*^9, 3.6545200117664804`*^9}, 
+   3.6545200769093876`*^9, 3.654520127161127*^9, {3.654520217242371*^9, 
+   3.654520224711379*^9}, {3.654520390545246*^9, 3.654520427171487*^9}, {
+   3.6545205357743273`*^9, 3.6545205399463243`*^9}, {3.654520630517085*^9, 
+   3.654520655801463*^9}, {3.6545206980999937`*^9, 3.6545206987094135`*^9}, {
+   3.6545207418411016`*^9, 3.654520778076732*^9}, {3.6545208241876774`*^9, 
+   3.6545208251564617`*^9}, {3.654520874798805*^9, 3.654520936944685*^9}, {
+   3.6545209721605716`*^9, 3.654520982239046*^9}, {3.6545991506118293`*^9, 
+   3.6545991515024605`*^9}, {3.6584680622511044`*^9, 
+   3.6584680657512064`*^9}, {3.6584682842533884`*^9, 
+   3.6584683453024454`*^9}, {3.6584683796786776`*^9, 3.658468391897848*^9}, {
+   3.658468466931796*^9, 3.6584684671974297`*^9}, {3.6584685043568344`*^9, 
+   3.658468532373705*^9}, {3.658468622841176*^9, 3.6584686369510527`*^9}, {
+   3.6584686879066567`*^9, 3.6584688691631365`*^9}, {3.6584689013002067`*^9, 
+   3.6584689744542303`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ListPlay", "[", 
+  RowBox[{"longtab", ",", 
+   RowBox[{"SampleRate", "\[Rule]", "22050"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.6545204339686007`*^9, 3.654520450250413*^9}, {
+  3.654520511117878*^9, 3.654520520352602*^9}, {3.6545205707526207`*^9, 
+  3.6545206240793877`*^9}, {3.6545208343442955`*^9, 3.654520836594385*^9}, {
+  3.654520939991666*^9, 3.654520943882398*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  GraphicsBox[{
+    {GrayLevel[0.9], RectangleBox[{0, 0}, {360, -164}]}, {InsetBox[
+      GraphicsBox[InsetBox[
+        GraphicsBox[RasterBox[CompressedData["
+1:eJztxX2Mz3UAAODfYeTlLEaXGGqW5NSIyXV3oszLFHpBpJdTeVlLm15uLnJr
+plQW2fV2W7v0ok3hdC/O3bnv3TnvI4plKKW87S6lzml6W/+2/day1ed4nn+e
+KzNm3fFwk1gslpAQi83+89H35EabO5YMtm3btm3btm3btm3btm3btm3b9sXx
+/NHtmp17t9K2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2
+bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdu2bdv2P3j6Z/0mHZ5SZtu2bdu2bdu2
+bdu2bdu2bdu2bdu2bdu2bdu2bdv2f3rns5t3lbxYadu2bdu2bdu2bdu2bdu2
+bdu2bdv+n+7ZokNaffMTtm3btm3btm3btm3btm37Xxz7yynbtm3btm3btm3b
+tu2/nbkma9jm1ids27Zt27Zt27YvuqcN7HBw86IK27Zt27Zt27bti+693763
+aX96lW3btm3bti+wW2QtSm3fv9S2bdu2bdsX2NPnrT44ZvA627Zt27bP6w9+
+fvDoT2M32LZt27Z9XmcMqe386NHItm3btu3z+uvU5tu6zcm3bdu2G9XjypMy
+Ll2w07Zt225UpzfsP/3z6j22bdt2o7rpo9lLM+/aZdu2bTeqcxKy21yfVmDb
+tm03qjOHPZS4MCWybdtxTi1aO7J1xw22bTvOaae+6HJVcoFt27bdqJ762e3z
+JudW2LbtOPcozDmzIyeybdtxzlr7ZUNmtNa2bcd5+Cut5g14ttp2QOecXXJm
+3/Ya27Yd55KFqfdtH1Vh27bjvGBk+jND3iqwHdAJrfs8PeDuyLZtx7l6bH3v
+XVPKbdt2nG8Z2Kdryu8FtgM6MTa99qNPKmwH9PL8rtGc9ZFt247zgebl/cb1
+yLcd0Pc3PV2R8EON7YA+mfnIB9lzttq27Ti3bDdo7sFYte2AHnA27UD1y4W2
+A7p6SN+HD90c2Q7oGct65o7vW247oC974IaVe1oW2g7oFW9eMW9N08h2QBdP
+bnLot1Lbth3v8q6bdpYOXWM7oM9FV098rKrGdkBPXv1u/e7uW20H9MZWtUN3
+nCy0HdANdX1ntB0c2Q7olJkjjifnltkO6NMZs5remF1oO6Brm3So2j8ish3Q
+81cdP9XlO9shfbjPzm8+TVpjO6DHvrlyUptbt9gO6Oy5xz6tOVJpO6DvHD/u
+SP9hRbYD+t6GI7vPJUe2A/qX7YeSyusKbQf0zZMXvnpgeWQ7oDtdu23W69es
+th3Q0ZK3C+qXbLQd0JMOnx6a17LSdkAnPjJq8cdVRbYDOi/r60G9olLbAX1V
+8oq65x8vsh3Q+9qNPjTm8krbAb20wyXTnqtbaTugUxZNm5H0wibbAZ0x8YmG
+/OHFtgP6yfYTSjImltoO6NjTb6Q/UVdkO6CP7Z06sE96pe2A7pv4+Tsjcqpt
+B/RtI3s9ljW3wnZA//rdj/mp3SLbAR3Nr2n2fUmx7YCeuXvrs3nTKm0H9Man
+Psxb1avadkAv6lKa2LH9OtsBfeKlxT1fe2a97YCuXD+p/zfNq2wH9Jnj44/l
+znnfdkA3lPSeMGhCue2A7tS1dmpSUmQ7oPdsmP52cWaV7YBOvu7HLeVlebYD
++lz91H7bepbZDuiytJMJs5eV2A7onO3di7t9VWU7oAcn/5TZ6SbbIf1K2+7p
+v6aU2A7oPwAXdbcH
+          "],
+          ColorFunction->(Blend[{
+             RGBColor[1, 1, 1], 
+             RGBColor[0, 0, 1]}, #]& )],
+         AspectRatio->Full,
+         ImageSize->NCache[{
+            Rational[88201, 22050]}, {4.000045351473923}],
+         PlotRangePadding->None], {0, 0}, {0, 0}, 
+        NCache[{Rational[88201, 22050], 1}, {4.000045351473923, 1}]],
+       AspectRatio->NCache[
+         Rational[6, 35], 0.17142857142857143`],
+       Background->GrayLevel[1],
+       Frame->True,
+       FrameStyle->GrayLevel[0.75],
+       FrameTicks->False,
+       ImagePadding->None,
+       PlotRange->NCache[{{0, 
+           Rational[88201, 22050]}, {0, 1}}, {{0, 4.000045351473923}, {0, 1}}],
+       PlotRangePadding->{
+         Scaled[0.017142857142857144`], 
+         Scaled[0.1]}], {180, -35}, ImageScaled[{0.5, 0.5}], {350, 60},
+      Background->GrayLevel[0.9]], InsetBox[
+      GraphicsBox[InsetBox[
+        GraphicsBox[
+         {RGBColor[0.325101, 0.364492, 0.820256], LineBox[CompressedData["
+1:eJxdnHfcz+X3x6VQVCijKBQqhDLKyAiJhsqukJFICJWsCtkrd/bee++9b9z2
+3vO2x200UKF+7+u8ft/zfDzu3z/fx6/T85zrfO73+7rOdc7r3XP1v67cMGmS
+JEnKJE+SJPyv/1+bIfnLVMtW6vCdVr8N/75cKf3Dm////1ct9b9/Lfabl5s0
+XlCn1NBixV9K9t+N/7d/XipJu8CXLrVz0a5ZnQZ96bz+/ebOnxhabsCUSy1L
+Fai0N8+tu//jv3V+X/VxH/RL/r3z8tfW+S3p/k31XY4OHn+j+f+x1P/WX/fL
+vOfyjuvo/HGL18ntn8R9Wua5V35OtP4u7r/6i73GplvT1e17bT3dfX0fdlv6
+b4pKPRKtr6fz752/UOvu8V6eX5ytt4/z5culX3H9q76Jfp9+zpeZUPbpM//8
+4vE/s3z6+/qzPLBsxZVyMc7r94xx+4hXdjf5vM+vzivfAe7/6boXnz65b0Ci
+/Ac6P+SXf+NqZB7k/qvZ7zHI+XRr0rfZU3+w56e/1xDPL+b6yy++O32I8/q9
+hjqfOku5g7G/DfX4+v2Gefy+73/atWTR4c6/a7/ncLen/KFVoaUdRziv52Gk
+++8+s+fZV+NGul2/9yjnkx0f++uM1KMT/f6jnf851dI3c9YY4/m9aX+PMZ5f
+p1GN2nzwwVjn9byNdb5U4T8+ePSPsR4/q/29xnn8f7f/+OKWweMS/f2wr/o8
+5X9di413fqT9Pce7//b3Bh0scxL7p/b3neB8sYHPzf6v0wT3n8n+3hOc/zvP
+rK4rc05M9P5N9PyWbihSu+2Wic7reZjk/PefxhZ6rdkkj6/3ZZLHt/TTTHY+
+vT0vk93+Z69jZ+csnOy8np8p7n/B841WNK05xe2/2vM0xfmWy3//Nde9Ke7/
+I3u+pjr/SuUfm1wYM9XzS2PP21TP78blR6JXbFqi93ea87M7DYpekWkeX8/j
+dI/f7Onnfnum93Tn9b5jzzNvZtyRfDOcT2XP6wz3f6VCkbGD985I9PzOdH7a
+6Q3fV2k90/33sOd5pvPh6UuTaZbn97Y937M8vxfSHHthx6pZzie353228+en
+fPFvz3qzPb6e/9kef2Kp3w+UTzbHeb0Pc9ze4NAPsx6cNsd5vR9z3H//JV3K
+1H1hrts72vsy1/kWP78zu2Sbue5f+9tc50N2z26d6/npgZrr+eXLfLDr3czz
+nNd+OM/5xy+O+O1Is3nO37f3bZ7Hvza/Xu2la+Ylev+w27+edr6vf6W9j/Pd
+/8x3rhX6rgF27bfzne+dYcHYKovmu3+9r/BNzrR5tECKBb4+7c8LPL/w66T5
+eIHzep8XOJ+r3UPnrk+H136+wOM/Un7rBzvuwf9l7/tCt19K23/FjEoLE+3/
+C93/5hNhx8e+xPYD+CnTMg9o/PtC9z/Y9odFznf7Lv7f8uUW+fpa236xyPP7
+4s0pTXIOXuS8zhf4tx5rdvDBS/DaTxZ7/BxHCpQ5U3Sx8zqPFjv/0KS/Zq3t
+vdjX/4ftN/BnW6x+esyJxYn2nyVuX/9Gl64/5F/i/ufbfrTE/Y9/+J3fPu20
+xNen824J58P+1LWL7YPXfgVfd+yBuKdyLnVe5+NSj1+66YhCd1ovdV772VLn
+sxapF3lY6uvXeQr/34MvProw0zK3X7f9bpnbT+5K+P7XpssS7X/L3P+qEfOj
+nwh+lu2Hyzw/e53TLHe+j+2Py53vULDkirz1l3t+TW2/XO7xa9kC4XW+wxff
+tuXXK8lWeHztpyucz2QHEnbVA9j/qV+tyZRpK9z/ZdtvV7j/I7aBrEi0/67k
+/Pvn9Jufv7/S+am2H690fuimybPKjFnp+aneWOnxox83yhhe+/Uq6ss6Bbr+
+V2ZVovpklfOv5f7r5omB2LWfY09/e1WtlRdWuX/VM6vd/611P8cNL7La+XO2
+36/2/Pb3rVioba/Vzmv/h1/wceqxNY6v9vwm2HmwxuMPyHkg1Wv51jjf2c6H
+Nc6H3SRdxzUev76dF/CVV9U9+/se7Kp3sdt2nHat+9d5stb998jd+sShYmsT
+nS9rPb9o83xycwN4nTfwjW8Xr7i4z1rPT+fPWo9f43iWnyYtgtd5BP/2+gcW
+DTxJfG1Q8K9PPXfl5xTr3K7zap3bX+i3Ods3r6xLdH6tc/8Zvp1evf7H8DrP
+1nl+yT/p2+ejzvA63+BvlWqxvvSMdZ6fzjvin89Z5a/8++F1/sGHv27W+8Tf
+Yefheudjf3vq88dfWJ/ofMS+8NDdYfcrrXf/Oi/Xu/+Jq8IOBK/6dr3nN2DC
+uuiRhtd5Cv9zz4nRFrHe89P5Cv/N192jLRf+KztvNzhv20PmDYnuRxt4Pou/
+H/0k2HUeY4/+5Sd7NNvg/nU+479Aiicrfj8YXuf1Bl/fc9du/fjFGnid3/Bp
+9x1eWO3SBs9P5zm8PS5pYxOd77HO3xw9OluhYrEeX+d9rK//dJdO1bM3iE10
+/mMPf40n+uA/zuoB/K/5MLwBsYnqg1hf3xzbwOBVL8CPeeaxfKeTb/T8dL/Y
+6Hy/pDcb7Mq/0XnVExud//HS3mGra270+KovNvr6m9uBBq96A3udhUOTjZoO
+r/oD/+8Pb1+8zz7sqkdYX4mOdVq2v4d/1SebnM9rATd5fqpXNjn/zHs5Tnxc
+aZPzql/gH7UHaJPHVz2zydd/L2O4QcCrvsF+1TYEeNU7+A//dobfNyWqfzY7
+b8dv5s3uf4PVQ5udXz7nu2y3ym72/FQfbfb8pg+qWf1cU3jVS/D28w7anOh+
+R/ye9bKsX78aXvUU9rZvP/DXvIvwqq/wb9t5mji317N6K875mtHp0L9oXKL+
+RJzzFf6eNuyn+nGen+qxOM+vyKk+u5r3hld9Bv/Sxq+T1VlIfNVrxM84I+ww
+8KrfsKeIKdzyjeRbnFc9t8X932n91JQ8+bGrvtvifKimMtXc4v5V78FHm+UT
+KTtt8fxU/23x/Da9tC76CeBXWz0Iv+jxidErSHzVh8Sf9Ge36AiAV7241e2D
+jn55ZVOOrYnu11vdf5e172Vb/D521ZPw307OX31S663uX/UlfNi9Bo7Z6vmp
+3tzq+VVtFSokeNWf8GVrhh2R+KpHt3l8W06mbc6rPsWePcfoBh+V3ea86tVt
+7j/68YeVbopd9Su8bX+D8K96Fj5UY1lXb/P8VN9u8/ziV+Qq/vhFeNW78HvG
+Pdryfurtierf7R5/XfcbkxOKbHd+mdXD2Oc223v8WD141cfb3X90WD+xrRd2
+1cvw/YsOrbB8Af7V34D/KWv7H6cd3+75qZ7e7vmFt2tosh2J6usdzn92tfSV
+7vl2OF/D6u0dHr/SnuzZvq8Br/obe8klyat/0XGHr1/1OP7zjbrcu9o07KrP
+4bP8vH1dub34V70O/9iXc+4UvMv6VL/v9PzuV/o1b/YcO51XPb/T+VBNPfH+
+TudV3+/0+NHLP+yB1vCq97FvT1J8183ROxP1f/C/8sKzyU5vxr7Q7gPwM8wB
+/nU/2OW8bRdP7/L16b6wy/PrbQ/ELufVX4JvF/31R34Fr/vELo9v5clAeN0v
+4D955+sK7Vft8vXrvgH/jm3Y2HX/wP5s70xHZ6bY7f6H2X1kt/u31+WZ3b4+
+3U92e37h7YpqWp5vu6/Ah2rwybfgdX/Zzfle/fRbvT+G130G/s8te04nbb7b
+16/7DXzCGxvat+uMXfcd7OfC8T8Y/7r/4P/Y85PnfTkDXvch8ts3aMh78Wvg
+dT+C3/Zwz4s195Of7kvEt9VdglcBBR+9jM9WuE983af2OL8gXGfS7kl0v8I+
+fX+lKq+/sMf96761x/2Pf7v09dnF4HX/2uP5DV/+as8XPoDXfQw+vJ2jG+zx
+/HQ/I36oJqOKznnd1+A7Pxn+CfE1D4Bv2+3Onw+Nw677HPaWf1/6pcMi/Ot+
+h/8vmx7NHT0jzuu+R371Tm3b+NVJeN3/4D/WC+P56T5I/I82zr77SYq9zut+
+uNf5iuE4yryX/cXui3vpb82IefWdV7Dr/oi9iDZQ96/7JP5fifm2UdGP4XW/
+3Ov5vfTQF0nnNYPXfRM+2vxHvdR5r+en+yfxn1KD3vmBdh+FD9VoxhnE1/0U
+PsXuPM1/WYNd91Xs/5V59pEU+/Gv+yv+76jAcl73WfK78VKSUrfvwet+u895
+exzT7vP8Gth9dx/9v8fPfns+5z7ndf+FP6iCm/3T7sPwO//cGL1i2HU/xr6p
+0ZK33muAf92X8b/6aKgY4HV/3uf5LdYFzHndp+Fnrw2/OPnpfg0/qeAP83Iv
+gtd9G37U5Obvjd9CfN2/Wf8g/QO36z6OPbzNMb/jX/dz/HfVH9h53df3+/qs
+3Mu833nN4/Y7/61eWM9P93n4pjUzXv+6HLzu9/CfawP2+Lrv76f/WvKf7J81
+w677P/aq866ujp4B969+AP7t+joYXv0B1lduiD0hzqtfAF885dpfSqwhP/UP
+4PXng1c/AT7PzfEbX75EfPUXWH/2BgPrTrwHr37DAbfbcZH2gPPqPxxw/+Fp
+i2oWt/9iBfkBX1/KlY1fTVXsgPtXfwI+af5PtneudMDzU78C/p9x7zb6pz68
++hfwv6crkbTV98RXP4P1R8VtVIHCq7+B/cw/duN0Xv0O/B9tFp5o7Op/wIfq
+4sMt+NfrCL+lyp8Px50gP/VHyG/dpvOhJHRe/RL4ZUUPRSX2QY+v/slBj2/X
+qcwHnVc/Bfu0rMujKyC8+isH3X+opqMrtdvVb4EPv8agmvhX/wW+f5t+ISXP
+T/2Yg55fj6s/Ra8UvPoz8JbuIOKrX0P8KFhUUsBrHo7963L2Bjqvfg7+tb1i
+V38H/rPcr188ehH/6vfAh9Ov8j3yU//nkOdn5VyaQ86rH3TI+betYD/k8dUf
+OuTxo8OpcvQ3dl79IuyvfXn92iuV4NU/wn++46d6TK2PXf0k+Kg2iy5w+Fd/
+CT50j4b0PuT5qd9EfhkKhxsNvPpP8I9PtQ6Gx+9l/SjiJ8scdgx4HZfY7/e1
+it959avwfytJu43XfsOu/hX8tW++qtsw+WH3r37WYeetXZHpsOen/tZhzy/s
+zlXzw39s/S74/dtLvbq97GGPr/7XYe6HwVwTXv0w7LH2B4NXfwz/K3OmS1qw
+E3b1y+BtOxqEf/XP4GemuvP689PJT/008ptoGyq8+mvwKn/g1W8j/gA7IOHV
+f8Pe+9DKCUnusX714464f7tupTmSqD93xPn2q8YcuZHjiPtXvw7+Gytgj/j6
+pEc54vk1mdA59an34dXPg69vFxJ49feI/0nPhm/tbA2vfh/2ynbBZP3q/+Hf
+rs9jsKsfCB9tttErhH/1B+GLVbOOmK9P5Sz5vRoXdmR49Q/hQ/cq+hs6r34i
+8UO1+GTyo86rv3jUeWsHZjrq61e/8ajzaQeeWZI0P3b1H7FHtVvldmXx39X6
+kfi317fGUV+f+pNHPb+/Ehb3iO5gzqtfCX/zs6nZ4zvCq39JfCsXBsGrnwlv
+3YFprF/9TfjDSzv8+fZq7Op3Ytf1BP/qf+J/82g7QZxXP5T81qQNN0B49UeP
+OW/tkDTHPD/1S495/ND9GpXjmPPqn8KHaiZ90WMeX/1U+DEnMrza933s6q9i
+H/zhw9sfqo9/9Vvx32/D3190aA2v/usxz6/ba1cfiM5k59WPhbf21BjyU3+W
++K2f2fn62QXw6tfCh1//kzji67oJ3zDcXo9jVz8Xe+3vwomHf/V38V/tkk1Q
+nVe/97jnZ497puPOq/973PmweczNd9zzUz/4uMcv8Wbjb18qC6/+MHxhNQw9
+vvrF8OG0zdgUu/rH2HMMf+OtXzriX/1k/Fs5Pwhe/WXyS9fRGsjOq98MHxWb
+GW6vIj/1n4mv9gG83MHfPfxH9MoQX/1p+D/0Qrld/eoTzOfC7Sr1Cfev/vUJ
+939WG6Tz6mef8PyOTVwWXZng1d+G36cDz/OzcqkG8bf2Gnltfj149b/h16uA
+8fjqh8Mvb/FT9vG9sKs/jn2+ClL3r345/kM3LWYBvPrn5DdeFwzn1Q6C1+NB
+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
+           "]]},
+         AspectRatio->Full,
+         PlotRange->{Automatic, {0, 1}},
+         PlotRangePadding->None], {0, 0}, {0, 0}, 
+        NCache[{Rational[88201, 22050], 1}, {4.000045351473923, 1}]],
+       AspectRatio->NCache[
+         Rational[6, 35], 0.17142857142857143`],
+       Background->GrayLevel[1],
+       Frame->True,
+       FrameStyle->GrayLevel[0.75],
+       FrameTicks->False,
+       ImagePadding->None,
+       PlotRange->NCache[{{0, 
+           Rational[88201, 22050]}, {0, 1}}, {{0, 4.000045351473923}, {0, 1}}],
+       PlotRangePadding->{
+         Scaled[0.017142857142857144`], 
+         Scaled[0.1]}], {180, -100}, ImageScaled[{0.5, 0.5}], {350, 60},
+      Background->GrayLevel[0.9]]}, InsetBox[
+     StyleBox[
+      TemplateBox[{
+       StyleBox[
+        "\" | \"", FontSize -> 14, FontColor -> GrayLevel[0.75], StripOnInput -> 
+         False],TemplateBox[{"\"4\"", "\" s\""}, "RowDefault"],
+        TemplateBox[{"22050", "\" Hz\""}, "RowDefault"]},
+       "RowWithSeparator"], "DialogStyle",
+      StripOnInput->False], {355, -159}, Scaled[{1, 0}]], 
+    TagBox[
+     TooltipBox[
+      TagBox[{
+        {GrayLevel[0.9], RectangleBox[{5, -158}, {29, -135}]}, 
+        {GrayLevel[0.3], 
+         PolygonBox[
+          NCache[{{13, -153}, {13, -140}, {21, Rational[-293, 2]}, {
+            13, -153}}, {{13, -153}, {13, -140}, {21, -146.5}, {13, -153}}]]}, 
+        {GrayLevel[0.5], 
+         StyleBox[
+          LineBox[{{5, -158}, {5, -135}, {29, -135}, {29, -158}, {5, -158}}],
+          Antialiasing->False]}},
+       EventHandlerTag[{"MouseClicked" :> FEPrivate`EmitSound[
+           SampledSoundList[CompressedData["
+1:eJzt1fuv13McB/Cj0KyGJVIxa6EwTcassJc5ZnZEaTs6slzSwWQxzQy/YHPJ
+rbRi5TI0lza0cAwde4/ph3LPyjXU6ehyOn1d1jJplL1f/eBf8Djb+eG77+f7
++Xzer9fz9XoMn3bTpPY+TU1N++35n922X9PRt7X06/m7EeseHHzxLx814osv
+525cProRd506dvD1J2yP8yc0z2u8uy2OPXFp66SurdE5tKVjweLNMWD4oGXv
+7OqOW7tjx9tbN0TvZ4v6jlz/Q0xrGtT69FFfxcFTnps5v/8ncfPk5iVv3fJm
+/Db1iQknXPZIvHHlA4e/8Ov7pW3H7hh38OrS74xd97Zd8m2Z9efU145Y/1M5
+6qbejqvHbCzrnvvhgAeO3FTemjfmmdmPbykXLHxj9YxXesr8jumLR0/pLTvn
+3Nb58TPby6xR244+/45GeXntnGHP9jbKjnMXXL1mZ6P89eHK5p6FjTLsgKtm
+fr96e/l9ynGnv7a4t3TNHH/e5f23lZ5z1jzZddDW8sqoR+aMf3ZTue/TFz+a
++8nGMuTBxuKOeevL/f1Omz1j3Xdl4vGb+py84svy2D3L95x8RWm+c1Tf7t2P
+lRk3vH3NtwOXxJSThnQtvH5lnL2ofeSOWWsiVj214Ipr1sXY5Re2xDkbYsDI
+P7qXXtsdOyceuGrXiM3x5NzmllG3b43Jj24YeEr7tjippWvEYZt7451hh32x
+tk8jmvreMvTOjka8N7F9T4kasbZ/632tPzai/eRvXn7o0ka8Ov3h655v3x5L
+l838YOGA3ljZ+Xr7jS09sbeKQ4/ZEpum773w53josjG7B8/tipfeXHn41BN/
+inF/dp516PKvY1DbIWcMvOjzuPvev19sPbMz9p+w98qX8nOp35d6fam/L/V+
+pd6/1OeV+vxS36fU9yv1fUt9/1LPU+r5Sj1vqecvtR6l1qfUepVav1LrWWp9
+S613qfXPfmR/ovYrav+i9jNqf6P2O2r/o+Yhaj6i5iVqfqLmKWq+ouYtav6i
+5jFqPqPmNWp+o+Y5ar6j5j1q/qPOQ85Hzkup81PqPJU6X6XOW6nzV+o8ljqf
+pc5rqfNb6jyXOt+lzntp+vfvl32f8/u8Pn+f98v75/Py+fk++X75vvn+eZ48
+X543z5/1yPpkvbJ+Wc+sb9Y765/9yP5kv7J/2c/sb/Y7+595yHxkXjI/mafM
+V+Yt85d5zHxmXjO/mefMd+Y985/zkPOR85Lzk/OU85XzlvOX85jzmfOa85vz
+nPOd8/6f+d+3H3Jf5P7IfZL7JfdN7p/cR7mfcl/l/sp9lvst913uv9yHuR9z
+X+b+zH2a+zX3be7f3Me5n3Nf5/7OfZ77Pfd97v/0IH1IL9KP9CR9SW/Sn/Qo
+fUqv0q/0LH1L79K/9DB9TC/Tz/Q0fU1v09/0OH1Or9Pv9Dx9T+/5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//8/z/7/w+9l7HV
+            "], 22050], "Preemptive"], PassEventsDown -> 
+         Automatic, PassEventsUp -> True}]],
+      DynamicBox[
+       ToBoxes[
+        FEPrivate`FrontEndResource["FEStrings", "playText"], StandardForm]]],
+     Annotation[#, 
+      Dynamic[
+       FEPrivate`FrontEndResource["FEStrings", "playText"]], "Tooltip"]& ], 
+    TagBox[
+     TooltipBox[
+      TagBox[{
+        {GrayLevel[0.9], RectangleBox[{34, -158}, {58, -135}]}, 
+        {GrayLevel[0.3], RectangleBox[{42, -150}, {50, -143}]}, 
+        {GrayLevel[0.5], 
+         StyleBox[
+          LineBox[{{34, -158}, {34, -135}, {58, -135}, {58, -158}, {
+           34, -158}}],
+          Antialiasing->False]}},
+       EventHandlerTag[{"MouseClicked" :> FEPrivate`EmitSound[
+           SampledSoundList[{{0.}}, 8000], "Preemptive"], PassEventsDown -> 
+         Automatic, PassEventsUp -> True}]],
+      DynamicBox[
+       ToBoxes[
+        FEPrivate`FrontEndResource["FEStrings", "stopText"], StandardForm]]],
+     Annotation[#, 
+      Dynamic[
+       FEPrivate`FrontEndResource["FEStrings", "stopText"]], "Tooltip"]& ], 
+    {GrayLevel[0.75], 
+     StyleBox[LineBox[{{0, 0}, {360, 0}, {360, -164}, {0, -164}, {0, 0}}],
+      Antialiasing->False]}},
+   ContentSelectable->False,
+   ImageSize->250,
+   PlotRange->{{0, 360}, {-164, 0}},
+   PlotRangePadding->1],
+  Sound[
+   SampledSoundList[CompressedData["
+1:eJzt1f2v12MYB/BDaFbDKqKYWaiYJmPmaZc5ZnY8lLZDsjxUhyaLaWb4BZuH
+JKUVKw9DE21o5Bg6do/phyIPWSFKdTpKp9PXw1omDdl99YN/wev89t35fD/f
++76u93W9Tphw+5i2A5qamqaPPaDpuLtbenf/1Yj1jw288udPGvHlV7O3LBvR
+iPvPOGfg5OE745JRzXMa7++IE09Z0jqmc3t0DGppn7dwW/Q9YcCb7+3piru6
+Yte72zdHz+cLeg3dtCEmNA1ofe7Yr+OwcS9OndtnVdxxTfPid+58O34d//So
+4dfOjKU3PHrky798WMbu2hvnHra69D57z0Njr1pXpv0x/o2jNm0sx97e037T
+yC1l/YsbDn706K3lnTkjn5/+1E/l0vlLV095rbvMbZ+0cMS4nrJ71t0dnz6/
+s0wbtuO4S+5tlFfXzhr8Qk+j7Lpo3k1rdjfKnx+vaO6e3yiDD75x6verd5bf
+xp101hsLe0rn1Msvvq7PjtJ94ZpnOg/dXl4bNnPW5S9sLQ9/tuiT2au2lGMe
+ayxsn7OpPNL7zOlT1n9XRp+89cDTln9Vnnxw2T83X16a7xvWq2vvk2XKre9O
+XNdvcYw79ZjO+ZNXxAUL2obumrYmYuWz866fuD7OWXZZS1y4OfoO/b1ryc1d
+sXv0ISv3DNkWz8xubhl2z/a45onN/U5v2xGntnQO6b+tJ94b3P/LtQc2oqnX
+nYPua2/EB6Pb/ilRI9b2aX249YdGtJ327aszrm7E65Mev+Wltp2x5M2pH83v
+2xMrOt5qu62lO/ZVcdDxP8XWSfse/DFmXDty78DZnfHK2yuOHH/Kxjj3j47z
+j1j2TQwYe/jZ/a74Ih546K9Fred1xEGj9j35Sn4u9f+lPl/q90t9X6nvL/X3
+Sv39Us9T6vlKPW+p5y/1PqXer9T7lnr/UutRan1KrVep9Su1nqXWt9R6l1r/
+7Ef2J2q/ovYvaj+j9jdqv6P2P2oeouYjal6i5idqnqLmK2reouYvah6j5jNq
+XqPmN2qeo+Y7at6j5j/qPOR85LyUOj+lzlOp81XqvJU6f6XOY6nzWeq8ljq/
+pc5zqfNd6ryXpn//ft7/Of+fz+f38335/vy9/P08T54vz5vnz/vk/fK+ef+s
+R9Yn65X1y3pmfbPeWf/sR/Yn+5X9y35mf7Pf2f/MQ+Yj85L5yTxlvjJvmb/M
+Y+Yz85r5zTxnvjPvmf+ch5yPnJecn5ynnK+ct5y/nMecz5zXnN+c55zvnPf/
+zP/+/ZD7IvdH7pPcL7lvcv/kPsr9lPsq91fus9xvue9y/+U+zP2Y+zL3Z+7T
+3K+5b3P/5j7O/Zz7Ovd37vPc77nvc/+nB+lDepF+pCfpS3qT/qRH6VN6lX6l
+Z+lbepf+pYfpY3qZfqan6Wt6m/6mx+lzep1+p+fpe3rPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+P//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc/
+//nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//
++c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5
+z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nP
+f/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9/
+/vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+
+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7z
+n//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf
+//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85//
+/Oc///nPf/7zn//85z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//8
+5z//+c9//vOf//znP//5z3/+85///Oc///nPf/7zn//85z//+c9//vOf//zn
+///Z/78BLQyx0w==
+    "], 22050]]]], "Output",
+ CellChangeTimes->{{3.654518592154827*^9, 3.654518610014819*^9}, {
+   3.654518793239913*^9, 3.6545188171938686`*^9}, 3.6545188723832784`*^9, {
+   3.654518924713216*^9, 3.6545189361823626`*^9}, 3.654519052327009*^9, 
+   3.6545193676973023`*^9, 3.6545194143239174`*^9, 3.65451947693546*^9, 
+   3.65451964573818*^9, {3.654519769304959*^9, 3.654519779570938*^9}, {
+   3.6545198424637403`*^9, 3.6545198691990423`*^9}, 3.6545199632960496`*^9, {
+   3.654520000906727*^9, 3.6545200123915*^9}, 3.6545200777375116`*^9, 
+   3.654520139989669*^9, 3.654520227805211*^9, {3.6545204219994326`*^9, 
+   3.6545204512035694`*^9}, {3.65452052130573*^9, 3.6545205435089417`*^9}, {
+   3.654520579143508*^9, 3.654520595182222*^9}, {3.654520642736256*^9, 
+   3.65452066361222*^9}, 3.6545207018188686`*^9, 3.6545209138782797`*^9, 
+   3.6545209446949263`*^9, 3.6545990040295043`*^9, 3.6575104866781664`*^9, 
+   3.658465749917906*^9, 3.6584680750640383`*^9, {3.658468519998309*^9, 
+   3.6584685425146646`*^9}, 3.6584686402324142`*^9, 3.6584686914848824`*^9, 
+   3.658468886835639*^9, {3.6584689576615686`*^9, 3.658468996039137*^9}}]
+}, Open  ]]
+},
+WindowSize->{1139, 886},
+WindowMargins->{{10, Automatic}, {Automatic, 21}},
+FrontEndVersion->"9.0 for Microsoft Windows (64-bit) (January 25, 2013)",
+StyleDefinitions->Notebook[{
+   Cell[
+    CellGroupData[{
+      Cell["Style Definitions", "Subtitle"], 
+      Cell[
+      "Modify the definitions below to change the default appearance of all \
+cells in a given style.  Make modifications to any definition using commands \
+in the Format menu.", "Text"], 
+      Cell[
+       CellGroupData[{
+         Cell["Style Environment Names", "Section"], 
+         Cell[
+          StyleData[All, "Working"], PageWidth -> WindowWidth, ScriptMinSize -> 
+          9], 
+         Cell[
+          StyleData[All, "Presentation"], PageWidth -> WindowWidth, 
+          ScriptMinSize -> 12, FontSize -> 16], 
+         Cell[
+          StyleData[All, "SlideShow"], PageWidth -> WindowWidth, 
+          ScrollingOptions -> {"PagewiseDisplay" -> True}, ScriptMinSize -> 
+          9], 
+         Cell[
+          StyleData[All, "Condensed"], PageWidth -> WindowWidth, 
+          CellBracketOptions -> {"Margins" -> {1, 1}, "Widths" -> {0, 5}}, 
+          ScriptMinSize -> 8, FontSize -> 11], 
+         Cell[
+          StyleData[All, "Printout"], PageWidth -> PaperWidth, ScriptMinSize -> 
+          7, FontSize -> 10, 
+          PrivateFontOptions -> {"FontType" -> "Outline"}]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Notebook Options", "Section"], 
+         Cell[
+         "The options defined for the style below will be used at the \
+Notebook level.", "Text"], 
+         Cell[
+          StyleData["Notebook"], PageHeaders -> {{
+             Cell[
+              TextData[{
+                CounterBox["Page"]}], "PageNumber"], None, 
+             Cell[
+              TextData[{
+                ValueBox["FileName"]}], "Header"]}, {
+             Cell[
+              TextData[{
+                ValueBox["FileName"]}], "Header"], None, 
+             Cell[
+              TextData[{
+                CounterBox["Page"]}], "PageNumber"]}}, 
+          PageHeaderLines -> {True, True}, 
+          PrintingOptions -> {
+           "FacingPages" -> True, "FirstPageHeader" -> False}, 
+          CellFrameLabelMargins -> 6, StyleMenuListing -> None]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Styles for Headings", "Section"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Title"], ShowCellBracket -> False, 
+             CellMargins -> {{0, 0}, {0, 0}}, PageBreakBelow -> False, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, LineSpacing -> {1, 11}, CounterIncrements -> 
+             "Title", 
+             CounterAssignments -> {{"Section", 0}, {"Equation", 0}, {
+               "Figure", 0}, {"Subtitle", 0}, {"Subsubtitle", 0}}, FontSize -> 
+             72, FontColor -> GrayLevel[1], Background -> 
+             RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["Title", "Presentation"], 
+             CellMargins -> {{0, 0}, {0, 0}}, LineSpacing -> {1, 0}, FontSize -> 
+             44], 
+            Cell[
+             StyleData["Title", "Condensed"], CellMargins -> {{0, 0}, {0, 0}},
+              FontSize -> 20], 
+            Cell[
+             StyleData["Title", "Printout"], CellMargins -> {{0, 0}, {0, 0}}, 
+             FontSize -> 24, FontTracking -> "Plain", Background -> 
+             GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Subtitle"], ShowCellBracket -> False, 
+             CellMargins -> {{0, 0}, {0, 0}}, PageBreakBelow -> False, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, LineSpacing -> {1, 3}, ParagraphIndent -> -96, 
+             CounterIncrements -> "Subtitle", 
+             CounterAssignments -> {{"Section", 0}, {"Equation", 0}, {
+               "Figure", 0}, {"Subsubtitle", 0}}, FontFamily -> "Helvetica", 
+             FontSize -> 24, FontColor -> GrayLevel[1], Background -> 
+             RGBColor[0.2, 0.700008, 0.700008]], 
+            Cell[
+             StyleData["Subtitle", "Presentation"], 
+             CellMargins -> {{0, 0}, {0, 0}}, LineSpacing -> {1, 6}, 
+             ParagraphIndent -> -157, FontSize -> 30], 
+            Cell[
+             StyleData["Subtitle", "Condensed"], 
+             CellMargins -> {{0, 0}, {0, 0}}, ParagraphIndent -> -78, 
+             FontSize -> 14], 
+            Cell[
+             StyleData["Subtitle", "Printout"], 
+             CellMargins -> {{0, 0}, {0, 0}}, ParagraphIndent -> -85, 
+             FontSize -> 16, Background -> GrayLevel[0.6]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Subsubtitle"], ShowCellBracket -> False, 
+             CellMargins -> {{10, 4}, {30, 10}}, PageBreakBelow -> False, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, CounterIncrements -> "Subsubtitle", 
+             CounterAssignments -> {{"Section", 0}, {"Equation", 0}, {
+               "Figure", 0}}, FontFamily -> "Helvetica", FontSize -> 24, 
+             FontSlant -> "Italic"], 
+            Cell[
+             StyleData["Subsubtitle", "Presentation"], 
+             CellMargins -> {{8, 10}, {40, 20}}, LineSpacing -> {1, 0}, 
+             FontSize -> 24], 
+            Cell[
+             StyleData["Subsubtitle", "Condensed"], 
+             CellMargins -> {{8, 10}, {12, 8}}, FontSize -> 12], 
+            Cell[
+             StyleData["Subsubtitle", "Printout"], 
+             CellMargins -> {{9, 10}, {50, 10}}, FontSize -> 14]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Section"], CellFrame -> {{6, 0}, {0, 1}}, CellDingbat -> 
+             None, CellMargins -> {{12, Inherited}, {4, 24}}, 
+             CellGroupingRules -> {"SectionGrouping", 30}, PageBreakBelow -> 
+             False, CellFrameMargins -> 6, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, LineSpacing -> {1, 7}, CounterIncrements -> 
+             "Section", 
+             CounterAssignments -> {{"Subsection", 0}, {"Subsubsection", 0}}, 
+             FontFamily -> "Helvetica", FontSize -> 24, FontWeight -> "Bold", 
+             FontColor -> RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["Section", "Presentation"], 
+             CellMargins -> {{10, 10}, {8, 32}}, LineSpacing -> {1, 2}, 
+             FontSize -> 24, FontTracking -> "Condensed"], 
+            Cell[
+             StyleData["Section", "Condensed"], 
+             CellMargins -> {{8, Inherited}, {2, 12}}, FontSize -> 12], 
+            Cell[
+             StyleData["Section", "Printout"], 
+             CellMargins -> {{9, 0}, {2, 50}}, FontSize -> 14, FontTracking -> 
+             "Plain", FontColor -> GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Subsection"], 
+             CellMargins -> {{12, Inherited}, {8, 20}}, 
+             CellGroupingRules -> {"SectionGrouping", 40}, PageBreakBelow -> 
+             False, InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, LineSpacing -> {1, 7}, CounterIncrements -> 
+             "Subsection", CounterAssignments -> {{"Subsubsection", 0}}, 
+             FontFamily -> "Helvetica", FontSize -> 24, FontWeight -> "Bold"], 
+            Cell[
+             StyleData["Subsection", "Presentation"], 
+             CellMargins -> {{11, 10}, {8, 32}}, LineSpacing -> {1, 0}, 
+             FontSize -> 22], 
+            Cell[
+             StyleData["Subsection", "Condensed"], 
+             CellMargins -> {{8, Inherited}, {2, 12}}, FontSize -> 12], 
+            Cell[
+             StyleData["Subsection", "Printout"], 
+             CellMargins -> {{9, 0}, {4, 40}}, FontSize -> 12]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Subsubsection"], CellDingbat -> "\[FilledSquare]", 
+             CellMargins -> {{25, Inherited}, {8, 12}}, 
+             CellGroupingRules -> {"SectionGrouping", 50}, PageBreakBelow -> 
+             False, InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, LineSpacing -> {1, 9}, CounterIncrements -> 
+             "Subsubsection", FontFamily -> "Times", FontSize -> 24, 
+             FontWeight -> "Bold"], 
+            Cell[
+             StyleData["Subsubsection", "Presentation"], 
+             CellMargins -> {{29, 10}, {8, 26}}, LineSpacing -> {1, 0}, 
+             FontSize -> 18], 
+            Cell[
+             StyleData["Subsubsection", "Condensed"], 
+             CellMargins -> {{22, Inherited}, {2, 12}}, FontSize -> 10], 
+            Cell[
+             StyleData["Subsubsection", "Printout"], 
+             CellMargins -> {{21, 0}, {4, 20}}, FontSize -> 11]}, Closed]]}, 
+        Open]], 
+      Cell[
+       CellGroupData[{
+         Cell["Styles for Body Text", "Section"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Text"], CellMargins -> {{12, 10}, {5, 5}}, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, Hyphenation -> True, LineSpacing -> {1, 3}, 
+             ParagraphSpacing -> {0, 12}, CounterIncrements -> "Text", 
+             FontFamily -> "Times", FontSize -> 18], 
+            Cell[
+             StyleData["Text", "Presentation"], 
+             CellMargins -> {{13, 10}, {8, 8}}, LineSpacing -> {1, 5}, 
+             ParagraphSpacing -> {0, 12}], 
+            Cell[
+             StyleData["Text", "Condensed"], CellMargins -> {{8, 10}, {4, 4}},
+              LineSpacing -> {1, 1}, ParagraphSpacing -> {0, 4}], 
+            Cell[
+             StyleData["Text", "Printout"], CellMargins -> {{9, 0}, {4, 4}}, 
+             ParagraphSpacing -> {0, 6}]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SmallText"], CellMargins -> {{12, 10}, {5, 5}}, 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, Hyphenation -> True, LineSpacing -> {1, 3}, 
+             ParagraphSpacing -> {0, 6}, CounterIncrements -> "SmallText", 
+             FontFamily -> "Helvetica", FontSize -> 18], 
+            Cell[
+             StyleData["SmallText", "Presentation"], 
+             CellMargins -> {{13, 10}, {8, 8}}, LineSpacing -> {1, 5}, 
+             FontSize -> 12], 
+            Cell[
+             StyleData["SmallText", "Condensed"], 
+             CellMargins -> {{8, 10}, {2, 2}}, LineSpacing -> {1, 2}, 
+             FontSize -> 9], 
+            Cell[
+             StyleData["SmallText", "Printout"], 
+             CellMargins -> {{9, 0}, {4, 4}}, FontSize -> 7]}, Closed]]}, 
+        Open]], 
+      Cell[
+       CellGroupData[{
+         Cell["Styles for Input/Output", "Section"], 
+         Cell[
+         "The cells in this section define styles used for input and output \
+to the kernel.  Be careful when modifying, renaming, or removing these \
+styles, because the front end associates special meanings with these style \
+names.", "Text"], 
+         Cell[
+          StyleData["Input"], CellFrame -> {{3, 0}, {0, 0}}, 
+          CellMargins -> {{52, 10}, {8, 8}}, Evaluatable -> True, 
+          CellGroupingRules -> "InputGrouping", CellHorizontalScrolling -> 
+          True, PageBreakWithin -> False, GroupPageBreakWithin -> False, 
+          CellLabelMargins -> {{5, Inherited}, {Inherited, Inherited}}, 
+          DefaultFormatType -> DefaultInputFormatType, 
+          "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+          HyphenationOptions -> {"HyphenationCharacter" -> "\[Continuation]"},
+           LanguageCategory -> "Formula", FormatType -> InputForm, 
+          ShowStringCharacters -> True, NumberMarks -> True, 
+          LinebreakAdjustments -> {0.85, 2, 10, 0, 1}, CounterIncrements -> 
+          "Input", FontSize -> 24, FontWeight -> "Bold", Background -> 
+          RGBColor[1, 0.700008, 0.4]], 
+         Cell[
+          StyleData["InlineInput"], Evaluatable -> True, CellGroupingRules -> 
+          "InputGrouping", CellHorizontalScrolling -> True, PageBreakWithin -> 
+          False, GroupPageBreakWithin -> False, DefaultFormatType -> 
+          DefaultInputFormatType, "TwoByteSyntaxCharacterAutoReplacement" -> 
+          True, HyphenationOptions -> {
+           "HyphenationCharacter" -> "\[Continuation]"}, 
+          AutoItalicWords -> {}, FormatType -> InputForm, 
+          ShowStringCharacters -> True, NumberMarks -> True, 
+          CounterIncrements -> "Input", FontWeight -> "Bold"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Output"], CellFrame -> {{3, 0}, {0, 0}}, 
+             CellMargins -> {{52, 10}, {8, 8}}, CellEditDuplicate -> True, 
+             CellGroupingRules -> "OutputGrouping", CellHorizontalScrolling -> 
+             True, PageBreakWithin -> False, GroupPageBreakWithin -> False, 
+             GeneratedCell -> True, CellAutoOverwrite -> True, 
+             CellLabelMargins -> {{3, Inherited}, {Inherited, Inherited}}, 
+             DefaultFormatType -> DefaultOutputFormatType, 
+             "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+             HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, LanguageCategory -> 
+             "Formula", FormatType -> InputForm, CounterIncrements -> 
+             "Output", FontSize -> 24, Background -> 
+             RGBColor[1, 0.900008, 0.900008]], 
+            Cell[
+             StyleData["Output", "Presentation"], 
+             CellMargins -> {{62, Inherited}, {12, 5}}, 
+             LineSpacing -> {1, 0}], 
+            Cell[
+             StyleData["Output", "Condensed"], 
+             CellMargins -> {{40, Inherited}, {4, 1}}], 
+            Cell[
+             StyleData["Output", "Printout"], 
+             CellMargins -> {{44, 0}, {6, 2}}, Background -> 
+             GrayLevel[0.900008]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Message"], 
+             CellMargins -> {{62, Inherited}, {Inherited, Inherited}}, 
+             CellGroupingRules -> "OutputGrouping", PageBreakWithin -> False, 
+             GroupPageBreakWithin -> False, GeneratedCell -> True, 
+             CellAutoOverwrite -> True, ShowCellLabel -> False, 
+             DefaultFormatType -> DefaultOutputFormatType, 
+             "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+             HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, FormatType -> 
+             InputForm, CounterIncrements -> "Message", StyleMenuListing -> 
+             None, FontSize -> 24, FontColor -> RGBColor[1, 0, 0]], 
+            Cell[
+             StyleData["Message", "Presentation"], 
+             CellMargins -> {{74, Inherited}, {Inherited, Inherited}}, 
+             LineSpacing -> {1, 0}], 
+            Cell[
+             StyleData["Message", "Condensed"], 
+             CellMargins -> {{50, Inherited}, {Inherited, Inherited}}], 
+            Cell[
+             StyleData["Message", "Printout"], 
+             CellMargins -> {{54, Inherited}, {Inherited, Inherited}}, 
+             FontColor -> GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Print"], 
+             CellMargins -> {{62, Inherited}, {Inherited, Inherited}}, 
+             CellGroupingRules -> "OutputGrouping", CellHorizontalScrolling -> 
+             True, PageBreakWithin -> False, GroupPageBreakWithin -> False, 
+             GeneratedCell -> True, CellAutoOverwrite -> True, ShowCellLabel -> 
+             False, DefaultFormatType -> DefaultOutputFormatType, 
+             "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+             HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, FormatType -> 
+             InputForm, CounterIncrements -> "Print", StyleMenuListing -> 
+             None, FontSize -> 24], 
+            Cell[
+             StyleData["Print", "Presentation"], 
+             CellMargins -> {{74, Inherited}, {Inherited, Inherited}}, 
+             LineSpacing -> {1, 0}], 
+            Cell[
+             StyleData["Print", "Condensed"], 
+             CellMargins -> {{50, Inherited}, {Inherited, Inherited}}], 
+            Cell[
+             StyleData["Print", "Printout"], 
+             CellMargins -> {{54, Inherited}, {Inherited, Inherited}}]}, 
+           Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Graphics"], 
+             CellMargins -> {{62, Inherited}, {Inherited, Inherited}}, 
+             CellGroupingRules -> "GraphicsGrouping", CellHorizontalScrolling -> 
+             True, PageBreakWithin -> False, GeneratedCell -> True, 
+             CellAutoOverwrite -> True, ShowCellLabel -> False, 
+             DefaultFormatType -> DefaultOutputFormatType, FormatType -> 
+             InputForm, CounterIncrements -> "Graphics", StyleMenuListing -> 
+             None, FontSize -> 18], 
+            Cell[
+             StyleData["Graphics", "Presentation"], 
+             CellMargins -> {{74, Inherited}, {Inherited, Inherited}}], 
+            Cell[
+             StyleData["Graphics", "Condensed"], 
+             CellMargins -> {{52, Inherited}, {Inherited, Inherited}}, 
+             ImageSize -> {175, 175}], 
+            Cell[
+             StyleData["Graphics", "Printout"], 
+             CellMargins -> {{54, Inherited}, {Inherited, Inherited}}, 
+             ImageSize -> {250, 250}]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["CellLabel"], StyleMenuListing -> None, FontFamily -> 
+             "Helvetica", FontSize -> 18, FontWeight -> "Bold", FontColor -> 
+             RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["CellLabel", "Presentation"], FontSize -> 12], 
+            Cell[
+             StyleData["CellLabel", "Condensed"], FontSize -> 8], 
+            Cell[
+             StyleData["CellLabel", "Printout"], FontSize -> 8, FontColor -> 
+             GrayLevel[0]]}, Closed]]}, Open]], 
+      Cell[
+       CellGroupData[{
+         Cell["Unique Styles", "Section"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Author"], ShowCellBracket -> False, 
+             CellMargins -> {{10, 4}, {2, 10}}, LineSpacing -> {1, 5}, 
+             FontSize -> 16, FontSlant -> "Italic"], 
+            Cell[
+             StyleData["Author", "Presentation"], 
+             CellMargins -> {{12, 10}, {2, 12}}, LineSpacing -> {1, 5}, 
+             ParagraphSpacing -> {0, 12}, FontSize -> 20], 
+            Cell[
+             StyleData["Author", "Condensed"], 
+             CellMargins -> {{8, 10}, {1, 4}}, LineSpacing -> {1, 1}, 
+             ParagraphSpacing -> {0, 4}, FontSize -> 12], 
+            Cell[
+             StyleData["Author", "Printout"], 
+             CellMargins -> {{9, 0}, {4, 12}}, ParagraphSpacing -> {0, 6}, 
+             FontSize -> 14]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Copyright"], ShowCellBracket -> False, 
+             CellMargins -> {{10, 10}, {40, 2}}, FontFamily -> "Helvetica", 
+             FontSize -> 9], 
+            Cell[
+             StyleData["Copyright", "Presentation"], 
+             CellMargins -> {{12, 10}, {50, 2}}, LineSpacing -> {1, 5}, 
+             FontSize -> 12], 
+            Cell[
+             StyleData["Copyright", "Condensed"], 
+             CellMargins -> {{8, 10}, {12, 1}}, LineSpacing -> {1, 2}, 
+             FontSize -> 9], 
+            Cell[
+             StyleData["Copyright", "Printout"], 
+             CellMargins -> {{9, 0}, {72, 4}}, FontSize -> 7]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Example"], CellMargins -> {{12, 10}, {5, 12}}, 
+             LineSpacing -> {1, 3}, ParagraphSpacing -> {0, 12}, 
+             CounterIncrements -> "Example", FontFamily -> "Times", 
+             FontWeight -> "Bold"], 
+            Cell[
+             StyleData["Example", "Presentation"], 
+             CellMargins -> {{18, 10}, {8, 20}}, LineSpacing -> {1, 5}, 
+             ParagraphSpacing -> {0, 12}], 
+            Cell[
+             StyleData["Example", "Condensed"], 
+             CellMargins -> {{8, 10}, {4, 8}}, LineSpacing -> {1, 1}, 
+             ParagraphSpacing -> {0, 4}], 
+            Cell[
+             StyleData["Example", "Printout"], 
+             CellMargins -> {{9, 0}, {4, 10}}, ParagraphSpacing -> {0, 6}]}, 
+           Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Definition"], CellFrame -> {{3, 0}, {0, 0}}, 
+             CellMargins -> {{52, 10}, {8, 8}}, PageBreakWithin -> False, 
+             GroupPageBreakWithin -> False, 
+             CellLabelMargins -> {{23, Inherited}, {Inherited, Inherited}}, 
+             Hyphenation -> True, ShowStringCharacters -> True, 
+             CounterIncrements -> "Definition", FontFamily -> "Helvetica", 
+             FontWeight -> "Bold", FontColor -> GrayLevel[1], Background -> 
+             RGBColor[0.2, 0.700008, 0.700008]], 
+            Cell[
+             StyleData["Definition", "Presentation"], 
+             CellMargins -> {{62, Inherited}, {5, 12}}, 
+             LineSpacing -> {1, 0}], 
+            Cell[
+             StyleData["Definition", "Condensed"], 
+             CellMargins -> {{40, 10}, {1, 4}}], 
+            Cell[
+             StyleData["Definition", "Printout"], 
+             CellMargins -> {{44, 0}, {2, 6}}, Background -> GrayLevel[0.6]]},
+            Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Theorem"], CellFrame -> {{3, 0}, {0, 0}}, 
+             CellMargins -> {{52, 10}, {8, 8}}, PageBreakWithin -> False, 
+             GroupPageBreakWithin -> False, 
+             CellLabelMargins -> {{23, Inherited}, {Inherited, Inherited}}, 
+             Hyphenation -> True, ShowStringCharacters -> True, 
+             CounterIncrements -> "Theorem", FontFamily -> "Helvetica", 
+             FontWeight -> "Bold", FontColor -> GrayLevel[1], Background -> 
+             RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["Theorem", "Presentation"], 
+             CellMargins -> {{62, Inherited}, {5, 12}}, 
+             LineSpacing -> {1, 0}], 
+            Cell[
+             StyleData["Theorem", "Condensed"], 
+             CellMargins -> {{40, 10}, {1, 4}}], 
+            Cell[
+             StyleData["Theorem", "Printout"], 
+             CellMargins -> {{44, 0}, {2, 6}}, Background -> GrayLevel[0.4]]},
+            Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["ExerciseMain"], CellFrame -> {{6, 0}, {0, 1}}, 
+             CellMargins -> {{12, Inherited}, {4, 20}}, 
+             CellGroupingRules -> {"SectionGrouping", 30}, PageBreakBelow -> 
+             False, CellFrameColor -> RGBColor[0.571389, 0.19675, 0.570504], 
+             LineSpacing -> {1, 7}, CounterIncrements -> "Subsection", 
+             CounterAssignments -> {{"Subsubsection", 0}}, FontFamily -> 
+             "Helvetica", FontSize -> 16, FontWeight -> "Bold", FontColor -> 
+             RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["ExerciseMain", "Presentation"], 
+             CellMargins -> {{18, 10}, {8, 32}}, LineSpacing -> {1, 2}, 
+             FontSize -> 24, FontTracking -> "Condensed"], 
+            Cell[
+             StyleData["ExerciseMain", "Condensed"], 
+             CellMargins -> {{8, Inherited}, {2, 12}}, FontSize -> 12], 
+            Cell[
+             StyleData["ExerciseMain", "Printout"], 
+             CellMargins -> {{9, 0}, {2, 50}}, CellFrameColor -> 
+             GrayLevel[0.500008], FontSize -> 14, FontTracking -> "Plain", 
+             FontColor -> GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Exercise"], CellDingbat -> "\[FilledDownTriangle]", 
+             CellMargins -> {{23, Inherited}, {4, 18}}, 
+             CellGroupingRules -> {"SectionGrouping", 50}, PageBreakBelow -> 
+             False, Hyphenation -> True, LineSpacing -> {1, 7}, 
+             CounterIncrements -> "Subsubsection", FontFamily -> "Times", 
+             FontSize -> 13, FontWeight -> "Bold", FontColor -> 
+             RGBColor[0.571389, 0.19675, 0.570504]], 
+            Cell[
+             StyleData["Exercise", "Presentation"], 
+             CellMargins -> {{33, 10}, {8, 26}}, LineSpacing -> {1, 0}, 
+             FontSize -> 18], 
+            Cell[
+             StyleData["Exercise", "Condensed"], 
+             CellMargins -> {{17, Inherited}, {2, 12}}, FontSize -> 10], 
+            Cell[
+             StyleData["Exercise", "Printout"], 
+             CellFrame -> {{0, 0}, {0.5, 0}}, CellDingbat -> None, 
+             CellMargins -> {{9, 0}, {6, 20}}, FontSize -> 11, FontColor -> 
+             GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["ExerciseText"], CellMargins -> {{62, 10}, {5, 5}}, 
+             Hyphenation -> True, LineSpacing -> {1, 3}, 
+             ParagraphSpacing -> {0, 8}, CounterIncrements -> "ExcersiceText",
+              FontFamily -> "Times"], 
+            Cell[
+             StyleData["ExerciseText", "Presentation"], 
+             CellMargins -> {{74, 10}, {8, 8}}, LineSpacing -> {1, 5}, 
+             ParagraphSpacing -> {0, 12}], 
+            Cell[
+             StyleData["ExerciseText", "Condensed"], 
+             CellMargins -> {{52, 10}, {2, 2}}, LineSpacing -> {1, 1}, 
+             ParagraphSpacing -> {0, 4}], 
+            Cell[
+             StyleData["ExerciseText", "Printout"], 
+             CellMargins -> {{54, 0}, {4, 4}}, ParagraphSpacing -> {0, 6}]}, 
+           Closed]]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Formulas and Programming", "Section"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["DisplayFormula"], CellMargins -> {{62, 10}, {2, 10}}, 
+             CellHorizontalScrolling -> True, DefaultFormatType -> 
+             DefaultInputFormatType, "TwoByteSyntaxCharacterAutoReplacement" -> 
+             True, HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, LanguageCategory -> 
+             "Formula", ScriptLevel -> 0, SingleLetterItalics -> True, 
+             UnderoverscriptBoxOptions -> {LimitsPositioning -> True}], 
+            Cell[
+             StyleData["DisplayFormula", "Presentation"], 
+             CellMargins -> {{74, 10}, {2, 10}}, FontSize -> 10], 
+            Cell[
+             StyleData["DisplayFormula", "Condensed"], 
+             CellMargins -> {{52, 10}, {2, 10}}, FontSize -> 10], 
+            Cell[
+             StyleData["DisplayFormula", "Printout"], 
+             CellMargins -> {{54, 10}, {2, 10}}, FontSize -> 10]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["ChemicalFormula"], CellMargins -> {{62, 10}, {2, 10}},
+              DefaultFormatType -> DefaultInputFormatType, 
+             "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+             HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, LanguageCategory -> 
+             "Formula", AutoSpacing -> False, 
+             ScriptBaselineShifts -> {0.6, Automatic}, ScriptLevel -> 1, 
+             SingleLetterItalics -> False, ZeroWidthTimes -> True], 
+            Cell[
+             StyleData["ChemicalFormula", "Presentation"], 
+             CellMargins -> {{74, 10}, {2, 10}}, FontSize -> 10], 
+            Cell[
+             StyleData["ChemicalFormula", "Condensed"], 
+             CellMargins -> {{52, 10}, {2, 10}}, FontSize -> 10], 
+            Cell[
+             StyleData["ChemicalFormula", "Printout"], 
+             CellMargins -> {{54, 10}, {2, 10}}, FontSize -> 10]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Program"], CellMargins -> {{12, 10}, {Inherited, 6}}, 
+             Hyphenation -> False, LanguageCategory -> "Formula", FontFamily -> 
+             "Courier"], 
+            Cell[
+             StyleData["Program", "Presentation"], 
+             CellMargins -> {{13, 30}, {Inherited, 4}}, FontSize -> 9.5], 
+            Cell[
+             StyleData["Program", "Condensed"], 
+             CellMargins -> {{8, 10}, {Inherited, 4}}, FontSize -> 9.5], 
+            Cell[
+             StyleData["Program", "Printout"], 
+             CellMargins -> {{9, 0}, {Inherited, 4}}, FontSize -> 9.5]}, 
+           Closed]]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Styles for Automatic Numbering", "Section"], 
+         Cell[
+         "The following styles are useful for numbered equations, figures, \
+etc.  They automatically give the cell a FrameLabel containing a reference to \
+a particular counter, and also increment that counter.", "Text"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["NumberedEquation"], 
+             CellMargins -> {{62, 10}, {Inherited, Inherited}}, 
+             CellFrameLabels -> {{None, 
+                Cell[
+                 TextData[{"(", 
+                   CounterBox["NumberedEquation"], ")"}]]}, {None, None}}, 
+             DefaultFormatType -> DefaultInputFormatType, 
+             "TwoByteSyntaxCharacterAutoReplacement" -> True, 
+             HyphenationOptions -> {
+              "HyphenationCharacter" -> "\[Continuation]"}, CounterIncrements -> 
+             "NumberedEquation", FormatTypeAutoConvert -> False], 
+            Cell[
+             StyleData["NumberedEquation", "Presentation"], 
+             CellMargins -> {{74, 10}, {Inherited, Inherited}}], 
+            Cell[
+             StyleData["NumberedEquation", "Condensed"], 
+             CellMargins -> {{52, 10}, {Inherited, Inherited}}], 
+            Cell[
+             StyleData["NumberedEquation", "Printout"], 
+             CellMargins -> {{54, 0}, {Inherited, Inherited}}]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["NumberedFigure"], 
+             CellMargins -> {{62, 145}, {Inherited, Inherited}}, 
+             CellFrameLabels -> {{None, None}, {
+                Cell[
+                 TextData[{"Figure ", 
+                   CounterBox["NumberedFigure"]}]], None}}, CounterIncrements -> 
+             "NumberedFigure", 
+             ImageMargins -> {{43, Inherited}, {Inherited, 0}}, 
+             FormatTypeAutoConvert -> False], 
+            Cell[
+             StyleData["NumberedFigure", "Presentation"]], 
+            Cell[
+             StyleData["NumberedFigure", "Condensed"]], 
+            Cell[
+             StyleData["NumberedFigure", "Printout"]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["NumberedTable"], 
+             CellMargins -> {{62, 145}, {Inherited, Inherited}}, 
+             CellFrameLabels -> {{None, None}, {
+                Cell[
+                 TextData[{"Table ", 
+                   CounterBox["NumberedTable"]}]], None}}, TextAlignment -> 
+             Center, CounterIncrements -> "NumberedTable", 
+             FormatTypeAutoConvert -> False], 
+            Cell[
+             StyleData["NumberedTable", "Presentation"]], 
+            Cell[
+             StyleData["NumberedTable", "Condensed"]], 
+            Cell[
+             StyleData["NumberedTable", "Printout"]]}, Closed]]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Styles for Headers and Footers", "Section"], 
+         Cell[
+          StyleData["Header"], CellMargins -> {{0, 0}, {4, 1}}, 
+          StyleMenuListing -> None, FontFamily -> "Helvetica", FontSize -> 36,
+           FontSlant -> "Italic"], 
+         Cell[
+          StyleData["Footer"], CellMargins -> {{0, 0}, {0, 4}}, 
+          StyleMenuListing -> None, FontFamily -> "Helvetica", FontSize -> 6], 
+         Cell[
+          StyleData["PageNumber"], CellMargins -> {{0, 0}, {4, 1}}, 
+          StyleMenuListing -> None, FontFamily -> "Helvetica", FontSize -> 9, 
+          FontWeight -> "Bold"]}, Open]], 
+      Cell[
+       CellGroupData[{
+         Cell["Hyperlink Styles", "Section"], 
+         Cell[
+         "The cells below define styles useful for making hypertext \
+ButtonBoxes.  The \"Hyperlink\" style is for links within the same Notebook, \
+or between Notebooks.", "Text"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["Hyperlink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontColor -> GrayLevel[1], 
+             Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`NotebookLocate[#2]}]& ), ButtonNote -> 
+               ButtonData}], 
+            Cell[
+             StyleData["Hyperlink", "Presentation"]], 
+            Cell[
+             StyleData["Hyperlink", "Condensed"]], 
+            Cell[
+             StyleData["Hyperlink", "Printout"], FontColor -> GrayLevel[0], 
+             Background -> GrayLevel[1]]}, Closed]], 
+         Cell[
+         "The following styles are for linking automatically to the on-line \
+help system.", "Text"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["MainBookLink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontColor -> GrayLevel[1], 
+             Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`HelpBrowserLookup["MainBook", #]}]& )}], 
+            Cell[
+             StyleData["MainBookLink", "Presentation"]], 
+            Cell[
+             StyleData["MainBookLink", "Condensed"]], 
+            Cell[
+             StyleData["MainBookLink", "Printout"], FontColor -> GrayLevel[0],
+              Background -> GrayLevel[1]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["AddOnsLink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontFamily -> "Courier", 
+             FontColor -> GrayLevel[1], Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`HelpBrowserLookup["AddOns", #]}]& )}], 
+            Cell[
+             StyleData["AddOnsLink", "Presentation"]], 
+            Cell[
+             StyleData["AddOnsLink", "Condensed"]], 
+            Cell[
+             StyleData["AddOnLink", "Printout"], FontColor -> GrayLevel[0], 
+             Background -> GrayLevel[1]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["RefGuideLink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontFamily -> "Courier", 
+             FontColor -> GrayLevel[1], Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`HelpBrowserLookup["RefGuideLink", #]}]& )}], 
+            Cell[
+             StyleData["RefGuideLink", "Presentation"]], 
+            Cell[
+             StyleData["RefGuideLink", "Condensed"]], 
+            Cell[
+             StyleData["RefGuideLink", "Printout"], FontColor -> GrayLevel[0],
+              Background -> GrayLevel[1]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["GettingStartedLink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontColor -> GrayLevel[1], 
+             Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`HelpBrowserLookup["GettingStarted", #]}]& )}], 
+            Cell[
+             StyleData["GettingStartedLink", "Presentation"]], 
+            Cell[
+             StyleData["GettingStartedLink", "Condensed"]], 
+            Cell[
+             StyleData["GettingStartedLink", "Printout"], FontColor -> 
+             GrayLevel[0], Background -> GrayLevel[1]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["OtherInformationLink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontColor -> GrayLevel[1], 
+             Background -> RGBColor[1, 0.4, 0], 
+             ButtonBoxOptions -> {
+              Active -> True, Appearance -> {Automatic, None}, 
+               ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`HelpBrowserLookup["OtherInformation", #]}]& )}], 
+            Cell[
+             StyleData["OtherInformationLink", "Presentation"]], 
+            Cell[
+             StyleData["OtherInformationLink", "Condensed"]], 
+            Cell[
+             StyleData["OtherInformationLink", "Printout"], FontColor -> 
+             GrayLevel[0], Background -> GrayLevel[1]]}, Closed]]}, Closed]], 
+      
+      Cell[
+       CellGroupData[{
+         Cell["Palette Styles", "Section"], 
+         Cell[
+         "The cells below define styles that define standard ButtonFunctions, \
+for use in palette buttons.", "Text"], 
+         Cell[
+          StyleData["Paste"], StyleMenuListing -> None, 
+          ButtonStyleMenuListing -> Automatic, 
+          ButtonBoxOptions -> {ButtonFunction :> (FrontEndExecute[{
+               FrontEnd`NotebookApply[
+                FrontEnd`InputNotebook[], #, After]}]& )}], 
+         Cell[
+          StyleData["Evaluate"], StyleMenuListing -> None, 
+          ButtonStyleMenuListing -> Automatic, 
+          ButtonBoxOptions -> {ButtonFunction :> (FrontEndExecute[{
+               FrontEnd`NotebookApply[
+                FrontEnd`InputNotebook[], #, All], 
+               SelectionEvaluate[
+                FrontEnd`InputNotebook[], All]}]& )}], 
+         Cell[
+          StyleData["EvaluateCell"], StyleMenuListing -> None, 
+          ButtonStyleMenuListing -> Automatic, 
+          ButtonBoxOptions -> {ButtonFunction :> (FrontEndExecute[{
+               FrontEnd`NotebookApply[
+                FrontEnd`InputNotebook[], #, All], 
+               FrontEnd`SelectionMove[
+                FrontEnd`InputNotebook[], All, Cell, 1], 
+               FrontEnd`SelectionEvaluateCreateCell[
+                FrontEnd`InputNotebook[], All]}]& )}], 
+         Cell[
+          StyleData["CopyEvaluate"], StyleMenuListing -> None, 
+          ButtonStyleMenuListing -> Automatic, 
+          ButtonBoxOptions -> {ButtonFunction :> (FrontEndExecute[{
+               FrontEnd`SelectionCreateCell[
+                FrontEnd`InputNotebook[], All], 
+               FrontEnd`NotebookApply[
+                FrontEnd`InputNotebook[], #, All], 
+               FrontEnd`SelectionEvaluate[
+                FrontEnd`InputNotebook[], All]}]& )}], 
+         Cell[
+          StyleData["CopyEvaluateCell"], StyleMenuListing -> None, 
+          ButtonStyleMenuListing -> Automatic, 
+          ButtonBoxOptions -> {ButtonFunction :> (FrontEndExecute[{
+               FrontEnd`SelectionCreateCell[
+                FrontEnd`InputNotebook[], All], 
+               FrontEnd`NotebookApply[
+                FrontEnd`InputNotebook[], #, All], 
+               FrontEnd`SelectionEvaluateCreateCell[
+                FrontEnd`InputNotebook[], All]}]& )}]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell["Slide Show Styles", "Section"], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SlideShowNavigationBar"], Editable -> False, 
+             CellFrame -> True, CellMargins -> {{0, 0}, {3, 3}}, 
+             CellGroupingRules -> {"SectionGrouping", 30}, CellFrameMargins -> 
+             False, CellFrameColor -> GrayLevel[1], CellFrameLabelMargins -> 
+             False, TextAlignment -> Center, CounterIncrements -> 
+             "SlideShowNavigationBar", StyleMenuListing -> None, FontSize -> 
+             10, Background -> GrayLevel[0.8], 
+             GridBoxOptions -> {
+              GridBoxAlignment -> {
+                "Columns" -> {
+                  Center, Center, Center, Center, Center, Center, Right, {
+                   Center}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+                 "RowsIndexed" -> {}}, 
+               GridBoxItemSize -> {
+                "Columns" -> {3.5, 3.5, 3.5, 3.5, 13, 5, {4}}, 
+                 "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+                 "RowsIndexed" -> {}}, GridBoxSpacings -> {"Columns" -> {
+                   Offset[0.27999999999999997`], {
+                    Offset[0.]}, 
+                   Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+                 "Rows" -> {
+                   Offset[0.2], {
+                    Offset[0.]}, 
+                   Offset[0.2]}, "RowsIndexed" -> {}}}], 
+            Cell[
+             StyleData["SlideShowNavigationBar", "SlideShow"], Deletable -> 
+             False, ShowCellBracket -> False, 
+             CellMargins -> {{0, 0}, {-1, 0}}, PageBreakAbove -> True], 
+            Cell[
+             StyleData["SlideShowNavigationBar", "Printout"], 
+             CellMargins -> {{18, 4}, {4, 4}}, LineSpacing -> {1, 3}, 
+             FontSize -> 10]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SlideShowSection"], CellFrame -> {{0, 0}, {0, 0.5}}, 
+             CellMargins -> {{0, 0}, {10, 0}}, 
+             CellGroupingRules -> {"SectionGrouping", 40}, PageBreakBelow -> 
+             False, CellFrameMargins -> {{12, 4}, {6, 12}}, CellFrameColor -> 
+             RGBColor[0.4, 0, 0.239994], 
+             InputAutoReplacements -> {"TeX" -> StyleBox[
+                 RowBox[{"T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "LaTeX" -> StyleBox[
+                 RowBox[{"L", 
+                   StyleBox[
+                    AdjustmentBox[
+                    "A", BoxMargins -> {{-0.36, -0.1}, {0, 0}}, 
+                    BoxBaselineShift -> -0.2], FontSize -> Smaller], "T", 
+                   AdjustmentBox[
+                   "E", BoxMargins -> {{-0.075, -0.085}, {0, 0}}, 
+                    BoxBaselineShift -> 0.5], "X"}]], "mma" -> "Mathematica", 
+               "Mma" -> "Mathematica", "MMA" -> "Mathematica", 
+               "webMathematica" -> FormBox[
+                 RowBox[{"web", 
+                   AdjustmentBox[
+                    StyleBox["Mathematica", FontSlant -> "Italic"], 
+                    BoxMargins -> {{-0.175, 0}, {0, 0}}]}], TextForm], 
+               Inherited}, CounterIncrements -> "Section", 
+             CounterAssignments -> {{"Subsection", 0}, {"Subsubsection", 0}}, 
+             StyleMenuListing -> None, FontFamily -> "Helvetica", FontSize -> 
+             18, FontWeight -> "Bold", FontColor -> GrayLevel[0], Background -> 
+             RGBColor[0.6, 0.749996, 0.899992]], 
+            Cell[
+             StyleData["SlideShowSection", "SlideShow"], ShowCellBracket -> 
+             False, PageBreakAbove -> True], 
+            Cell[
+             StyleData["SlideShowSection", "Printout"], 
+             CellMargins -> {{18, 30}, {0, 30}}, CellFrameMargins -> 5, 
+             FontSize -> 14]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SlideHyperlink"], StyleMenuListing -> None, 
+             ButtonStyleMenuListing -> Automatic, FontSize -> 16, 
+             ButtonBoxOptions -> {
+              Active -> True, ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`NotebookLocate[#2]}]& ), ButtonMargins -> 1.5, 
+               ButtonNote -> ButtonData}], 
+            Cell[
+             StyleData["SlideHyperlink", "SlideShow"], FontSize -> 16], 
+            Cell[
+             StyleData["SlideHyperlink", "Printout"], FontSize -> 10, 
+             FontVariations -> {"Underline" -> False}, FontColor -> 
+             GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SlideTOCLink"], 
+             CellMargins -> {{24, Inherited}, {Inherited, Inherited}}, 
+             StyleMenuListing -> None, ButtonStyleMenuListing -> Automatic, 
+             FontFamily -> "Helvetica", 
+             ButtonBoxOptions -> {
+              Active -> True, ButtonFunction :> (FrontEndExecute[{
+                  FrontEnd`NotebookLocate[#2]}]& ), ButtonMargins -> 1.5, 
+               ButtonNote -> ButtonData}], 
+            Cell[
+             StyleData["SlideTOCLink", "SlideShow"]], 
+            Cell[
+             StyleData["SlideTOCLink", "Printout"], 
+             FontVariations -> {"Underline" -> False}, FontColor -> 
+             GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["SlideTOC"], CellDingbat -> "\[Bullet]", 
+             CellMargins -> {{18, Inherited}, {Inherited, Inherited}}, 
+             StyleMenuListing -> None, FontFamily -> "Helvetica"], 
+            Cell[
+             StyleData["SlideTOC", "SlideShow"], FontSize -> 14], 
+            Cell[
+             StyleData["SlideTOC", "Printout"], FontSize -> 10, FontColor -> 
+             GrayLevel[0]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["1ColumnBox"], CellMargins -> {{10, 4}, {0, 8}}, 
+             CellHorizontalScrolling -> True, LineIndent -> 0, 
+             StyleMenuListing -> None, Background -> RGBColor[1, 0.6, 0.6], 
+             FrameBoxOptions -> {
+              BoxFrame -> 0.5, FrameMargins -> {{True, True}, {True, True}}}, 
+             GridBoxOptions -> {GridBoxSpacings -> {"Columns" -> {
+                   Offset[0.27999999999999997`], {
+                    Offset[0.7]}, 
+                   Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+                 "Rows" -> {
+                   Offset[0.2], {
+                    Offset[0.4]}, 
+                   Offset[0.2]}, "RowsIndexed" -> {}}}], 
+            Cell[
+             StyleData["1ColumnBox", "Printout"], 
+             CellMargins -> {{2, 0}, {0, 8}}, FontSize -> 10, Background -> 
+             GrayLevel[0.900008]], 
+            Cell[
+             StyleData["1ColumnBox", "SlideShow"], 
+             CellMargins -> {{36, 36}, {3, 6}}, Background -> 
+             RGBColor[0.700008, 0.849989, 0.949996]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["2ColumnBox"], CellMargins -> {{10, 4}, {0, 8}}, 
+             CellHorizontalScrolling -> True, LineIndent -> 0, 
+             StyleMenuListing -> None, Background -> RGBColor[1, 0.6, 0.6], 
+             FrameBoxOptions -> {
+              BoxFrame -> 0.5, FrameMargins -> {{True, True}, {True, True}}}, 
+             GridBoxOptions -> {GridBoxItemSize -> {"Columns" -> {
+                   Scaled[0.31], {
+                    Scaled[0.67]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+                 "RowsIndexed" -> {}}}], 
+            Cell[
+             StyleData["2ColumnBox", "Printout"], 
+             CellMargins -> {{2, 0}, {0, 8}}, FontSize -> 9, Background -> 
+             GrayLevel[0.900008]], 
+            Cell[
+             StyleData["2ColumnBox", "SlideShow"], 
+             CellMargins -> {{36, 36}, {6, 6}}, Background -> 
+             RGBColor[0.700008, 0.849989, 0.949996]]}, Closed]], 
+         Cell[
+          CellGroupData[{
+            Cell[
+             StyleData["DefinitionBox"], CellFrame -> 0.5, 
+             CellMargins -> {{10, 4}, {0, 8}}, CellHorizontalScrolling -> 
+             True, PageBreakWithin -> False, AutoIndent -> False, AutoSpacing -> 
+             False, LineIndent -> 0, StyleMenuListing -> None, FontWeight -> 
+             "Plain", Background -> RGBColor[1, 0.6, 0.6], 
+             GridBoxOptions -> {
+              GridBoxAlignment -> {
+                "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+                 "Rows" -> {{Baseline}}, "RowsIndexed" -> {}}, 
+               GridBoxItemSize -> {"Columns" -> {
+                   Scaled[0.4], {
+                    Scaled[0.6]}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+                 "RowsIndexed" -> {}}, GridBoxSpacings -> {"Columns" -> {
+                   Offset[0.27999999999999997`], {
+                    Offset[0.7]}, 
+                   Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+                 "Rows" -> {
+                   Offset[0.2], {
+                    Offset[0.6]}, 
+                   Offset[0.2]}, "RowsIndexed" -> {}}}], 
+            Cell[
+             StyleData["DefinitionBox", "Printout"], 
+             CellMargins -> {{2, 4}, {0, 8}}, FontSize -> 10, Background -> 
+             GrayLevel[1]], 
+            Cell[
+             StyleData["DefinitionBox", "SlideShow"], 
+             CellMargins -> {{36, 36}, {6, 6}}, Background -> 
+             RGBColor[0.700008, 0.849989, 0.949996]]}, Closed]]}, Closed]]}, 
+     Open]]}, Visible -> False, FrontEndVersion -> 
+  "9.0 for Microsoft Windows (64-bit) (January 25, 2013)", StyleDefinitions -> 
+  "Default.nb"]
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 49, 0, 43, "Subtitle"],
+Cell[609, 22, 67, 0, 30, "Text"],
+Cell[CellGroupData[{
+Cell[701, 26, 1191, 27, 219, "Input"],
+Cell[1895, 55, 4223, 76, 273, "Output"]
+}, Open  ]],
+Cell[6133, 134, 185, 4, 53, "Text"],
+Cell[CellGroupData[{
+Cell[6343, 142, 1589, 38, 185, "Input"],
+Cell[7935, 182, 1500, 24, 194, "Output"],
+Cell[9438, 208, 1563, 31, 273, "Output"]
+}, Open  ]],
+Cell[11016, 242, 172, 3, 30, "Text"],
+Cell[11191, 247, 554, 12, 117, "Input"],
+Cell[CellGroupData[{
+Cell[11770, 263, 176, 5, 117, "Input"],
+Cell[11949, 270, 487, 7, 82, "Output"],
+Cell[12439, 279, 557, 10, 87, "Output"]
+}, Open  ]],
+Cell[13011, 292, 318, 5, 53, "Text"],
+Cell[CellGroupData[{
+Cell[13354, 301, 976, 23, 117, "Input"],
+Cell[14333, 326, 2130, 54, 947, "Output"]
+}, Open  ]],
+Cell[16478, 383, 182, 4, 53, "Text"],
+Cell[CellGroupData[{
+Cell[16685, 391, 524, 11, 82, "Input"],
+Cell[17212, 404, 618, 10, 82, "Output"]
+}, Open  ]],
+Cell[17845, 417, 114, 3, 30, "Text"],
+Cell[CellGroupData[{
+Cell[17984, 424, 410, 8, 151, "Input"],
+Cell[18397, 434, 1471, 24, 185, "Output"],
+Cell[19871, 460, 1441, 23, 194, "Output"],
+Cell[21315, 485, 1741, 33, 185, "Output"]
+}, Open  ]],
+Cell[23071, 521, 88, 2, 30, "Text"],
+Cell[CellGroupData[{
+Cell[23184, 527, 582, 9, 117, "Input"],
+Cell[23769, 538, 844, 13, 84, "Output"],
+Cell[24616, 553, 749, 10, 82, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[25402, 568, 484, 14, 117, "Input"],
+Cell[25889, 584, 7799, 139, 642, "Output"]
+}, Open  ]],
+Cell[33703, 726, 35, 0, 43, "Subtitle"],
+Cell[33741, 728, 3536, 86, 355, "Input"],
+Cell[CellGroupData[{
+Cell[37302, 818, 400, 7, 82, "Input"],
+Cell[37705, 827, 31688, 556, 206, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
