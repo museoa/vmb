@@ -733,18 +733,18 @@ Temp		IS	$2
 		
 Main		PUSHJ	Temp,ClearMines
 
-%		remove these 4 lines if you need predicatble random numbers		
-TTimeOfDay	IS	#0F
-		TRAP	0,TTimeOfDay,0
-		SET	Temp+1,$255
-		PUSHJ	Temp,:RSeed
+%			remove these 4 lines if you need predicatble random numbers		
+TTimeOfDay	IS		#0F
+			TRAP	0,TTimeOfDay,0
+			SET		Temp+1,$255
+			PUSHJ	Temp,:RSeed
 		
-		SET	Temp+1,Mines
-		PUSHJ	Temp,PlaceMines
-		PUSHJ	Temp,DisplayField
+			SET		Temp+1,Mines
+			PUSHJ	Temp,PlaceMines
+			PUSHJ	Temp,DisplayField
 		
-		PUSHJ	Temp,PlayLoop		
+			PUSHJ	Temp,PlayLoop		
 
-		TRAP	0,Halt,0
+			TRAP	0,Halt,0
 
 		
