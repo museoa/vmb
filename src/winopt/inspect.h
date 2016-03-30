@@ -54,7 +54,7 @@ struct inspector_def {
     int columns; 
 	int column_digits; /* number of output characters per column */
     unsigned int mem_base;
-	unsigned int mem_size; /* page currently displayed  from offset mem_base to mem_base+memsize*/
+	unsigned int mem_size; /* page currently displayed  from offset=mem_base to mem_base+memsize*/
     unsigned char *mem_buf; /* memory buffer */
 	unsigned int old_base; /* same for the proviously displayed memory to indicate changes */
     unsigned int old_size;
@@ -65,6 +65,10 @@ struct inspector_def {
 typedef struct inspector_def inspector_def;
 
 extern struct inspector_def inspector[];
+
+
+
+
 #ifdef WIN32
 
 extern void update_max_regnames(inspector_def *insp);
@@ -88,5 +92,9 @@ extern void resize_memory_dialog(inspector_def *insp);
 
 #endif
 
+/* used in winmem when a context menu is asked for */
+extern int (*MemContextMenu)(inspector_def *insp, int offset, int x, int y); /* if not NULL the function to handle the context menu for the memory window */  
+extern void set_goto_addr(inspector_def *insp,uint64_t goto_addr);
 
 #endif
+

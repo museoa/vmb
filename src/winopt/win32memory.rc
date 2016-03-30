@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -27,7 +26,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDD_MEMORY DIALOGEX 0, 0, 204, 133
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD 
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_APPWINDOW
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -79,6 +78,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

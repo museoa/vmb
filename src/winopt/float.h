@@ -1,4 +1,7 @@
-#include "winopt.h"
+#ifndef _FLOAT_H_
+#define _FLOAT_H_
+#include "uint64.h"
+
 
 /* decide which kind of Float implementation you need */
 #define HOST_FLOAT
@@ -40,3 +43,4 @@ extern uint64_t f64_from_double(double f);
 extern double double_from_f64(uint64_t f);
 
 
+#endif

@@ -10,10 +10,11 @@
 
 
 #pragma warning(disable : 4996)
+int (*MemContextMenu)(inspector_def *insp, int offset, int x, int y)=NULL; /* if not NULL the function to handle the context menu for the memory window */  
 
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
 char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
-static int top_height, sb_width=0; 
+static int top_height, sb_width=0;  
 
 static void invalidate_mem(inspector_def *insp)
 { RECT r;
@@ -229,7 +230,7 @@ void adjust_mem_display(inspector_def *insp)
 
 
 
-int chunk_len(enum mem_fmt f, int chunk_size)
+static int chunk_len(enum mem_fmt f, int chunk_size)
 { int column_digits;
   switch (f)
   { case hex_format: column_digits=2*chunk_size; break;
@@ -527,21 +528,22 @@ void set_edit_rect(struct inspector_def *insp)
   InflateRect(&insp->edit_rect,separator_height,separator_height);
 }
 
-void  set_edit_offset(inspector_def *insp,int x, int y)
-/* determine edit_offset from the position */
+static int  set_edit_offset(inspector_def *insp,int x, int y)
+/* determine de_offset from the position 
+   its the offest into memory or the register number
+*/
 { int i = (y-top_height)/fixed_line_height;
-  if (x<=insp->address_width*fixed_char_width+separator_width) return;
-  insp->de_offset=-1;
-  if (i<0 || i >= insp->lines) return;
+  if (x<=insp->address_width*fixed_char_width+separator_width) return -1;
+  if (i<0 || i >= insp->lines) return -1;
   if (insp->regs!=NULL)
-  { if(i+insp->sb_cur>=insp->num_regs) return;
-      insp->de_offset=i+insp->sb_cur;
+  { if(i+insp->sb_cur>=insp->num_regs) return -1;
+      return i+insp->sb_cur;
   }
   else
   { unsigned int offset = insp->mem_base+i*insp->line_range;
     offset+=(1<<insp->chunk)*((x-insp->address_width*fixed_char_width-separator_width)/(insp->column_digits*fixed_char_width+separator_width));
-	if (offset>=insp->size) return;
-    insp->de_offset=offset;
+	if (offset>=insp->size) return -1;
+    return offset;
   }
 }
 
@@ -583,6 +585,21 @@ void SetInspector(HWND hMemory, inspector_def * insp)
   SetDlgItemText(insp->hWnd,IDC_CHUNK,chunk_names[insp->chunk]);
 }
 
+void set_goto_addr(inspector_def *insp, uint64_t goto_addr)
+{ goto_addr=adjust_goto_addr(insp,goto_addr);
+  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
+    insp->sb_base = (unsigned int)(goto_addr-insp->address);
+  else /* move base address of inspector */
+  { insp->address=goto_addr;
+    insp->sb_base=0;
+	insp->mem_size=0;
+    insp->de_offset=-1;
+	set_edit_rect(insp);
+  }
+  insp->sb_cur = 0;
+  adjust_mem_display(insp);
+}
+
 static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { 
@@ -618,7 +635,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    InvalidateRect(insp->hWnd,&insp->edit_rect,TRUE);
 	  hde=GetDataEdit(0,hDlg);
 	  de_connect(hde,insp);
-      set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
+      insp->de_offset=set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
 	  set_edit_rect(insp);
 	  InvalidateRect(insp->hWnd,&insp->edit_rect,FALSE);
 	  de_update(hde);
@@ -722,7 +739,21 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  p->ptMaxTrackSize.x=p->ptMinTrackSize.x;
 	  p->ptMaxTrackSize.y=p->ptMinTrackSize.y;
 	}
-	return 0;
+	break;
+	case WM_CONTEXTMENU: 
+	  if (MemContextMenu!=NULL)
+	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+	    if (insp!=NULL)
+		{  POINT pt;
+		   int offset;
+		   pt.x=LOWORD(lparam);
+		   pt.y= HIWORD(lparam);
+           ScreenToClient(hDlg, &pt); 
+		   offset=set_edit_offset(insp,pt.x,pt.y);
+		  if (offset>=0 && MemContextMenu(insp,offset,LOWORD(lparam),HIWORD(lparam) )) return TRUE; 
+		}
+	  }
+	  break; 
   }
   return FALSE;
 }
@@ -746,7 +777,8 @@ void MemoryDialogUpdate(inspector_def *insp, unsigned int offset, int size)
     if (offset<insp->mem_base) { size = size-(insp->mem_base-offset); offset=insp->mem_base; }
 	if (offset+size>insp->mem_base+insp->mem_size)  size = insp->mem_base+insp->mem_size-offset;
 	if (insp->get_mem) insp->get_mem(offset, size, insp->mem_buf+(offset-insp->mem_base));
-	invalidate_registers(insp, offset, size);
+	if (insp->regs!=NULL) invalidate_registers(insp, offset, size);
+	else invalidate_mem(insp);
   }
 }
 

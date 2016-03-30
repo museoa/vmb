@@ -1,5 +1,8 @@
+
+
 #ifndef _WINOPT_H_
 #define _WINOPT_H_
+
 
 /* Sybols needed by winopt */
 
@@ -114,5 +117,6 @@ OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided *
 #include <stdio.h>
 FILE *vmb_fopen(char *filename, char *mode);
 /* open fiename, look in the configPATH and programpath before giving up */
+
 
 #endif

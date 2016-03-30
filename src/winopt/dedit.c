@@ -1,9 +1,9 @@
 #include <windows.h>
-#include "winopt.h"
 #include "resource.h"
 #include "winde.h"
 #include "dedit.h"
-
+#include "inspect.h"
+#include "winopt.h"
 
 /* DataEditor */
 typedef struct dataedit
