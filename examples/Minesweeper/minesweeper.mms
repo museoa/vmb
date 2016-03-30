@@ -10,6 +10,17 @@ Columns 	IS 13
 Mines		IS 10
 
 
+* Traps
+MWaitEvent		IS	#11
+GPutChar		IS	#12
+GPutStr			IS	#13
+GLine			IS	#14
+GSetPos			IS	#17
+GSetTextColor	IS	#18
+GSetLineColor	IS	#1A
+GBitBltIn		IS	#1B
+
+
 * Data
 
 		LOC	Data_Segment
@@ -33,43 +44,66 @@ FlagsVisible	GREG	@     Boolean field 1 = flag, 0 = no flag
 		
 VisibleCount	GREG	0
 
-XORIGIN		IS	20
-YORIGIN		IS	60
-WIDTH		IS	16
+XORIGIN		IS	20		x-coordinate of minefield on the screen
+YORIGIN		IS	60		y-coordinate of minefield on the screen
+SIZE		IS	16		width and height of one field  
 
-BitBltInArg	OCTA	#0010001000000000   WYDE	16,16,0,0 must be OCTA aligned
-		OCTA	0
+BitBltInArg	OCTA	#0010001000000000   WYDE	w=16,h=16,x,y must be OCTA aligned
+			OCTA	0							bitmap address
 
 
 
 * Basic Subroutines
 		LOC	#100
 
+		PREFIX	:ToOffset:
+* Parameters
+x		IS  $0
+y		IS  $1
+*Local Variables
+t		IS  $2
+
+* compute the offset into MineField and the othere arrays 
+* based on x and y returns -1 on error.
+		
+:ToOffset	BN	x,Fail	Test Range of Parameters
+		BN	y,Fail
+		CMP	t,x,:Columns
+		BNN	t,Fail
+		CMP	t,y,:Rows
+		BNN	t,Fail
+
+		MUL	y,y,:Columns
+		ADD	$0,y,x		
+		POP	1,0			Return y*Columns+x
+
+Fail	NEG	$0,1
+		POP	1,0
+
+
 		PREFIX	:IncMineCount:
 * Parameters
 x		IS  $0
 y		IS  $1
 *Local Variables
-Offset		IS  $2
-Temp		IS  $3
+rJ		IS	$2
+offset	IS  $3
+t		IS  $4
 
 
 * increments the Mine Count at (x,y)
 		
-:IncMineCount	BN	x,Return	Test Range of Parameters
-		BN	y,Return
-		CMP	Temp,x,:Columns
-		BNN	Temp,Return
-		CMP	Temp,y,:Rows
-		BNN	Temp,Return
-
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	Temp,:MineCounts,Offset
-		ADD	Temp,Temp,1
-		STB	Temp,:MineCounts,Offset
+:IncMineCount	GET		rJ,:rJ
+				SET		offset+1,x
+				SET		offset+2,y
+				PUSHJ	offset,:ToOffset
+				BN		offset,1F
+				LDB		t,:MineCounts,offset
+				ADD		t,t,1
+				STB		t,:MineCounts,offset
 		
-Return		POP	0,0
+1H				PUT		:rJ,rJ
+				POP		0,0
 
 
 		PREFIX	:GetMine:
@@ -77,68 +111,62 @@ Return		POP	0,0
 x		IS  $0
 y		IS  $1
 *Local Variables
-Offset		IS  $2
-Temp		IS  $3
+rJ		IS	$2
+offset	IS  $3
+t		IS  $3
 
 
 * get the MineField at (x,y)
 		
-:GetMine	BN	x,ReturnZero	Test Range of Parameters
-		BN	y,ReturnZero
-		CMP	Temp,x,:Columns
-		BNN	Temp,ReturnZero
-		CMP	Temp,y,:Rows
-		BNN	Temp,ReturnZero
+:GetMine	GET		rJ,:rJ
+			SET		offset+1,x
+			SET		offset+2,y
+			PUSHJ	offset,:ToOffset
+			BN		offset,1F
+			LDB		$0,:MineField,offset
+			PUT		:rJ,rJ
+			POP		1,0		Return mine.
 
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	$0,:MineField,Offset
-		POP	1,0
-		
-ReturnZero	SET	$0,0
-		POP	1,0
+1H			PUT		:rJ,rJ
+			POP		0,0		Return zero.
+
 
 		PREFIX	:PutMine:
 * Parameters
 x		IS  $0
 y		IS  $1
 *Local Variables
-Offset		IS  $2
-i		IS  $3
-k		IS  $4
-rJ		IS  $5
-Temp		IS  $6
+rJ		IS  $2
+offset	IS  $3
+i		IS  $4
+k		IS  $5
+t		IS  $6
 
 
 * places a mine in the MineField at (x,y) 
 * and updates MineCounts
 * returns 1 if successfull, 0 else
 		
-:PutMine	BN	x,Fail	Test Range of Parameters
-		BN	y,Fail
-		CMP	Temp,x,:Columns
-		BNN	Temp,Fail
-		CMP	Temp,y,:Rows
-		BNN	Temp,Fail
+:PutMine	GET		rJ,:rJ
+			SET		offset+1,x
+			SET		offset+2,y
+			PUSHJ	offset,:ToOffset
+			BN		offset,Fail
 
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	Temp,:MineField,Offset
-		BNZ	Temp,Fail	Mine already present
-		SET	Temp,1
-		STB	Temp,:MineField,Offset
-		
-		GET	rJ,:rJ
+			LDB	t,:MineField,offset
+			BNZ	t,Fail	Mine already present
+			SET	t,1
+			STB	t,:MineField,offset
 		
 		SET	i,2
-2H		SUB	i,i,1
+2H		SUB	i,i,1		Loop for i= 1, 0, -1
 
 		SET	k,2
-1H		SUB	k,k,1		
+1H		SUB	k,k,1		Loop for k= 1, 0, -1
 		
-		ADD	Temp+1,x,i
-		ADD	Temp+2,y,k
-		PUSHJ	Temp,:IncMineCount   
+		ADD	t+1,x,i
+		ADD	t+2,y,k
+		PUSHJ	t,:IncMineCount   
 		
 		BNN	k,1B
 		BNN	i,2B
@@ -147,37 +175,37 @@ Temp		IS  $6
 		SET	$0,1
 		POP	1,0
 		
-Fail		SET	$0,0
-		POP	1,0	
+Fail	PUT	:rJ,rJ
+		POP	0,0		Return zero.	
 
 
 
-		PREFIX :ClearMines:
+			PREFIX :ClearMines:
 		
 *Local Variables
-Offset		IS	$0
-Temp		IS	$1
+offset		IS	$0
+t		IS	$1
 
-:ClearMines	SET	Temp,0
-		SET	Offset,:Columns*:Rows
-1H		SUB	Offset,Offset,1
+:ClearMines	SET	t,0
+			SET	offset,:Columns*:Rows
+1H			SUB	offset,offset,1
 
-		STB	Temp,:MineField,Offset
-		STB	Temp,:MineCounts,Offset
-		STB	Temp,:FieldVisible,Offset
-		BP	Offset,1B	
-		SET	:VisibleCount,0
+			STB	t,:MineField,offset
+			STB	t,:MineCounts,offset
+			STB	t,:FieldVisible,offset
+			BP	offset,1B	
+			SET	:VisibleCount,0
 
-		POP	0,0	
+			POP	0,0	
 
 
 		PREFIX	:Random:		
 		
 * Parameters
-n		IS $0	Return random number in the range 0 to n-1
+n			IS 		$0	Return random number in the range 0 to n-1
 
 *Local Variables
-Temp		IS $1
+t			IS 		$1
 
 * This multiplier was obtained from Knuth, D.E., "The Art of
 * Computer Programming," Vol 2, Seminumerical Algorithms, Third
@@ -186,30 +214,26 @@ Temp		IS $1
 RMUL		GREG	6364136223846793005
 RSEED		GREG	0
 
-:Random		BNP	n,ReturnZero
+:Random		BNP		n,ReturnZero
 
-		MULU	RSEED,RSEED,RMUL
-		ADDU	RSEED,RSEED,1
-		SRU	Temp,RSEED,32
-		DIV	Temp,Temp,n
-		GET	$0,:rR
-		POP	1,0
+			MULU	RSEED,RSEED,RMUL
+			ADDU	RSEED,RSEED,1
+			SRU		t,RSEED,32
+			DIV		t,t,n
+			GET		$0,:rR
+			POP		1,0
 		
-
-ReturnZero	SET	$0,0
-		POP	1,0		
+ReturnZero	POP		0,0		
 
 		
 * Cange the seed using this function		
 		
 :RSeed		SET	RSEED,$0
-		POP	0,0
-
-
-
+			POP	0,0
 
 
 		PREFIX	:PlaceMines:
+*		Place n mines randomly on the field.
 * Parameters
 n		IS $0	number of mines to place
 
@@ -218,89 +242,86 @@ x		IS $1
 y		IS $2
 rJ		IS $3
 max		IS $4
-Temp		IS $5
+t		IS $5
 
 
 :PlaceMines	BNP	n,Return
-		SET	max,:Columns*:Rows
-		CMP	Temp,n,max
-		CSP	n,Temp,max
-		GET	rJ,:rJ
+		SET		max,:Columns*:Rows/2	Too many mines do not make sense.
+		CMP		t,n,max
+		CSP		n,t,max
+		GET		rJ,:rJ
 
-1H		SET	Temp+2,:Columns
-		PUSHJ	Temp+1,:Random
-		SET	Temp+3,:Rows
-		PUSHJ	Temp+2,:Random
-		PUSHJ	Temp,:PutMine
+1H		SET		t+2,:Columns
+		PUSHJ	t+1,:Random
+		SET		t+3,:Rows
+		PUSHJ	t+2,:Random
+		PUSHJ	t,:PutMine
 
-		SUB	n,n,Temp
-		BP	n,1B
+		SUB		n,n,t					Substract 1 if successful.
+		BP		n,1B
 
-		PUT	:rJ,rJ
-Return		POP	0,0
+		PUT		:rJ,rJ
+Return	POP		0,0
 
 
 
 		PREFIX :Display
-i		IS	$0
-k 		IS	$1
-rJ		IS	$2
-Temp		IS	$3
+*		Display the minefield.
 
-GSetPos		IS	#17
-GPutStr		IS	#13
-GLine		IS	#14
-GSetLineColor	IS	#1A
+* Local Variables
+x		IS		$0
+y 		IS		$1
+rJ		IS		$2
+t		IS		$3
+
+
 				
-Title	BYTE	"    Minesweeper Version 1.0",10,0
+Title	BYTE	"   Minesweeper Version 1.0",10,0
 
 :DisplayField	GET	rJ,:rJ
-		SET	$255,0
-		TRAP	0,GSetPos,0
+		SET		$255,0
+		TRAP	0,:GSetPos,0
 		GETA	$255,Title
-		TRAP	0,GPutStr,0
+		TRAP	0,:GPutStr,0
 		
-		SET	i,:Columns
-2H		SUB	i,i,1
+		SET		x,:Columns
+2H		SUB		x,x,1
 
-		SET	k,:Rows
-1H		SUB	k,k,1		
+		SET		y,:Rows
+1H		SUB		y,y,1		
 		
-		SET	Temp+1,i
-		SET	Temp+2,k
-		PUSHJ	Temp,:DisplayMine
+		SET		t+1,x
+		SET		t+2,y
+		PUSHJ	t,:DisplayMine
 		
-		BP	k,1B
-		BP	i,2B
-		PUT	:rJ,rJ
-		POP	0,0	
+		BP		y,1B
+		BP		x,2B
+		PUT		:rJ,rJ
+		POP		0,0	
 		
 		PREFIX	:DisplayMine:	
 * Parameters
 x		IS  $0
 y		IS  $1
 * Local Variables
-Offset		IS  $2
-bitmap		IS  $3
-count		IS  $4
-Temp		IS  $5
-GBitBltIn	IS	#1B
+rJ			IS	$2
+offset		IS  $3
+bitmap		IS  $4
+count		IS  $5
+t			IS  $6
 
-:DisplayMine	BN	x,Return	Test Range of Parameters
-		BN	y,Return
-		CMP	Temp,x,:Columns
-		BNN	Temp,Return
-		CMP	Temp,y,:Rows
-		BNN	Temp,Return
+:DisplayMine	GET		rJ,:rJ
+			SET		offset+1,x
+			SET		offset+2,y
+			PUSHJ	offset,:ToOffset
+			BN		offset,Return
 
 		SET	count,0
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	Temp,:FieldVisible,Offset
-		BNZ	Temp,1F
+		LDB	t,:FieldVisible,offset
+		BNZ	t,1F
 		
-		LDB	Temp,:FlagsVisible,Offset
-		BZ	Temp,2F
+		LDB	t,:FlagsVisible,offset
+		BZ	t,2F
 
 		GETA	bitmap,flag
 		JMP	show
@@ -308,50 +329,52 @@ GBitBltIn	IS	#1B
 2H		GETA	bitmap,covered
 		JMP	show
 
-1H		LDB	Temp,:MineField,Offset
-		BZ	Temp,1F
+1H		LDB	t,:MineField,offset
+		BZ	t,1F
 		GETA	bitmap,mine
 		JMP	show
 
-1H		LDB	count,:MineCounts,Offset
+1H		LDB	count,:MineCounts,offset
 		GETA	bitmap,empty				
 		
-show		LDA	$255,:BitBltInArg
-		SET	Temp,16
-		STWU	Temp,$255,0	w
-		STWU	Temp,$255,2	h
-		MUL	x,x,:WIDTH
-		ADD	x,x,:XORIGIN
-		STWU	x,$255,4
-		MUL	y,y,:WIDTH
-		ADD	y,y,:YORIGIN
-		STWU	y,$255,6
-		MUL	Offset,y,:Columns
-		STO	bitmap,$255,8
-		TRAP	0,GBitBltIn,0
+show	LDA		$255,:BitBltInArg
+		SET		t,16
+		STWU	t,$255,0		w
+		STWU	t,$255,2		h
+		MUL		x,x,:SIZE
+		ADD		x,x,:XORIGIN
+		STWU	x,$255,4		x
+		MUL		y,y,:SIZE
+		ADD		y,y,:YORIGIN
+		STWU	y,$255,6		y
+		MUL		offset,y,:Columns
+		STO		bitmap,$255,8	bitmap
+		TRAP	0,:GBitBltIn,0
 		
-		BZ	count,Return
-
-GPutChar	IS	#12
-GSetTextColor	IS	#18
-		SETH	$255,#00C0
+		BZ		count,Return
+		*		Display mine count
+		SETH	$255,#00C0		
 		ORMH	$255,#C0C0
 		ORML	$255,#0000
-		ORL	$255,#00FF
-		TRAP	0,GSetTextColor,0
+		ORL		$255,#00FF
+		TRAP	0,:GSetTextColor,0
 
-		ADD	x,x,:WIDTH/4
-		SL	$255,x,16
-		ADD	y,y,1		
-		OR	$255,$255,y
-		ADD	Temp,count,'0'  convert to ASCII digit
-		SL	Temp,Temp,32
-		OR	$255,$255,Temp
-		TRAP	0,GPutChar,0
+		ADD		x,x,:SIZE/4
+		SL		$255,x,16
+		ADD		y,y,1		
+		OR		$255,$255,y
+		ADD		t,count,'0'  convert to ASCII digit
+		SL		t,t,32
+		OR		$255,$255,t
+		TRAP	0,:GPutChar,0
 				
-Return		POP	0,0
+Return	PUT	:rJ,rJ
+		POP	0,0
 		
-%	16x16 bitmaps
+*	16x16 bitmaps
+*	The data for these bitmaps was produced from the .bmp files using 
+*   the "export to C source file" feature of gimp. The C source was then postprocessed
+*   using mostly search and replace to obtain mms source code.
 
 covered	TETRA	#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF
 	TETRA	#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00C0C0C0,#00FFFFFF,#00FFFFFF,#00FFFFFF,#00FFFFFF
@@ -498,98 +521,83 @@ x		IS  $0
 y		IS  $1
 rJ		IS  $2
 * Local Variables
-Offset		IS  $3
-Temp		IS  $4
+offset		IS  $3
+t		IS  $4
 
-:SetFlag	BN	x,Return	Test Range of Parameters
-		BN	y,Return
-		CMP	Temp,x,:Columns
-		BNN	Temp,Return
-		CMP	Temp,y,:Rows
-		BNN	Temp,Return
+:SetFlag	GET		rJ,:rJ
+			SET		offset+1,x
+			SET		offset+2,y
+			PUSHJ	offset,:ToOffset
+			BN		offset,Return
 
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	Temp,:FlagsVisible,Offset
-		BNZ	Temp,Return
-		SET	Temp,1
-		STB	Temp,:FlagsVisible,Offset
+			LDB	t,:FlagsVisible,offset
+			XOR	t,t,1
+			STB	t,:FlagsVisible,offset
 
-		GET	rJ,:rJ		
-		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:DisplayMine
-		PUT	:rJ,rJ
-Return		POP	0,0		
+			SET	t+1,x
+			SET	t+2,y
+			PUSHJ	t,:DisplayMine
+Return		PUT	:rJ,rJ
+			POP	0,0		
 
 		PREFIX	:MakeVisible	
 * Parameters
 x		IS  $0
 y		IS  $1
 * Local Variables
-Offset		IS  $2
-OutPtr		IS  $3
-Count		IS  $4
-rJ		IS  $5
+rJ		IS  $2
+offset		IS  $3
+OutPtr		IS  $4
+Count		IS  $5
+
 i               IS  $6
 k               IS  $7
-Temp		IS  $8
+t		IS  $8
 
 
 * make Field at (x,y) visible
 		
-:MakeVisible	BN	x,Return	Test Range of Parameters
-		BN	y,Return
-		CMP	Temp,x,:Columns
-		BNN	Temp,Return
-		CMP	Temp,y,:Rows
-		BNN	Temp,Return
+:MakeVisible	GET		rJ,:rJ
+			SET		offset+1,x
+			SET		offset+2,y
+			PUSHJ	offset,:ToOffset
+			BN		offset,Return
 
-		MUL	Offset,y,:Columns
-		ADD	Offset,Offset,x
-		LDB	Temp,:FieldVisible,Offset
-		BNZ	Temp,Return
-		SET	Temp,1
-		STB	Temp,:FieldVisible,Offset
-		ADD	:VisibleCount,:VisibleCount,1
+			LDB	t,:FieldVisible,offset
+			BNZ	t,Return
+			SET	t,1
+			STB	t,:FieldVisible,offset
+			ADD	:VisibleCount,:VisibleCount,1
 		
-		GET	rJ,:rJ
+			SET	t+1,x
+			SET	t+2,y
+			PUSHJ	t,:DisplayMine
 		
-		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:DisplayMine
+			LDB	t,:MineField,offset
+			BNZ	t,Return				Mine hit!
 		
-		LDB	Temp,:MineField,Offset
-		BNZ	Temp,HitMine
+			LDB	Count,:MineCounts,offset
 		
-		LDB	Count,:MineCounts,Offset
-		
-		BNZ	Count,Done
+			BNZ	Count,Return			Mines as neighbours
 
 * The MineCount was zero and we make the neighbours visible.
 
 		
-		SET	i,2
-2H		SUB	i,i,1
+			SET	i,2			Loop for i=1,0,-1
+2H			SUB	i,i,1
 
-		SET	k,2
-1H		SUB	k,k,1		
+			SET	k,2			Loop for k=1,0,-1
+1H			SUB	k,k,1		
 		
-		ADD	Temp+1,x,i
-		ADD	Temp+2,y,k
-		PUSHJ	Temp,:MakeVisible  
+			ADD	t+1,x,i
+			ADD	t+2,y,k
+			PUSHJ	t,:MakeVisible  
 		
-		BNN	k,1B
-		BNN	i,2B
+			BNN	k,1B
+			BNN	i,2B
 		
-Done		PUT	:rJ,rJ
-		POP	0,0
-
-
-HitMine		PUT	:rJ,rJ
-		POP	0,0
-		
-Return		POP	0,0	
+Return		PUT	:rJ,rJ
+			POP	0,0	
 
 		
 
@@ -599,15 +607,15 @@ Return		POP	0,0
 x		IS	$0
 y 		IS	$1
 rJ		IS	$2
-Temp		IS	$3
+t		IS	$3
 
 :AllVisible	GET	rJ,:rJ
 		SET	y,:Rows-1
 2H		SET	x,:Columns-1
 		
-1H		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:MakeVisible
+1H		SET	t+1,x
+		SET	t+2,y
+		PUSHJ	t,:MakeVisible
 		
 		BZ	:VisibleCount,Return
 		SUB	x,x,1
@@ -619,101 +627,101 @@ Return		PUT	:rJ,rJ
 		POP	0,0	
 
 
-		PREFIX	:GetValues:
-		
-% 	return 3 values 1=left 0=right button, x, y
+		PREFIX	:GetValues:		
+* 	return 3 values: 1=left or 0=right button, x, y
+*	local variables
+x		IS		$0
+y		IS		$1
+button	IS		$2
+t		IS		$3
 
-MWaitEvent	IS	#11
-:GetValues	TRAP	0,MWaitEvent,0
-		SR	$2,$255,32	get the event byte
-		AND	$0,$2,#03	left or right button
-		BZ	$0,:GetValues	should be the left button
-		AND	$0,$2,#04	down event
-		BNZ	$0,:GetValues	should be an up event
+:GetValues	TRAP	0,:MWaitEvent,0
+		SR		button,$255,32	get the event byte
+		AND		t,button,#03	left or right button
+		BZ		t,:GetValues	should be the left or right button
+		AND		t,button,#04	down event
+		BNZ		t,:GetValues	should be an up event
 		
-		AND	$2,$2,1		main result
+		AND		button,button,1	main result
 		
-		SR	$0,$255,16
-		SETL	$3,#FFFF
-		AND	$0,$0,$3	x
-		SUB	$0,$0,:XORIGIN	- top left
-		DIV	$0,$0,:WIDTH	scale
-		AND	$1,$255,$3	y
-		SUB	$1,$1,:YORIGIN	- top left
-		DIV	$1,$1,:WIDTH	scale
-		POP	3,0
+		SR		x,$255,16
+		SETL	t,#FFFF
+		AND		x,x,t			x
+		SUB		x,x,:XORIGIN	- top left
+		DIV		x,x,:SIZE		scale
+		AND		y,$255,$3	y
+		SUB		y,y,:YORIGIN	- top left
+		DIV		y,y,:SIZE		scale
+		POP		3,0
 
 		PREFIX	:PlayLoop:
 
 *Local Variables
-flag		IS	$0
-x		IS	$1
-y		IS	$2
-rJ		IS	$3
-Temp		IS	$4
+rJ		IS	$0
+flag	IS	$1
+x		IS	$2
+y		IS	$3
+t		IS	$4
 
 :PlayLoop	GET	rJ,:rJ
 		
-Loop		SET	Temp,:Rows*:Columns-:Mines
-		CMP	Temp,Temp,:VisibleCount
-		BNP	Temp,Win
+Loop	SET		t,:Rows*:Columns-:Mines
+		CMP		t,t,:VisibleCount
+		BNP		t,Win				All visible?
 		
-		PUSHJ	flag,:GetValues    get flag,x, and y
-		CMP	Temp,x,:Columns
-		BNN	Temp,IllegalValue
-		CMP	Temp,y,:Rows
-		BNN	Temp,IllegalValue
+		PUSHJ	flag,:GetValues    Get flag, x, and y.
+		CMP		t,x,:Columns
+		BNN		t,IllegalValue
+		CMP		t,y,:Rows
+		BNN		t,IllegalValue
 		
-		BNZ	flag,1F
-		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:SetFlag
-		JMP	Loop
+		BNZ		flag,1F
+		SET		t+1,x
+		SET		t+2,y
+		PUSHJ	t,:SetFlag
+		JMP		Loop
 
 
-1H		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:MakeVisible
+1H		SET		t+1,x
+		SET		t+2,y
+		PUSHJ	t,:MakeVisible
 				
-		SET	Temp+1,x
-		SET	Temp+2,y
-		PUSHJ	Temp,:GetMine
-		BZ	Temp,Loop
+		SET		t+1,x
+		SET		t+2,y
+		PUSHJ	t,:GetMine
+		BZ		t,Loop
 
-*otherwise we hit a mine and exit
-GPutStr		IS	#13
-GSetTextColor	IS	#18
-GSetPos		IS	#17
+* otherwise we hit a mine and exit
 		SETML	$255,#00FF	Red
-		TRAP	0,GSetTextColor,0
-		SET	$255,:YORIGIN+(:Rows+2)*:WIDTH
-		TRAP	0,GSetPos,0
+		TRAP	0,:GSetTextColor,0
+		SET		$255,:YORIGIN+(:Rows+2)*:SIZE
+		TRAP	0,:GSetPos,0
 		GETA	$255,GameOver
-		TRAP	0,GPutStr,0
-		PUT	:rJ,rJ
-		POP	0,0	
+		TRAP	0,:GPutStr,0
+		PUT		:rJ,rJ
+		POP		0,0	
 			
 		
 GameOver	BYTE	"   GAME OVER !",10,0
 				
-Win		PUSHJ	Temp,:AllVisible
+Win		PUSHJ	t,:AllVisible
 		SETML	$255,#00FF	Red
-		TRAP	0,GSetTextColor,0
-		SET	$255,:YORIGIN+(:Rows+2)*:WIDTH
-		TRAP	0,GSetPos,0
+		TRAP	0,:GSetTextColor,0
+		SET		$255,:YORIGIN+(:Rows+2)*:SIZE
+		TRAP	0,:GSetPos,0
 		GETA	$255,Congratulation
-		TRAP	0,GPutStr,0
-		PUT	:rJ,rJ
-		POP	0,0
+		TRAP	0,:GPutStr,0
+		PUT		:rJ,rJ
+		POP		0,0
 			
 Congratulation	BYTE	"   CONGRATULATIONS !",10,0
 
 		
-IllegalValue	SET	$255,:YORIGIN+(:Rows+2)*:WIDTH
-		TRAP	0,GSetPos,0
+IllegalValue	SET	$255,:YORIGIN+(:Rows+2)*:SIZE
+		TRAP	0,:GSetPos,0
 		GETA	$255,OutOfRange
-		TRAP	0,GPutStr,0
-		JMP	:PlayLoop
+		TRAP	0,:GPutStr,0
+		JMP		:PlayLoop
 
 OutOfRange	BYTE	"Value out of Range!",10,0
 	
@@ -728,23 +736,23 @@ argv		IS	$1
 
 * Local Variables
 
-Temp		IS	$2
+t			IS	$2
 		
 		
-Main		PUSHJ	Temp,ClearMines
+Main		PUSHJ	t,ClearMines
 
-%			remove these 4 lines if you need predicatble random numbers		
+%			remove the next 4 lines if you need predicatble random numbers		
 TTimeOfDay	IS		#0F
-			TRAP	0,TTimeOfDay,0
-			SET		Temp+1,$255
-			PUSHJ	Temp,:RSeed
+			TRAP	0,:TTimeOfDay,0
+			SET		t+1,$255
+			PUSHJ	t,:RSeed
 		
-			SET		Temp+1,Mines
-			PUSHJ	Temp,PlaceMines
-			PUSHJ	Temp,DisplayField
+			SET		t+1,Mines
+			PUSHJ	t,PlaceMines
+			PUSHJ	t,DisplayField
 		
-			PUSHJ	Temp,PlayLoop		
+			PUSHJ	t,PlayLoop		
 
-			TRAP	0,Halt,0
+			TRAP	0,:Halt,0
 
 		
