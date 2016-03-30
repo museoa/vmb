@@ -10,6 +10,7 @@
 #include "resource.h"
 #include "mmixrun.h"
 #include "uint64.h"
+#include "breakpoints.h"
 #ifdef VMB
 #include "intchar.h"
 #endif
@@ -278,11 +279,11 @@ static void store_neg_mem(unsigned int offset, int size, unsigned char *buf)
 
 
 static inspector_def memory_insp[MAXMEM+1]=
-{ 	{"Text Segment",0xffffffff,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,0ULL<<61},
-	{"Data Segment",0xffffffff,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,-1,8,0,NULL,0,1ULL<<61},
-	{"Pool Segment",0xffffffff,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,-1,8,0,NULL,0,2ULL<<61},
-	{"Stack Segment",0xffffffff,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,-1,8,0,NULL,0,3ULL<<61},
-	{"Negative Segemnt",0xffffffff,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,4ULL<<61},
+{ 	{"Text Segment",0x7fffffff,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,0ULL<<61},
+	{"Data Segment",0x7fffffff,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,-1,8,0,NULL,0,1ULL<<61},
+	{"Pool Segment",0x7fffffff,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,-1,8,0,NULL,0,2ULL<<61},
+	{"Stack Segment",0x7fffffff,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,-1,8,0,NULL,0,3ULL<<61},
+	{"Negative Segemnt",0x7fffffff,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,4ULL<<61},
 	{NULL}
 };
 
@@ -635,14 +636,6 @@ void set_register_inspectors(void)
   set_globalreg_inspector();
 }
 
-void debug_init(void)
-{ 	if (local_mem!=NULL) free(local_mem);
-    local_mem=calloc(lring_size,8);
-	if (local_mem==NULL)  win32_fatal_error(__LINE__,"Out of Memory for local_mem");
-	reg_names_init();
-	set_special_reg_name();
-}
-
 void new_register_view(int i)
 { int k;
   HWND h;
@@ -729,4 +722,76 @@ void change_mem_font(void)
   for (i=0; i<MAXREG; i++)
 	if(register_insp[i].hWnd)
 		InvalidateRect(register_insp[i].hWnd,NULL,TRUE);
+}
+
+
+
+int MemoryContextMenuHandler(inspector_def *insp, int offset, int x, int y)
+{ int cmd, size;
+  unsigned char buffer[8];
+  octa loc;
+  HMENU hMenu;
+  if (insp->regs!=NULL) hMenu=hRegContextMenu;
+  else hMenu=hMemContextMenu;
+  cmd = TrackPopupMenuEx(hMenu, 
+            TPM_LEFTALIGN | TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD, 
+            x, y, hMainWnd, NULL); // Display the shortcut menu. Track the right mouse button.
+  switch (cmd)
+  { case ID_POPUP_BREAKONADDRESS:
+        if (insp->regs==NULL)
+		{ uint64_t u;
+		  u = insp->address+offset;
+          loc.h=(tetra)((u>>32)&0xFFFFFFFF);
+		  loc.l=(tetra)(u&0xFFFFFFFF);
+		  add_loc_breakpoint(loc);
+		}
+        return 1;
+    case ID_POPUP_BREAKONVALUE:
+        if (insp->regs!=NULL)
+		{ size=insp->regs[offset].size;
+		  offset=insp->regs[offset].offset;
+		}
+		else
+		{ size = 1<<insp->chunk;
+		}
+		memset(buffer,0,8);
+		insp->get_mem(offset+8-size,size,buffer);
+		loc.h=chartoint(buffer);
+		loc.l=chartoint(buffer+4);
+		add_loc_breakpoint(loc);
+		return 1;
+	case ID_POPUP_SHOW:
+	  { int segment;
+	    uint64_t goto_addr;
+		if (insp->regs!=NULL)
+		{ size=insp->regs[offset].size;
+		  offset=insp->regs[offset].offset;
+		}
+		else
+		{ size = 1<<insp->chunk;
+		}
+		memset(buffer,0,8);
+		insp->get_mem(offset+8-size,size,buffer);
+		goto_addr=chartoint(buffer);
+		goto_addr=(goto_addr<<32)+chartoint(buffer+4);
+		if (buffer[0]&0x80)	segment=4;
+		else segment= (buffer[0]>>5)&3;
+		new_memory_view(segment);
+		if (memory_insp[segment].hWnd!=NULL)
+          set_goto_addr(&memory_insp[segment] , goto_addr);
+		return 1;
+	  }
+    }
+    return 0;
+} 
+
+
+void debug_init(void)
+{ 	if (local_mem!=NULL) free(local_mem);
+    local_mem=calloc(lring_size,8);
+	if (local_mem==NULL)  win32_fatal_error(__LINE__,"Out of Memory for local_mem");
+	reg_names_init();
+	set_special_reg_name();
+    if (hMemContextMenu!=NULL && hRegContextMenu!=NULL )
+      MemContextMenu=MemoryContextMenuHandler;
 }

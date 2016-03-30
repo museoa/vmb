@@ -1,5 +1,6 @@
 extern void create_breakpoints(void);
 extern void set_file_breakpoint(int file_no, int line_no, int bits, int mask);
+extern void add_loc_breakpoint(octa loc);
 extern void del_file_breakpoint(int file_no, int line_no, int bits);
 extern void remove_file_breakpoints(int file_no);
 extern void remove_loc_breakpoints(int file_no);

@@ -1,6 +1,7 @@
 extern HINSTANCE hInst;
 extern HWND	  hMainWnd, hError;
 extern HMENU	  hMenu;
+extern HMENU hMemContextMenu, hRegContextMenu; 
 extern HWND	  hSplitter;
 extern HWND      hButtonBar;
 extern HWND hSymbolTable;

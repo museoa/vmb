@@ -278,6 +278,16 @@ void remove_file_breakpoints(int file_no)
 	  remove_breakpoint(i);
 }
 
+static int find_loc_breakpoint(octa loc)
+/* find a breakpoint with the given location as its range */
+{ int i;
+  for (i=0; i<blimit;i++)
+    if (breakpoints[i].loc.h==loc.h &&
+		breakpoints[i].loc.l==loc.l && breakpoints[i].loc_last.l==loc.l  
+		)
+	 return i;
+  return -1;
+}
 
 /* setting a breakpoint in a file
    call with bits, 0 to set bits
@@ -319,6 +329,24 @@ void del_file_breakpoint(int file_no, int line_no, int mask)
 	  return;
     }
 }
+
+void add_loc_breakpoint(octa loc)
+{ int i, bits;
+  if ((loc.h&0x60000000)==0) bits=exec_bit;
+  else bits=read_bit|write_bit;
+  i= find_loc_breakpoint(loc);
+  if (i<0)
+    i = new_breakpoint(-1,0,loc,bits);
+  else
+  { breakpoints[i].bkpt|=bits;
+	if (!file_unknown(i))
+	  ed_set_break(breakpoints[i].file_no,breakpoints[i].line_no,breakpoints[i].bkpt);
+	  change_breakpoint(i);
+  }
+  if(mmix_active())
+    mem_set_breakpoint(i);
+}
+
 
 /* interfacing the symbol table with breakpoints */
 int break_at_symbol(int file_no,char *symbol)
@@ -441,16 +469,6 @@ static void resize(HWND hDlg, int w, int h)
   MoveWindow(hBreakList,list.x,list.y,w-2*list.x,h-list.y-list.x,TRUE);
 }
 
-static int find_loc_breakpoint(octa loc)
-/* find a breakpoint with the given location as its range */
-{ int i;
-  for (i=0; i<blimit;i++)
-    if (breakpoints[i].loc.h==loc.h &&
-		breakpoints[i].loc.l==loc.l && breakpoints[i].loc_last.l==loc.l  
-		)
-	 return i;
-  return -1;
-}
 
 /* the window procedure for the breakpoints window */
 
@@ -503,23 +521,12 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if (wparam==IDC_ADD)
 	  { char str[22]; 
 	    uint64_t u;
-		int i;
 		octa loc;
 	    GetDlgItemText(hDlg,IDC_ADDRESS,str,22);
 		u=hex_to_uint64(str);
 		loc.h=(tetra)((u>>32)&0xFFFFFFFF);
 		loc.l=(tetra)(u&0xFFFFFFFF);
-        i= find_loc_breakpoint(loc);
-		if (i<0)
-		  i = new_breakpoint(-1,0,loc,exec_bit);
-		else
-		{ breakpoints[i].bkpt|=exec_bit;
-		  if (!file_unknown(i))
-		    ed_set_break(breakpoints[i].file_no,breakpoints[i].line_no,breakpoints[i].bkpt);
-		  change_breakpoint(i);
-		}
-		if(mmix_active())
-          mem_set_breakpoint(i);
+		add_loc_breakpoint(loc);
         return TRUE;
 	  }
 	  else if (wparam==IDC_REMOVE)
@@ -552,10 +559,20 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  item = (int)SendMessage(hBreakList,LB_GETCURSEL,0,0);
 	      if (item!=LB_ERR)
 		  i = (int)SendMessage(hBreakList,LB_GETITEMDATA,item,0);
-		  if (i>=0 && !file_unknown(i))
-		  { set_edit_file(breakpoints[i].file_no);
-		    ed_show_line(breakpoints[i].line_no);
-		  }
+		  if (i>=0)
+		  { if (!file_unknown(i))
+		    { set_edit_file(breakpoints[i].file_no);
+		      ed_show_line(breakpoints[i].line_no);
+		    }
+		    else if (!loc_unknown(i))
+		    { mem_tetra* ll=mem_find(breakpoints[i].loc);
+		      if (ll->file_no>=0 && ll->line_no>0)
+			  { set_edit_file(ll->file_no);
+		        ed_show_line(ll->line_no);
+			  }
+		    }
+		   
+		  }   
 	    }
 	  }
      break;

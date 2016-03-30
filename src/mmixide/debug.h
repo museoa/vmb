@@ -36,6 +36,7 @@ extern int show_debug_neg;
 extern int show_trace;
 
 extern int missing_app;
+
 #ifdef VMB
 extern int auto_connect;
 #endif

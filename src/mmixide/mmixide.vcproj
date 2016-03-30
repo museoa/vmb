@@ -328,10 +328,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winopt\resource.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -560,6 +556,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\winopt\resource"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

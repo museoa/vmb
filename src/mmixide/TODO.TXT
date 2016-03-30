@@ -21,6 +21,15 @@ Other Ideas:
 
 Add a reset button (doubling that of the motherboard).
 
-make mmixvd (visual debugger for mmix)
+man hätte gerne einen pretty print meachnismus
+fürs ganze file oder für die selection (wenn eine existiert)
+abhängig von den source options
+Tabulator größe
+max label tabs
+max operand tabs
+überflüssige spaces löschen
+spaces ersetzen durch tabs
+line comment character 
+nur wenn erforderlich
 
-get a decent icon for the mmixide
+

@@ -3,6 +3,7 @@
 // Used by mmixide.rc
 //
 #define IDR_MENU                        104
+#define IDR_MEMPOPUP					105
 #define IDR_ACCELERATOR                 106
 #define IDI_ICON                        107
 #define IDB_FILE_NEW                    108
@@ -235,6 +236,9 @@
 #define ID_VIEW_SHOWPROFILE             40105
 #define ID_VIEW_LINENUMBERS             40106
 #define ID_VIEW_PROFILE                 40107
+#define ID_POPUP_BREAKONADDRESS			40108
+#define ID_POPUP_BREAKONVALUE			40109
+#define ID_POPUP_SHOW					40110
 
 // Next default values for new objects
 // 

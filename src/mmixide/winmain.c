@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <process.h>
 #include "winopt.h"
+#include "inspect.h"
 #include "resource.h"
 #include "splitter.h"
 #include "buttonbar.h"
@@ -575,12 +576,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
               link.pszMsgTitle =  NULL ;
               link.pszWindow =    NULL ;
               link.fIndexOnFail = TRUE ;
-			  HtmlHelp(hWnd,programhelpfile, HH_DISPLAY_TOPIC,(DWORD_PTR)NULL);
-              hh = HtmlHelp(hWnd,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
+			  HtmlHelp(NULL,programhelpfile, HH_DISPLAY_TOPIC,(DWORD_PTR)NULL);
+              hh = HtmlHelp(NULL,programhelpfile, HH_KEYWORD_LOOKUP,(DWORD_PTR)&link);
 			}
 		  }
 	}
     return 0;
+
   case WM_MMIX_STOPPED:
     if (lParam==-1) /* terminated */   
 	{ mmix_status(MMIX_HALTED);
@@ -863,7 +865,9 @@ void add_buttons(void)
 }
 
 
-
+static	HMENU hMemMenu=NULL;            // top-level menu 
+HMENU hMemContextMenu=NULL;  // shortcut menu 
+HMENU hRegContextMenu=NULL;  // shortcut menu 
 
 
 
@@ -882,7 +886,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     bb_init(hInstance);
 	if (!InitInstance (hInstance)) return FALSE;
 	InitCommonControls(); /* needed for TAB Controls */
-	init_layout(0);
+	init_layout(0); 
+    hMemMenu = LoadMenu(hInst,MAKEINTRESOURCE(IDR_MEMPOPUP));
+	if (hMemMenu!= NULL) 
+	{ hMemContextMenu = GetSubMenu(hMemMenu, 0); 
+	  hRegContextMenu = GetSubMenu(hMemMenu, 1); 
+	}
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,
 		0, 0, r.right-r.left-status_width, BB_HEIGHT , hMainWnd, NULL, hInst, NULL);
@@ -946,6 +955,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #ifdef VMB
 	if (vmb.connected) vmb_atexit();
 #endif
+	if (hMemMenu!= NULL) DestroyMenu(hMemMenu); 
 	return (int)msg.wParam;
 }
 
@@ -958,3 +968,5 @@ void  ide_exit_ignore(int returncode)
 void destroy_log(HWND hLog)
 {  CheckMenuItem(hMenu,ID_VIEW_TRACE,MF_BYCOMMAND|MF_UNCHECKED);
 }
+
+

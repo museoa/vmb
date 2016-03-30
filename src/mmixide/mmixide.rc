@@ -535,6 +535,20 @@ BEGIN
     END
 END
 
+IDR_MEMPOPUP MENU 
+BEGIN
+    POPUP "MemoryPopUp"
+    BEGIN
+        MENUITEM "Break at Address",            ID_POPUP_BREAKONADDRESS
+        MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
+        MENUITEM "Show Memory",                        ID_POPUP_SHOW
+    END
+	POPUP "RegisterPopUp"
+    BEGIN
+        MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
+        MENUITEM "Show Memory",                        ID_POPUP_SHOW
+    END
+END
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
