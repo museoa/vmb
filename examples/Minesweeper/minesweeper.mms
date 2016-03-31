@@ -5,9 +5,9 @@
 
 * Constants
 
-Rows		IS 9
-Columns 	IS 13
-Mines		IS 10
+Rows		IS 15
+Columns 	IS 15
+Mines		IS 20
 
 
 * Traps

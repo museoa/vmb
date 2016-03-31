@@ -208,7 +208,12 @@ static int get_mem(uint64_t address, int size, unsigned char *buf)
 { octa addr;
   addr.h=(tetra)((address>>32)&0xFFFFFFFF);
   addr.l=(tetra)(address&0xFFFFFFFF);
-  return mmgetchars(buf, size, addr, -1);
+  if (mmix_active())
+    return mmgetchars(buf, size, addr, -1);
+  else
+  { memset(buf,0,size);
+    return size;
+  }
 }
 
 static unsigned char *load_mem(uint64_t address, int size)
@@ -224,7 +229,8 @@ static void store_mem(int segment, unsigned int offset, int size, unsigned char 
   a = memory_insp[segment].address+offset;
   addr.h=(tetra)(a>>32);
   addr.l=(tetra)(a&0xFFFFFFFF);
-  mmputchars(buf, size, addr);
+  if (mmix_active())
+    mmputchars(buf, size, addr);
   MemoryDialogUpdate(&memory_insp[segment],offset,size);
 }
 
