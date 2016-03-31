@@ -541,12 +541,17 @@ BEGIN
     BEGIN
         MENUITEM "Break at Address",            ID_POPUP_BREAKONADDRESS
         MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
-        MENUITEM "Show Memory",                        ID_POPUP_SHOW
+        MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
 	POPUP "RegisterPopUp"
     BEGIN
         MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
-        MENUITEM "Show Memory",                        ID_POPUP_SHOW
+        MENUITEM "Show Memory",                 ID_POPUP_SHOW
+    END
+	POPUP "SymbolPopUp"
+    BEGIN
+        MENUITEM "Break at Symbol",             ID_POPUP_BREAKONVALUE
+        MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
 END
 

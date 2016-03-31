@@ -180,7 +180,7 @@ static void sb_move(inspector_def *insp,WPARAM wparam)
 }
 
 
-static uint64_t adjust_goto_addr(inspector_def *insp, uint64_t goto_addr)
+uint64_t adjust_goto_addr(inspector_def *insp, uint64_t goto_addr)
 {  char hexstr[20];
 	if (!insp->change_address)
     { if (goto_addr<insp->address)
@@ -212,6 +212,21 @@ static void refresh_old_mem(inspector_def *insp)
 
 
 void set_edit_rect(inspector_def *insp);
+
+void show_goto_addr(inspector_def *insp, uint64_t goto_addr)
+{ goto_addr=adjust_goto_addr(insp,goto_addr);
+  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
+    insp->sb_base = (unsigned int)(goto_addr-insp->address);
+  else /* move base address of inspector */
+  { insp->address=goto_addr;
+    insp->sb_base=0;
+	insp->mem_size=0;
+    insp->de_offset=-1;
+	set_edit_rect(insp);
+  }
+  insp->sb_cur = 0;
+  adjust_mem_display(insp);
+}
 
 
 void adjust_mem_display(inspector_def *insp)
@@ -585,21 +600,6 @@ void SetInspector(HWND hMemory, inspector_def * insp)
   SetDlgItemText(insp->hWnd,IDC_CHUNK,chunk_names[insp->chunk]);
 }
 
-void set_goto_addr(inspector_def *insp, uint64_t goto_addr)
-{ goto_addr=adjust_goto_addr(insp,goto_addr);
-  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
-    insp->sb_base = (unsigned int)(goto_addr-insp->address);
-  else /* move base address of inspector */
-  { insp->address=goto_addr;
-    insp->sb_base=0;
-	insp->mem_size=0;
-    insp->de_offset=-1;
-	set_edit_rect(insp);
-  }
-  insp->sb_cur = 0;
-  adjust_mem_display(insp);
-}
-
 static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 { 
@@ -652,18 +652,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  char value[MAXVALUE];
           GetDlgItemText(hDlg,IDC_GOTO,value,MAXVALUE);
     	  goto_addr = strtouint64(value);
-		  goto_addr=adjust_goto_addr(insp,goto_addr);
-		  if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
-		    insp->sb_base = (unsigned int)(goto_addr-insp->address);
-		  else /* move base address of inspector */
-		  { insp->address=goto_addr;
-		    insp->sb_base=0;
-			insp->mem_size=0;
-		    insp->de_offset=-1;
-			set_edit_rect(insp);
-		  }
-		  insp->sb_cur = 0;
-		  adjust_mem_display(insp);
+		  show_goto_addr(insp, goto_addr);
 		 }
 	  }
 	  else if (HIWORD(wparam) == BN_CLICKED) 

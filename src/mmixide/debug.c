@@ -192,8 +192,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 
 void set_debug_windows(void)
-{ if (show_trace) show_trace_window();
-  if (show_debug_local) new_register_view(0);
+{ if (show_debug_local) new_register_view(0);
   if (show_debug_global) new_register_view(1);
   if (show_debug_special) new_register_view(2);
   if (show_debug_text) new_memory_view(0);
@@ -201,6 +200,7 @@ void set_debug_windows(void)
   if (show_debug_pool) new_memory_view(2);
   if (show_debug_stack) new_memory_view(3);
   if (show_debug_neg) new_memory_view(4);
+  if (show_trace) show_trace_window();
 }
 
 /* generic routines */
@@ -339,6 +339,14 @@ int close_memory_view(int i)
   }
   return 0;
 }
+
+
+void set_goto_addr(int segment, uint64_t goto_addr)
+{ if (memory_insp[segment].hWnd==NULL)
+      new_memory_view(segment);	
+  show_goto_addr(&memory_insp[segment], goto_addr);
+}
+
 
 /* REgisters */
 
@@ -776,9 +784,7 @@ int MemoryContextMenuHandler(inspector_def *insp, int offset, int x, int y)
 		goto_addr=(goto_addr<<32)+chartoint(buffer+4);
 		if (buffer[0]&0x80)	segment=4;
 		else segment= (buffer[0]>>5)&3;
-		new_memory_view(segment);
-		if (memory_insp[segment].hWnd!=NULL)
-          set_goto_addr(&memory_insp[segment] , goto_addr);
+        set_goto_addr(segment , goto_addr);
 		return 1;
 	  }
     }

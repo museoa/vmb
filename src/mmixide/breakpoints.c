@@ -293,7 +293,7 @@ static int find_loc_breakpoint(octa loc)
    call with bits, 0 to set bits
    call with bits,bits, to selectively add bits 
 */
-void set_file_breakpoint(int file_no, int line_no,  int bits, int mask)
+int set_file_breakpoint(int file_no, int line_no,  int bits, int mask)
 { int i;
   for (i=0; i<blimit;i++)
     if ( breakpoints[i].file_no==file_no && 
@@ -303,12 +303,13 @@ void set_file_breakpoint(int file_no, int line_no,  int bits, int mask)
        change_breakpoint(i);
 	   if (mmix_active())
          mem_set_breakpoint(i); /* for an existing breakpoint, we assume known loc */ 
-	   return;
+	   return breakpoints[i].bkpt;
     }
   /* no breakpoint for this file and line exists. */
   i = new_breakpoint(file_no, line_no,neg_one,bits);
   if (mmix_active() && set_loc_breakpoint(i))
     mem_set_breakpoint(i);
+  return breakpoints[i].bkpt;
 }	
 
 /* deleting a breakpoint in a file */
@@ -352,8 +353,8 @@ void add_loc_breakpoint(octa loc)
 int break_at_symbol(int file_no,char *symbol)
 { sym_node *sym=find_symbol(symbol,file_no);
   if (sym!=NULL&& sym->link==DEFINED)
-  { set_file_breakpoint(sym->file_no,sym->line_no,exec_bit,exec_bit);
-	ed_set_break(sym->file_no,sym->line_no,exec_bit);
+  { int bits = set_file_breakpoint(sym->file_no,sym->line_no,exec_bit,exec_bit);
+	ed_set_break(sym->file_no,sym->line_no,bits);
 	return 1;
   }
   else

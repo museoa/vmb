@@ -94,7 +94,6 @@ extern void resize_memory_dialog(inspector_def *insp);
 
 /* used in winmem when a context menu is asked for */
 extern int (*MemContextMenu)(inspector_def *insp, int offset, int x, int y); /* if not NULL the function to handle the context menu for the memory window */  
-extern void set_goto_addr(inspector_def *insp,uint64_t goto_addr);
-
+extern void show_goto_addr(inspector_def *insp, uint64_t goto_addr);
 #endif
 

@@ -8,6 +8,8 @@ extern void memory_update(void);
 extern void regstack_update(void);
 extern void debug_init(void);
 
+extern void set_goto_addr(int segment, uint64_t goto_addr);
+
 extern void set_register_inspectors(void);
 extern unsigned int show_special_registers;
 extern INT_PTR CALLBACK OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );

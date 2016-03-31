@@ -1,18 +1,13 @@
 When recompiling a file old file and linnumber information may remain in memory
 because this information is overwritten but not deleted.
 
-
-Breakpoints window
 Set breakpoints in symbol table
-Be able to manage breakpoints even without source code.
+Show memory related to symbols
 
 Statistics line im Trace window
 
-
 Ask for reset/reload after assembly while debugging
 
-
-Add help for the ide
 
 currently step out will not stop at breakpoints inside the routine. This should be changed.
 It needs reworking the whole debug interface of MMIX.

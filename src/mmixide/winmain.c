@@ -63,7 +63,7 @@ HWND      hButtonBar;
 HWND      hStatus;
 
 HWND	  hError=NULL;
-HWND	  hSymbolTable=NULL;
+
 
 int status_width = 100; /* initial width of status window */
 
@@ -633,6 +633,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  else
 			 break;
 		}
+   case WM_CONTEXTMENU:
+	   if (SymbolContextMenuHandler(LOWORD(lParam), HIWORD(lParam))) 
+		   return 0;
+	   break; 
   }
  return (DefWindowProc(hWnd, message, wParam, lParam));
 }
@@ -868,6 +872,7 @@ void add_buttons(void)
 static	HMENU hMemMenu=NULL;            // top-level menu 
 HMENU hMemContextMenu=NULL;  // shortcut menu 
 HMENU hRegContextMenu=NULL;  // shortcut menu 
+HMENU hSymContextMenu=NULL;  // shortcut menu 
 
 
 
@@ -891,6 +896,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (hMemMenu!= NULL) 
 	{ hMemContextMenu = GetSubMenu(hMemMenu, 0); 
 	  hRegContextMenu = GetSubMenu(hMemMenu, 1); 
+	  hSymContextMenu = GetSubMenu(hMemMenu, 2); 
 	}
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,

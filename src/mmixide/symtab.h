@@ -11,3 +11,5 @@ extern INT_PTR CALLBACK OptionSymtabDialogProc( HWND hDlg, UINT message, WPARAM 
 extern int symtab_locals;
 extern int symtab_registers;
 extern int symtab_small;
+extern HWND	  hSymbolTable;
+extern int SymbolContextMenuHandler(int x, int y);

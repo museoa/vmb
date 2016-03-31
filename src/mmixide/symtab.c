@@ -10,13 +10,15 @@
 #include "info.h"
 #include "editor.h"
 #include "winopt.h"
+#include "debug.h"
+#include "breakpoints.h"
 #include "symtab.h"
 
 int symtab_locals=0;
 int symtab_registers=0;
 int symtab_small=0;
 
-
+HWND	  hSymbolTable=NULL;
 
 INT_PTR CALLBACK    
 OptionSymtabDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -176,3 +178,60 @@ int symtab_drawitem(LPDRAWITEMSTRUCT di)
   return 0;
 }
  
+int SymbolContextMenuHandler(int x, int y)
+{ POINT pt = { x, y }; 
+  int item;
+  item = LBItemFromPt(hSymbolTable,pt,FALSE);
+  if (item>=0)
+  { int cmd;
+  	sym_node *sym=NULL;
+    sym = (sym_node *)SendMessage(hSymbolTable,LB_GETITEMDATA,item,0);
+
+
+    cmd= TrackPopupMenuEx(hSymContextMenu, 
+             TPM_LEFTALIGN | TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD, 
+             x, y, hMainWnd, NULL);
+	switch (cmd)
+    { case ID_POPUP_BREAKONVALUE:
+		if (sym!=NULL && sym->link==DEFINED)
+		{ int bits;
+          if ((sym->equiv.h&0x60000000)==0) bits=exec_bit;
+          else bits=read_bit|write_bit;
+		  bits=set_file_breakpoint(sym->file_no, sym->line_no,  bits, bits);
+		  ed_set_break(sym->file_no,sym->line_no,bits);
+		  return 1;
+		}
+		break;
+	  case ID_POPUP_SHOW:
+		if (sym!=NULL && sym->link==DEFINED)
+		{ int segment; 
+		  uint64_t goto_addr;
+		  segment = (sym->equiv.h>>29) & 0x7;
+		  if (segment>3) segment=4;
+		  goto_addr=sym->equiv.h;
+		  goto_addr=(goto_addr<<32)+sym->equiv.l;
+          set_goto_addr(segment , goto_addr);
+		  return 1;
+		}
+		break;
+	  default: 
+		break;
+	}
+  }
+  return 0;
+}
+	
+#if 0	
+	
+  int cmd, size;
+  unsigned char buffer[8];
+  octa loc;
+  HMENU hMenu;
+  if (insp->regs!=NULL) hMenu=hRegContextMenu;
+  else hMenu=hMemContextMenu;
+  cmd = TrackPopupMenuEx(hMenu, 
+            TPM_LEFTALIGN | TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD, 
+            x, y, hMainWnd, NULL); // Display the shortcut menu. Track the right mouse button.
+
+
+#endif
