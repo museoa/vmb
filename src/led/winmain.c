@@ -460,6 +460,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (nleds<1) nleds=1;
 	if (nleds>8) nleds=8;
 	read_regtab(defined);
+	get_xypos();
     init_device(&vmb);
 	load_pictures();
 	init_colors();
