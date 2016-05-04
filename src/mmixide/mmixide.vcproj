@@ -230,6 +230,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\indent.c"
+				>
+			</File>
+			<File
 				RelativePath=".\info.c"
 				>
 			</File>
@@ -301,6 +305,10 @@
 			</File>
 			<File
 				RelativePath=".\findreplace.h"
+				>
+			</File>
+			<File
+				RelativePath=".\indent.h"
 				>
 			</File>
 			<File
@@ -435,6 +443,14 @@
 			</File>
 			<File
 				RelativePath=".\Icons\mmixidesmall.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixvd.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\mmixvd16.ico"
 				>
 			</File>
 			<File

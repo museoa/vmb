@@ -3,7 +3,7 @@
 // Used by mmixide.rc
 //
 #define IDR_MENU                        104
-#define IDR_MEMPOPUP					105
+#define IDR_MEMPOPUP                    105
 #define IDR_ACCELERATOR                 106
 #define IDI_ICON                        107
 #define IDB_FILE_NEW                    108
@@ -109,16 +109,22 @@
 #define IDC_SPIN_TABWIDTH               1021
 #define IDC_SHOW_RV                     1022
 #define IDC_RADIO_BREAK_AFTER           1022
+#define IDC_LABEL_WIDTH                 1022
 #define IDC_SHOW_RW                     1023
 #define IDC_RADIO_BREAK_BEFORE          1023
+#define IDC_SPIN_TABWIDTH2              1023
 #define IDC_SHOW_RX                     1024
 #define IDC_LIST_FILES                  1024
+#define IDC_OPCODE_WIDTH                1024
 #define IDC_SHOW_RY                     1025
 #define IDC_ADD                         1025
+#define IDC_SPIN_TABWIDTH3              1025
 #define IDC_SHOW_RZ                     1026
 #define IDC_REMOVE                      1026
+#define IDC_ARG_WIDTH                   1026
 #define IDC_SHOW_RBB                    1027
 #define IDC_CHECK_AUTOCLOSE             1027
+#define IDC_SPIN_TABWIDTH4              1027
 #define IDC_SHOW_RTT                    1028
 #define IDC_SHOW_RWW                    1029
 #define IDC_SHOW_RXX                    1030
@@ -152,7 +158,10 @@
 #define IDC_BROWSE_STDIN                1060
 #define IDC_CHECK1                      1060
 #define IDC_CHECK_AUTOCLOSE_ERRORS      1060
+#define IDC_USE_TABS                    1060
 #define IDC_EXEC                        1061
+#define IDC_CHECK2                      1061
+#define IDC_USE_CRLF                    1061
 #define IDC_READ                        1062
 #define IDC_WRITE                       1063
 #define IDC_CHECK_EXCEPTIONS            1064
@@ -204,6 +213,7 @@
 #define ID_VIEW_SYNTAX                  40063
 #define ID_EDIT_FINDAGAIN               40064
 #define ID_EDIT_REPLACEAGAIN            40069
+#define ID_EDIT_PRETTY                  40070
 #define ID_FILE_PAGESETUP               40073
 #define ID_VIEW_FILELIST                40074
 #define ID_VIEW_SYMBOLTABLE             40075
@@ -236,9 +246,9 @@
 #define ID_VIEW_SHOWPROFILE             40105
 #define ID_VIEW_LINENUMBERS             40106
 #define ID_VIEW_PROFILE                 40107
-#define ID_POPUP_BREAKONADDRESS			40108
-#define ID_POPUP_BREAKONVALUE			40109
-#define ID_POPUP_SHOW					40110
+#define ID_POPUP_BREAKONADDRESS         40108
+#define ID_POPUP_BREAKONVALUE           40109
+#define ID_POPUP_SHOW                   40110
 
 // Next default values for new objects
 // 
@@ -246,7 +256,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40108
-#define _APS_NEXT_CONTROL_VALUE         1061
+#define _APS_NEXT_CONTROL_VALUE         1062
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

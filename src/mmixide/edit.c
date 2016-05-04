@@ -2,6 +2,7 @@
 #include <commctrl.h>
 #include "resource.h"
 #include "winmain.h"
+#include "indent.h"
 #include "edit.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scilexer.h"
@@ -36,6 +37,12 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  CheckDlgButton(hDlg,IDC_CHECK_PROFILE,show_profile?BST_CHECKED:BST_UNCHECKED);
 	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_TABWIDTH),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
 	  SetDlgItemInt(hDlg,IDC_TABWIDTH,tabwidth,FALSE);
+	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_TABWIDTH),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
+	  SetDlgItemInt(hDlg,IDC_LABEL_WIDTH,max_label_indent,FALSE);
+	  SetDlgItemInt(hDlg,IDC_OPCODE_WIDTH,max_opcode_indent,FALSE);
+	  SetDlgItemInt(hDlg,IDC_ARG_WIDTH,max_arg_indent,FALSE);
+	  CheckDlgButton(hDlg,IDC_USE_TABS,use_tab_indent?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_USE_CRLF,use_crlf?BST_CHECKED:BST_UNCHECKED);
       return TRUE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -55,6 +62,11 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		display_profile();
 		tabwidth=GetDlgItemInt(hDlg,IDC_TABWIDTH,NULL,FALSE);
 		set_tabwidth();
+        max_label_indent=GetDlgItemInt(hDlg,IDC_LABEL_WIDTH,NULL,FALSE);
+        max_opcode_indent=GetDlgItemInt(hDlg,IDC_OPCODE_WIDTH,NULL,FALSE);
+        max_arg_indent=GetDlgItemInt(hDlg,IDC_ARG_WIDTH,NULL,FALSE);
+		use_tab_indent =IsDlgButtonChecked(hDlg,IDC_USE_TABS);
+		use_crlf =IsDlgButtonChecked(hDlg,IDC_USE_CRLF);
 		EndDialog(hDlg, TRUE);
         return TRUE;
       } 

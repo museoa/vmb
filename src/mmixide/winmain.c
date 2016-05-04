@@ -31,6 +31,7 @@
 #include "editor.h"
 #include "winlog.h"
 #include "runoptions.h"
+#include "indent.h"
 #include "mmixwinde.h"
 #include "winmain.h"
 #define STATIC_BUILD
@@ -313,6 +314,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 		case ID_EDIT_REPLACE:
 			replace_again();
+			return 0;
+		case ID_EDIT_PRETTY:
+			indent(edit_file_no);
 			return 0;
 		case ID_MMIX_BREAKT:
 			ed_toggle_break(trace_bit);

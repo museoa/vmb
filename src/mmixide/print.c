@@ -20,7 +20,7 @@ void printer_init(void)
 { PAGESETUPDLG psd;    
   ZeroMemory(&psd, sizeof(psd));
   psd.lStructSize = sizeof(psd);
-  psd.Flags=PSD_RETURNDEFAULT;
+  psd.Flags=PSD_RETURNDEFAULT|PSD_NOWARNING;
   if (PageSetupDlg(&psd)==TRUE) {
 	  hMode=psd.hDevMode;
 	  hNames=psd.hDevNames;
@@ -30,10 +30,8 @@ void printer_init(void)
 }
 
 int page_setup(void)
-{ PAGESETUPDLG psd;    // common dialog box structure
-           // owner window
+{ PAGESETUPDLG psd;    
 
-// Initialize PAGESETUPDLG
 ZeroMemory(&psd, sizeof(psd));
 psd.lStructSize = sizeof(psd);
 psd.hwndOwner   = hMainWnd;
@@ -94,6 +92,8 @@ int print(void)
 #define MAX_NAME 128
 	char pagestr[20];
 	/* get information about the page */
+	hMode=  pd.hDevMode;     
+    hNames = pd.hDevNames ;   
 	resolution.x = GetDeviceCaps(pd.hDC, LOGPIXELSX);    // dpi in X direction
 	resolution.y = GetDeviceCaps(pd.hDC, LOGPIXELSY);    // dpi in Y direction
 	size.x = GetDeviceCaps(pd.hDC, PHYSICALWIDTH);   // device units

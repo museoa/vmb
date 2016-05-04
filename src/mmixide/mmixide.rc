@@ -46,13 +46,6 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-#ifdef VMB
-IDI_ICON                ICON                    "Icons\\mmixide.ico"
-IDI_ICON_SMALL          ICON                    "Icons\\mmixide16.ico"
-#else
-IDI_ICON                ICON                    "Icons\\mmixvd.ico"
-IDI_ICON_SMALL          ICON                    "Icons\\mmixvd16.ico"
-#endif
 IDI_FILE_NEW            ICON                    "Icons\\new.ico"
 IDI_VIEW_ZOOMOUT        ICON                    "Icons\\zoomout.ico"
 IDI_FILE_OPEN           ICON                    "Icons\\open.ico"
@@ -80,57 +73,11 @@ IDI_LOAD_FILE           ICON                    "Icons\\loadfile.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x17L
-#ifdef _DEBUG
- FILEFLAGS 0x3L
-#else
- FILEFLAGS 0x2L
-#endif
- FILEOS 0x4L
- FILETYPE 0x1L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "040904b0"
-        BEGIN
-            VALUE "CompanyName", "Martin Ruckert ruckert@cs.hm.edu"
-#ifdef VMB
-            VALUE "FileDescription", "Integrated Development Environment for MMIX"
-            VALUE "InternalName", "mmixide"
-			VALUE "OriginalFilename", "mmixide.exe"
-            VALUE "ProductName", "MMIX IDE"
-#else
-            VALUE "FileDescription", "Visual Debugger for MMIX"
-            VALUE "InternalName", "mmixvd"
-            VALUE "OriginalFilename", "mmixvd.exe"
-            VALUE "ProductName", "MMIX VD"
-#endif
-            VALUE "FileVersion", "1, 0, 0, 1"
-            VALUE "LegalCopyright", "Copyright (C) 2013 by Martin Ruckert"
-            VALUE "ProductVersion", "1, 0, 0, 1"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x409, 1200
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
 //
 
 IDD_BREAKPOINTS DIALOGEX 0, 0, 134, 76
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE 
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_ADDRESS,2,3,76,14,ES_AUTOHSCROLL
@@ -213,7 +160,7 @@ BEGIN
     CONTROL         "Treat Warnings as Errors",IDC_CHECK_WARNERROR,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,7,53,112,10
 END
 
-IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 90
+IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 181
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editor Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -223,9 +170,21 @@ BEGIN
     CONTROL         "Allways save changed files",IDC_CHECK_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,101,10
     CONTROL         "Show line numbers",IDC_CHECK_LINENO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,75,10
     CONTROL         "Show profile",IDC_CHECK_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,55,10
-    EDITTEXT        IDC_TABWIDTH,7,44,30,14,ES_RIGHT | ES_AUTOHSCROLL
-    CONTROL         "",IDC_SPIN_TABWIDTH,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,24,44,11,14
-    LTEXT           "Tabulator width",IDC_STATIC,39,48,51,8
+    GROUPBOX        "Layout and Pretty Printing",IDC_STATIC,7,58,172,116
+    EDITTEXT        IDC_TABWIDTH,14,72,30,14,ES_RIGHT | ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_TABWIDTH,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,72,11,14
+    LTEXT           "Tabulator width",IDC_STATIC,48,75,51,8
+    CONTROL         "Use tabs for indentation ",IDC_USE_TABS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,90,95,10
+    EDITTEXT        IDC_LABEL_WIDTH,14,102,30,14,ES_RIGHT | ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_TABWIDTH2,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,102,11,14
+    LTEXT           "Prefered label width",IDC_STATIC,47,105,65,8
+    EDITTEXT        IDC_OPCODE_WIDTH,14,121,30,14,ES_RIGHT | ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_TABWIDTH3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,121,11,14
+    LTEXT           "Prefered opcode width",IDC_STATIC,47,124,74,8
+    EDITTEXT        IDC_ARG_WIDTH,14,140,30,14,ES_RIGHT | ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN_TABWIDTH4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,140,11,14
+    LTEXT           "Prefered argument width",IDC_STATIC,46,143,81,8
+    CONTROL         "Use CR LF for line ends",IDC_USE_CRLF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,158,95,10
 END
 
 IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
@@ -279,26 +238,6 @@ BEGIN
     CONTROL         "Show Locals",IDC_CHECK_LOCALS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,55,10
     CONTROL         "Show Registers",IDC_CHECK_REGISTERS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,22,65,10
     CONTROL         "Show small values",IDC_CHECK_SMALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,73,10
-END
-
-IDD_OPTIONS_SOURCES DIALOGEX 0, 0, 332, 152
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Sources"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    PUSHBUTTON      "Add File ...",IDC_ADD,7,7,50,15
-    DEFPUSHBUTTON   "OK",IDOK,275,7,50,15
-    CONTROL         "Load single file",IDC_CHECK_SINGLEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,70,10,115,10
-    LTEXT           "Full name",IDC_TAB_FULLNAME,20,50,299,8
-    CONTROL         "Assemble and read symbol table",IDC_CHECK_SYMBOLS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,65,119,10
-    CONTROL         "Load mmo file",IDC_CHECK_LOADMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,80,59,10
-#ifdef VMB	
-    CONTROL         "Create image file",IDC_CHECK_IMAGEFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,95,70,10
-#endif
-    CONTROL         "Execute command",IDC_CHECK_EXECUTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,110,74,10
-    EDITTEXT        IDC_EDIT_COMMAND,32,125,286,15,ES_AUTOHSCROLL
-    CONTROL         "",IDC_TAB_FILES,"SysTabControl32",WS_CLIPSIBLINGS | WS_TABSTOP,7,30,318,115,WS_EX_TRANSPARENT
 END
 
 IDD_OPTIONS_RUN DIALOGEX 0, 0, 294, 93
@@ -380,7 +319,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 179
         TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        BOTTOMMARGIN, 174
     END
 
     IDD_SHOW_SPECIAL, DIALOG
@@ -397,14 +336,6 @@ BEGIN
         RIGHTMARGIN, 179
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
-    END
-
-    IDD_OPTIONS_SOURCES, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 325
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 131
     END
 
     IDD_OPTIONS_RUN, DIALOG
@@ -431,110 +362,6 @@ END
 // Menu
 //
 
-IDR_MENU MENUEX 
-BEGIN
-    POPUP "&File",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&New",                        ID_FILE_NEW,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Open",                       ID_FILE_OPEN,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Close",                      ID_FILE_CLOSE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Save &As",                    ID_FILE_SAVEAS,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Pa&ge Setup ...",             ID_FILE_PAGESETUP,MFT_STRING,MFS_ENABLED
-        MENUITEM "Print ...\tCtrl+P",           ID_FILE_PRINT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Exit",                       ID_FILE_EXIT,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&Edit",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "Undo\tCtrl+Z",                ID_EDIT_UNDO,MFT_STRING,MFS_ENABLED
-        MENUITEM "Redo\tCtrl+Y",                ID_EDIT_REDO,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Cut\tCtrl+X",                 ID_EDIT_CUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY,MFT_STRING,MFS_ENABLED
-        MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Delete\tDel",                 ID_EDIT_DELETE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECTALL,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Find and Replace ...\tCtrl+F", ID_EDIT_FIND,MFT_STRING,MFS_ENABLED
-        MENUITEM "Find A&gain\tCtrl+G",         ID_EDIT_FINDAGAIN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Replace Again\tCtrl+H",       ID_EDIT_REPLACE,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&View",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        POPUP "&Registers",                     65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "&Local",                      ID_REGISTERS_LOCAL,MFT_STRING,MFS_ENABLED
-            MENUITEM "Local with &Stack",           ID_REGISTERS_STACK,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Global",                     ID_REGISTERS_GLOBAL,MFT_STRING,MFS_ENABLED
-            MENUITEM "&Special",                    ID_REGISTERS_SPECIAL,MFT_STRING,MFS_ENABLED
-        END
-        POPUP "&Memory",                        65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "&Text Segment",               ID_MEM_TEXTSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Data Segment",                ID_MEM_DATASEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Pool Segment",                ID_MEM_POOLSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Stack Segment",               ID_MEM_STACKSEGMENT,MFT_STRING,MFS_ENABLED
-            MENUITEM "Negative Segment",            ID_MEM_NEGATIVESEGMENT,MFT_STRING,MFS_ENABLED
-        END
-        MENUITEM "&Symbol table",               ID_VIEW_SYMBOLTABLE,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Breakpoints",                ID_VIEW_BREAKPOINTS,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Trace",                      ID_VIEW_TRACE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Zoom &In\tCtrl++",            ID_VIEW_ZOOMIN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Zoom &Out\tCtrl+-",           ID_VIEW_ZOOMOUT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Syntax &Highlighting",        ID_VIEW_SYNTAX,MFT_STRING,MFS_ENABLED
-        MENUITEM "Show &White Space",           ID_VIEW_WHITESPACE,MFT_STRING,MFS_ENABLED
-        MENUITEM "Show &Line Numbers",          ID_VIEW_LINENUMBERS,MFT_STRING,MFS_ENABLED
-        MENUITEM "Show &Profile",               ID_VIEW_PROFILE,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&MMIX",                          65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Step Instruction",           ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
-        MENUITEM "Step &Over",                  ID_MMIX_STEPOVER,MFT_STRING,MFS_ENABLED
-        MENUITEM "Step O&ut",                   ID_MMIX_STEPOUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Break Execution",            ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Halt Execution",             ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
-        MENUITEM MFT_SEPARATOR
-        MENUITEM "Set E&xecute Breakpoint",     ID_MMIX_BREAKX,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Tracepoint",             ID_MMIX_BREAKT,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Read Breakpoint",        ID_MMIX_BREAKR,MFT_STRING,MFS_ENABLED
-        MENUITEM "Set &Write Breakpoint",       ID_MMIX_BREAKW,MFT_STRING,MFS_ENABLED
-    END
-    POPUP "&Options",                       65535,MFT_STRING,MFS_ENABLED
-    BEGIN
-        MENUITEM "&Editor ...",                 ID_OPTIONS_EDITOR,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Assembler ...",              ID_OPTIONS_ASSEMBLER,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Debug  ...",                 ID_OPTIONS_DEBUG,MFT_STRING,MFS_ENABLED
-#ifdef VMB
-        MENUITEM "&Motherboard ...",            ID_OPTIONS_VMB,MFT_STRING,MFS_ENABLED
-#endif
-        MENUITEM "&Run ...",                    ID_OPTIONS_RUN,MFT_STRING,MFS_ENABLED
-        MENUITEM "Symbol &table  ...",          ID_OPTIONS_SYMTAB,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Sources ...",                ID_OPTIONS_SOURCES,MFT_STRING,MFS_ENABLED
-        POPUP "En&coding",                      65535,MFT_STRING,MFS_ENABLED
-        BEGIN
-            MENUITEM "ASCII",                       ID_ENCODING_ASCII,MFT_STRING,MFS_ENABLED
-            MENUITEM "UTF-8",                       ID_ENCODING_UTF,MFT_STRING,MFS_ENABLED
-        END
-    END
-    POPUP "&Help",                          65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
-    BEGIN
-        MENUITEM "&About",                      ID_HELP_ABOUT,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Content",                    ID_HELP_CONTENT,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Instructions",               ID_HELP_INSTRUCTIONS,MFT_STRING,MFS_ENABLED
-    END
-END
-
 IDR_MEMPOPUP MENU 
 BEGIN
     POPUP "MemoryPopUp"
@@ -543,17 +370,18 @@ BEGIN
         MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
         MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
-	POPUP "RegisterPopUp"
+    POPUP "RegisterPopUp"
     BEGIN
         MENUITEM "Break at Value",              ID_POPUP_BREAKONVALUE
         MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
-	POPUP "SymbolPopUp"
+    POPUP "SymbolPopUp"
     BEGIN
         MENUITEM "Break at Symbol",             ID_POPUP_BREAKONVALUE
         MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
 END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -568,12 +396,12 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\0"
+    "\r#include ""vmb_vd.rc""\r\0"
 END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\0"
+    "#include ""afxres.h""\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -588,7 +416,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+#include "vmb_vd.rc"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

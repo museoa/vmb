@@ -1,8 +1,5 @@
-When recompiling a file old file and linnumber information may remain in memory
+When recompiling a file old file and linenumber information may remain in memory
 because this information is overwritten but not deleted.
-
-Set breakpoints in symbol table
-Show memory related to symbols
 
 Statistics line im Trace window
 

@@ -10,6 +10,7 @@
 #include "symtab.h"
 #include "runoptions.h"
 #include "findreplace.h"
+#include "indent.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scilexer.h"
 
@@ -74,4 +75,11 @@ regtable regtab= {
 	{KEY_FLAGS ,&auto_close_errors,28},
 	{"traceexceptions",&tracing_exceptions,TYPE_DWORD},
 	{KEY_FLAGS ,&warn_as_error,29},
+	{KEY_FLAGS ,&use_tab_indent,30},
+	{KEY_FLAGS ,&use_crlf,31},
+
+	{"maxlabel",&max_label_indent,TYPE_DWORD},
+	{"maxop",&max_opcode_indent,TYPE_DWORD},
+	{"maxarg",&max_arg_indent,TYPE_DWORD},
+
 	{NULL,NULL,0}};
