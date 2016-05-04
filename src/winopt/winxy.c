@@ -17,12 +17,14 @@ void set_xypos(HWND hWnd)
 
 void get_xypos(void)
 { int w,h;
-  w = GetSystemMetrics(SM_CXSCREEN)-50;
-  h = GetSystemMetrics(SM_CYSCREEN)-50;
-  if (xpos > 0 && xpos <w && ypos > 0 && ypos < h) 
-	return;  /* values are reasonable */
-  if (xpos < 0 || xpos >w) xpos = 0;
-  if (ypos < 0 || ypos >h) ypos = 0;
-  if (width<=0 || xpos+width>w) width=w-xpos;
-  if (height<=0 || ypos+height>h) height=h-ypos;
+  w = screen_width-64;
+  h = screen_height-64;
+  if (xpos < 0) xpos = 0;
+  if (xpos > w) xpos = w;
+  if (ypos < 0) ypos = 0;
+  if (ypos >h) ypos = h;
+  if (width<=0) width=64;
+  if (width>screen_width) width=screen_width;
+  if (height<=0) height=64;
+  if (height>screen_height) height=screen_height;
 }
