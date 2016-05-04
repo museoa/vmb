@@ -1329,6 +1329,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	param_init();
 	SetWindowText(hMainWnd,defined);
     read_regtab(defined);
+	get_xypos();
     init_screen(&vmb);
     init_mouse();
     init_gpu();
