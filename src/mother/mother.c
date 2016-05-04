@@ -1145,6 +1145,7 @@ WinMain (HINSTANCE hInstance,
       return 0;
   }
   read_regtab(defined);
+  get_xypos();
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();
