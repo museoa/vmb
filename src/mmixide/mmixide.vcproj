@@ -336,6 +336,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\winopt\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -510,7 +514,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\winopt\win32about.rc"
+				RelativePath="about.rc"
 				>
 			</File>
 			<File

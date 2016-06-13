@@ -504,7 +504,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\winopt\win32about.rc"
+				RelativePath="about.rc"
 				>
 			</File>
 			<File
