@@ -1,0 +1,103 @@
+<HTML>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>Virtual Motherboard Homepage</title>
+	</head>
+
+	<BODY>
+<H1 align="left"><a title="Home" href="index.html" target="_top"><img src="vmb64.gif" alt="VMB Logo" height="64" width="64" border="0"></a></H1>
+		<h1 align="center">Parameter Initialization</h1>
+
+		When a program starts, many parameters need to be initialized.
+		This document describes the sequence of steps taken by a program, belonging to the VMB project, to initializes
+		all its parameters.
+		
+		<h2>Static Defaults</h2>
+		The variables get initial values when the program is loaded into memory.
+		These values are specified in the variable declaration. For example:
+<pre>
+<code>
+		int port = 9002;
+</code>
+</pre>	
+		<h2>Options Table</h2>
+		Some parameters can be set in configuration files and on the command line.
+		These parameters are specified in a table called <tt>options</tt>.
+		This table specifies default values for all these parameters, and these defaults are assigned
+		next.
+		
+		<h2>Program Name</h2>
+        Before reading	the configuration files and checking the windows registry for parameter settings,
+        the program's name has to be determined.
+        The program name, along with the path to the directory where the program is located, is determined 
+		from the first entry in the argument vector <tt>argv[0]</tt>.
+		
+ 	    <h2>Defined Program Name</h2>
+		Because it might be necessary to start the same program, for example a button, with different parameters
+		(color, label, interrupt number, ...), the second entry in the argument vector, <tt>argv[1]</tt>, might give the
+		program a new "defined" name.  So you can start the button program two times like this:
+<pre>
+<code>
+		button.exe start
+		button.exe stop
+</code>
+</pre>
+       In this example, the first invocation will replace the program name "button" by the defined program name "start"
+	   and the second invocation will replace "button" by "stop". 
+	   This new program name will then be used in the following steps
+	   to find the right parameters for the program.
+	   
+	   <h2>Windows Registry</h2>
+	   For programs running under the windows operating system, the registry is used to store and load parameter
+	   values in order to make them persistent.
+	   For example, the position of the program window on the screen is stored in the registry before the program
+	   terminates and is restored  when the program starts. This improves the usability of the program, because
+       the user does not need to reposition the windows each time the program is started.
+	   The parameters and their values are stored in the registry under
+       <tt>HKEY_CURRENT_USER/Software/VMB/</tt><i>program name</i><tt>/</tt><i>parameter name</i>.
+	   The <i>program name</i> used here is the real or defined program name as described before.
+	   <p>
+       By convention, only parameters that pertain to user interface and user preferences are stored in the registry.
+       Parameters that are essential for the correct working of a device configuration must be specified in the
+	   configuration file, which we consider next.
+	   
+	   <h2>Configuration Files</h2> 
+	   The details about the content of configuration files can be found in the section "<a href="configuration.html">Configuration Files</a>".
+	   <p>
+	   Configuration files can be specified on the command line using the <tt>-c</tt> or <tt>--config</tt> option.
+	   If the command line does not specify a configuration file, the file <tt>default.vmb</tt> is loaded before processing
+	   the command line. If the command line specifies a configuration file, <tt>default.vmb</tt> is not loaded because 
+       loading a configuration file is then part of processing the command line as described in the next step.	   
+	   <p>
+	   Unless the configuration file is given by an absolute file name, the program tries to find
+	   the file in the following directories in the order given:
+	   <ul>
+	   <li> the current working directory,
+       <li> the directory where the last configuration file was located (could be absolute),
+       <li> the directory where the executable is located.	   
+	   </ul>
+	   
+	   
+	   <h2>Command Line</h2>
+	   Last not least, parameters can be set using options on the command line.  The possible options are listed in the option table (see above).
+	   Since the same option table is used for the command line and for the configuration file, it is possible to change options given in the
+	   configuration files by options given on the command line. For each option there is a short form like "<tt>-v</tt>" and a long form like 
+	   "<tt>--verbose</tt>". To get a list of all options you can run the program with the "<tt>-?</tt>" option (short form) or with the
+	   "<tt>--help</tt>" option (long form).
+	   If the command line uses an option to specify a configuration file, options preceeding it are processed first, then 
+	   the configuration file is processed as if all its options were part of the
+	   command line, and finaly the processing of options continues with the command line options following the configuration file option.
+	   <p>
+	   Some options, notably  <tt>-x</tt> and  <tt>-y</tt> (to set the position on the screen), can be used to change parameter settings
+       taken normaly from the windows registry. This makes sense for devices (like buttons or LEDs) that are part of the user interface of the
+       simulated assembly; the position on the screen is then more part of the simulation than a user preference.   
+	  
+	  <h2>Final Checks</h2>
+	  After processing the command line, the program might perform final checks, to ensure that all parameters have reasonable values.
+	  For example, the x and y position of windows is usually checked to make sure the window is not placed "off screen", which would make
+	  it difficult to interact with the program.
+	   
+	  <p>
+	</BODY>
+</HTML>
