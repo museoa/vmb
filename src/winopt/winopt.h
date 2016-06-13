@@ -80,7 +80,6 @@ extern regtable regtab;
 /* from winreg.c */
 extern void write_regtab(char *program);
 extern void read_regtab(char * program);
-extern void parse_commandline(int argc, char *argv[]);
 
 /* from layout.c */
 
@@ -103,16 +102,11 @@ extern int screen_height;
 
 extern int minimized;
 
-#ifdef WIN32
-extern void param_init(void);
-#else
-extern void param_init(int argc, char *argv[]);
-#endif
-
-
-
 extern LRESULT CALLBACK 
 OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
+
+/* from winparam.c */
+extern void win32_param_init(void);
 
 #include <stdio.h>
 FILE *vmb_fopen(char *filename, char *mode);

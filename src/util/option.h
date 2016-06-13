@@ -46,9 +46,7 @@ typedef UINT64 uint64_t;
 extern char *programpath;
 extern char *programhelpfile;
 extern char *vmb_program_name;
-extern char *program_name;
-extern char *vmb_cwd;
-
+/* extern char *program_name; */
 extern char *defined;
 /* NULL, or a string that is used to identify conditionals
    that will not be skipped in the configuration file 
@@ -66,6 +64,9 @@ extern void set_option(char **option, char *str);
 
 extern void option_usage(FILE *out);
 /*write an explanation of the options to out */
+
+extern void do_program(char * arg);
+/* initialize program dependent variables */
 
 extern void parse_commandline(int argc, char **argv);
 /* parse the commandline handling options and arguments 
@@ -114,8 +115,8 @@ extern void option_defaults(void);
 extern FILE *vmb_fopen(char *filename, char *mode);
 /* fopen(filename,mode) look in the configPATH and programpath before giving up 
 */
-extern void vmb_get_cwd(void); 
-/* set vmb_cwd*/
+extern char *vmb_get_cwd(void); 
+/* set and get the current working directory */
 
 
 /* this is what you must provide: */

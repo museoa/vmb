@@ -20,7 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char version[]="$Revision: 1.18 $ $Date: 2016-02-16 09:49:16 $";
 char title[] ="VMB Serial";
 

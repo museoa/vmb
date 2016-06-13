@@ -572,10 +572,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\winopt\resource"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

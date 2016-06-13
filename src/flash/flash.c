@@ -44,7 +44,7 @@ extern HWND hMainWnd;
 #include "param.h"
 #include "vmb.h"
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char title[] ="VMB Flash";
 
 char version[]="$Revision: 1.28 $ $Date: 2016-02-16 09:49:15 $";

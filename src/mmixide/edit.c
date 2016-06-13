@@ -35,12 +35,14 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       CheckDlgButton(hDlg,IDC_CHECK_AUTOSAVE,autosave?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_CHECK_LINENO,show_line_no?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_CHECK_PROFILE,show_profile?BST_CHECKED:BST_UNCHECKED);
-	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_TABWIDTH),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
 	  SetDlgItemInt(hDlg,IDC_TABWIDTH,tabwidth,FALSE);
 	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_TABWIDTH),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
 	  SetDlgItemInt(hDlg,IDC_LABEL_WIDTH,max_label_indent,FALSE);
+	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_LABEL),UDM_SETRANGE,0,(LPARAM) MAKELONG (64,0));
 	  SetDlgItemInt(hDlg,IDC_OPCODE_WIDTH,max_opcode_indent,FALSE);
+	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_OPCODE),UDM_SETRANGE,0,(LPARAM) MAKELONG (32,0));
 	  SetDlgItemInt(hDlg,IDC_ARG_WIDTH,max_arg_indent,FALSE);
+	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_ARG),UDM_SETRANGE,0,(LPARAM) MAKELONG (64,0));
 	  CheckDlgButton(hDlg,IDC_USE_TABS,use_tab_indent?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_USE_CRLF,use_crlf?BST_CHECKED:BST_UNCHECKED);
       return TRUE;

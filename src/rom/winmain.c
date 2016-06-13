@@ -48,11 +48,12 @@ SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		GetDlgItemText(hDlg,IDC_FILE,tmp_option,MAXTMPOPTION);
         ofn.lpstrFile = tmp_option;
         ofn.nMaxFile = MAXTMPOPTION;
-        ofn.lpstrFilter = "All\0*.*\0Rom\0*.rom\0";
+        ofn.lpstrFilter = "All\0*.*\0Rom Image\0*.img\0";
         ofn.nFilterIndex = 1;
         ofn.lpstrFileTitle = NULL;
         ofn.nMaxFileTitle = 0;
         ofn.lpstrInitialDir = NULL;
+        ofn.lpstrTitle = "Open Image File";
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
         /* Display the Open dialog box. */

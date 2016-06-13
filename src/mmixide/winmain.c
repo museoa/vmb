@@ -39,7 +39,7 @@
 
 #pragma warning(disable : 4996)
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char version[]="$Revision: 1.60 $ $Date: 2016-02-16 09:49:15 $";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
@@ -913,9 +913,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	new_edit();
 	mmix_lib_initialize();
 	debug_init();
-	param_init ();
-	read_regtab(defined);
-	get_xypos();
+	win32_param_init ();
 	set_font_size(fontsize);
 	ed_zoom(fontsize);
 	CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));

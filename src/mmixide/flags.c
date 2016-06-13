@@ -40,8 +40,8 @@ regtable regtab= {
 	{"args",&run_args,TYPE_STRING},
 
     /* assembler options */
-	{"boption",&b_option,TYPE_DWORD},
-	{KEY_FLAGS ,&x_option,5},
+	{"boption",&buf_size,TYPE_DWORD},
+	{KEY_FLAGS ,&expanding,5},
 	{KEY_FLAGS ,&l_option,6},
 	{KEY_FLAGS ,&auto_assemble,7},
 
@@ -77,6 +77,7 @@ regtable regtab= {
 	{KEY_FLAGS ,&warn_as_error,29},
 	{KEY_FLAGS ,&use_tab_indent,30},
 	{KEY_FLAGS ,&use_crlf,31},
+	{KEY_FLAGS ,&check_X_BIT,32},
 
 	{"maxlabel",&max_label_indent,TYPE_DWORD},
 	{"maxop",&max_opcode_indent,TYPE_DWORD},

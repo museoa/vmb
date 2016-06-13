@@ -224,6 +224,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winparam.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winreg.c"
 				>
 			</File>

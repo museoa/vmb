@@ -138,9 +138,14 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
 void param_init(void)
 { int argc;
   char *argv[MAXARG];
+  int i;
 #ifdef VMB
   option_defaults();
 #endif
   argc=mk_argv(argv,GetCommandLine(),TRUE);
-  parse_commandline(argc, argv);
+  do_program(argv[0]);
+  if (do_define(argv[1])) i=2; else i=1;
+  read_regtab(defined);
+  parse_commandline(argc-i, argv+i);
+  get_xypos();
 }

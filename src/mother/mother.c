@@ -73,7 +73,7 @@ device_info vmb = {0};
 #include "bus-arith.h"
 
 extern int vmb_power_flag;
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char version[] = "$Revision: 1.53 $ $Date: 2016-02-16 09:49:15 $";
 char title[] = "VMB Motherboard";
 char howto[] =
@@ -1138,14 +1138,11 @@ WinMain (HINSTANCE hInstance,
   init_layout(0);
   hAccelTable =
     LoadAccelerators (hInstance, MAKEINTRESOURCE (IDR_ACCELERATOR));
-
-  param_init ();
+  win32_param_init ();
   if (terminate_flag)
   {   do_commands ();
       return 0;
   }
-  read_regtab(defined);
-  get_xypos();
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();

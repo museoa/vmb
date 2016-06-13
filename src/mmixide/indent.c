@@ -13,22 +13,21 @@ int max_arg_indent=16; /*maximum characters for the arguments column */
 int max_opcode_indent=8; /* maximum characters for the opcode column */
 static int label_size=8; /*measured characters for the label column */
 static int arg_size=16; /*measured characters for the arguments column */
-#define OP_SIZE 7
-static int op_size=OP_SIZE;   /* size of the op column */
+static int op_size=7;   /* size of the op column */
 int use_tab_indent=1; /* whether to use tabs or spaces */
 int use_crlf=1; /* Use CR LF to end a line */
 unsigned char line_comment; /* character to use for line comments */
 
 static unsigned char *buffer=NULL; /* buffer to hold entire text */
 static unsigned int buffer_size=0;
-static unsigned int extra_size=128;
 
-static unsigned char *get_buffer(int file_no)
+static unsigned char *get_buffer(int file_no,double extra_size)
 { unsigned int len, extra;
   set_edit_file(file_no);
   len= (int)ed_send(SCI_GETLENGTH,0,0);
-  extra = len/4;
-  if (extra<extra_size) extra=extra_size;
+  extra = (int)(len*extra_size);
+  if (extra<128)
+    extra=128;
   if (buffer==NULL) buffer=malloc(len+extra+1);
   else buffer=realloc(buffer,len+extra+1);
   if (buffer==NULL) return NULL;
@@ -116,11 +115,13 @@ static void measure_indent(unsigned char *buffer)
   if (buffer==NULL) return;
   label_size=0;
   arg_size=0;
+  op_size=0;
   i=0;
   do
   { eol=scan_line(buffer+i);
     i = i+sline;
     if (slabel>label_size) label_size=slabel;
+	if (sop>op_size) op_size=sop;
 	if (sarg>arg_size) arg_size=sarg;
   } while (eol!=0);
 }
@@ -136,13 +137,13 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
 /* input and output buffer may overlap. out <= in
    in must point to the start of a line.
    pretty printing stops when out==in 
-   the return value is 0 when out==in else it is nonzero
+   the return value is out when out==in else it is NULL
 */
 #define CRLF	  if (use_crlf && out<in) *out++='\r'; *out++=*in++
 #define TRIM      while (isblank(*(out-1))) out--; 
-#define EOF       if (*in==0) {TRIM; *out=0; return out; }
+#define EOF       if (*in==0) {TRIM; *out=0; return NULL; }
 #define EOL			if (*in=='\n') { TRIM; CRLF;  continue; }
-#define OOM       if (out>=in) return NULL
+#define OOM       if (out>=in) return out
 #define COPY      do { *out++=*in++; pos++; OOM; EOF;} while (!isspace(*in)) 
 #define COPYTONL    do { *out++=*in++; OOM; EOF;} while (*in!='\n'); TRIM; CRLF;
 #define SPACE     while (isblank(*in)) in++ 
@@ -182,28 +183,41 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
 	SKIPTO(icomment);
 	COPYTONL;
   }
-  return NULL;
+  return out;
 }
 
 
 
-unsigned char *indent(int file_no)
+void indent(int file_no)
 /* pretty print the given file */
 { unsigned char  *eob;
   unsigned char *in;
-  in=get_buffer(file_no);
-  measure_indent(in);
-  if (label_size>max_label_indent) label_size=max_label_indent;  
-  if (arg_size>max_arg_indent) arg_size=max_arg_indent;
-  op_size=OP_SIZE;
-  if (op_size>max_opcode_indent) op_size=max_opcode_indent;
-  if (use_tab_indent) tabsize=tabwidth;
-  else tabsize=1;
-  label_size=tabsize*((label_size+tabsize)/tabsize);
-  arg_size=tabsize*((arg_size+tabsize)/tabsize);
-  op_size=tabsize*((op_size+tabsize)/tabsize);
-  eob=pretty_print(buffer,in,tabsize,label_size,op_size,arg_size,'\t');
-  put_buffer(file_no);
-  return eob;
+  double ratio,extra_size=0.25;
+  int try = 3;
+  while (try-->0)
+  { in=get_buffer(file_no,extra_size);
+    if (in==NULL) return;
+    measure_indent(in);
+    if (label_size>max_label_indent) label_size=max_label_indent;  
+    if (arg_size>max_arg_indent) arg_size=max_arg_indent;
+    if (op_size>max_opcode_indent) op_size=max_opcode_indent;
+    if (use_tab_indent) tabsize=tabwidth;
+    else tabsize=1;
+    label_size=tabsize*((label_size+tabsize)/tabsize);
+    arg_size=tabsize*((arg_size+tabsize)/tabsize);
+    op_size=tabsize*((op_size+tabsize)/tabsize);
+    eob=pretty_print(buffer,in,tabsize,label_size,op_size,arg_size,use_tab_indent?'\t':' ');
+    if (eob==NULL) 
+	{ put_buffer(file_no);
+	  return;
+	}
+	else
+	{ ratio=((double)buffer_size)/(eob-buffer);
+	  if (ratio<1.0) ratio=1.0;
+	  if (ratio>2.0) ratio=2.0;
+      put_buffer(file_no);
+	  extra_size=ratio*extra_size;
+	}
+  }
 }
 

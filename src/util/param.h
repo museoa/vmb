@@ -45,11 +45,7 @@ extern char *vmb_filename;
 #define MAXARG 256
 extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 
-#ifdef WIN32
-extern void param_init(void);
-#else
 extern void param_init(int argc, char *argv[]);
-#endif
 
 extern void usage(char *message);
 extern void store_command(char *command);

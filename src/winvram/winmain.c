@@ -13,15 +13,21 @@
 #include "opt.h"
 #include "inspect.h"
 
+int major_version=2, minor_version=0;
 char version[]="$Revision: 1.46 $ $Date: 2016-02-16 09:49:17 $";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 
-int major_version=1, minor_version=9;
+
 /*
  *     The Screen Stuff
  *
  */
+char howto[] =
+  "\n"
+  "The program first reads the configuration file, \"default.vmb\".\n"
+  "Then, the program simulates a video ram, a mouse, and a GPU.\n";
+
 extern int framewidth, frameheight, fontwidth, fontheight;
 extern double zoom;
 static HDC hCanvas = NULL;
@@ -1326,10 +1332,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 	init_layout(0);
-	param_init();
-	SetWindowText(hMainWnd,defined);
-    read_regtab(defined);
-	get_xypos();
+	win32_param_init();
     init_screen(&vmb);
     init_mouse();
     init_gpu();

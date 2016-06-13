@@ -19,9 +19,14 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char version[]="$Revision: 1.30 $ $Date: 2016-02-16 09:49:16 $";
 char title[] ="VMB Sevensegment";
+char howto[] =
+  "\n"
+  "The program first reads the configuration file,\n"
+  "then, the program simulates a seven-segment display.\n";
+
 
 INT_PTR CALLBACK   
 SettingsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
@@ -240,10 +245,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 	init_layout(0);
-	param_init();
-	SetWindowText(hMainWnd,defined);
-	read_regtab(defined);
-	get_xypos();
+	win32_param_init();
     init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	UpdateWindow(hMainWnd);

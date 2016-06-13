@@ -92,10 +92,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 	init_layout(0);
-	param_init();
-	SetWindowText(hMainWnd,defined);
-	read_regtab(defined);
-	get_xypos();
+	win32_param_init();
     init_device(&vmb);
 	SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
 	if (minimized)CloseWindow(hMainWnd); 
@@ -104,7 +101,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
  	vmb_connect(&vmb,host,port);
 	vmb_register(&vmb,HI32(vmb_address),LO32(vmb_address),vmb_size,0,0,defined,major_version,minor_version);
     SendMessage(hMainWnd,WM_VMB_CONNECT,0,0); /* the connect button */
-	if (vmb_verbose_flag) vmb_debug_mask=0; 
 	CheckMenuItem(hMenu,ID_DEBUG,MF_BYCOMMAND|(vmb_debug_flag?MF_CHECKED:MF_UNCHECKED));
 	CheckMenuItem(hMenu,ID_VERBOSE,MF_BYCOMMAND|(vmb_debug_mask==0?MF_CHECKED:MF_UNCHECKED));
 

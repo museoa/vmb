@@ -28,6 +28,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include <htmlhelp.h> 
 #pragma warning(disable : 4996)
 #else
 #include <unistd.h>
@@ -61,22 +62,25 @@ extern option_spec options[];
 
 #ifdef WIN32
 extern HWND hMainWnd;
-extern HMENU hMenu;
 #endif
 
 void usage(char *message)
 {
 #if defined WIN32 && !defined _CONSOLE
- if (programhelpfile==NULL)
-    WinHelp(hMainWnd,(LPCTSTR)"mmixmb.hlp",HELP_CONTENTS, 0L);
-  else
-    WinHelp(hMainWnd,programhelpfile,HELP_CONTENTS, 0L);
-#else
+ HANDLE hstdout;
+ HWND ok;
+ if (programhelpfile!=NULL)
+ { ok=HtmlHelp(hMainWnd,programhelpfile,HH_DISPLAY_TOPIC,(DWORD_PTR)NULL) ;
+   if (ok!=NULL) return;
+ }
+ hstdout=GetStdHandle(STD_OUTPUT_HANDLE);
+ if (hstdout==NULL) return;
+#endif
   printf("Version %s\n", version);
   printf("%s\n",howto);
   option_usage(stdout);
   printf("\n");
-#endif
+
 }
 
 
@@ -139,24 +143,12 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
 }
 
 
-#ifdef WIN32
 
-void param_init(void)
-{ int argc;
-  char *argv[MAXARG];
-#else
 void param_init(int argc, char *argv[])
-{
-#endif 
+{ int i;
   option_defaults();
-#ifdef WIN32
-//    MessageBox(hMainWnd,GetCommandLine(),"Commandline",MB_OK);
-    argc=mk_argv(argv,GetCommandLine(),TRUE);
-//  argv = CommandLineToArgvW( GetCommandLine(),&argc);
-//  parse_commandstr(GetCommandLine());
-    parse_commandline(argc, argv);
-#else
-  parse_commandline(argc, argv);
+  do_program(argv[0]);
+  if (do_define(argv[1]))  i=2; else i=1;
+  parse_commandline(argc-i, argv+i);
   if (vmb_verbose_flag) vmb_debug_mask=0; 
-#endif
 }

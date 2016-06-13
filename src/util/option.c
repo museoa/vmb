@@ -37,6 +37,7 @@
 #include <direct.h>
 #define DIRCHAR ('\\')
 #define DIRSTR  ("\\")
+#pragma warning(disable : 4996)
 #else
 #include <unistd.h>
 #define DIRCHAR ('/')
@@ -58,7 +59,7 @@ char *defined=NULL;
 static char * configFILE=NULL;
 static char * configPATH=NULL;
 static char *fopen_file=NULL;
-char *vmb_cwd = NULL;
+static char *vmb_cwd = NULL;
 static int cflen=0, cplen=0;
 
 void set_option(char **option, char *str)
@@ -371,7 +372,6 @@ int  do_option_short(char cmd,char *arg)
 
 void option_usage(FILE *out)
 { option_spec *p;
-
   p= options;
   while(p->description!=NULL)
   { fprintf(out,"-%c  --%s",p->shortopt, p->longopt);
@@ -509,8 +509,8 @@ static void set_PATH_FILE(char *file)
   configPATH[cplen]=0;
 }
 
-void vmb_get_cwd(void)
-{ if (vmb_cwd!=NULL) return;
+char *vmb_get_cwd(void)
+{ if (vmb_cwd!=NULL) return vmb_cwd;
 #ifdef WIN32
   vmb_cwd = _getcwd(NULL,0);
 #else
@@ -518,14 +518,15 @@ void vmb_get_cwd(void)
 #endif
   if (vmb_cwd==NULL) 
   { vmb_error(__LINE__,"Unable to get current working directory");
-    return;
+    return NULL;
   }
   vmb_cwd = realloc(vmb_cwd,strlen(vmb_cwd)+2);
   if (vmb_cwd==NULL) 
   { vmb_fatal_error(__LINE__,"Out of memory");
-    return;
+    return NULL;
   }
   strcat(vmb_cwd,DIRSTR);
+  return vmb_cwd;
 }
 
 FILE *vmb_fopen(char *filename, char *mode)
@@ -703,7 +704,7 @@ int do_option_debug(char *dummy)
 
 
 
-static void do_program(char * arg)
+void do_program(char * arg)
 { int i,n;
   if (arg == NULL)
     return;
@@ -757,111 +758,11 @@ static void do_program(char * arg)
 }
 
 
-
-#if 0
-static 
-char *parse_argument(char **str)
-/* makes *str point past the argument and returns the argument */
-{ char *p, *arg;
-  p = *str;
-  if (*p == '\0') 
-    arg = NULL;
-  else
-  { /* skip spaces */
-    while(isspace((int)(p[0])))
-      p++;
-    if (*p=='\0' || *p=='-')
-      arg = NULL;
-    else
-    { arg = p;
-      if (*arg == '"')
-      { arg++; p++;
-        while(*p!= 0 && *p != '"')
-          p++;
-      }
-      else
-      { while(*p!= 0 && !isspace((int)(*p)))
-          p++;
-      }
-      if (*p != 0)
-      {*p = 0;
-        p++;
-      }
-    }
-  }
-  *str = p;
-  return arg;
-}
-
-void parse_commandstr(char *p)
-{ int arguments;
-  char *cmd, *arg;  
-vmb_debug_flag=1;vmb_debug_mask=0;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "reading commandstr %s\n",p);
-  do_program(parse_argument(&p));
-  arguments=do_define(parse_argument(&p));
-  arguments++;
-  if (strstr(p,"-c")==NULL && strstr(p,"--config")==NULL)
-    parse_configfile("default.vmb"); /* else use configfile provided */
-  while(*p != 0)
-  {  while(isspace((int)(p[0]))) p++; /* skip spaces */
-     if (p[0] == 0) /* done? */
-       break;
-     if (p[0] == '-')
-     { p++;
-       if (*p == 0 || isspace((int)(*p))) /* single - */
-         do_argument(arguments++, "-");
-       else if (*p == '-') /* double -- */
-       { p++;
-         if (*p == 0 || isspace((int)(*p))) /* single -- */
-           do_argument(arguments++, "--");
-         else  /* long command found */
-         { cmd = p; 
-           /* convert command to lowercase */
-           while(isalnum((int)(*p)))
-           { *p = tolower(*p);
-             p++;
-           }
-           if (p[0]!=0)
-           { p[0]=0; /* terminate command */
-              p++;
-           }
-           arg = parse_argument(&p);
-           if (do_option_long(cmd,arg)==0 && arg != NULL)
-             do_argument(arguments++, arg);
-         }
-       }
-       else 
-       { char c;
-         while(*p!=0 && !isspace((int)(*p)))
-         { c = *p;
-           p++;
-           if (*p == 0)
- 	       do_option_short(c, NULL);
-           else if (isspace((int)(*p)))
-           { arg = parse_argument(&p);
-             if (do_option_short(c, arg)==0 && arg != NULL)
-               do_argument(arguments++, arg);
-             break;
-           }
-           else
- 	       do_option_short(c, NULL);
-         }
-       }
-     }
-     else
-       do_argument(arguments++, parse_argument(&p));
-  }
-  vmb_debug(VMB_DEBUG_INFO, "done commandstr\n");
-}
-#endif
-
 void parse_commandline(int argc, char *argv[])
 { int i,j;
   int has_config=0;
   vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline\n");
-  do_program(argv[0]);
-  if (do_define(argv[1])) i=2; else i=1;
+  i=0;
   for (j=i;j<argc;j++)
     if (strcmp(argv[j],"-c")==0 || strcmp(argv[j],"--config")==0)
 	{ has_config = 1; break;}

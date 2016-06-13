@@ -5,7 +5,6 @@ Statistics line im Trace window
 
 Ask for reset/reload after assembly while debugging
 
-
 currently step out will not stop at breakpoints inside the routine. This should be changed.
 It needs reworking the whole debug interface of MMIX.
 
@@ -15,12 +14,6 @@ Add a reset button (doubling that of the motherboard).
 
 man hätte gerne einen pretty print meachnismus
 fürs ganze file oder für die selection (wenn eine existiert)
-abhängig von den source options
-Tabulator größe
-max label tabs
-max operand tabs
-überflüssige spaces löschen
-spaces ersetzen durch tabs
 line comment character 
 nur wenn erforderlich
 

@@ -455,12 +455,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     InitCommonControls();
 	if (!InitInstance (hInstance)) return FALSE;
 	init_layout(0);
-	param_init();
-	SetWindowText(hMainWnd,defined);
+	win32_param_init();
 	if (nleds<1) nleds=1;
 	if (nleds>8) nleds=8;
-	read_regtab(defined);
-	get_xypos();
     init_device(&vmb);
 	load_pictures();
 	init_colors();

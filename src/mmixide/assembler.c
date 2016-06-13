@@ -15,8 +15,6 @@
 extern jmp_buf mmixal_exit;
 
 int warning_count=0;
-int x_option = 0;
-int b_option = 80;
 int l_option = 0;
 int warn_as_error = 0;
 int auto_assemble=0;
@@ -27,12 +25,13 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
 { 
   switch ( message )
   { case WM_INITDIALOG:
-      CheckDlgButton(hDlg,IDC_CHECK_X,x_option?BST_CHECKED:BST_UNCHECKED);
+      CheckDlgButton(hDlg,IDC_CHECK_X,expanding?BST_CHECKED:BST_UNCHECKED);
+      CheckDlgButton(hDlg,IDC_CHECK_IMPRECISE,check_X_BIT?BST_CHECKED:BST_UNCHECKED);
       CheckDlgButton(hDlg,IDC_CHECK_LISTING,l_option?BST_CHECKED:BST_UNCHECKED); 
       CheckDlgButton(hDlg,IDC_CHECK_WARNERROR,warn_as_error?BST_CHECKED:BST_UNCHECKED); 
       CheckDlgButton(hDlg,IDC_CHECK_AUTOASSEMBLE,auto_assemble?BST_CHECKED:BST_UNCHECKED); 
       CheckDlgButton(hDlg,IDC_CHECK_AUTOCLOSE_ERRORS,auto_close_errors?BST_CHECKED:BST_UNCHECKED); 
-	  SetDlgItemInt(hDlg,IDC_BUFFERSIZE,b_option,FALSE);
+	  SetDlgItemInt(hDlg,IDC_BUFFERSIZE,buf_size,FALSE);
 	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_BUFFERSIZE),UDM_SETRANGE,0,(LPARAM) MAKELONG (1000,0));
       return TRUE;
     case WM_SYSCOMMAND:
@@ -43,12 +42,13 @@ OptionAssemblerDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam
       break;
     case WM_COMMAND:
       if( wparam == IDOK )
-      { x_option=IsDlgButtonChecked(hDlg,IDC_CHECK_X);
+      { expanding=IsDlgButtonChecked(hDlg,IDC_CHECK_X);
+        check_X_BIT=IsDlgButtonChecked(hDlg,IDC_CHECK_IMPRECISE);
         l_option=IsDlgButtonChecked(hDlg,IDC_CHECK_LISTING);
         warn_as_error=IsDlgButtonChecked(hDlg,IDC_CHECK_WARNERROR);
         auto_assemble=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOASSEMBLE);
         auto_close_errors=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOCLOSE_ERRORS);
-		b_option=GetDlgItemInt(hDlg,IDC_BUFFERSIZE,NULL,FALSE);
+		buf_size=GetDlgItemInt(hDlg,IDC_BUFFERSIZE,NULL,FALSE);
         EndDialog(hDlg, TRUE);
         return TRUE;
       } 
@@ -128,7 +128,7 @@ int mmix_assemble(int file_no)
     *tail=0;
     SetCurrentDirectory(name);
    }
-  err_count = mmixal(source,NULL,listing,x_option,b_option);
+  err_count = mmixal(source,NULL,listing);
   symtab_add_file(file_no,trie_root);
   trie_root=NULL;
   if (err_count!=0) 

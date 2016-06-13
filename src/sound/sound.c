@@ -21,7 +21,7 @@ extern HWND hMainWnd;
 #include "bus-arith.h"
 #include "param.h"
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 extern device_info vmb;
 
 char title[] ="VMB Sound";

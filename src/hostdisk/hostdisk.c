@@ -30,7 +30,7 @@ extern HBITMAP hbussy;
 #include "param.h"
 
 extern device_info vmb;
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
 char title[] ="VMB Host Disk";
 
 char version[]="$Revision: 1.14 $ $Date: 2016-02-16 09:49:15 $";
@@ -498,8 +498,8 @@ static void diskInit(void)
   diskReset();
   vmb_debug(VMB_DEBUG_PROGRESS, "Initializing Disk");
   if (rootdir == NULL) 
-  { vmb_get_cwd();
-    set_option(&rootdir,vmb_cwd);
+  { char *cwd=vmb_get_cwd();
+    set_option(&rootdir,cwd);
   }
   start_disk_server();
   register_to_mem();
@@ -728,8 +728,8 @@ void init_device(device_info *vmb)
   inspector[0].address=vmb_address;
 #endif
   if (rootdir == NULL) 
-  { vmb_get_cwd();
-    set_option(&rootdir,vmb_cwd);
+  { char *cwd=vmb_get_cwd();
+    set_option(&rootdir,cwd);
   }
 }
 

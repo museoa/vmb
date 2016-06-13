@@ -431,6 +431,10 @@
 					<param name="Name" value="Zoom In and Out">
 					<param name="Local" value="help/editor/keys.html">
 					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Indentation and Pretty Printing">
+					<param name="Local" value="help/editor/keys.html">
+					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="The MMIX Symbol Table Options">
@@ -468,9 +472,35 @@
 					<param name="Local" value="help/options/editor.html">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
-					<param name="Name" value="Tabulator">
+					<param name="Name" value="Layout and Pretty Printing">
 					<param name="Local" value="help/options/editor.html">
 					</OBJECT>
+				<UL>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Tabulator width">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Use tabulators for indentation">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Maximum label width">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Maximum opcode width">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Maximum argument width">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+					<LI> <OBJECT type="text/sitemap">
+						<param name="Name" value="Use CR LF for line ends">
+						<param name="Local" value="help/options/editor.html">
+						</OBJECT>
+				</UL>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="The MMIX Assembler Options">

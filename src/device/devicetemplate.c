@@ -31,10 +31,9 @@
 
 #include <string.h>
 
-int major_version=1, minor_version=9;
+int major_version=2, minor_version=0;
+char version[]="$Revision:$ $Date:$";
 
-/* This device simulates RAMSIZE bytes of RAM */
-#define RAMSIZE 1024
 static unsigned char ram[RAMSIZE];
 int ramsize = RAMSIZE;
 
