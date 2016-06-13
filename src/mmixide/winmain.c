@@ -40,7 +40,7 @@
 #pragma warning(disable : 4996)
 
 int major_version=2, minor_version=0;
-char version[]="$Revision: 1.60 $ $Date: 2016-02-16 09:49:15 $";
+char version[]="$Revision$ $Date$";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
 #else
