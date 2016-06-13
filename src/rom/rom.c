@@ -48,7 +48,7 @@ extern HWND hMainWnd;
 int major_version=2, minor_version=0;
 char title[] ="VMB ROM";
 
-char version[]="$Revision: 1.26 $ $Date: 2016-02-16 09:49:16 $";
+char version[]="$Revision$ $Date$";
 
 char howto[] =
 "\n"

@@ -74,7 +74,7 @@ device_info vmb = {0};
 
 extern int vmb_power_flag;
 int major_version=2, minor_version=0;
-char version[] = "$Revision: 1.53 $ $Date: 2016-02-16 09:49:15 $";
+char version[] = "$Revision$ $Date$";
 char title[] = "VMB Motherboard";
 char howto[] =
   "\n"

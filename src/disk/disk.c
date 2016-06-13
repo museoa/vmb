@@ -33,7 +33,7 @@ extern device_info vmb;
 
 char title[] ="VMB Disk";
 
-char version[]="$Revision: 1.35 $ $Date: 2016-02-16 09:49:15 $";
+char version[]="$Revision$ $Date$";
 
 char howto[] =
 "The disk simulates a disk controller and the disk proper by using a\n"

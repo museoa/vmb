@@ -47,7 +47,7 @@ extern HWND hMainWnd;
 int major_version=2, minor_version=0;
 char title[] ="VMB Flash";
 
-char version[]="$Revision: 1.28 $ $Date: 2016-02-16 09:49:15 $";
+char version[]="$Revision$ $Date$";
 
 char howto[] =
 "\n"

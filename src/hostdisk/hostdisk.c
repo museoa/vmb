@@ -33,7 +33,7 @@ extern device_info vmb;
 int major_version=2, minor_version=0;
 char title[] ="VMB Host Disk";
 
-char version[]="$Revision: 1.14 $ $Date: 2016-02-16 09:49:15 $";
+char version[]="$Revision$ $Date$";
 
 char howto[] =
 "The hostdisk simulates a disk controller but is using the host file szstem";

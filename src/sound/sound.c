@@ -26,7 +26,7 @@ extern device_info vmb;
 
 char title[] ="VMB Sound";
 
-char version[]="$Revision: 1.6 $ $Date: 2016-02-16 09:49:16 $";
+char version[]="$Revision$ $Date$";
 
 char howto[] =
 "This simulates a sound card, see the HTML Help.\n";

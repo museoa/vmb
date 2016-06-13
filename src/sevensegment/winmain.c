@@ -20,7 +20,7 @@ HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
 int major_version=2, minor_version=0;
-char version[]="$Revision: 1.30 $ $Date: 2016-02-16 09:49:16 $";
+char version[]="$Revision$ $Date$";
 char title[] ="VMB Sevensegment";
 char howto[] =
   "\n"

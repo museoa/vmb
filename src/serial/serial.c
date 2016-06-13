@@ -21,7 +21,7 @@
 */
 
 int major_version=2, minor_version=0;
-char version[]="$Revision: 1.18 $ $Date: 2016-02-16 09:49:16 $";
+char version[]="$Revision$ $Date$";
 char title[] ="VMB Serial";
 
 char howto[] = "see http://vmb.sourceforge.net/serial\r\n";

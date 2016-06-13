@@ -14,7 +14,7 @@
 #include "inspect.h"
 
 int major_version=2, minor_version=0;
-char version[]="$Revision: 1.46 $ $Date: 2016-02-16 09:49:17 $";
+char version[]="$Revision$ $Date$";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 
 

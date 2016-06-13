@@ -36,7 +36,7 @@ extern HWND hMainWnd;
 #include "param.h"
 
 int major_version=2, minor_version=0;
-char version[]="$Revision: 1.23 $ $Date: 2016-02-16 09:49:16 $";
+char version[]="$Revision$ $Date$";
 char title[] ="VMB RAM";
 
 char howto[] =
