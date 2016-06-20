@@ -913,7 +913,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	new_edit();
 	mmix_lib_initialize();
 	debug_init();
-	win32_param_init ();
+	param_init ();
 	set_font_size(fontsize);
 	ed_zoom(fontsize);
 	CheckMenuItem(hMenu,ID_REGISTERS_STACK,MF_BYCOMMAND|(show_debug_regstack?MF_CHECKED:MF_UNCHECKED));
