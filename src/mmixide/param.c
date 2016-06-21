@@ -50,6 +50,8 @@ int xpos=0, ypos=0; /* Window position */
 int minimized = 0;  /* start the window minimized */
 int width=0,height=0; /* dimension of main window */
 
+static void do_argument(int pos, char * arg);
+
 #ifdef VMB
 char *host=NULL;
 int port = 9002;
@@ -58,11 +60,38 @@ unsigned int vmb_size;
 extern option_spec options[];
 #else
 /* simplified versions form util/option.c */
+char *programpath = NULL;
+char *program_name=NULL;
+char *programhelpfile = NULL;
+char *defined=NULL;
+
+void set_option(char **option, char *str)
+/* deallocate *option if necessary, allocate if necesarry, and fill with the the given string */
+{ int n;
+  n = (int)strlen(str);
+  if (*option != NULL && (int)strlen(*option) < n)  
+	{ free(*option);
+      *option = NULL;
+	}
+  if (*option == NULL)
+  { *option = malloc(n+1);
+	if (*option == NULL)
+	{ win32_fatal_error(__LINE__,"Out of Memory for option");
+	  return;
+	}
+  }
+  *option = malloc(n+1);
+  if (*option == NULL)
+  { win32_fatal_error(__LINE__,"Out of Memory for option");
+    return;
+  }
+  strcpy(*option, str);
+}
+
 void do_program(char * arg)
 { int i,n;
   if (arg == NULL)
     return;
-  parg=arg;
   i = 0;
   n = 0;
   while (arg[i]!=0)
@@ -72,37 +101,28 @@ void do_program(char * arg)
   }
   programpath = malloc(n  + 1); /* path + '0' */
   if (programpath==NULL) 
-  { vmb_fatal_error(__LINE__,"Out of memory");
+  { win32_fatal_error(__LINE__,"Out of memory");
     return;
   }
   strncpy(programpath,arg,n);
   programpath[n]=0;
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program path: %s\n", programpath);
   i = (int)strlen(arg+n) + 1;
-  vmb_program_name = malloc(i); /* name + '0' */
-  if (vmb_program_name==NULL) 
-  { vmb_fatal_error(__LINE__,"Out of memory");
+  program_name = malloc(i); /* name + '0' */
+  if (program_name==NULL) 
+  { win32_fatal_error(__LINE__,"Out of memory");
     return;
   }
-  strcpy(vmb_program_name,arg+n);
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program name: %s\n", vmb_program_name);
-  defined = malloc(i); /* name + '0' */
-  if (defined==NULL) 
-  { vmb_fatal_error(__LINE__,"Out of memory");
-    return;
-  }
-  strcpy(defined,vmb_program_name);
-  { char *p=defined; while (*p) { *p=tolower(*p); p++; }}
-#ifdef WIN32
-  if (strncmp(defined+i-5,".exe",4)== 0 || strncmp(defined+i-5,".EXE",4)== 0 )
-	  defined[i-5]=0;
-#endif 
-  vmb_debugs(VMB_DEBUG_PROGRESS, "Program identity: %s\n", defined);
+  strcpy(program_name,arg+n);
+#ifdef VMB 
+	set_option(&defined,"mmixide");
+#else
+	 defined = "mmixvd";
+#endif
 
 #ifdef WIN32
 	programhelpfile = malloc(n  + strlen(defined) + 5); /* path  + defined.chm  + '0'*/
     if (programhelpfile==NULL) 
-    { vmb_fatal_error(__LINE__,"Out of memory");
+    { win32_fatal_error(__LINE__,"Out of memory");
 	  return;
 	}
     strcpy(programhelpfile,programpath);
@@ -112,30 +132,16 @@ void do_program(char * arg)
 }
 
 void parse_commandline(int argc, char *argv[])
-{ int i,j;
-  int has_config=0;
-  vmb_debug(VMB_DEBUG_PROGRESS, "parsing commandline\n");
+{ int i;
   i=0;
-  for (j=i;j<argc;j++)
-    if (strcmp(argv[j],"-c")==0 || strcmp(argv[j],"--config")==0)
-	{ has_config = 1; break;}
-  if (!has_config)
-    parse_configfile("default.vmb"); /* else use configfile provided */
   while(i< argc)
   { if (argv[i][0] == '-' && argv[i][1] != 0)
-    { if (argv[i][1] == '-' && argv[i][2] != 0)
-	    i = i+ do_option_long(argv[i]+2, argv[i+1]);
-      else
-      { for (j=1;argv[i][j]!=0 && argv[i][j+1]!=0;j++)
-	      do_option_short(argv[i][j], NULL);
-	    i = i+ do_option_short(argv[i][j], argv[i+1]);
-      }
+    { win32_message("Ignoring command line options");
     }
     else
       do_argument(i, argv[i]);
     i++;
   }
-  vmb_debug(VMB_DEBUG_INFO, "done commandline\n");
 }
 
 #endif
@@ -166,13 +172,7 @@ void do_argument(int pos, char * arg)
 
 int do_define(char *arg)
 { 
- set_option(&defined,
-#ifdef VMB
-	 "mmixide"
-#else
-	 "mmixvd"
-#endif
-	 );
+
  return 0;
 }
 
@@ -221,15 +221,13 @@ int mk_argv(char *argv[MAXARG],char *command, int unquote)
 void param_init(void)
 { int argc;
   char *argv[MAXARG];
-  int i;
 #ifdef VMB
   option_defaults();
 #endif
   argc=mk_argv(argv,GetCommandLine(),TRUE);
   do_program(argv[0]);
-  if (do_define(argv[1])) i=2; else i=1;
   read_regtab(defined);
-  parse_commandline(argc-i, argv+i);
+  parse_commandline(argc-1, argv+1);
   get_xypos();
 #ifdef VMB
   if (vmb_verbose_flag) vmb_debug_mask=0;

@@ -4,7 +4,12 @@
 #include "resource.h"
 #include "winmain.h"
 #include "winopt.h"
+#ifdef VMB
 #include "option.h"
+#else
+#define MAXTMPOPTION 1024
+static char  tmp_option[MAXTMPOPTION+1];
+#endif
 #include "runoptions.h"
 
 char *run_args=NULL;

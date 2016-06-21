@@ -10,7 +10,7 @@
 #include "splitter.h"
 #include "buttonbar.h"
 #include "debug.h"
-#include "option.h"
+//#include "option.h"
 #include "mmixlib.h"
 #include "mmixrun.h"
 #ifdef VMB
@@ -877,6 +877,7 @@ static	HMENU hMemMenu=NULL;            // top-level menu
 HMENU hMemContextMenu=NULL;  // shortcut menu 
 HMENU hRegContextMenu=NULL;  // shortcut menu 
 HMENU hSymContextMenu=NULL;  // shortcut menu 
+HMENU hBrkContextMenu=NULL;  // shortcut menu 
 
 
 
@@ -901,6 +902,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{ hMemContextMenu = GetSubMenu(hMemMenu, 0); 
 	  hRegContextMenu = GetSubMenu(hMemMenu, 1); 
 	  hSymContextMenu = GetSubMenu(hMemMenu, 2); 
+	  hBrkContextMenu = GetSubMenu(hMemMenu, 3); 
 	}
     GetClientRect(hMainWnd,&r);
     hButtonBar = bb_CreateButtonBar("The Button Bar", WS_CHILD|WS_VISIBLE,

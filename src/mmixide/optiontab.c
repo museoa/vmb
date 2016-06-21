@@ -21,12 +21,12 @@
 
 */
 
-
+#ifdef VMB
 #include "option.h"
 #include "param.h"
-#ifdef VMB
+
 #include "vmb.h"
-#endif
+
 
 option_spec options[] = {
 /* description short long kind default handler */
@@ -42,3 +42,4 @@ option_spec options[] = {
 {"to print usage information",           '?', "help",   NULL,            fun_arg, NULL,{usage}},
 {NULL}
 };
+#endif

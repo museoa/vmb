@@ -26,8 +26,8 @@
 #ifndef PARAM_H
 #define PARAM_H 
 
-#include "option.h"
 #ifdef VMB
+#include "option.h"
 extern char *host;
 extern int port;
 

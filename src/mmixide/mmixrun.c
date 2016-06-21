@@ -22,11 +22,11 @@
 #include "assembler.h"
 #include "winlog.h"
 #include "editor.h"
-#include "option.h"
+//#include "option.h"
 #include "runoptions.h"
 #include "breakpoints.h"
 #include "mmixrun.h"
-#include "address.h"
+//#include "address.h"
 
 /* Running MMIX */
 // maximum mumber of lines the output console should have
@@ -114,12 +114,13 @@ static DWORD WINAPI MMIXThreadProc(LPVOID dummy)
 { int returncode;
   int argc;
   static char *argv[MAXARG];
-  static char command[MAXTMPOPTION];
+#define MAXCOMMAND 256
+  static char command[MAXCOMMAND];
   if (hInteract==NULL)
     hInteract =CreateEvent(NULL,FALSE,FALSE,NULL);
 
   if (run_args!=NULL && run_args[0]!=0)
-  { strncpy(command,run_args,MAXTMPOPTION);
+  { strncpy(command,run_args,MAXCOMMAND);
 	argc=mk_argv(argv,command, TRUE);
   }
   else
@@ -346,9 +347,12 @@ boot:
   for_all_files(mmix_load);
   sync_breakpoints();
   show_breakpoints();
-  { octa pool;
+  { 
+#ifdef VMB	  
+	octa pool;
     pool.h= 0x60000000,pool.l= 0x00;
     if (valid_address(pool))
+#endif
       mmix_commandline(argc, argv);
   }
   Sleep(50); /* give all devices some time finish loading the files and commandline */

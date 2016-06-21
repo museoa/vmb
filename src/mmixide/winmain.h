@@ -1,9 +1,9 @@
 extern HINSTANCE hInst;
 extern HWND	  hMainWnd, hError;
-extern HMENU	  hMenu;
-extern HMENU hMemContextMenu, hRegContextMenu, hSymContextMenu; 
+extern HMENU  hMenu;
+extern HMENU  hMemContextMenu, hRegContextMenu, hSymContextMenu, hBrkContextMenu; 
 extern HWND	  hSplitter;
-extern HWND      hButtonBar;
+extern HWND   hButtonBar;
 extern HWND	  hEdit;
 
 extern int major_version, minor_version;

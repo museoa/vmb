@@ -15,3 +15,4 @@ extern void add_line_loc(int file_no,int line_no,octa loc);
 extern void mark_all_file_breakpoints(int file_no);
 extern void sweep_all_file_breakpoints(int file_no);
 extern void show_breakpoints(void);
+extern int BreakpointContextMenuHandler(int x, int y);

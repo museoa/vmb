@@ -34,7 +34,7 @@ struct {
 
 /* currently we do not support loc ranges that cross 4GByte boundaries
    so loc.h == loc_last.h for all breakpoints 
-   (actualy, we dont maintain loc_last.h)
+   (actualy, we don't maintain loc_last.h)
 */
 
 /* there are two kinds of breakpoinst with a file!=-1 and with a loc!=-1 */
@@ -48,12 +48,12 @@ struct {
 static int blimit = 0, bcount=0;
 
 
-/* there is are important invariants:
+/* there are important invariants:
    - for each file and line there is at most one breakpoint entry in the list.
      (entries may have overlapping location ranges, but then all but one
 	  must not have a file_no).
 
-   We ensure this by never changing the file,line entry and we call new_breakpoint
+   We ensure this by never changing the file,line entry 
    and we call new_breakpoint only if the file, line entry does not exist
    or with an unkonwn file.
 
@@ -67,7 +67,7 @@ static int blimit = 0, bcount=0;
 	  no other function sets the bkpt field to anything but zero.
    2) before we remove an entry in the breakpoints list,
       we set the bkpt field in the mem_tetra to zero for all locs in its range. 
-   3) if we never shrink the loc range in the breakpoint list.
+   3) we never shrink the loc range in the breakpoint list.
 */
 
 static void mem_set_breakpoint(int i)
@@ -470,7 +470,55 @@ static void resize(HWND hDlg, int w, int h)
   MoveWindow(hBreakList,list.x,list.y,w-2*list.x,h-list.y-list.x,TRUE);
 }
 
+ 
+int BreakpointContextMenuHandler(int x, int y)
+{ POINT pt = { x, y }; 
+  int item;
+  item = LBItemFromPt(hBreakList,pt,FALSE);
+  if (item>=0)
+  { int cmd;
+    int i = (int)SendMessage(hBreakList,LB_GETITEMDATA,item,0);
+    if (i<0 || i>=blimit) return 0;
 
+    cmd= TrackPopupMenuEx(hBrkContextMenu, 
+             TPM_LEFTALIGN | TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD, 
+             x, y, hMainWnd, NULL);
+	switch (cmd)
+    { case ID_POPUP_MARK_SOURCE:
+		 if (file_unknown(i))
+		 { mem_tetra* ll=mem_find(breakpoints[i].loc);
+		   if (ll->file_no>=0 && ll->line_no>0)
+		   { unsigned char bkpt=breakpoints[i].bkpt;
+		     remove_breakpoint(i);
+             set_file_breakpoint(ll->file_no,ll->line_no, bkpt,bkpt);
+	         ed_set_break(ll->file_no,ll->line_no,bkpt);
+             change_breakpoint(i);
+		     return 1;
+		   }
+		}
+		break;
+	  case ID_POPUP_SHOW:
+		{ octa loc;
+		  int segment; 
+		  uint64_t goto_addr;
+		  if (loc_unknown(i))
+		    set_loc_breakpoint(i);
+		  if (loc_unknown(i)) return 0;
+		  loc=breakpoints[i].loc;
+		  segment = (loc.h>>29) & 0x7;
+		  if (segment>3) segment=4;
+		  goto_addr=loc.h;
+		  goto_addr=(goto_addr<<32)+loc.l;
+          set_goto_addr(segment , goto_addr);
+		  return 1;
+		}
+		break;
+	  default: 
+		break;
+	}
+  }
+  return 0;
+}
 /* the window procedure for the breakpoints window */
 
 INT_PTR CALLBACK    
@@ -571,12 +619,15 @@ BreakpointsDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 			  { set_edit_file(ll->file_no);
 		        ed_show_line(ll->line_no);
 			  }
-		    }
-		   
+		    }	   
 		  }   
 	    }
 	  }
      break;
+  case WM_CONTEXTMENU:
+     if (BreakpointContextMenuHandler(LOWORD(lparam), HIWORD(lparam))) 
+		   return 0;
+	 break;
   case WM_GETMINMAXINFO:
 	{ MINMAXINFO *p = (MINMAXINFO *)lparam;
 	  p->ptMinTrackSize.x = min_w;
