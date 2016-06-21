@@ -1,10 +1,8 @@
-
+#ifdef VMB
 #include <windows.h>
 #include "resource.h"
 #include "option.h"
-#ifdef VMB
 #include "vmb.h"
-#endif
 
 extern char *host;
 extern int port;
@@ -45,3 +43,4 @@ ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   }
   return FALSE;
 }
+#endif

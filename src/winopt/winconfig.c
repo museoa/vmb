@@ -1,4 +1,4 @@
-
+#ifdef VMB
 #include <windows.h>
 #include <stdio.h>
 #include "winopt.h"
@@ -68,3 +68,4 @@ ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   }
   return FALSE;
 }
+#endif
