@@ -41,6 +41,7 @@
 #include "bus-arith.h"
 #else
 #endif
+#include "param.h"
 #include "winopt.h"
 #include "info.h"
 #include "editor.h"

@@ -477,22 +477,30 @@ int BreakpointContextMenuHandler(int x, int y)
   item = LBItemFromPt(hBreakList,pt,FALSE);
   if (item>=0)
   { int cmd;
+    int file_no, line_no;
     int i = (int)SendMessage(hBreakList,LB_GETITEMDATA,item,0);
     if (i<0 || i>=blimit) return 0;
-
+    if (file_unknown(i))
+	{ mem_tetra* ll=mem_find(breakpoints[i].loc);
+	  file_no=ll->file_no;
+	  line_no=ll->line_no;
+	  if (file_no>=0 && line_no>0)
+		 EnableMenuItem(hBrkContextMenu,ID_POPUP_MARK_SOURCE,MF_BYCOMMAND|MF_ENABLED);
+	  else
+		 EnableMenuItem(hBrkContextMenu,ID_POPUP_MARK_SOURCE,MF_BYCOMMAND|MF_DISABLED);
+	}
     cmd= TrackPopupMenuEx(hBrkContextMenu, 
              TPM_LEFTALIGN | TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD, 
              x, y, hMainWnd, NULL);
 	switch (cmd)
     { case ID_POPUP_MARK_SOURCE:
 		 if (file_unknown(i))
-		 { mem_tetra* ll=mem_find(breakpoints[i].loc);
-		   if (ll->file_no>=0 && ll->line_no>0)
+		 { if (file_no>=0 && line_no>0)
 		   { unsigned char bkpt=breakpoints[i].bkpt;
 		     remove_breakpoint(i);
-             set_file_breakpoint(ll->file_no,ll->line_no, bkpt,bkpt);
-	         ed_set_break(ll->file_no,ll->line_no,bkpt);
-             change_breakpoint(i);
+             set_file_breakpoint(file_no,line_no, bkpt,bkpt);
+	         ed_set_break(file_no,line_no,bkpt);
+             show_breakpoints();
 		     return 1;
 		   }
 		}

@@ -13,3 +13,5 @@ extern void DestroyDataEdit(int id);
 /* call to destroy all DataEdit windows */
 
 extern int is_dataedit(HWND h);
+
+extern void mmixde_set_font(void);

@@ -530,7 +530,7 @@ void mem_to_locals(int from, int to)
   }
   if (to>max)
    memset(local_mem+max*8,0,to-max*8);
-  MemoryDialogUpdate(&register_insp[REG_LOCAL],to*8,(to-from)*8);
+  MemoryDialogUpdate(&register_insp[REG_LOCAL],from*8,(to-from)*8);
 }
 
 

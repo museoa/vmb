@@ -29,10 +29,10 @@ Name: modifypath; Description: "Add application directory to your environment pa
 
 [Files]
 Source: "C:\home\mmixvd\mmixide\Release\mmixvd.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\home\mmixvd\mmixide\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\mmixide\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\mmixide\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
-Source: "C:\home\mmixvd\mmixide\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\mmix\Release\mmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\mmix\Release\mmixal.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\mmix\Release\mmmix.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
+Source: "C:\home\vmb\src\mmix\Release\mmotype.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: mmix
 Source: "C:\home\mmixvd\mmixide\readmevd.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "C:\home\mmixvd\mmixide\licensevd.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\home\mmixvd\mmixide\copying.txt"; DestDir: "{app}"; Flags: ignoreversion

@@ -59,5 +59,7 @@ extern char version[];
 extern char howto[];
 extern char title[];
 extern int major_version, minor_version;
-
+extern void do_program(char * arg);
+extern void parse_commandline(int argc, char *argv[]);
+extern int do_define(char *arg);
 #endif

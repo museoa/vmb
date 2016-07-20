@@ -33,6 +33,7 @@
 #include "runoptions.h"
 #include "indent.h"
 #include "mmixwinde.h"
+#include "winde.h"
 #include "winmain.h"
 #define STATIC_BUILD
 #include "../scintilla/include/scintilla.h"
@@ -175,8 +176,6 @@ int ide_prepare_mmix(void)
   return 1;
 }
 
-
-
 static void change_lb_font(HWND hLB)
 { if (!hLB) return;
   SendMessage(hLB,WM_SETFONT,(WPARAM)hVarFont,0);
@@ -195,6 +194,7 @@ static void font_has_changed(void)
   { SendMessage(hLog,WM_SETFONT,(WPARAM)hFixedFont,0);
     InvalidateRect(hLog,NULL,TRUE);
   }
+  mmix_change_de_font();
 }
 
 

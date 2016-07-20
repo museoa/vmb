@@ -38,4 +38,8 @@ void DestroyDataEdit(int id)
   hDataEdit=NULL;
 }
 
-
+void mmix_change_de_font(void)
+{ if (hDataEdit==NULL) return;
+  change_de_font(hDataEdit);
+  InvalidateRect(hDataEdit,NULL,TRUE);
+}

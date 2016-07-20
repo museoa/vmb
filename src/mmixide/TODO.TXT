@@ -12,9 +12,5 @@ Other Ideas:
 
 Add a reset button (doubling that of the motherboard).
 
-man hätte gerne einen pretty print meachnismus
-fürs ganze file oder für die selection (wenn eine existiert)
-line comment character 
-nur wenn erforderlich
 
 
