@@ -13,3 +13,4 @@ extern HWND CreateDataEdit(HINSTANCE hInstance, HWND hWndParent);
 extern void de_connect(HWND hDlg, inspector_def *insp);
 extern void de_update(HWND hDlg);
 extern void de_save(HWND hDlg);
+extern void change_de_font(HWND hDlg);

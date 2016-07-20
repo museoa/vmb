@@ -6,7 +6,6 @@
 #include "option.h"
 #endif
 
-
 void win32_param_init(void)
 { int argc;
   char *argv[MAXARG];

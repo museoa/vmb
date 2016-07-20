@@ -94,6 +94,7 @@ extern int var_char_height;
 extern int separator_width;
 extern int separator_height;
 extern int border_size;
+extern int edge_size;
 extern int version_width; /* length of the version string in VarFont */
 extern int fontsize;
 extern int screen_width;
@@ -107,6 +108,9 @@ OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided *
 
 /* from winparam.c */
 extern void win32_param_init(void);
+extern void do_program(char * arg);
+extern void parse_commandline(int argc, char *argv[]);
+extern int do_define(char *arg);
 
 #include <stdio.h>
 FILE *vmb_fopen(char *filename, char *mode);

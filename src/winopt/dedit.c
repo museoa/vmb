@@ -29,34 +29,34 @@ static dataedit *new_dataedit(void)
   return de;
 }
 
-static void show_item(dataedit *de,int IDC,int offset)
+static void show_item(dataedit *de,int IDC,int offset, int size)
 { char str[22]; 
   if (offset>=de->size) return;
-  chunk_to_str(str, de->mem+offset,de->format,1<<de->chunk,0);
+  chunk_to_str(str, de->mem+offset,de->format,size,0);
   SetDlgItemText(de->hWnd,IDC,str);
   SendMessage(GetDlgItem(de->hWnd,IDC),EM_SETMODIFY,0,0); 
 }
 
 static void show_edit_mem(dataedit *de)
 { if (de->chunk==byte_chunk)
-  {	show_item(de,IDC_EDITBYTE0,0);
-    show_item(de,IDC_EDITBYTE1,1);
-    show_item(de,IDC_EDITBYTE2,2);
-    show_item(de,IDC_EDITBYTE3,3);
-    show_item(de,IDC_EDITBYTE4,4);
-    show_item(de,IDC_EDITBYTE5,5);
-    show_item(de,IDC_EDITBYTE6,6);
-    show_item(de,IDC_EDITBYTE7,7);
+  {	show_item(de,IDC_EDITBYTE0,0,1);
+    show_item(de,IDC_EDITBYTE1,1,1);
+    show_item(de,IDC_EDITBYTE2,2,1);
+    show_item(de,IDC_EDITBYTE3,3,1);
+    show_item(de,IDC_EDITBYTE4,4,1);
+    show_item(de,IDC_EDITBYTE5,5,1);
+    show_item(de,IDC_EDITBYTE6,6,1);
+    show_item(de,IDC_EDITBYTE7,7,1);
   } else if (de->chunk==wyde_chunk)
-  {	show_item(de,IDC_EDITWYDE0,0);
-    show_item(de,IDC_EDITWYDE1,2);
-    show_item(de,IDC_EDITWYDE2,4);
-    show_item(de,IDC_EDITWYDE3,6);
+  {	show_item(de,IDC_EDITBYTE0,0,2);
+    show_item(de,IDC_EDITBYTE1,2,2);
+    show_item(de,IDC_EDITBYTE2,4,2);
+    show_item(de,IDC_EDITBYTE3,6,2);
  } else if (de->chunk==tetra_chunk)
-  {	show_item(de,IDC_EDITTETRA0,0);
-    show_item(de,IDC_EDITTETRA1,4);
+  {	show_item(de,IDC_EDITBYTE0,0,4);
+    show_item(de,IDC_EDITBYTE1,4,4);
   } else if (de->chunk==octa_chunk)
-    show_item(de,IDC_EDITOCTA0,0);
+    show_item(de,IDC_EDITBYTE0,0,8);
 }
 static uint64_t str_to_u64(char *str)
 { uint64_t u=0;
@@ -67,10 +67,6 @@ static uint64_t str_to_u64(char *str)
   }
   return u;
 }
-
-
-
-
 
 static void str_to_chunk(char *str, unsigned char *buf, enum mem_fmt fmt, int chunk_size)
 /* reads the data from str using format and chunk size.
@@ -120,42 +116,76 @@ static void put_edit_mem(dataedit *de)
 	put_item(de,IDC_EDITBYTE7,7,1);
   }
   else if (de->chunk==wyde_chunk)
-  {	put_item(de,IDC_EDITWYDE0,0,2);
-	put_item(de,IDC_EDITWYDE1,2,2);
-	put_item(de,IDC_EDITWYDE2,4,2);
-	put_item(de,IDC_EDITWYDE3,6,2);
+  {	put_item(de,IDC_EDITBYTE0,0,2);
+	put_item(de,IDC_EDITBYTE1,2,2);
+	put_item(de,IDC_EDITBYTE2,4,2);
+	put_item(de,IDC_EDITBYTE3,6,2);
   }
   else if (de->chunk==tetra_chunk)
-  {	put_item(de,IDC_EDITTETRA0,0,4);
-	put_item(de,IDC_EDITTETRA1,4,4);
+  {	put_item(de,IDC_EDITBYTE0,0,4);
+	put_item(de,IDC_EDITBYTE1,4,4);
   }
   else if (de->chunk==octa_chunk)
-	put_item(de,IDC_EDITOCTA0,0,8);
+	put_item(de,IDC_EDITBYTE0,0,8);
 }
+
+static int left_width; /* left position where the edit windowd start */
+static int top_height; /* top position where the edit windowd start */
+static int min_w, min_h;
+
 static void show_edit_windows(dataedit *de)
 { HWND h = de->hWnd;
   enum chunk_fmt chunk=de->chunk;
   int size=de->size;
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE0),chunk==byte_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE1),chunk==byte_chunk&&size>1?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE2),chunk==byte_chunk&&size>2?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE3),chunk==byte_chunk&&size>3?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE4),chunk==byte_chunk&&size>4?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE5),chunk==byte_chunk&&size>5?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE6),chunk==byte_chunk&&size>6?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITBYTE7),chunk==byte_chunk&&size>7?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE0),chunk==wyde_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE1),chunk==wyde_chunk&&size>2?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE2),chunk==wyde_chunk&&size>4?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITWYDE3),chunk==wyde_chunk&&size>6?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITTETRA0),chunk==tetra_chunk&&size>0?SW_SHOW:SW_HIDE);
-  ShowWindow(GetDlgItem(h,IDC_EDITTETRA1),chunk==tetra_chunk&&size>4?SW_SHOW:SW_HIDE);
-
-  ShowWindow(GetDlgItem(h,IDC_EDITOCTA0),chunk==octa_chunk&&size>0?SW_SHOW:SW_HIDE);
+  int chunk_size=1<<de->chunk;
+  int x;
+  int chunk_w= chunk_len(de->format,chunk_size)*fixed_char_width+2*border_size;
+  x = left_width;
+ 
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE0),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE1),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE2),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE3),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE4),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE5),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE6),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  SetWindowPos(GetDlgItem(h,IDC_EDITBYTE7),HWND_TOP,x,top_height,
+	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
+  x+=chunk_w+separator_width;
+  if (size>0) min_w=x;
+  size -=chunk_size;
+  show_edit_mem(de);
 }
 
+    
 static set_edit_format(dataedit *de, enum mem_fmt format)
 { 
   if (format==ascii_format && de->chunk!=byte_chunk) format++;
@@ -164,10 +194,9 @@ static set_edit_format(dataedit *de, enum mem_fmt format)
   if (format==float_format && de->chunk<tetra_chunk) format=hex_format;
   put_edit_mem(de);
   de->format=format;
-  show_edit_mem(de);
-  show_edit_windows(de);
   SetDlgItemText(de->hWnd, IDC_FORMAT, format_names[format]);
 }
+
 static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
 { if (chunk>last_chunk) chunk=byte_chunk;
   if (1<<chunk>de->size) chunk=byte_chunk;
@@ -179,26 +208,32 @@ static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
    chunk=octa_chunk;
   put_edit_mem(de);
   de->chunk=chunk;
-  show_edit_mem(de);
-  show_edit_windows(de);
   SetDlgItemText(de->hWnd, IDC_CHUNK, chunk_names[chunk]);
 }
 
-
-
-
-
 	
 static void show_edit_name(dataedit *de)
-{ if (de->insp==NULL)
-	SetDlgItemText(de->hWnd,IDC_NAME,"Disconnected");
-  else if (de->reg_name!=NULL)
-	SetDlgItemText(de->hWnd,IDC_NAME,de->reg_name);
-  else
-  { char str[22]; /* big enough for the largest 8Byte integer */
-    uint64_to_hex(de->address,str);
-    SetDlgItemText(de->hWnd,IDC_NAME,str);
+{ int name_w;
+  char *str;
+	if (de->insp==NULL)
+  {	str= "Disconnected";
+    name_w=12;
   }
+  else if (de->reg_name!=NULL)
+  { str=de->reg_name;
+    name_w=(int)strlen(de->reg_name);
+  }
+  else
+  { static char value[22]; /* big enough for the largest 8Byte integer */
+    uint64_to_hex(de->address,value);
+	str=value;
+	name_w=2*8+2;
+  }
+   SetWindowPos(GetDlgItem(de->hWnd,IDC_NAME),HWND_TOP,separator_width,top_height,
+			name_w*fixed_char_width,fixed_line_height,SWP_SHOWWINDOW); 
+   SetDlgItemText(de->hWnd,IDC_NAME,str);
+   left_width=name_w*fixed_char_width+2*separator_width;
+   min_h=top_height+fixed_line_height+separator_height;
 }
 
 /* the API for the data editor */
@@ -235,7 +270,6 @@ void de_update(HWND hDlg)
 	de->reg_offset=0;
     if (de->size>0) de->insp->get_mem(de->insp->de_offset,de->size,de->mem);
   }
-  show_edit_mem(de);
   show_edit_name(de);
   show_edit_windows(de);
 }
@@ -264,9 +298,29 @@ void de_save(HWND hDlg)
   }
 }
 
+static void set_de_font(HWND hDlg)
+{		SendDlgItemMessage(hDlg,IDC_NAME,WM_SETFONT,(WPARAM)hFixedFont,0);
+
+     	SendDlgItemMessage(hDlg,IDC_EDITBYTE0,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE1,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE2,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE3,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE4,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE5,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE6,WM_SETFONT,(WPARAM)hFixedFont,0);
+		SendDlgItemMessage(hDlg,IDC_EDITBYTE7,WM_SETFONT,(WPARAM)hFixedFont,0);
+}
+
+void change_de_font(HWND hDlg)
+{	dataedit *de =(dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+    set_de_font(hDlg);
+    show_edit_name(de);
+    show_edit_windows(de);
+}
+
 static INT_PTR CALLBACK   
 DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ static int min_w, min_h;
+{
   switch ( message )
   { case WM_INITDIALOG :
       { RECT rect;
@@ -281,30 +335,11 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    de->hWnd=hDlg;
 	    SetDlgItemText(hDlg,IDC_FORMAT,format_names[de->format]);
 	    SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[de->chunk]);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE0,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE1,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE2,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE3,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE4,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE5,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE6,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITBYTE7,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITWYDE0,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITWYDE1,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITWYDE2,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITWYDE3,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITTETRA0,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITTETRA1,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_EDITOCTA0,WM_SETFONT,(WPARAM)hFixedFont,0);
-		SendDlgItemMessage(hDlg,IDC_NAME,WM_SETFONT,(WPARAM)hFixedFont,0);
-
-		show_edit_mem(de);
-		show_edit_windows(de);
+		GetWindowRect(GetDlgItem(hDlg,IDC_FORMAT),&rect);
+		top_height = separator_height*2+(rect.bottom-rect.top);
 	    SetFocus(GetDlgItem(hDlg,IDC_LOAD));
-		GetClientRect(hDlg,&rect);
-	    min_w = rect.right-rect.left;
-	    min_h = rect.bottom-rect.top;
-	    //get_font_metrics(hDlg);
+		set_de_font(hDlg);
+        de_update(hDlg);
 	  }
 	  return FALSE;
 	case WM_CLOSE:
@@ -320,11 +355,9 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	case DE_UPDATE:
 		de_update(hDlg);
 	  return FALSE;
-
 	case DE_SAVE:
 	  de_save(hDlg);
 	  return FALSE;
-
 	case WM_COMMAND: 
       if (HIWORD(wparam) == BN_CLICKED) 
 	  { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
@@ -341,9 +374,13 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  de_save(hDlg);
 
 	    else if (LOWORD(wparam) == IDC_FORMAT)
-		   set_edit_format(de,de->format+1);
+		{ set_edit_format(de,de->format+1);
+		  show_edit_windows(de);
+		}
 	    else if (LOWORD(wparam) == IDC_CHUNK)
-		   set_edit_chunk(de,de->chunk+1);
+		{ set_edit_chunk(de,de->chunk+1);
+		  show_edit_windows(de);
+		}
 	  }
 	  return FALSE;
 	case WM_SIZE:

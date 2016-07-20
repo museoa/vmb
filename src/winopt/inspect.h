@@ -10,6 +10,8 @@ extern char *format_names[];
 
 extern char *chunk_names[];
 
+extern int chunk_len(enum mem_fmt format, int chunk_size);
+
 extern int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, 
 						int chunk_size, int column_digits);
 
@@ -43,7 +45,6 @@ struct inspector_def {
 	/* the rest can be initialized with zero */
 	int address_width;   /*size of addess or register names column in characters*/
 	uint64_t address;  /* used for memory only */
-	RECT edit_rect;
 	HWND hWnd; /* the window where the edit rectangle is displayed */
     unsigned int sb_base; /* offset at base of scrollbar */
     int sb_cur; /* line corresponding to start of page */

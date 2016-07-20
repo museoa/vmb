@@ -15,6 +15,7 @@ int fixed_char_width=0;
 int fixed_char_height=0;
 int var_char_height=0;
 int border_size=0;
+int edge_size=0;
 int separator_width=0;
 int separator_height=0; 
 int version_width=0; /* length of the version string */
@@ -108,7 +109,7 @@ void init_layout(int interactive)
   screen_width = GetSystemMetrics(SM_CXSCREEN);
   screen_height = GetSystemMetrics(SM_CYSCREEN);
   border_size = GetSystemMetrics(SM_CXFIXEDFRAME);
-  
+  edge_size = GetSystemMetrics(SM_CXEDGE);
   hdc=GetDC(NULL);
   dpi = GetDeviceCaps(hdc, LOGPIXELSY);
   hGUIFont=GetStockObject(DEFAULT_GUI_FONT);

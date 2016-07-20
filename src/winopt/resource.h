@@ -72,13 +72,6 @@
 #define IDC_EDITBYTE5                   1031
 #define IDC_EDITBYTE6                   1032
 #define IDC_EDITBYTE7                   1033
-#define IDC_EDITWYDE0                   1034
-#define IDC_EDITWYDE1                   1035
-#define IDC_EDITWYDE2                   1036
-#define IDC_EDITWYDE3                   1037
-#define IDC_EDITTETRA0                  1038
-#define IDC_EDITTETRA1                  1039
-#define IDC_EDITOCTA0                   1040
 #define IDC_LOAD                        1041
 #define IDC_STORE                       1042
 #define AFX_IDC_COLOR_BLACK             1100

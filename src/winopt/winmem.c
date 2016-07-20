@@ -211,8 +211,6 @@ static void refresh_old_mem(inspector_def *insp)
 }
 
 
-void set_edit_rect(inspector_def *insp);
-
 void show_goto_addr(inspector_def *insp, uint64_t goto_addr)
 { goto_addr=adjust_goto_addr(insp,goto_addr);
   if (!insp->change_address || (goto_addr> insp->address && goto_addr-insp->address<INT_MAX))
@@ -222,7 +220,6 @@ void show_goto_addr(inspector_def *insp, uint64_t goto_addr)
     insp->sb_base=0;
 	insp->mem_size=0;
     insp->de_offset=-1;
-	set_edit_rect(insp);
   }
   insp->sb_cur = 0;
   adjust_mem_display(insp);
@@ -236,7 +233,6 @@ void adjust_mem_display(inspector_def *insp)
 	insp->get_mem(insp->mem_base,insp->mem_size,insp->mem_buf);
   else if (insp->mem_size>0 && insp->mem_buf!=NULL)
     memset(insp->mem_buf,0,insp->mem_size);
-  set_edit_rect(insp);
   invalidate_mem(insp);
 }
 
@@ -245,7 +241,7 @@ void adjust_mem_display(inspector_def *insp)
 
 
 
-static int chunk_len(enum mem_fmt f, int chunk_size)
+int chunk_len(enum mem_fmt f, int chunk_size)
 { int column_digits;
   switch (f)
   { case hex_format: column_digits=2*chunk_size; break;
@@ -294,6 +290,8 @@ void resize_memory_dialog(inspector_def *insp)
 
 #define COLD RGB(0xFF,0xFF,0xFF)
 #define HOT RGB(0xFF,0xA0,0xA0)
+#define COLD_DE RGB(0xA0,0xA0,0xFF)
+#define HOT_DE RGB(0xFF,0x70,0xFF)
 
 
 static int different(inspector_def *insp,int offset, int size)
@@ -428,9 +426,9 @@ void display_registers(inspector_def *insp,HDC hdc)
 	   if (r->options&REG_OPT_DISABLED)
 	     SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
 	   else if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
-	     SetBkColor(hdc,HOT);
+	   {  if (insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,HOT_DE);  else SetBkColor(hdc,HOT); }
 	   else
-	     SetBkColor(hdc,COLD);
+	   {  if (insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,COLD_DE);  else   SetBkColor(hdc,COLD); }
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   rect.top=y;
        rect.left=x;
@@ -469,11 +467,12 @@ void display_memory(inspector_def *insp,HDC hdc)
 	 for (k=0;k<columns;k++)
 	 { int x,l;
 	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= insp->mem_size)
-	   { l=chunk_to_str(str, insp->mem_buf+(i*columns+k)*chunk_size, insp->format,chunk_size, insp->column_digits);
-         if (different(insp,(i*columns+k)*chunk_size,chunk_size))
-	       SetBkColor(hdc,HOT);
+	   { unsigned int offset= (i*columns+k)*chunk_size;
+		 l=chunk_to_str(str, insp->mem_buf+offset, insp->format,chunk_size, insp->column_digits);
+         if (different(insp,offset,chunk_size))
+		 { if (offset<=insp->de_offset-insp->mem_base && offset+chunk_size> insp->de_offset-insp->mem_base) SetBkColor(hdc,HOT_DE); else SetBkColor(hdc,HOT); }
 	     else
-	       SetBkColor(hdc,COLD);
+		 { if (offset<=insp->de_offset-insp->mem_base && offset+chunk_size> insp->de_offset-insp->mem_base) SetBkColor(hdc,COLD_DE); else SetBkColor(hdc,COLD); }
 	   }
 	   else
 	   { str[0]=0;
@@ -506,42 +505,6 @@ void display_data(inspector_def *insp,HDC hdc)
   }
 }
 
-
-
-void set_edit_rect(struct inspector_def *insp)
-/* determine the edit rectangle from the edit_offset. */
-{ int page_offset;
-  int line_offset;
-  int edit_line;
-  int edit_width;
-  SetRectEmpty(&insp->edit_rect);
-  if (insp->de_offset<0) return;
-  if (insp->regs!=NULL)
-  { enum mem_fmt fmt;
-    enum mem_chunk chunk;
-    fmt = insp->regs[insp->de_offset].format;
-	if (fmt==user_format) fmt=insp->format;
-	chunk = insp->regs[insp->de_offset].chunk;
-	if (chunk == user_chunk) chunk = insp->chunk;
-    edit_line=insp->de_offset-insp->sb_cur;
-	line_offset=0;
-	edit_width=chunk_len(fmt,1<<chunk)*fixed_char_width+separator_width;
-  }
-  else {
-	page_offset= insp->de_offset-insp->mem_base;
-    if (page_offset<0 || page_offset>=(int)insp->mem_size) return;
-    edit_line= page_offset/insp->line_range;
-    line_offset= page_offset-edit_line*insp->line_range;
-	edit_width=insp->column_digits*fixed_char_width+separator_width;
-  }
-  if (edit_line<0) 
-	  return;
-  insp->edit_rect.top=top_height+edit_line*fixed_line_height;
-  insp->edit_rect.bottom=insp->edit_rect.top+fixed_line_height-separator_height;
-  insp->edit_rect.left=insp->address_width*fixed_char_width+separator_width+separator_width+(line_offset/(1<<insp->chunk))*edit_width;
-  insp->edit_rect.right=insp->edit_rect.left+edit_width-separator_width;
-  InflateRect(&insp->edit_rect,separator_height,separator_height);
-}
 
 static int  set_edit_offset(inspector_def *insp,int x, int y)
 /* determine de_offset from the position 
@@ -610,7 +573,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         GetWindowRect(GetDlgItem(hDlg,IDC_MEM_SCROLLBAR),&sbRect);
         sb_width=sbRect.right-sbRect.left;
 		GetWindowRect(GetDlgItem(hDlg,IDC_FORMAT),&sbRect);
-		top_height = border_size*2+(sbRect.bottom-sbRect.top);
+		top_height = separator_height*2+(sbRect.bottom-sbRect.top);
 	  }
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
 	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
@@ -632,12 +595,11 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 	  if (insp==NULL) return FALSE;
 	  if (insp->hWnd!=NULL)
-	    InvalidateRect(insp->hWnd,&insp->edit_rect,TRUE);
+	    InvalidateRect(insp->hWnd,NULL,TRUE);
 	  hde=GetDataEdit(0,hDlg);
 	  de_connect(hde,insp);
       insp->de_offset=set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
-	  set_edit_rect(insp);
-	  InvalidateRect(insp->hWnd,&insp->edit_rect,FALSE);
+	  InvalidateRect(insp->hWnd,NULL,FALSE);
 	  de_update(hde);
 	}
     return FALSE;
@@ -694,16 +656,6 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  HDC hdc = BeginPaint (hDlg, &ps);
 	  if (insp!=NULL)
 	  { display_data(insp,hdc);
-	    if (!IsRectEmpty(&insp->edit_rect))
-	    { HBRUSH hb = SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-	      LOGPEN lp = {PS_SOLID,{separator_height,0},RGB(0,0,0)};
-	      HPEN hpnew =  CreatePen(PS_SOLID|PS_INSIDEFRAME,separator_height,RGB(0,0,0)); //CreatePenIndirect(&lp);
-		  HPEN hpold = SelectObject(hdc,hpnew);
-		  Rectangle(hdc,insp->edit_rect.left,insp->edit_rect.top,insp->edit_rect.right,insp->edit_rect.bottom);
-		  SelectObject(hdc, hpold);
-		  DeleteObject(hpnew);
-          SelectObject(hdc, hb);
-	    }
 	  }
       EndPaint (hDlg, &ps);
 	  return TRUE;
@@ -776,9 +728,8 @@ void MemoryDialogUpdate(inspector_def *insp, unsigned int offset, int size)
 void de_disconnect(inspector_def *insp)
 /* called if a dataedit window disconects from the inspector */
 { if (insp->hWnd!=NULL)
-    InvalidateRect(insp->hWnd,&insp->edit_rect,TRUE);
+    InvalidateRect(insp->hWnd,NULL,TRUE);
   insp->de_offset=-1;
-  set_edit_rect(insp);
 }
 
 
