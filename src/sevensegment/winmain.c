@@ -327,7 +327,7 @@ static int seven_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",8,seven_read,seg_get_payload,seg_put_payload,0,0,-1,0,0,NULL},
+	{"Memory",8,seven_read,seg_get_payload,seg_put_payload,0,0,0,0,NULL},
 	{0}
 };
 

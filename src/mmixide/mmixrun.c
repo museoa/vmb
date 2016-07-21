@@ -26,7 +26,7 @@
 #include "runoptions.h"
 #include "breakpoints.h"
 #include "mmixrun.h"
-//#include "address.h"
+#include "address.h"
 
 /* Running MMIX */
 // maximum mumber of lines the output console should have

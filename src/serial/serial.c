@@ -776,7 +776,7 @@ struct register_def serial_regs[7] = {
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",SERIAL_MEM,serial_reg_read,serial_get_payload,serial_put_payload,0,0,-1,8,6,serial_regs},
+	{"Registers",SERIAL_MEM,serial_reg_read,serial_get_payload,serial_put_payload,0,0,8,6,serial_regs},
 	{0}
 };
 

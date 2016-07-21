@@ -704,7 +704,7 @@ void disk_terminate(void)
 #ifdef WIN32
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,0,0,-1,0,NUM_REGS,disk_regs},
+	{"Registers",DISK_MEM,disk_reg_read,disk_get_payload,disk_put_payload,0,0,0,NUM_REGS,disk_regs},
 	{0}
 };
 #endif

@@ -16,6 +16,7 @@
 #ifdef VMB
 #include "vmb.h"
 #include "mmix-bus.h"
+#include "opt.h"
 #endif
 #include "findreplace.h"
 #include "print.h"

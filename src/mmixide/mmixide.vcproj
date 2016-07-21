@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
+				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib;..\opt"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -127,7 +127,7 @@
 				Optimization="3"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
+				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib;..\opt"
 				PreprocessorDefinitions="MMIXLIB;WIN32;NDEBUG;_WINDOWS;VMB"
 				RuntimeLibrary="0"
 				RuntimeTypeInfo="false"
@@ -336,11 +336,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\winopt\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath="..\winopt\resource.h"
 				>
 			</File>
 			<File
@@ -361,6 +361,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath="about.rc"
+				>
+			</File>
 			<File
 				RelativePath=".\Icons\break.ico"
 				>
@@ -511,10 +515,6 @@
 			</File>
 			<File
 				RelativePath=".\Icons\whitespace.ico"
-				>
-			</File>
-			<File
-				RelativePath="about.rc"
 				>
 			</File>
 			<File

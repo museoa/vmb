@@ -213,7 +213,7 @@ void ram_reset(void)
 #ifdef WIN32
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,ram_read,ram_get_payload,ram_put_payload,0,0,-1, 8,0,NULL},
+	{"Memory",0,ram_read,ram_get_payload,ram_put_payload,0,0, 8,0,NULL},
 	{0}
 };
 #endif

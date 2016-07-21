@@ -196,7 +196,7 @@ static int flash_read(unsigned int offset,int size,unsigned char *buf)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Memory",0,flash_read,flash_get_payload,flash_put_payload,0,0,-1,8,0,NULL},
+	{"Memory",0,flash_read,flash_get_payload,flash_put_payload,0,0,8,0,NULL},
 	{0}
 };
 #endif

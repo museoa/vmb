@@ -249,7 +249,7 @@ void sound_terminate(void)
 
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",SOUND_MEM,sound_reg_read,sound_get_payload,sound_put_payload,hex_format,octa_chunk,-1,8,NUM_REGS,sound_regs},
+	{"Registers",SOUND_MEM,sound_reg_read,sound_get_payload,sound_put_payload,hex_format,octa_chunk,8,NUM_REGS,sound_regs},
 	{0}
 };
 

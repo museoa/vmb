@@ -139,7 +139,7 @@ int screen_reg_read(unsigned int offset, int size, unsigned char *buf)
 }
 struct inspector_def inspector[2] = {
     /* name size get_mem address num_regs regs */
-	{"Registers",5*8,screen_reg_read,screen_get_payload,screen_put_payload,0,0,-1,8,4,screen_regs},
+	{"Registers",5*8,screen_reg_read,screen_get_payload,screen_put_payload,0,0,8,4,screen_regs},
 	{0}
 };
 #endif
