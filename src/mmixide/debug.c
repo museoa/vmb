@@ -285,12 +285,12 @@ static void store_neg_mem(unsigned int offset, int size, unsigned char *buf)
 
 
 static inspector_def memory_insp[MAXMEM+1]=
-{ 	{"Text Segment",0x7fffffff,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,0ULL<<61},
-	{"Data Segment",0x7fffffff,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,-1,8,0,NULL,0,1ULL<<61},
-	{"Pool Segment",0x7fffffff,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,-1,8,0,NULL,0,2ULL<<61},
-	{"Stack Segment",0x7fffffff,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,-1,8,0,NULL,0,3ULL<<61},
-	{"Negative Segemnt",0x7fffffff,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,-1,8,0,NULL,0,4ULL<<61},
-	{NULL}
+{ 	{"Text Segment",0x7fffffff,get_text_mem,load_text_mem,store_text_mem,hex_format, tetra_chunk,8,0,NULL,0,0ULL<<61},
+	{"Data Segment",0x7fffffff,get_data_mem,load_data_mem,store_data_mem,hex_format, octa_chunk,8,0,NULL,0,1ULL<<61},
+	{"Pool Segment",0x7fffffff,get_pool_mem,load_pool_mem,store_pool_mem,hex_format, octa_chunk,8,0,NULL,0,2ULL<<61},
+	{"Stack Segment",0x7fffffff,get_stack_mem,load_stack_mem,store_stack_mem,hex_format, octa_chunk,8,0,NULL,0,3ULL<<61},
+	{"Negative Segemnt",0x7fffffff,get_neg_mem,load_neg_mem,store_neg_mem,hex_format, tetra_chunk,8,0,NULL,0,4ULL<<61},
+    {NULL}
 };
 
 
@@ -597,9 +597,9 @@ static void store_global_mem(unsigned int offset, int size, unsigned char *buf)
 
 
 struct inspector_def register_insp[MAXREG+1]= /* array sorted by REG_LOCAL,REG_GLOBAL,REG_SPECIAL */
-{ {"Local Registers",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,-1,8,0,reg_names},
-  {"Global Registers",256*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,0,&reg_names[255]},
-  {"Special Registers",32*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,-1,8,32,special_reg_names},
+{ {"Local Registers",256*8,get_local_mem,load_local_mem,store_local_mem,hex_format, octa_chunk,8,0,reg_names},
+  {"Global Registers",256*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,8,0,&reg_names[255]},
+  {"Special Registers",32*8,get_global_mem,load_global_mem,store_global_mem,hex_format, octa_chunk,8,32,special_reg_names},
 {NULL}
 };
 
