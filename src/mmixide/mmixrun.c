@@ -26,7 +26,9 @@
 #include "runoptions.h"
 #include "breakpoints.h"
 #include "mmixrun.h"
+#ifdef VMB
 #include "address.h"
+#endif
 
 /* Running MMIX */
 // maximum mumber of lines the output console should have

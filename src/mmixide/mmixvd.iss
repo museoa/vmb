@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=mmixvd
-AppVerName=mmixvd version 1.1, MMIX Visual Debugger
-AppVersion=1.1
+AppVerName=mmixvd version 2.0, MMIX Visual Debugger
+AppVersion=2.0
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
 AppSupportURL=http://mmix.cs.hm.edu
