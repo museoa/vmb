@@ -44,9 +44,6 @@ extern int mk_argv(char *argv[MAXARG],char *command, int unquote);
 extern INT_PTR CALLBACK    
 AboutDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 
-/* in winconnect.c */
-extern INT_PTR CALLBACK    
-ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 /* in windialog.c */
 extern void register_subwindow(HWND h);
 extern void unregister_subwindow(HWND h);
