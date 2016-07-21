@@ -242,7 +242,7 @@ void de_update(HWND hDlg)
 /* call after changes to the inspector or to the data */
 { 
   dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
-  if (de->insp==NULL || de->insp->de_offset<0)
+  if (de->insp==NULL || de->insp->de_size==0)
   { de->reg_name=NULL;
 	de->reg_offset=0;
 	set_edit_format(de,hex_format);
@@ -286,10 +286,10 @@ void de_connect(HWND hDlg, inspector_def *insp)
 }
 
 void de_save(HWND hDlg)
-/* call to save the content of the editor back to to memory.
+/* call to save the content of the editor back to memory.
    This is the same as pressing the store button */
 { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
-  if (de->insp!=NULL && de->insp->store !=NULL && de->insp->de_offset>=0)
+  if (de->insp!=NULL && de->insp->store !=NULL && de->insp->de_size>0)
   { put_edit_mem(de);
     if (de->reg_name!=NULL)
       de->insp->store(de->reg_offset,de->size,de->mem); 
@@ -362,7 +362,7 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if (HIWORD(wparam) == BN_CLICKED) 
 	  { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 		if (LOWORD(wparam) ==IDC_LOAD)   /* User has hit the Load key.*/
-		{ if (de->insp!=NULL && de->insp->load!=NULL && de->insp->de_offset>=0) 
+		{ if (de->insp!=NULL && de->insp->load!=NULL && de->insp->de_size>0) 
 		  { if (de->reg_name!=NULL)
  			  memmove(de->mem,de->insp->load(de->reg_offset,de->size),de->size);
 		    else

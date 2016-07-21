@@ -38,7 +38,6 @@ struct inspector_def {
     void (*store)(unsigned int offset,int size, unsigned char *payload); /* same for store */
 	enum mem_fmt format;
 	enum chunk_fmt chunk;
-	int de_offset; /* offset for the data editor, -1 if none*/
 	int sb_rng; /* number of lines covered by scrollbar */
 	int num_regs;      /* number of registers if register_def!=NULL */
 	struct register_def *regs; /* NULL if memory */
@@ -46,6 +45,8 @@ struct inspector_def {
 	int address_width;   /*size of addess or register names column in characters*/
 	uint64_t address;  /* used for memory only */
 	HWND hWnd; /* the window where the edit rectangle is displayed */
+	unsigned int de_offset; /* offset for the data editor */
+	unsigned int de_size; /* number of bytes in data editor 0 if none*/
     unsigned int sb_base; /* offset at base of scrollbar */
     int sb_cur; /* line corresponding to start of page */
     int lines; /* lines per page */

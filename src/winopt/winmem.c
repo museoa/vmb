@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "resource.h"
 #include "winopt.h"
-//include "float.h"
 #include "inspect.h"
 #include "dedit.h"
 #include "winde.h"
@@ -219,7 +218,8 @@ void show_goto_addr(inspector_def *insp, uint64_t goto_addr)
   { insp->address=goto_addr;
     insp->sb_base=0;
 	insp->mem_size=0;
-    insp->de_offset=-1;
+    insp->de_offset=0;
+	insp->de_size=0;
   }
   insp->sb_cur = 0;
   adjust_mem_display(insp);
@@ -426,9 +426,9 @@ void display_registers(inspector_def *insp,HDC hdc)
 	   if (r->options&REG_OPT_DISABLED)
 	     SetBkColor(hdc,GetSysColor(COLOR_BTNFACE));
 	   else if (different(insp,r->offset+k*chunk_size-insp->mem_base,chunk_size))
-	   {  if (insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,HOT_DE);  else SetBkColor(hdc,HOT); }
+	   {  if (insp->de_size>0 && insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,HOT_DE);  else SetBkColor(hdc,HOT); }
 	   else
-	   {  if (insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,COLD_DE);  else   SetBkColor(hdc,COLD); }
+	   {  if (insp->de_size>0 && insp->sb_cur+i==insp->de_offset)   SetBkColor(hdc,COLD_DE);  else   SetBkColor(hdc,COLD); }
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   rect.top=y;
        rect.left=x;
@@ -470,9 +470,9 @@ void display_memory(inspector_def *insp,HDC hdc)
 	   { unsigned int offset= (i*columns+k)*chunk_size;
 		 l=chunk_to_str(str, insp->mem_buf+offset, insp->format,chunk_size, insp->column_digits);
          if (different(insp,offset,chunk_size))
-		 { if (offset<=insp->de_offset-insp->mem_base && offset+chunk_size> insp->de_offset-insp->mem_base) SetBkColor(hdc,HOT_DE); else SetBkColor(hdc,HOT); }
+		 { if (offset+chunk_size>insp->de_offset-insp->mem_base && offset< insp->de_offset-insp->mem_base+insp->de_size) SetBkColor(hdc,HOT_DE); else SetBkColor(hdc,HOT); }
 	     else
-		 { if (offset<=insp->de_offset-insp->mem_base && offset+chunk_size> insp->de_offset-insp->mem_base) SetBkColor(hdc,COLD_DE); else SetBkColor(hdc,COLD); }
+		 { if (offset+chunk_size>insp->de_offset-insp->mem_base && offset< insp->de_offset-insp->mem_base+insp->de_size) SetBkColor(hdc,COLD_DE); else SetBkColor(hdc,COLD); }
 	   }
 	   else
 	   { str[0]=0;
@@ -599,6 +599,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  hde=GetDataEdit(0,hDlg);
 	  de_connect(hde,insp);
       insp->de_offset=set_edit_offset(insp,LOWORD(lparam),HIWORD(lparam));
+	  insp->de_size=1<<insp->chunk;
 	  InvalidateRect(insp->hWnd,NULL,FALSE);
 	  de_update(hde);
 	}
@@ -729,7 +730,8 @@ void de_disconnect(inspector_def *insp)
 /* called if a dataedit window disconects from the inspector */
 { if (insp->hWnd!=NULL)
     InvalidateRect(insp->hWnd,NULL,TRUE);
-  insp->de_offset=-1;
+  insp->de_offset=0;
+  insp->de_size=0;
 }
 
 
