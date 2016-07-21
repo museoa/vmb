@@ -37,7 +37,10 @@ extern LRESULT CALLBACK
 OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
 
 extern INT_PTR CALLBACK    
-ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
+ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );  /* provided */
 
+/* in winconnect.c */
+extern INT_PTR CALLBACK    
+ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );  /* provided */
 
 #endif
