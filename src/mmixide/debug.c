@@ -529,7 +529,7 @@ void mem_to_locals(int from, int to)
     o->l=chartoint(local_mem+(k*8)+4);
   }
   if (to>max)
-   memset(local_mem+max*8,0,to-max*8);
+   memset(local_mem+max*8,0,(to-max)*8);
   MemoryDialogUpdate(&register_insp[REG_LOCAL],from*8,(to-from)*8);
 }
 

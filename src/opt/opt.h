@@ -43,4 +43,7 @@ ConfigurationDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 extern INT_PTR CALLBACK    
 ConnectDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );  /* provided */
 
+/* in winparam.c */
+extern void win32_param_init(void);
+
 #endif

@@ -104,7 +104,6 @@ extern LRESULT CALLBACK
 OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam); /* provided */
 
 /* from winparam.c */
-extern void win32_param_init(void);
 extern void do_program(char * arg);
 extern void parse_commandline(int argc, char *argv[]);
 extern int do_define(char *arg);

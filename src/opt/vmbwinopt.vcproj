@@ -172,6 +172,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\winparam.c"
+				>
+			</File>
+			<File
 				RelativePath=".\winproc.c"
 				>
 			</File>
