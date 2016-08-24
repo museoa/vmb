@@ -57,6 +57,8 @@ regtable regtab= {
 	{KEY_FLAGS,&show_debug_pool,16},
 	{KEY_FLAGS,&show_debug_neg,17},
 	{KEY_FLAGS,&show_trace,18},
+	{"traceex",&tracing_exceptions,TYPE_DWORD},
+	{"showspecial",&show_special_registers,TYPE_DWORD},
 #ifdef VMB
 	{KEY_FLAGS,&show_operating_system,19},
 #endif

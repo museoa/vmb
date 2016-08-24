@@ -132,10 +132,10 @@
 #define IDC_SHOW_RTT                    1028
 #define IDC_SHOW_RWW                    1029
 #define IDC_SHOW_RXX                    1030
-#define IDC_ADDRESS                     1031
-#define IDC_SHOW_RYY                    1032
+#define IDC_SHOW_RYY                    1031
+#define IDC_SHOW_RZZ                    1032
 #define IDC_LIST_BREAKPOINTS            1033
-#define IDC_SHOW_RZZ                    1034
+#define IDC_ADDRESS                     1034
 #define IDC_CHOOSE_OPCODE               1035
 #define IDC_STATIC_OPCODE               1036
 #define IDC_CHOOSE_OPERROR              1037

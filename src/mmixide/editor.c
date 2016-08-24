@@ -581,6 +581,8 @@ void new_edit(void)
    ed_send(SCI_STYLESETWEIGHT,STYLE_DEFAULT, SC_WEIGHT_BOLD);
    ed_send(SCI_SETSCROLLWIDTH,80*fixed_char_width,0);
    ed_send(SCI_SETVISIBLEPOLICY,CARET_SLOP|CARET_STRICT,5);
+   ed_send(SCI_SETYCARETPOLICY,CARET_SLOP|CARET_STRICT|CARET_EVEN,5);
+   
    set_text_style();
    /* configure margins and markers */
    /* line numbers */
