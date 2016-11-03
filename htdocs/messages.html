@@ -301,10 +301,29 @@ Message Format: 20 to 24 Byte
    The sender of this message will inform the receiver
    that the 1, 2, or 4 byte contained left justified in the payload octa
    are stored at the given address.
-
+<p>
    The receiver can use the data.
 
+<HR><H3><Pre>#define ID_TERMINATE   0xF9</pre></H3>
 
+Message Format: 4  Byte
+<table border=1>
+<tr><td>    TYPE<td>(bus=1, time=0, address=0, route=0, 
+            payload=0, request=0, lock=0, unused=0)
+<tr><td>    SIZE<td>0
+<tr><td>    SLOT<td>0
+<tr><td>    ID  <td>0xF9
+</table>
+
+<H4>Semantics:</H4>
+   Sending this message is a polite request to terminate the device
+   simulator. The motherboard will send this message to all connected
+   devices before it terminates. This allows to terminate the complete
+   device configuration by terminating the motherboard.
+<p>
+   Of course it is possible to ignore this message. For example, the VMB IDE
+   application will not terminate when receiving this message.
+ 
 <HR><H3><Pre>#define ID_REGISTER   0xFA</pre></H3>
 
 Message Format: 36 to 12+8*256 Byte
