@@ -17,9 +17,9 @@ static ATOM SplitterBarClass, SplitterClass;
 /*COLOR_WINDOWFRAME
  COLOR_MENUBAR*/
 #define COLOR_SPLIT_HI RGB(255,255,255)
-#define COLOR_SPLIT_MH RGB(GetRValue(COLOR_SPLIT)+5,GetGValue(COLOR_SPLIT)+6,GetBValue(COLOR_SPLIT)+10)
-#define COLOR_SPLIT_ML RGB(GetRValue(COLOR_SPLIT)-64,GetGValue(COLOR_SPLIT)-65,GetBValue(COLOR_SPLIT)-63)
-#define COLOR_SPLIT_LO RGB(GetRValue(COLOR_SPLIT)-123,GetGValue(COLOR_SPLIT)-122,GetBValue(COLOR_SPLIT)-116)
+#define COLOR_SPLIT_MH RGB(GetRValue(COLOR_SPLIT)+8,GetGValue(COLOR_SPLIT)+8,GetBValue(COLOR_SPLIT)+8)
+#define COLOR_SPLIT_ML RGB(GetRValue(COLOR_SPLIT)-64,GetGValue(COLOR_SPLIT)-64,GetBValue(COLOR_SPLIT)-64)
+#define COLOR_SPLIT_LO RGB(GetRValue(COLOR_SPLIT)-127,GetGValue(COLOR_SPLIT)-127,GetBValue(COLOR_SPLIT)-127)
 #define ARROWWIDTH 8
 #define ARROWHEIGHT 10
 #define MAXMID (ARROWHEIGHT+CLOSEHEIGHT+ 2*SPLITWIDTH)
@@ -306,7 +306,7 @@ static void sp_resize(split *sp)
 	  lw = get_split_width(sp);
 	  rw = sp->w-lw-SPLITWIDTH;
 	  sp_setsize(sp->o.sp.TopLeft,sp->x,sp->y,lw,sp->h);
-      MoveWindow(sp->o.sp.hSplit,sp->x+lw,sp->y,SPLITWIDTH,sp->h,FALSE);
+      MoveWindow(sp->o.sp.hSplit,sp->x+lw,sp->y,SPLITWIDTH,sp->h,TRUE);
 	  sp_setsize(sp->o.sp.BottomRight,sp->x+lw+SPLITWIDTH,sp->y,rw,sp->h);
 	  if (sp->h<3*MAXMID)
 	    sp->o.sp.mid_max = sp->h/6;
@@ -318,7 +318,7 @@ static void sp_resize(split *sp)
 	  th = get_split_width(sp);
       bh = sp->h-th-SPLITWIDTH;
 	  sp_setsize(sp->o.sp.TopLeft,sp->x,sp->y,sp->w,th);
-      MoveWindow(sp->o.sp.hSplit,sp->x,sp->y+th,sp->w,SPLITWIDTH,FALSE);
+      MoveWindow(sp->o.sp.hSplit,sp->x,sp->y+th,sp->w,SPLITWIDTH,TRUE);
 	  sp_setsize(sp->o.sp.BottomRight,sp->x,sp->y+th+SPLITWIDTH,sp->w,bh);
 	  if (sp->w<3*MAXMID)
 	    sp->o.sp.mid_max = sp->w/6;
@@ -620,14 +620,21 @@ static double create_ratio = 0.681;
 static HWND create_wnd = NULL;
 
 void sp_create_options(int left, int vertical, double ratio, int min_wh, HWND hWnd)
+/* create next window, 
+	either to the left or right, either vertical or horizontal
+	occupy ratio of the two sibbling windows
+	create it with minimal width (or height)
+	relative to hWnd
+*/
 { if (left==0 || left==1) create_left=left; else create_left=1;
   if (vertical==0 || vertical==1) create_vertical=vertical; else create_vertical=!create_vertical;
-  if (0.0<ratio && ratio < 1.0)
+  if (0.1<ratio && ratio < 0.9) /* avoid extreme ratios */
     create_ratio= ratio;
   else
-    create_ratio = 0.618;
-  if (min_wh>0) create_min= min_wh; else create_min=0;
-  if (create_left==0) create_ratio=1-create_ratio;
+    create_ratio = 0.618; /* the golden ratio */
+  create_min=0; /* default no minimum */
+  if (min_wh>0) create_min=min_wh; else create_min=0;
+  if (create_left==0) create_ratio=1.0-create_ratio;
   create_wnd=hWnd; 
 }
 
@@ -663,12 +670,14 @@ static LRESULT CALLBACK SplitterProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		  { split *entry=NULL;
 		    if (create_wnd!=NULL)  entry = leaf_by_window(Root,create_wnd);
 			if (entry==NULL) entry=Root;
-			if (create_min&& entry!=NULL)
+			if (create_min>0 && entry!=NULL)
 			{ if (create_vertical)
 				  create_ratio = (double)create_min/entry->w;
 			  else
 				  create_ratio = (double)create_min/entry->h;
 			  if (!create_left) create_ratio=1.0-create_ratio;
+			  if (create_ratio<0.1) create_ratio=0.1;
+			  if (create_ratio>0.9) create_ratio=0.9;
      		}
 			sp_add_leaf(hChildWnd,create_ratio,create_vertical,create_left,entry);
 			PostMessage(hSpliterBase,SP_LAYOUT,0,0);
@@ -913,11 +922,18 @@ static LRESULT CALLBACK SplitterBarProc(HWND hWnd, UINT message, WPARAM wParam, 
             bf.SourceConstantAlpha = 0xff;  
 
 			if (sp->o.sp.vertical)
-			{ SelectObject(hdc,hHIPen);
+			{ SelectObject(hdc,hMLPen);
 			  MoveToEx(hdc, 0,sp->h-1, NULL);
 			  LineTo(hdc,0,0);
-			  LineTo(hdc,SPLITWIDTH-1,0);
+			  LineTo(hdc,SPLITWIDTH-2,0); 
+			  LineTo(hdc,SPLITWIDTH-2,sp->h-2);
+			  LineTo(hdc,0,sp->h-2);
+			  SelectObject(hdc,hHIPen);
+			  MoveToEx(hdc, 1,sp->h-2, NULL);
+			  LineTo(hdc,1,1);
+			  LineTo(hdc,SPLITWIDTH-1,1);
 			  SelectObject(hdc,hLOPen);
+			  MoveToEx(hdc, SPLITWIDTH-1,0, NULL);
 			  LineTo(hdc,SPLITWIDTH-1,sp->h-1);
 			  LineTo(hdc,0,sp->h-1);
 
@@ -929,11 +945,18 @@ static LRESULT CALLBACK SplitterBarProc(HWND hWnd, UINT message, WPARAM wParam, 
      AlphaBlend(hdc, 0, sp->h-CLOSEHEIGHT-SPLITWIDTH/2, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0, CLOSEWIDTH, CLOSEHEIGHT,bf);
 			}
 			else
-			{ SelectObject(hdc,hHIPen);
+			{ SelectObject(hdc,hMLPen);
 			  MoveToEx(hdc, 0,SPLITWIDTH-1, NULL);
 			  LineTo(hdc,0,0);
-			  LineTo(hdc,sp->w-1,0);
+			  LineTo(hdc,sp->w-2,0); 
+			  LineTo(hdc,sp->w-2,SPLITWIDTH-2);
+			  LineTo(hdc,0,SPLITWIDTH-2);
+			  SelectObject(hdc,hHIPen);
+			  MoveToEx(hdc, 1,SPLITWIDTH-2, NULL);
+			  LineTo(hdc,1,1);
+			  LineTo(hdc,sp->w-1,1);
 			  SelectObject(hdc,hLOPen);
+			  MoveToEx(hdc, sp->w-1,0, NULL);
 			  LineTo(hdc,sp->w-1,SPLITWIDTH-1);
 			  LineTo(hdc,0,SPLITWIDTH-1);
 			  AlphaBlend(hdc, SPLITWIDTH/2, 0, CLOSEWIDTH, CLOSEHEIGHT, CloseDC, 0, 0,  CLOSEWIDTH, CLOSEHEIGHT,bf);
