@@ -1,7 +1,7 @@
-When recompiling a file old file and linenumber information may remain in memory
+When recompiling a file, old file and linenumber information may remain in memory
 because this information is overwritten but not deleted.
 
-Statistics line im Trace window
+Statistics line in Trace window
 
 Ask for reset/reload after assembly while debugging
 
