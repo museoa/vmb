@@ -36,6 +36,8 @@ option_spec options[] = {
 #endif
 {"the x position of the window",        'x', "x",       "x position",    int_arg, "0", {&xpos}},
 {"the y position of the window",        'y', "y",       "y position",    int_arg, "0", {&ypos}},
+{"the width of the window",             'W', "width",       "width",    int_arg, "0", {&width}},
+{"the height of the window",             'H', "height",       "height",    int_arg, "0", {&height}},
 {"start with a minimized window",        'm', "minimized",       "minimizedflag",    on_arg, NULL, {&minimized}},
 {"to define a name for conditionals",   'D', "define",  "conditional",   str_arg, NULL, {&defined}},
 {"filename for a configuration file",    'c', "config", "file",          fun_arg, NULL, {do_option_configfile}},

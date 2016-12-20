@@ -41,6 +41,7 @@ extern void store_command(char *command);
 
 #endif
 extern int xpos,ypos;
+extern int width,height;
 extern int minimized;
 
 
