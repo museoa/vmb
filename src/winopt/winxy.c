@@ -20,11 +20,11 @@ void get_xypos(void)
   w = screen_width-64;
   h = screen_height-64;
   if (xpos < 0) xpos = 0;
-  if (xpos > w) xpos = w;
+  if (xpos > w) xpos = 3*screen_width/4;
   if (ypos < 0) ypos = 0;
-  if (ypos >h) ypos = h;
-  if (width<=0) width=64;
+  if (ypos >h) ypos = 3*screen_height/4;
+  if (width<=0) width=screen_width/2;
   if (width>screen_width) width=screen_width;
-  if (height<=0) height=64;
+  if (height<=0) height=screen_height/2;
   if (height>screen_height) height=screen_height;
 }

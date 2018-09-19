@@ -506,6 +506,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		  ide_help("help\\mmixvd.html");
 #endif
 		  return 0;
+#if 0
+	   /* see winproc.c for an example */
+	   case ID_HELP_CONFIGURATION:
+	     DialogBox(hInst,MAKEINTRESOURCE(IDD_CONFIGURATION),hWnd,ConfigurationDialogProc);
+	     return 0; 
+#endif
 	    case ID_HELP_INSTRUCTIONS:
 		  ide_help("help\\instructions\\index.html");
 		  return 0;	

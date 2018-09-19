@@ -9,14 +9,15 @@ host localhost
 #debug
 exec rom.exe
 exec ram.exe
-# This is the windows Framebuffer
+# This is the windows framebuffer device
 exec winvram
-exec button.exe step
-exec button.exe running
-exec button.exe stop
-exec timer.exe
+exec button step
+exec button run
+exec button stop
+exec timer
 
-# exec .\mmix.exe -i -O gol.mmo  
+# exec .\mmix.exe -i -O gol.mmo 
+ 
 #endif
 
 
@@ -61,12 +62,14 @@ interrupt 11
 #endif
 
 #if step
-color 65280
+label step
+color 0xFF0000
 interrupt 12
 #endif
 
-#if running
-color 16711680
+#if run
+label run
+color 0x008000
 interrupt 13
 upinterrupt 14
 enable 3
@@ -75,7 +78,8 @@ pushbutton
 
 
 #if stop
-color 0
+label stop
+color 0x0000FF
 interrupt 15
 #endif
 

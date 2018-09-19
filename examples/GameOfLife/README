@@ -4,7 +4,7 @@ of a working configuration.
 Configuration:
 --------------    
 ROM, RAM, Video Ram, MMIX CPU, Virtual Motherboard
-The configuration is described in detail in the file default.mmc,
+The configuration is described in detail in the file default.vmb,
 the configuration file read by all components (except 
 the MMIX CPU).
 

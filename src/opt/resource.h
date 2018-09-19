@@ -165,7 +165,7 @@
 #define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
-#define ID_HELP_CONFIGURATION           40017
+#define ID_HELP_CONFIGURATION           40112
 #define AFX_IDS_APP_TITLE               0xE000
 #define AFX_IDS_IDLEMESSAGE             0xE001
 #define AFX_IDS_HELPMODEMESSAGE         0xE002

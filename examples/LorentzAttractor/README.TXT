@@ -4,7 +4,7 @@ of a working configuration.
 Configuration:
 --------------    
 ROM, RAM, vram Graphics card, MMIX CPU, Virtual Motherboard
-The configuration is described in detail in the file default.mmc,
+The configuration is described in detail in the file default.vmb,
 the configuration file read by all components (except 
 the MMIX CPU).
 
@@ -13,9 +13,9 @@ Execution:
 Start the example by changing into the example directory
 and start the program "mother".
 
-mother will read deault.mmc and will start
+mother will read deault.vmb and will start
 rom, ram, vram and mmix.
-These programms will in turn read again default.mmc
+These programms will in turn read again default.vmb
 and connect to the motherboard.
 The rom program will in addition load the file bios.img
 containing the rom image for the boot rom.
