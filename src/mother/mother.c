@@ -1103,6 +1103,8 @@ InitInstance (HINSTANCE hInstance)
   return TRUE;
 }
 
+
+
 int APIENTRY
 WinMain (HINSTANCE hInstance,
 	 HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -1110,6 +1112,16 @@ WinMain (HINSTANCE hInstance,
   HACCEL hAccelTable;
   MSG msg;
   WSADATA wsadata;
+  HANDLE hMutex;
+
+  hMutex=CreateMutex(NULL,TRUE,"VMB-motherboard-running");
+  if (hMutex!=NULL && 
+	  GetLastError()==ERROR_ALREADY_EXISTS &&
+      MessageBox(NULL,"Previous Instance of motherboard detected! Start a second instance?",
+		            "START of VMB motherboard",MB_YESNO|MB_ICONWARNING)!=IDYES)
+    { CloseHandle(hMutex);
+      return 0;
+    }
   
   vmb_message_hook = win32_message;
   vmb_debug_hook = win32_log;
@@ -1158,6 +1170,7 @@ WinMain (HINSTANCE hInstance,
       }
   shutdown_server ();
   WSACleanup ();
+  if (hMutex!=NULL) CloseHandle(hMutex);
   return (int)msg.wParam;
 }
 #else
