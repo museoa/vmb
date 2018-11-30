@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32dedit.rc
+// Used by win32connect.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1
@@ -544,6 +544,7 @@
 #define AFX_IDP_E_CANTSAVEFILETOTEMP    0xFEC5
 #define AFX_IDP_E_SEARCHTEXTNOTFOUND    0xFEC6
 #define AFX_IDP_E_REPLACEMENTSTOOLONG   0xFEC7
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

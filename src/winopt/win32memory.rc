@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "resource."
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ EXSTYLE WS_EX_APPWINDOW
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     SCROLLBAR       IDC_MEM_SCROLLBAR,185,18,12,109,SBS_VERT
-    EDITTEXT        IDC_GOTO,24,3,85,12,ES_AUTOHSCROLL | NOT WS_BORDER | WS_GROUP,WS_EX_CLIENTEDGE
+    EDITTEXT        IDC_GOTO,24,3,85,12,ES_AUTOHSCROLL | ES_WANTRETURN | NOT WS_BORDER | WS_GROUP,WS_EX_CLIENTEDGE
     LTEXT           "Go to:",IDC_GOTO_PROMPT,2,4,21,8
     PUSHBUTTON      "Format",IDC_FORMAT,117,2,39,14
     PUSHBUTTON      "Size",IDC_CHUNK,158,2,39,14
@@ -77,7 +77,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

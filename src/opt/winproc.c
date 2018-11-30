@@ -68,8 +68,12 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     }
     return 0;
   case WM_NCRBUTTONDOWN: /* right Mouse Button -> Context Menu */
+	  { SHORT xPos, yPos;
+		xPos=LOWORD(lParam);
+	    yPos=HIWORD(lParam);
     TrackPopupMenu(GetSubMenu(hMenu,0),TPM_LEFTALIGN|TPM_TOPALIGN|TPM_NONOTIFY|TPM_RIGHTBUTTON,
-		   LOWORD(lParam),HIWORD(lParam),0 ,hWnd,NULL);
+		   xPos,yPos,0 ,hWnd,NULL);
+	  }
     return 0;
   case WM_COMMAND:
     if (HIWORD(wParam)==0) /* Menu */

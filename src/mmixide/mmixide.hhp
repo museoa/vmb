@@ -1,6 +1,5 @@
 [OPTIONS]
 Auto Index=Yes
-Auto TOC=5
 Compatibility=1.1 or later
 Compiled file=mmixide.chm
 Contents file=mmixide.hhc
@@ -81,7 +80,17 @@ help\instructions\bspec.html
 help\debugger\index.html
 help\debugger\inspector.html
 help\splitter\index.html
-
+help\options\assembler.html
+help\options\debugger.html
+help\options\editor.html
+help\options\find.html
+help\options\index.html
+help\options\run.html
+help\options\sources.html
+help\options\symbols.html
+help\editor\keys.html
+help\debugger\breaks.html
+help\debugger\symbols.html
 
 [INFOTYPES]
 

@@ -8,6 +8,10 @@
 static HINSTANCE hButtonBarInst=NULL;
 static const char  bb_class_name[] = "ButtonBarClass";
 
+static HDC hButtonDC;
+static HBITMAP hButtonBmp;
+static HPEN	hButtonPen;
+
 typedef struct button {
 	struct button *next;
 	HWND hWnd;
@@ -16,6 +20,8 @@ typedef struct button {
 	unsigned char id;
 	unsigned char active;
 	unsigned char visible;
+	HICON hImg;
+	unsigned int Iwidth,Iheight;
 } button;
 
 
@@ -169,6 +175,15 @@ static int bb_get_command(button *b,HWND hWnd)
   }
   return 0;
 }
+static button *bb_get_button(button *b,HWND hWnd)
+{
+  while (b!=NULL)
+  { if (b->hWnd==hWnd) return b;
+	b=b->next;
+  }
+  return NULL;
+}
+
 
 HWND hTooltips=NULL;
 
@@ -182,6 +197,11 @@ static LRESULT CALLBACK ButtonBarProc(HWND hWnd, UINT message, WPARAM wParam, LP
         hTooltips=CreateWindowEx(WS_EX_TOPMOST,TOOLTIPS_CLASS,NULL,WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			hWnd,NULL,hButtonBarInst,NULL);
+         hButtonDC = CreateCompatibleDC(GetDC(hWnd)); 
+		 hButtonBmp= CreateCompatibleBitmap(GetDC(hWnd),32,32);
+		 SelectObject(hButtonDC, hButtonBmp);
+		 hButtonPen=CreatePen(PS_SOLID,1,GetSysColor(COLOR_BTNSHADOW));
+		 SelectObject(hButtonDC, hButtonPen);
 		return 0;
 	case WM_SIZE:
 		if (wParam==SIZE_RESTORED)
@@ -207,8 +227,41 @@ static LRESULT CALLBACK ButtonBarProc(HWND hWnd, UINT message, WPARAM wParam, LP
 		  while (*h!=NULL)
 	        DestroyWindow((*h)->hWnd);
 		  DestroyWindow(hTooltips);
+		  DeleteDC(hButtonDC);
+		  DeleteObject(hButtonBmp);
+		  DeleteObject(hButtonPen);
 		}
 		break;
+    case WM_DRAWITEM: 
+		{ 
+		  button *btn;
+          LPDRAWITEMSTRUCT lpdis;
+		  HBRUSH hBrush;
+
+          lpdis = (LPDRAWITEMSTRUCT) lParam; 
+          btn=bb_get_button(*bb_list(hWnd),lpdis->hwndItem);
+          if (lpdis->itemState & ODS_SELECTED)  // if selected 
+            hBrush=GetSysColorBrush(COLOR_BTNSHADOW);
+          else 
+            hBrush=GetSysColorBrush(COLOR_BTNFACE);
+	      SelectObject(hButtonDC,hBrush);
+		  Rectangle(hButtonDC,0,0,32,32);
+     	  DrawIconEx(hButtonDC,(32-btn->Iwidth)/2,(32-btn->Iheight)/2,btn->hImg,btn->Iwidth,btn->Iheight,0,NULL,DI_NORMAL);
+          StretchBlt( 
+                lpdis->hDC,         // destination DC 
+                lpdis->rcItem.left, // x upper left 
+                lpdis->rcItem.top,  // y upper left 
+                // The next two lines specify the width and 
+                // height. 
+                lpdis->rcItem.right - lpdis->rcItem.left, 
+                lpdis->rcItem.bottom - lpdis->rcItem.top, 
+                hButtonDC,    // source device context 
+                0, 0,      // x and y upper left 
+                32,        // source bitmap width 
+                32,        // source bitmap height 
+                SRCCOPY);  // raster operation 
+		}
+        return TRUE; 
 	default:
 		break;
 	}
@@ -245,15 +298,16 @@ HWND bb_CreateButtonBar(LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int n
    return hWnd;
 }
 
-
-HWND bb_CreateButton(HWND hButtonBar, HANDLE hImg, int command, unsigned char group, unsigned char id, unsigned char active, unsigned char visible, char *tip)
+HWND bb_CreateButton(HWND hButtonBar, HICON hImg, int command, unsigned char group, unsigned char id, unsigned char active, unsigned char visible, char *tip)
 { HWND hB;
   button *b;
   head *h;
   TOOLINFO ti;
-  hB =CreateWindowEx(0,"BUTTON","B1",WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON|BS_ICON ,
+  ICONINFO Iinfo;
+
+  hB =CreateWindowEx(0,"BUTTON","B1",WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON|BS_OWNERDRAW /*BS_ICON*/ ,
 	                  0,0,BB_HEIGHT,BB_HEIGHT,hButtonBar,NULL,hButtonBarInst,MAKELPARAM(0,0));
-  SendMessage(hB,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hImg);
+  //SendMessage(hB,BM_SETIMAGE,IMAGE_ICON,(LPARAM)hImg);
   
   ti.cbSize=sizeof(TOOLINFO);
   ti.uFlags=TTF_SUBCLASS|TTF_IDISHWND;
@@ -270,6 +324,20 @@ HWND bb_CreateButton(HWND hButtonBar, HANDLE hImg, int command, unsigned char gr
   SendMessage(hTooltips,TTM_ADDTOOL,0,(LPARAM)&ti);
   h = bb_list(hButtonBar);
   b= add_button(h,hB,command, group,id);
+  b->hImg=hImg;
+  GetIconInfo(hImg, &Iinfo);
+  if(Iinfo.hbmColor)
+    { BITMAP bmp;
+      GetObject(Iinfo.hbmColor, sizeof(bmp), &bmp);
+      b->Iwidth = bmp.bmWidth;
+      b->Iheight = bmp.bmHeight;
+    }
+  else if(Iinfo.hbmMask)
+    { BITMAP bmp;
+      GetObject(Iinfo.hbmMask, sizeof(bmp), &bmp);
+      b->Iwidth = bmp.bmWidth;
+      b->Iheight = bmp.bmHeight/2;
+    }
   bb_set_button(b,active,visible);
   bb_resize(hButtonBar);
   return hB;

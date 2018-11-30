@@ -372,11 +372,11 @@
 				<param name="Name" value="The MMIX Symbol Table Window">
 				<param name="Local" value="help/debugger/symbols.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Wrap around">
+				<param name="Local" value="help/options/find.html">
+				</OBJECT>
 		</UL>
-		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="Options">
-			<param name="Local" value="help/options/index.html">
-			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Find and Replace">
 			<param name="Local" value="help/options/find.html">
@@ -402,10 +402,12 @@
 				<param name="Name" value="Use \t, \n, \r, \xFF">
 				<param name="Local" value="help/options/find.html">
 				</OBJECT>
-			<LI> <OBJECT type="text/sitemap">
-				<param name="Name" value="Wrap around">
-				<param name="Local" value="help/options/find.html">
-				</OBJECT>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Options">
+			<param name="Local" value="help/options/index.html">
+			</OBJECT>
+		<UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="The MMIX Editor Key Bindings">
 				<param name="Local" value="help/editor/keys.html">

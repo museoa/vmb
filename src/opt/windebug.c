@@ -143,6 +143,13 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       }
 	}
     break;
+     case WM_COMMAND:
+	  if (wparam ==IDOK)
+	  {  /* User has hit the ENTER key and I forward it to the memory dialog
+		     It should go there directly, but I dont know how and why.*/
+		 return SendMessage(hMemory, message, wparam, lparam );
+	  }
+	  return FALSE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
       { unregister_subwindow(hFilter);

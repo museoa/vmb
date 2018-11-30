@@ -30,10 +30,10 @@
 #define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
-#define ID_HELP_CONFIGURATION           40017
 #define ID_ZOOM_200                     40018
 #define ID_ZOOM_800                     40019
 #define ID_ZOOM_400                     40020
+#define ID_HELP_CONFIGURATION           40112
 
 // Next default values for new objects
 // 

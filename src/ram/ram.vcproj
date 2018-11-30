@@ -191,14 +191,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\ram.c"
-				>
-			</File>
-			<File
-				RelativePath=".\winmain.c"
-				>
-			</File>
-			<File
 				RelativePath=".\help.hhp"
 				>
 				<FileConfiguration
@@ -207,7 +199,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputDir)\help.html"
 						Outputs="$(InputDir)\help.chm"
 					/>
@@ -215,6 +207,14 @@
 			</File>
 			<File
 				RelativePath=".\help.html"
+				>
+			</File>
+			<File
+				RelativePath=".\ram.c"
+				>
+			</File>
+			<File
+				RelativePath=".\winmain.c"
 				>
 			</File>
 		</Filter>
@@ -225,10 +225,6 @@
 			>
 			<File
 				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\opt\resource.h"
 				>
 			</File>
 			<File
@@ -274,10 +270,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\winopt\win32memory.rc"
-				>
-			</File>
-			<File
 				RelativePath="..\winopt\win32debug.rc"
 				>
 			</File>
@@ -285,7 +277,15 @@
 				RelativePath="..\winopt\win32dedit.rc"
 				>
 			</File>
+			<File
+				RelativePath="..\winopt\win32memory.rc"
+				>
+			</File>
 		</Filter>
+		<File
+			RelativePath="..\winopt\resource"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
