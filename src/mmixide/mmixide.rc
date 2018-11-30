@@ -383,7 +383,7 @@ BEGIN
         MENUITEM "Break at Symbol",             ID_POPUP_BREAKONVALUE
         MENUITEM "Show Memory",                 ID_POPUP_SHOW
     END
-	POPUP "BreakpointPopUp"
+    POPUP "BreakpointPopUp"
     BEGIN
         MENUITEM "Mark Source Line",            ID_POPUP_MARK_SOURCE
         MENUITEM "Show Memory",                 ID_POPUP_SHOW
@@ -404,7 +404,7 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r#include ""vmb_vd.rc""\r\0"
+    "#include ""vmb_vd.rc""\0"
 END
 
 2 TEXTINCLUDE 
@@ -424,7 +424,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "vmb_vd.rc"
+#include "vmb_vd.rc"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

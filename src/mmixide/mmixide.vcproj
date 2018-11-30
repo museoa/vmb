@@ -344,6 +344,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\opt\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\sources.h"
 				>
 			</File>
@@ -363,6 +367,10 @@
 			>
 			<File
 				RelativePath="about.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\Icons\bitmap1.bmp"
 				>
 			</File>
 			<File

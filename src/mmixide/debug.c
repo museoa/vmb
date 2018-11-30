@@ -735,7 +735,8 @@ void change_mem_font(void)
 		/* InvalidateRect(memory_insp[i].hWnd,NULL,TRUE); */
   for (i=0; i<MAXREG; i++)
 	if(register_insp[i].hWnd)
-		InvalidateRect(register_insp[i].hWnd,NULL,TRUE);
+		resize_memory_dialog(&(register_insp[i]));
+		/*	InvalidateRect(register_insp[i].hWnd,NULL,TRUE); */
 }
 
 

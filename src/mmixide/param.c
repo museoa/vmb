@@ -47,7 +47,7 @@
 #include "editor.h"
 #include "winmain.h"
 
-int xpos=0, ypos=0; /* Window position */
+int xpos=100, ypos=100; /* Window position */
 int minimized = 0;  /* start the window minimized */
 int width=0,height=0; /* dimension of main window */
 

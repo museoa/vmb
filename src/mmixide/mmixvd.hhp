@@ -14,6 +14,12 @@ Title=MMIXVD
 
 [FILES]
 help\mmixvd.html
+help\debugger\index.html
+help\debugger\inspector.html
+help\debugger\breaks.html
+help\debugger\symbols.html
+help\options\index.html
+help\options\find.html
 help\instructions\index.html
 help\instructions\integer.html
 help\instructions\signed.html
@@ -78,13 +84,7 @@ help\instructions\greg.html
 help\instructions\prefix.html
 help\instructions\local.html
 help\instructions\bspec.html
-help\debugger\index.html
-help\debugger\inspector.html
-help\debugger\breaks.html
-help\debugger\symbols.html
 help\splitter\index.html
-help\options\find.html
-help\options\index.html
 
 [INFOTYPES]
 
