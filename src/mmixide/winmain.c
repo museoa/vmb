@@ -174,6 +174,7 @@ int ide_prepare_mmix(void)
   if (!ide_connect()) return 0;
 #endif
   bb_set_group(hButtonBar,BG_DEBUG,1,1);
+  bb_set_group(hButtonBar,BG_EDIT,0,0);
   return 1;
 }
 
@@ -599,6 +600,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{ mmix_status(MMIX_HALTED);
       show_stop_marker(edit_file_no,-1); /* clear stop marker */
 	  bb_set_group(hButtonBar,BG_DEBUG,0,0);
+	  bb_set_group(hButtonBar,BG_EDIT,1,1);
 	  update_symtab();
 	}
 	else if (lParam==0||item_file_no(lParam)==0xFF)
@@ -839,8 +841,7 @@ void new_errorlist(void)
 
 void add_button(int iconID, int menuID, int group, int buttonID, char *tip)
 { HANDLE h;
-  h = LoadImage(hInst, MAKEINTRESOURCE(iconID),IMAGE_ICON,0,0,
-	     LR_DEFAULTCOLOR);
+  h = LoadImage(hInst, MAKEINTRESOURCE(iconID),IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
   bb_CreateButton(hButtonBar,h,menuID,group,buttonID,1,1,tip);
 }
 
@@ -855,24 +856,25 @@ void add_buttons(void)
   add_button(IDI_EDIT_CUT,ID_EDIT_CUT,BG_EDIT,5,"Cut");
   add_button(IDI_EDIT_UNDO,ID_EDIT_UNDO,BG_EDIT,6,"Undo");
   add_button(IDI_EDIT_REDO,ID_EDIT_REDO,BG_EDIT,7,"Redo");
-  add_button(IDI_FINDREPLACE,ID_EDIT_FIND,BG_EDIT,8,"Find and Replace");
-  
-  add_button(IDI_VIEW_ZOOMIN,ID_VIEW_ZOOMIN,BG_VIEW,9,"Zoom in");
-  add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,10,"Zoom out");
-  add_button(IDI_VIEW_WHITESPACE,ID_VIEW_WHITESPACE,BG_VIEW,11,"Show Whitespace");
+  add_button(IDI_VIEW_WHITESPACE,ID_VIEW_WHITESPACE,BG_EDIT,8,"Show Whitespace");
 
-  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,12,"Debug/Continue");
-  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,13,"Step Instruction");
-  add_button(IDI_DEBUG_STEPOVER,ID_MMIX_STEPOVER,BG_DEBUG,14,"Step Over");
-  add_button(IDI_DEBUG_STEPOUT,ID_MMIX_STEPOUT,BG_DEBUG,15,"Step Out");
-  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,16,"Break Execution");
-  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,17,"Halt Execution");
+  add_button(IDI_FINDREPLACE,ID_EDIT_FIND,BG_VIEW,9,"Find and Replace");  
+  add_button(IDI_VIEW_ZOOMIN,ID_VIEW_ZOOMIN,BG_VIEW,10,"Zoom in");
+  add_button(IDI_VIEW_ZOOMOUT,ID_VIEW_ZOOMOUT,BG_VIEW,11,"Zoom out");
+
+  add_button(IDI_BREAKX,ID_MMIX_BREAKX,BG_MMIX,12,"Toggle Execute Breakpoint");
+  add_button(IDI_BREAKR,ID_MMIX_BREAKR,BG_MMIX,13,"Toggle Read Breakpoint");
+  add_button(IDI_BREAKW,ID_MMIX_BREAKW,BG_MMIX,14,"Toggle Write Breakpoint");
+  add_button(IDI_BREAKT,ID_MMIX_BREAKT,BG_MMIX,15,"Toggle Tracepoint");
+  add_button(IDI_MMIX_DEBUG,ID_MMIX_DEBUG,BG_MMIX,16,"Debug/Continue");
+
+  add_button(IDI_DEBUG_STEP,ID_MMIX_STEP,BG_DEBUG,17,"Step Instruction");
+  add_button(IDI_DEBUG_STEPOVER,ID_MMIX_STEPOVER,BG_DEBUG,18,"Step Over");
+  add_button(IDI_DEBUG_STEPOUT,ID_MMIX_STEPOUT,BG_DEBUG,19,"Step Out");
+  add_button(IDI_DEBUG_PAUSE,ID_MMIX_STOP,BG_DEBUG,20,"Break Execution");
+  add_button(IDI_DEBUG_HALT,ID_MMIX_QUIT,BG_DEBUG,21,"Halt Execution");
 
   bb_set_group(hButtonBar,BG_DEBUG,0,0);
-  add_button(IDI_BREAKX,ID_MMIX_BREAKX,BG_EDIT,18,"Toggle Execute Breakpoint");
-  add_button(IDI_BREAKR,ID_MMIX_BREAKR,BG_EDIT,19,"Toggle Read Breakpoint");
-  add_button(IDI_BREAKW,ID_MMIX_BREAKW,BG_EDIT,20,"Toggle Write Breakpoint");
-  add_button(IDI_BREAKT,ID_MMIX_BREAKT,BG_EDIT,21,"Toggle Tracepoint");
 
   add_button(IDI_HELP,ID_HELP_CONTEXT,BG_HELP,22,"Help");
 
