@@ -33,7 +33,11 @@ int missing_app=1;
 
 
 int break_at_Main = 1;
+#ifdef VMB
+int break_after = 0;
+#else
 int break_after = 1;
+#endif
 int show_trace = 1;
 
 #define MAX_DEBUG_WINDOWS 9

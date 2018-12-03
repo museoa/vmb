@@ -13,6 +13,7 @@
 #include "winopt.h"
 #include "winmain.h"
 #include "mmixlib.h"
+
 #ifdef VMB
 #include "mmix-bus.h"
 #endif
@@ -30,6 +31,10 @@
 #include "address.h"
 #endif
 
+/* a few global variables of the mmixlib */
+extern bool just_traced;
+extern int shown_line;
+extern int gap;
 /* Running MMIX */
 // maximum mumber of lines the output console should have
 
@@ -82,14 +87,14 @@ int mmix_continue(unsigned char command)
        break;
 	 case 'n': /* next instruction/ step over*/
 	   rOlimit=g[rO];
-       breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
+       breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
        break;
 	 case 'o': /* step out */
          rOlimit=incr(g[rO],-1);
-       breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
+       breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
        break;
 	 case 's': /* step instruction */
-     default: breakpoint|=trace_bit, interacting=tracing=true; /* trace one inst and break */
+     default: breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
        break;
    }
    show_stop_marker(edit_file_no,-1); /* clear stop marker */
@@ -195,7 +200,7 @@ void mmix_run(void)
 		  show_operating_system=false;
 #endif
           breakpoint=0;
-		  tracing=false;
+		  tracing=0;
 		  update_symtab();
 		  clear_profile();
 		  init_fake_stdin();
@@ -266,13 +271,19 @@ static int check_rO(void)
 #define OUTSIDE (check_rO())
 #endif
 
+#ifdef VMB
+#define AFTEROUTSIDE ((!(inst_ptr.h&sign_bit)||show_operating_system) && check_rO())
+#else
+#define AFTEROUTSIDE (check_rO())
+#endif
+
 static int check_interact_before(void)
 { 	if (!interacting) { breakpoint=0; return 1; }
     if (break_after|| (breakpoint &(read_bit|write_bit)))
 	{ breakpoint &=~(read_bit|write_bit);
 	  if (OUTSIDE)
-	  {  mmix_stopped(loc); /* display the last stop marker */
-	     trace_once=1;
+	  { mmix_stopped(loc); /* display the last stop marker */
+	    trace_once=1;
 	  }
 	}
 	else
@@ -289,15 +300,25 @@ static int check_interact_after(void)
 { 	if (!interacting) { breakpoint=0; return 1; }
     if (break_after || (breakpoint &(read_bit|write_bit)))
 	{ breakpoint &=~(read_bit|write_bit);
-	  if (!OUTSIDE) /* no stop inside function */
+	  if (!AFTEROUTSIDE) /* no stop inside function */
 		  return 1;
 #ifdef VMB
 	  if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) 
 #else
 	  if (rOlimit.l&1) 
 #endif
+	  {
 		  /* this is the case for step and step out but not for step over */
-	      mmix_stopped(loc); 
+
+	    mmix_stopped(loc); 
+	  }
+	  if (trace_once)
+		{ trace_once=false;
+          just_traced=true;
+        } else if (just_traced) {
+          win32_log(" ...............................................\n");
+          just_traced=false;
+        }
 	  return mmix_interact();
 	}
     return 1;
@@ -370,15 +391,32 @@ boot:
 	  vmb.connected && 
 #endif
 	  !halted) {
+
+
+
 	mmix_fetch_instruction();
 #ifndef VMB
 interact:
 #endif
 	if (interrupt) breakpoint|=trace_bit, interacting=true, interrupt=false;
+	if (breakpoint & trace_bit) tracing=2;
+    if ((loc.h&sign_bit) && !show_operating_system)
+		tracing=0;
+	if (tracing>1) {tracing--; mmix_trace_fetch();}
+
     if (breakpoint && !check_interact_before()) goto end_simulation;
+
 resume:
     mmix_perform_instruction(); 
-	mmix_trace();
+
+	if (tracing>1) 
+	{ tracing--; mmix_trace_fetch();}
+	if (tracing>0) 
+	{ tracing=0; mmix_trace_perform();
+	  if (showing_stats || breakpoint) show_stats(breakpoint);
+	}
+
+	/* mmix_trace(); */
 #ifdef VMB
 	mmix_dynamic_trap();
 #endif
