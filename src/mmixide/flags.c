@@ -80,6 +80,7 @@ regtable regtab= {
 	{KEY_FLAGS ,&use_tab_indent,30},
 	{KEY_FLAGS ,&use_crlf,31},
 	{KEY_FLAGS ,&check_X_BIT,32},
+	{KEY_FLAGS ,&showing_stats,33},
 
 	{"maxlabel",&max_label_indent,TYPE_DWORD},
 	{"maxop",&max_opcode_indent,TYPE_DWORD},

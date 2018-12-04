@@ -31,10 +31,12 @@
 #include "address.h"
 #endif
 
-/* a few global variables of the mmixlib */
-extern bool just_traced;
-extern int shown_line;
-extern int gap;
+extern bool interact_after_break;
+
+typedef enum { dbg_cont, dbg_step, dbg_over, dbg_out, dbg_break, dbg_quit} dbg_type;
+
+dbg_type dbg_mode=dbg_cont;
+
 /* Running MMIX */
 // maximum mumber of lines the output console should have
 
@@ -54,7 +56,7 @@ static HANDLE hInteract=NULL;
 /* called by the mmix thread */
 static int mmix_waiting = 0;
 
-int mmix_interact(void)
+void mmix_interact(void)
 { DWORD w;
   breakpoint=0;
   mmix_waiting = 1;
@@ -65,7 +67,6 @@ int mmix_interact(void)
   if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
   { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
 #endif
-  return 1;
 }
 
 void mmix_stop(void)
@@ -74,33 +75,40 @@ void mmix_stop(void)
 }
 
 
-int mmix_continue(unsigned char command)
+void mmix_continue(unsigned char command)
 { 
-   if (hInteract==NULL) return 0;
+   if (hInteract==NULL) return;
    rOlimit=neg_one;
    switch (command)
    { case 'q': /* quit */
-       breakpoint|=trace_bit, halted=true;
+ /*      halted=true; */
+	   dbg_mode=dbg_quit;
        break;
      case 'c': /* continue */
 	   mmix_status(MMIX_RUNNING);
+	   dbg_mode=dbg_cont;
        break;
 	 case 'n': /* next instruction/ step over*/
-	   rOlimit=g[rO];
-       breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
+	  dbg_mode=dbg_over;
+/*	   rOlimit=g[rO];
+       breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
 	 case 'o': /* step out */
-         rOlimit=incr(g[rO],-1);
-       breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
+	   dbg_mode=dbg_out;
+/*         rOlimit=incr(g[rO],-1);
+       breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
 	 case 's': /* step instruction */
-     default: breakpoint|=trace_bit, interacting=true; /* trace one inst and break */
+	   dbg_mode=dbg_step;
+	   break;
+     default: 
+	   dbg_mode=dbg_step;	 	 
+/*		 breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
    }
    show_stop_marker(edit_file_no,-1); /* clear stop marker */
    if (mmix_waiting)
      SetEvent (hInteract);
-   return 1;
 }
 
 
@@ -238,16 +246,15 @@ void mmix_status(int status)
   ide_status(mmix_status_str[status]);
 }
 
-void mmix_stopped(octa loc)
+static void mmix_stopped(octa loc)
 { mem_tetra *ll;
   ll=mem_find(loc);
   PostMessage(hMainWnd,WM_MMIX_STOPPED,0,item_data(ll->file_no,ll->line_no));
-
 }
 
 /* this is the plain vmb version of mmix main() */
 
-static int check_rO(void)
+static int rO_below_limit(void)
 /*used to disable tracing and interaction inside a subroutine. 
   returns true if g[rO]<=rOlimit */
 { return (g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h;
@@ -266,68 +273,21 @@ static int check_rO(void)
 
 */
 #ifdef VMB
-#define OUTSIDE ((!(loc.h&sign_bit)||show_operating_system) && check_rO())
+#define TRACEABLE ((!(loc.h&sign_bit)||show_operating_system) && rO_below_limit())
 #else
-#define OUTSIDE (check_rO())
+#define TRACEABLE (rO_below_limit())
 #endif
 
-#ifdef VMB
-#define AFTEROUTSIDE ((!(inst_ptr.h&sign_bit)||show_operating_system) && check_rO())
-#else
-#define AFTEROUTSIDE (check_rO())
-#endif
-
-static int check_interact_before(void)
-{ 	if (!interacting) { breakpoint=0; return 1; }
-    if (break_after|| (breakpoint &(read_bit|write_bit)))
-	{ breakpoint &=~(read_bit|write_bit);
-	  if (OUTSIDE)
-	  { mmix_stopped(loc); /* display the last stop marker */
-	    trace_once=1;
-	  }
-	}
-	else
-	{ if (!OUTSIDE) return 1;
-	     trace_once=1;
-      /* here we still trace the pop instead of the push (or both) with step over */
-	  mmix_stopped(loc);
-	  return mmix_interact();
-	}
-    return 1;
+static bool is_traceable(octa loc)
+{ return !(loc.h&sign_bit)||show_operating_system;
 }
 
-static int check_interact_after(void)
-{ 	if (!interacting) { breakpoint=0; return 1; }
-    if (break_after || (breakpoint &(read_bit|write_bit)))
-	{ breakpoint &=~(read_bit|write_bit);
-	  if (!AFTEROUTSIDE) /* no stop inside function */
-		  return 1;
 #ifdef VMB
-	  if ((rOlimit.l&1)&&(!(loc.h&sign_bit)||show_operating_system)) 
+#define AFTERTRACEABLE ((!(inst_ptr.h&sign_bit)||show_operating_system) && rO_below_limit())
 #else
-	  if (rOlimit.l&1) 
+#define AFTERTRACEABLE (rO_below_limit())
 #endif
-	  {
-		  /* this is the case for step and step out but not for step over */
-
-	    mmix_stopped(loc); 
-	  }
-	  if (trace_once)
-		{ trace_once=false;
-          just_traced=true;
-        } else if (just_traced) {
-          win32_log(" ...............................................\n");
-          just_traced=false;
-        }
-	  return mmix_interact();
-	}
-    return 1;
-}
-
-
-
-
-
+static bool trace_once=false; /* do we trace the next traceable instruction */
 
 
 static void mmix_load(int file_no)
@@ -342,8 +302,11 @@ void mmix_zero_memory(mem_node *p)
   memset(p->dat,0,sizeof(p->dat));
 }
 #endif
+
+
 int mmix_main(int argc, char *argv[],char *mmo_name)
-{ g[255].h=0;
+{
+  g[255].h=0;
   g[255].l=setjmp(mmix_exit);
   if (g[255].l!=0)
    goto end_simulation;
@@ -380,10 +343,19 @@ boot:
   }
   Sleep(50); /* give all devices some time finish loading the files and commandline */
   new_Q.h=new_Q.l=g[rQ].h=g[rQ].l=0; /* remove error flags */
+  trace_once=true;
 #ifdef VMB
-  if (interacting && (!(loc.h&sign_bit)||show_operating_system))
-  { mmix_stopped(loc); breakpoint=trace_bit; }
+  if (interacting) 
+  { 
+	if ((loc.h&sign_bit)&& !show_operating_system) 
+		dbg_mode=dbg_out;
+	else 
+		dbg_mode=dbg_step;
+		dbg_mode=dbg_step;
+  }
+   else dbg_mode=dbg_cont;
 #else
+  dbg_mode=dbg_step;
   goto interact;
 #endif
   while (
@@ -391,30 +363,58 @@ boot:
 	  vmb.connected && 
 #endif
 	  !halted) {
+    bool fetch_traced=false;
+	octa out_loc;
 
-
+	if (dbg_mode==dbg_quit)	goto end_simulation; 
 
 	mmix_fetch_instruction();
 #ifndef VMB
 interact:
 #endif
-	if (interrupt) breakpoint|=trace_bit, interacting=true, interrupt=false;
-	if (breakpoint & trace_bit) tracing=2;
-    if ((loc.h&sign_bit) && !show_operating_system)
-		tracing=0;
-	if (tracing>1) {tracing--; mmix_trace_fetch();}
 
-    if (breakpoint && !check_interact_before()) goto end_simulation;
+    tracing=interact_after_break=false;
+
+	if (is_traceable(loc))
+	{ if (dbg_mode==dbg_step) tracing=interact_after_break=true;
+	  if (breakpoint&exec_bit)  tracing=interact_after_break=true;
+	  if (breakpoint & trace_bit) tracing=true;
+	}
+
+	if (interrupt) interacting=tracing=interact_after_break=true, interrupt=false;
+
+	if (tracing) { mmix_trace_fetch(); fetch_traced=true;}
+
+	if (interacting && !break_after && interact_after_break)
+	{ mmix_stopped(loc);
+	  mmix_interact();
+	} 
 
 resume:
     mmix_perform_instruction(); 
-
-	if (tracing>1) 
-	{ tracing--; mmix_trace_fetch();}
-	if (tracing>0) 
-	{ tracing=0; mmix_trace_perform();
-	  if (showing_stats || breakpoint) show_stats(breakpoint);
+    if (dbg_mode==dbg_step)
+	{ if (!is_traceable(inst_ptr))
+	  { dbg_mode=dbg_out;
+	    out_loc=loc;
+	    interact_after_break=false;
+	  }
+	  else
+	    mmix_stopped(loc);
 	}
+	else if (dbg_mode==dbg_out && is_traceable(inst_ptr))
+	{ dbg_mode=dbg_step; /* stop once we are out */
+	  mmix_stopped(out_loc);
+      tracing=true; /* trace the instruction that gets us out */
+	  interact_after_break=true;
+	}
+
+	if (tracing)
+	{ if (!fetch_traced) 
+	  { mmix_trace_fetch(); fetch_traced=true; }
+      mmix_trace_perform();
+	  if (showing_stats) show_stats(breakpoint);
+	}
+
 
 	/* mmix_trace(); */
 #ifdef VMB
@@ -426,8 +426,13 @@ resume:
 	  else
 	    resuming=false;
 	}
-	if (breakpoint && !check_interact_after()) goto end_simulation;
-    if (
+
+if (interacting && break_after && interact_after_break)
+   {	
+			mmix_interact();
+    }
+
+	if (
 #ifdef VMB
 		!vmb.power || vmb.reset_flag ||
 #endif
@@ -435,6 +440,7 @@ resume:
     { breakpoint|=trace_bit; 
       goto boot;
     }
+		  Sleep(10);  /* to give the ide time to update the screen while debugging */
   }
   end_simulation:
   if (interacting || profiling || showing_stats) show_stats(false);

@@ -34,9 +34,9 @@ int missing_app=1;
 
 int break_at_Main = 1;
 #ifdef VMB
-int break_after = 0;
+int break_after = false;
 #else
-int break_after = 1;
+int break_after = true;
 #endif
 int show_trace = 1;
 
@@ -122,6 +122,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		else 
 		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_INDETERMINATE);
 		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_STAT,showing_stats?BST_CHECKED:BST_UNCHECKED);
 
 #ifdef VMB
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
@@ -155,6 +156,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
+		showing_stats=IsDlgButtonChecked(hDlg,IDC_CHECK_STAT);
 #ifdef VMB
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
 #endif

@@ -20,7 +20,7 @@ extern void mmix_stop(void);
 void mmix_stopped(octa loc);
 /* called from the mmix thread if it stopps in mmix_interact */
 
-extern int mmix_continue(unsigned char command);
+extern void mmix_continue(unsigned char command);
 /* called from the GUI to make the mmix thread continue */
 
 extern void mmix_status(int status);

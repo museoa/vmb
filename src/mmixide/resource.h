@@ -103,6 +103,7 @@
 #define IDC_SELECT_EXCEPTIONS           1018
 #define IDC_SHOW_RS                     1019
 #define IDC_CHECK_REGISTERS             1019
+#define IDC_CHECK_STAT                  1019
 #define IDC_SHOW_RT                     1020
 #define IDC_CHECK_SMALL                 1020
 #define IDC_TABWIDTH                    1020
