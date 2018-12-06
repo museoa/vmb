@@ -33,7 +33,7 @@
 
 extern bool interact_after_break;
 
-typedef enum { dbg_cont, dbg_step, dbg_over, dbg_out, dbg_break, dbg_quit} dbg_type;
+typedef enum { dbg_cont, dbg_step, dbg_over, dbg_over_os, dbg_out, dbg_break, dbg_quit} dbg_type;
 
 dbg_type dbg_mode=dbg_cont;
 
@@ -58,11 +58,13 @@ static int mmix_waiting = 0;
 
 void mmix_interact(void)
 { DWORD w;
-  breakpoint=0;
-  mmix_waiting = 1;
-  PostMessage(hMainWnd,WM_MMIX_INTERACT,0,0); 
-  w = WaitForSingleObject(hInteract,INFINITE);
-  mmix_waiting = 0;
+  if (interacting)
+  { mmix_stopped(loc);
+    mmix_waiting = 1;
+    PostMessage(hMainWnd,WM_MMIX_INTERACT,0,0); 
+    w = WaitForSingleObject(hInteract,INFINITE);
+    mmix_waiting = 0;
+  }
 #ifdef VMB
   if (vmb_get_interrupt(&vmb,&new_Q.h,&new_Q.l)==1)
   { g[rQ].h |= new_Q.h; g[rQ].l |= new_Q.l; }
@@ -348,12 +350,14 @@ boot:
   if (interacting) 
   { 
 	if ((loc.h&sign_bit)&& !show_operating_system) 
-		dbg_mode=dbg_out;
+		dbg_mode=dbg_over_os;
 	else 
 		dbg_mode=dbg_step;
-		dbg_mode=dbg_step;
   }
-   else dbg_mode=dbg_cont;
+  else dbg_mode=dbg_cont;
+
+dbg_mode=dbg_step;
+
 #else
   dbg_mode=dbg_step;
   goto interact;
@@ -363,75 +367,111 @@ boot:
 	  vmb.connected && 
 #endif
 	  !halted) {
-    bool fetch_traced=false;
-	octa out_loc;
+	bool fetch_traced=false;
+	octa trap_loc;
 
-	if (dbg_mode==dbg_quit)	goto end_simulation; 
-
+    breakpoint=0;
 	mmix_fetch_instruction();
 #ifndef VMB
 interact:
 #endif
 
-    tracing=interact_after_break=false;
+    /* decide on tracing and interacting based on dbg mode*/
+	switch (dbg_mode)
+	{ 
+	  case dbg_quit:	
+		halted=true; 
+		goto end_simulation; 
+	  case dbg_over:
+		  if ((inst>>24)==TRAP)
+		  {  dbg_mode=dbg_over_os;
+		     trap_loc=loc;
+             tracing= true; interact_after_break=!break_after;
+		  }
+		  else
+			  goto case_step; 
+		  break;
+	  case dbg_over_os:	
+	    if (loc.h&sign_bit) 
+			tracing=interact_after_break=false;
+		else
+			goto case_step; 
+		break;
 
-	if (is_traceable(loc))
-	{ if (dbg_mode==dbg_step) tracing=interact_after_break=true;
-	  if (breakpoint&exec_bit)  tracing=interact_after_break=true;
-	  if (breakpoint & trace_bit) tracing=true;
+	  case_step: dbg_mode=dbg_step;
+	  case dbg_step:
+	    tracing=interact_after_break=true;
+	    break;
+
+	  case dbg_cont:	
+	  default:
+        tracing=interact_after_break=false;
+		break;
 	}
 
-	if (interrupt) interacting=tracing=interact_after_break=true, interrupt=false;
+ 	if (breakpoint&exec_bit)  
+		tracing=interact_after_break=true;
+	if (breakpoint & trace_bit) 
+		tracing=true;
+	if (interrupt) 
+		interacting=tracing=interact_after_break=true, interrupt=false;
 
-	if (tracing) { mmix_trace_fetch(); fetch_traced=true;}
-
-	if (interacting && !break_after && interact_after_break)
-	{ mmix_stopped(loc);
-	  mmix_interact();
-	} 
+	if (tracing) 
+	{ mmix_trace_fetch(); fetch_traced=true; Sleep(10);  /* to give the ide time to update the screen while debugging */
+     }
+ 
+	if (interact_after_break  && !break_after)
+	{   mmix_interact(); 
+	    interact_after_break=false; 
+	}
 
 resume:
+
     mmix_perform_instruction(); 
-    if (dbg_mode==dbg_step)
-	{ if (!is_traceable(inst_ptr))
-	  { dbg_mode=dbg_out;
-	    out_loc=loc;
-	    interact_after_break=false;
-	  }
-	  else
-	    mmix_stopped(loc);
+	switch (dbg_mode)
+	{ case dbg_over_os:	
+	    if ((inst>>24)==RESUME)
+		{ fetch_traced=tracing=true, interact_after_break=break_after;
+		  loc=trap_loc;
+		}
+		else 
+		  tracing=interact_after_break=false;
+        break;
+	  default:
+		break;
 	}
-	else if (dbg_mode==dbg_out && is_traceable(inst_ptr))
-	{ dbg_mode=dbg_step; /* stop once we are out */
-	  mmix_stopped(out_loc);
-      tracing=true; /* trace the instruction that gets us out */
-	  interact_after_break=true;
-	}
+ 	if (breakpoint&(read_bit|write_bit))  
+		tracing=interact_after_break=true;
 
 	if (tracing)
 	{ if (!fetch_traced) 
 	  { mmix_trace_fetch(); fetch_traced=true; }
-      mmix_trace_perform();
+      mmix_trace_perform(); Sleep(10);  /* to give the ide time to update the screen while debugging */
 	  if (showing_stats) show_stats(breakpoint);
 	}
 
+
+    if (interact_after_break)
+	{  mmix_interact();
+	   interact_after_break=false;
+	}
 
 	/* mmix_trace(); */
 #ifdef VMB
 	mmix_dynamic_trap();
 #endif
     if (resuming)
-	{ if (op==RESUME)
+	{ if (op==RESUME) /* this is the case if $255 contains the next instruction */
+	  { fetch_traced=false;
 	    goto resume;
-	  else
+	  }
+	  else	/* plain resume without insering an instruction */
 	    resuming=false;
+  	if (dbg_mode==dbg_over_os && (loc.h&sign_bit)==0)
+          interact_after_break=true;
+
 	}
-
-if (interacting && break_after && interact_after_break)
-   {	
-			mmix_interact();
-    }
-
+  
 	if (
 #ifdef VMB
 		!vmb.power || vmb.reset_flag ||
@@ -440,9 +480,9 @@ if (interacting && break_after && interact_after_break)
     { breakpoint|=trace_bit; 
       goto boot;
     }
-		  Sleep(10);  /* to give the ide time to update the screen while debugging */
   }
   end_simulation:
+  win32_log("Terminated\n");
   if (interacting || profiling || showing_stats) show_stats(false);
   mmix_finalize();
   return g[255].l;

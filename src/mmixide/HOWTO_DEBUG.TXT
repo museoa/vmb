@@ -1,0 +1,369 @@
+This document describes the concepts behind the MMIXIDE debugger
+
+1. The fetch perform loop
+
+The core of the mmix simulator in mmix_main
+is the fetch - perform loop. Which reads:
+while (!halted)
+{ mmix_fetch_instruction();
+resume:
+  mmix_perform_instruction(); 
+  mmix_dynamic_trap();
+  if (resuming)
+  { if (op==RESUME) goto resume;
+	else resuming=false;
+  }
+}
+
+Two soubroutines do the tracing:
+mmix_trace_fetch() and mmix_trace_perform()
+The first should be called after the instruction is 
+feteched, the second after it is performed.
+
+So a short version with tracing enabled could read:
+while (!halted)
+{ mmix_fetch_instruction();
+  mmix_trace_fetch(); 
+resume:
+  mmix_perform_instruction(); 
+  mmix_trace_perform();
+  mmix_dynamic_trap();
+  if (resuming)
+  { if (op==RESUME) goto resume;
+	else resuming=false;
+  }
+}
+
+2. User interaction
+In interactive mode, we call the function 
+mmix_interact, which calls mmix_stopped(loc) to position
+the editor at the current location and waits for the gui
+thread to call mmix_continue whict sets the debug mode
+and signals the hInteract Mutex to allow the debugger to 
+continue.
+
+The loop then becomes
+while (!halted)
+{ mmix_fetch_instruction();
+  mmix_trace_fetch(); 
+  mmix_interact();
+resume:
+  mmix_perform_instruction(); 
+  mmix_trace_perform();
+  mmix_interact();
+  mmix_dynamic_trap();
+  if (resuming)
+  { if (op==RESUME) goto resume;
+	else resuming=false;
+  }
+}
+
+The boolean variable interacting tells whether we are in interactive mode and should interact at all. But even in 
+interactive mode, we do not want to interact allways.
+
+The variable interact_after_break detemines whether
+we interact at all for the current instruction.
+The variable break_after determines whether we interact 
+after performing the instruction or before performing
+the instruction.
+
+The two calls to  mmix_interact() then become after fetching:
+	if (interact_after_break  && !break_after)
+	{   mmix_interact(); 
+	    interact_after_break=false; 
+	}
+
+And after performing:
+    if (interact_after_break)
+	{  mmix_interact();
+	   interact_after_break=false;
+	}
+
+The test insurest that there is only one interaction per
+instruction.
+
+3. Selective tracing
+The mmix variable tracing tells whether 
+the current instruction must be traced.
+A local variable fetch_traced tells whether 
+fetching of the instruction was already traced.
+In case we discover that we should trace an instruction
+only after performing the instruction, we know what to do.
+
+The two calls then become after fetching;
+	if (tracing) 
+	{ mmix_trace_fetch(); fetch_traced=true;}
+
+	and 
+
+	if (tracing)
+	{ if (!fetch_traced) 
+	  { mmix_trace_fetch(); fetch_traced=true; }
+      mmix_trace_perform();
+	  if (showing_stats) show_stats(breakpoint);
+	}
+
+Further, we switch on tracing when resuming:
+    if (resuming)
+	{ if (op==RESUME)
+	  { fetch_traced=false;
+	    goto resume;
+	  }
+	  else
+	    resuming=false;
+	}
+
+4. Debug modes.
+The function mmix_interact sets a variable called
+dbg_mode, which can have values from the enumeration type
+dbg_type. Lets start with discussing the basic values.
+
+dbg_step: here we execute just one instruction (in case
+of a resume possibly more) and interact again.
+After fetching the instruction we consider the debug mode
+using a switch (dbg_mode) and the case for dbg_step reads 
+case dbg_step: tracing=interact_after_break=true; break;
+
+dbg_cont: here we continue without further tracing or 
+interaction. The only way to return to interaction is
+then a breakpoint, discussed in the next section or
+the break button or an interrupt. The case statement reads:
+case dbg_cont: default: tracing=interact_after_break=false; break;
+
+Another simple case is dbg_quit, when we terminate the simulation.
+It reads
+case dbg_quit: halted=true; goto end_simulation; 
+ 
+4. Read, Write 	and Execute Breakpoints
+We set the variable breakpoints to zero before fetching the instruction.
+
+	    breakpoint=0;
+
+After setting defaults based on the debug mode,
+we investigate the breakpoint variable to see
+whether the	defaults are augmented by 
+breakpoint bits set by the instruction just fetched.
+	
+	if (breakpoint&exec_bit)  
+		tracing=interact_after_break=true;
+	if (breakpoint & trace_bit) 
+		tracing=true;
+And after performing the instruction, we have		
+    if (breakpoint&(read_bit|write_bit))  
+		tracing=interact_after_break=true;
+				
+5. Interrupts
+Interrupts can occur in an interrupt handler or by pressing the
+Break Button. The break button sets the value of interrupt to true as will do the interrupt handler.
+We check for an interrupt after checking for breakpoints.		
+	if (interrupt) 
+		interacting=tracing=interact_after_break=true, interrupt=false;
+
+6. Hiding the operating system
+Hiding the operatings system can be done by setting the
+variable show_operating_system to false on a global level
+and it can be done by using the step over button for
+an individual TRAP instruction.
+
+Lets start with the latter.
+
+The step over button sets the dbg_mode to dbg_over.
+If the instruction after fetching turns out to be a TRAP,
+we switch the mode to dbg_over_os. In this mode
+we run without tracing until we encounter a resume
+and get back to the user program.
+		
+Lets first to make things simple. When we traverse
+a TRAP, we trace it continue to the resume, trace it,
+and then stop, like in a dbg_step command.
+
+Still not working!
+		
+		
+		
+	
+----------------------------
+
+medium old loop:
+    bool fetch_traced=false;
+	octa out_loc;
+
+	if (dbg_mode==dbg_quit)	goto end_simulation; 
+
+	mmix_fetch_instruction();
+#ifndef VMB
+interact:
+#endif
+
+    /* decide on tracing and interacting based on dbg mode*/
+	switch (dbg_mode)
+	{ case dbg_step:
+	    tracing=interact_after_break=true;
+	    break;
+	  default:
+        tracing=interact_after_break=false;
+		break;
+	}
+
+	if (tracing) 
+	{ mmix_trace_fetch(); fetch_traced=true;}
+
+	if (interacting && !break_after && interact_after_break)
+	{ mmix_stopped(loc);
+	  mmix_interact();
+	} 
+
+resume:
+    mmix_perform_instruction(); 
+	switch (dbg_mode)
+	{ 
+	  default:
+		break;
+	}
+	if (tracing)
+	{ if (!fetch_traced) 
+	  { mmix_trace_fetch(); fetch_traced=true; }
+      mmix_trace_perform();
+	  if (showing_stats) show_stats(breakpoint);
+	}
+
+
+	/* mmix_trace(); */
+#ifdef VMB
+	mmix_dynamic_trap();
+#endif
+    if (resuming)
+	{ if (op==RESUME)
+	    goto resume;
+	  else
+	    resuming=false;
+	}
+
+if (interacting && interact_after_break)
+   {	
+			mmix_interact();
+    }
+
+	if (
+#ifdef VMB
+		!vmb.power || vmb.reset_flag ||
+#endif
+		(g[rQ].l&g[rK].l&RE_BIT))
+    { breakpoint|=trace_bit; 
+      goto boot;
+    }
+		  Sleep(10);  /* to give the ide time to update the screen while debugging */
+  }
+Old loop:
+   bool fetch_traced=false;
+	octa out_loc;
+
+	if (dbg_mode==dbg_quit)	goto end_simulation; 
+
+	mmix_fetch_instruction();
+#ifndef VMB
+interact:
+#endif
+
+    /* decide on tracing and interacting based on dbg mode*/
+	switch (dbg_mode)
+	{ case dbg_step:
+	    tracing=interact_after_break=true;
+	    break;
+	  case dbg_over:
+	    tracing=true;
+		interact_after_break=false;
+		if ((inst>>24)==TRAP) 
+			dbg_mode=dbg_over_os;
+		break;
+	  case dbg_over_os:
+		  if (loc.h&sign_bit)
+		     tracing=interact_after_break=false;
+		  else
+		  { tracing=interact_after_break=true;
+		    dbg_mode=dbg_step;
+		  }
+        break;
+	  case dbg_cont:
+	  default:
+        tracing=interact_after_break=false;
+		break;
+	}
+ 	if (breakpoint&exec_bit)  
+		tracing=interact_after_break=true;
+	if (breakpoint & trace_bit) 
+		tracing=true;
+	if (interrupt) 
+		interacting=tracing=interact_after_break=true, interrupt=false;
+
+	if ((loc.h&sign_bit) && !show_operating_system) tracing=interact_after_break=false; 
+
+
+	if (tracing) 
+	{ mmix_trace_fetch(); fetch_traced=true;}
+
+	if (interacting && !break_after && interact_after_break)
+	{ mmix_stopped(loc);
+	  mmix_interact();
+	} 
+
+resume:
+    mmix_perform_instruction(); 
+	switch (dbg_mode)
+	{ case dbg_over:
+		if ((inst>>24)==TRAP) 
+			dbg_mode=dbg_over_os;
+		break;
+     case dbg_over_os:
+		if (!(inst_ptr.h&sign_bit)) 
+		{  tracing=interact_after_break=true;
+          dbg_mode=dbg_step;
+		}
+		break;
+	  default:
+		break;
+	}
+    if (dbg_mode==dbg_step)
+	{ if (!is_traceable(inst_ptr))
+	  { dbg_mode=dbg_out;
+	    out_loc=loc;
+	    interact_after_break=false;
+	  }
+	  else
+	    mmix_stopped(loc);
+	}
+
+	if (tracing)
+	{ if (!fetch_traced) 
+	  { mmix_trace_fetch(); fetch_traced=true; }
+      mmix_trace_perform();
+	  if (showing_stats) show_stats(breakpoint);
+	}
+
+
+	/* mmix_trace(); */
+#ifdef VMB
+	mmix_dynamic_trap();
+#endif
+    if (resuming)
+	{ if (op==RESUME)
+	    goto resume;
+	  else
+	    resuming=false;
+	}
+
+if (interacting && break_after && interact_after_break)
+   {	
+			mmix_interact();
+    }
+
+	if (
+#ifdef VMB
+		!vmb.power || vmb.reset_flag ||
+#endif
+		(g[rQ].l&g[rK].l&RE_BIT))
+    { breakpoint|=trace_bit; 
+      goto boot;
+    }
+		  Sleep(10);  /* to give the ide time to update the screen while debugging */
+  }
