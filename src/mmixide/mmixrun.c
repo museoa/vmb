@@ -408,6 +408,14 @@ reswitch0:
 	  case dbg_step:
 	    tracing=interact_after_break=true;
 	    break;
+	  case dbg_out:
+		  if ((loc.h&sign_bit)==0 && g[rO].h==0x60000000 && g[rO].l==0x00000000)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* not in the OS nor in a subroutine*/
+		  else if ((inst>>24)==RESUME || (inst>>24)==POP)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* hit the resume or POP */
+		  else
+		    tracing=interact_after_break=false; /* continue in silence*/
+          break;
 	  case dbg_cont:
 	  default:
         tracing=interact_after_break=false;

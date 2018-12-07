@@ -168,6 +168,8 @@ an individual TRAP instruction.
 
 Lets start with the latter.
 
+6.1 Stepping over a forced trap
+
 The step over button sets the dbg_mode to dbg_over.
 If the instruction after fetching turns out to be a TRAP,
 we switch the mode to dbg_over_ftrap. In this mode
@@ -222,8 +224,36 @@ Using the same code as before.
 		  else
 		  { dbg_mode=dbg_step; goto reswitch1; } 
 		  break;
-		
-Next we look at dynamic traps.
+
+6.2 Not showing the operating system
+
+If the variable shoe_operating_system is false,
+the user does not want to see anything from the operating
+system only user space is debugged.
+
+If we encounter a TRAP in user space and are about to enter
+os space, we convert a dbg_step instruction into
+a dbg_over_ftrap instruction.
+
+Before we enter the fetch/perform loop,
+we determine the right debug mode
+ if (interacting) 
+  {	if ((loc.h&sign_bit)&& !show_operating_system) 
+	{	dbg_mode=dbg_over_dtrap; dtrap_mode=dbg_step; }
+	else 
+		dbg_mode=dbg_step;
+  }
+  else dbg_mode=dbg_cont;
+
+when we encounter a debug mode step on a TRAP 
+after performing the trap, we replacd dbg_step by dbg_over
+  	  case dbg_step:
+	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 && !show_operating_system)
+		{ dbg_mode=dbg_over; goto reswitch1; }	
+        break;
+
+		  
+6.3 dynamic traps.
 When we discover a dynamic trap and the variable
 show_operating_system is false, we switch into the
 debug mode dbg_over_dtrap.
@@ -252,6 +282,39 @@ after perform:
 		break;
 
 
+7. Stepping out
+If the user hits the step out button it can mean two things:
+stepping out of the OS using a RESUME or
+stepping out of a procedure using a POP.
+
+7.1 Stepping out of the OS	
+	
+After fetching the instruction, we check for being inside the OS,
+If yes, we simply switch of tracing and interacting
+until we hit a RESUME. 
+		
+		case dbg_out:
+		  if ((loc.h&sign_bit)==0)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* not in the OS */
+		  else if ((inst>>24)==RESUME)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* hit the resume */
+		  else
+		    tracing=interact_after_break=false; /* continue in silence*/
+          break;
+		
+7.2 Stepping out of a procedure.
+We check for a nonempty register stack and simply stop also at a POP.
+	  case dbg_out:
+		  if ((loc.h&sign_bit)==0 && g[rO].h==0x60000000 && g[rO].l==0x00000000)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* not in the OS nor in a subroutine*/
+		  else if ((inst>>24)==RESUME || (inst>>24)==POP)
+		  { dbg_mode=dbg_step; goto reswitch0; } /* hit the resume or POP */
+		  else
+		    tracing=interact_after_break=false; /* continue in silence*/
+          break;
+
+8. Stepping over a subroutine.
+		  
 ----------------------------
 
 medium old loop:
