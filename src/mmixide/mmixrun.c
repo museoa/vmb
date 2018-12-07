@@ -375,34 +375,35 @@ dbg_mode=dbg_step;
 #ifndef VMB
 interact:
 #endif
-
-    /* decide on tracing and interacting based on dbg mode*/
+    
+    /* decide on tracing and interacting based on dbg mode
+	   The dbg_mode here was normaly set by the interaction AFTER the
+	   instruction was performed
+	*/
+reswitch0:
 	switch (dbg_mode)
 	{ 
 	  case dbg_quit:	
 		halted=true; 
 		goto end_simulation; 
 	  case dbg_over:
-		  if ((inst>>24)==TRAP)
+		  if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
 		  {  dbg_mode=dbg_over_os;
 		     trap_loc=loc;
-             tracing= true; interact_after_break=!break_after;
+             tracing= true; interact_after_break=false;
 		  }
 		  else
-			  goto case_step; 
+		  { dbg_mode=dbg_step; goto reswitch0; } 
 		  break;
 	  case dbg_over_os:	
 	    if (loc.h&sign_bit) 
 			tracing=interact_after_break=false;
 		else
-			goto case_step; 
+		  { dbg_mode=dbg_step; goto reswitch0; } /* unused case */
 		break;
-
-	  case_step: dbg_mode=dbg_step;
 	  case dbg_step:
 	    tracing=interact_after_break=true;
 	    break;
-
 	  case dbg_cont:	
 	  default:
         tracing=interact_after_break=false;
@@ -428,11 +429,26 @@ interact:
 resume:
 
     mmix_perform_instruction(); 
+	/* decide on tracing and interacting based on dbg mode
+	   The dbg_mode here was normaly set by the interaction BEFORE the
+	   instruction was performed
+	*/
+reswitch1:
 	switch (dbg_mode)
-	{ case dbg_over_os:	
-	    if ((inst>>24)==RESUME)
+	{ case dbg_over:
+	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
+		  {  dbg_mode=dbg_over_os;
+		     trap_loc=loc;
+             tracing= false; interact_after_break=false;
+		  }
+		  else
+		  { dbg_mode=dbg_step; goto reswitch1; } 
+		  break;
+	   case dbg_over_os:	
+	    if ((inst>>24)==RESUME && (inst_ptr.h&sign_bit)==0)
 		{ fetch_traced=tracing=true, interact_after_break=break_after;
 		  loc=trap_loc;
+          dbg_mode=dbg_step;
 		}
 		else 
 		  tracing=interact_after_break=false;
