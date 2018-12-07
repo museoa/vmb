@@ -314,189 +314,28 @@ We check for a nonempty register stack and simply stop also at a POP.
           break;
 
 8. Stepping over a subroutine.
-		  
-----------------------------
+When stepping over a subroutine we can not simply advance to the 
+next POP because subroutines might be nested. Instead
+we keep a record of g[rO] in rOlimit
+and keep silent while g[rO]> rOlimit.
+		
+We follow the implementation of stepping over a TRAP,
+testing for 
+(inst>>24)==PUSHJ ||(inst>>24)==PUSHJB  || (inst>>24)==PUSHGO ) 
+setting the mode to dbg_over_push and  push_loc=loc; rOlimit=g[rO];
+and have rOlimit=incr(rOlimit,-8); if the PUSHJ is already
+performed.
 
-medium old loop:
-    bool fetch_traced=false;
-	octa out_loc;
-
-	if (dbg_mode==dbg_quit)	goto end_simulation; 
-
-	mmix_fetch_instruction();
-#ifndef VMB
-interact:
-#endif
-
-    /* decide on tracing and interacting based on dbg mode*/
-	switch (dbg_mode)
-	{ case dbg_step:
-	    tracing=interact_after_break=true;
-	    break;
-	  default:
-        tracing=interact_after_break=false;
-		break;
-	}
-
-	if (tracing) 
-	{ mmix_trace_fetch(); fetch_traced=true;}
-
-	if (interacting && !break_after && interact_after_break)
-	{ mmix_stopped(loc);
-	  mmix_interact();
-	} 
-
-resume:
-    mmix_perform_instruction(); 
-	switch (dbg_mode)
-	{ 
-	  default:
-		break;
-	}
-	if (tracing)
-	{ if (!fetch_traced) 
-	  { mmix_trace_fetch(); fetch_traced=true; }
-      mmix_trace_perform();
-	  if (showing_stats) show_stats(breakpoint);
-	}
-
-
-	/* mmix_trace(); */
-#ifdef VMB
-	mmix_dynamic_trap();
-#endif
-    if (resuming)
-	{ if (op==RESUME)
-	    goto resume;
-	  else
-	    resuming=false;
-	}
-
-if (interacting && interact_after_break)
-   {	
-			mmix_interact();
-    }
-
-	if (
-#ifdef VMB
-		!vmb.power || vmb.reset_flag ||
-#endif
-		(g[rQ].l&g[rK].l&RE_BIT))
-    { breakpoint|=trace_bit; 
-      goto boot;
-    }
-		  Sleep(10);  /* to give the ide time to update the screen while debugging */
-  }
-Old loop:
-   bool fetch_traced=false;
-	octa out_loc;
-
-	if (dbg_mode==dbg_quit)	goto end_simulation; 
-
-	mmix_fetch_instruction();
-#ifndef VMB
-interact:
-#endif
-
-    /* decide on tracing and interacting based on dbg mode*/
-	switch (dbg_mode)
-	{ case dbg_step:
-	    tracing=interact_after_break=true;
-	    break;
-	  case dbg_over:
-	    tracing=true;
-		interact_after_break=false;
-		if ((inst>>24)==TRAP) 
-			dbg_mode=dbg_over_ftrap;
-		break;
-	  case dbg_over_ftrap:
-		  if (loc.h&sign_bit)
-		     tracing=interact_after_break=false;
-		  else
-		  { tracing=interact_after_break=true;
-		    dbg_mode=dbg_step;
-		  }
-        break;
-	  case dbg_cont:
-	  default:
-        tracing=interact_after_break=false;
-		break;
-	}
- 	if (breakpoint&exec_bit)  
-		tracing=interact_after_break=true;
-	if (breakpoint & trace_bit) 
-		tracing=true;
-	if (interrupt) 
-		interacting=tracing=interact_after_break=true, interrupt=false;
-
-	if ((loc.h&sign_bit) && !show_operating_system) tracing=interact_after_break=false; 
-
-
-	if (tracing) 
-	{ mmix_trace_fetch(); fetch_traced=true;}
-
-	if (interacting && !break_after && interact_after_break)
-	{ mmix_stopped(loc);
-	  mmix_interact();
-	} 
-
-resume:
-    mmix_perform_instruction(); 
-	switch (dbg_mode)
-	{ case dbg_over:
-		if ((inst>>24)==TRAP) 
-			dbg_mode=dbg_over_ftrap;
-		break;
-     case dbg_over_ftrap:
-		if (!(inst_ptr.h&sign_bit)) 
-		{  tracing=interact_after_break=true;
+We switch back if we find a POP and g[rO] is less or equal
+to rOlimit.
+	   case dbg_over_push:	
+	    if ((inst>>24)==POP && 
+			((g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h))
+		{ fetch_traced=tracing=true, interact_after_break=break_after;
+		  loc=push_loc;
           dbg_mode=dbg_step;
 		}
-		break;
-	  default:
-		break;
-	}
-    if (dbg_mode==dbg_step)
-	{ if (!is_traceable(inst_ptr))
-	  { dbg_mode=dbg_out;
-	    out_loc=loc;
-	    interact_after_break=false;
-	  }
-	  else
-	    mmix_stopped(loc);
-	}
+		else 
+		  tracing=interact_after_break=false;
+        break;
 
-	if (tracing)
-	{ if (!fetch_traced) 
-	  { mmix_trace_fetch(); fetch_traced=true; }
-      mmix_trace_perform();
-	  if (showing_stats) show_stats(breakpoint);
-	}
-
-
-	/* mmix_trace(); */
-#ifdef VMB
-	mmix_dynamic_trap();
-#endif
-    if (resuming)
-	{ if (op==RESUME)
-	    goto resume;
-	  else
-	    resuming=false;
-	}
-
-if (interacting && break_after && interact_after_break)
-   {	
-			mmix_interact();
-    }
-
-	if (
-#ifdef VMB
-		!vmb.power || vmb.reset_flag ||
-#endif
-		(g[rQ].l&g[rK].l&RE_BIT))
-    { breakpoint|=trace_bit; 
-      goto boot;
-    }
-		  Sleep(10);  /* to give the ide time to update the screen while debugging */
-  }

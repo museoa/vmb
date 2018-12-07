@@ -34,7 +34,7 @@
 extern bool interact_after_break;
 
 typedef enum { dbg_cont, dbg_step, 
-               dbg_over, dbg_over_ftrap, dbg_over_dtrap, 
+               dbg_over, dbg_over_ftrap, dbg_over_dtrap, dbg_over_push, 
                dbg_out, dbg_break, dbg_quit} dbg_type;
 
 dbg_type dbg_mode=dbg_cont;
@@ -82,10 +82,8 @@ void mmix_stop(void)
 void mmix_continue(unsigned char command)
 { 
    if (hInteract==NULL) return;
-   rOlimit=neg_one;
    switch (command)
    { case 'q': /* quit */
- /*      halted=true; */
 	   dbg_mode=dbg_quit;
        break;
      case 'c': /* continue */
@@ -94,20 +92,15 @@ void mmix_continue(unsigned char command)
        break;
 	 case 'n': /* next instruction/ step over*/
 	  dbg_mode=dbg_over;
-/*	   rOlimit=g[rO];
-       breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
 	 case 'o': /* step out */
 	   dbg_mode=dbg_out;
-/*         rOlimit=incr(g[rO],-1);
-       breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
 	 case 's': /* step instruction */
 	   dbg_mode=dbg_step;
 	   break;
      default: 
 	   dbg_mode=dbg_step;	 	 
-/*		 breakpoint|=exec_bit, interacting=true;  trace one inst and break */
        break;
    }
    show_stop_marker(edit_file_no,-1); /* clear stop marker */
@@ -258,42 +251,6 @@ static void mmix_stopped(octa loc)
 
 /* this is the plain vmb version of mmix main() */
 
-static int rO_below_limit(void)
-/*used to disable tracing and interaction inside a subroutine. 
-  returns true if g[rO]<=rOlimit */
-{ return (g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h;
-}
-
-/* checking for interaction is done at two places before and after
-   performing (traceing and resumeing) the instruction.
-   The parameter after is false when this function is called before the instruction
-   and true if this function is called after the instruction.
-   Interaction after performing the instruction
-   is the "classic" MMIX way of interaction.
-   Interaction before executing the instruction is the typical way other debuggers
-   do it (you can inspect the register before doing the instruction and after).
-   The parameter break_after is true in case the user selects the classical behaviour
-   and it is false if the user prefers to interact before the instruction.
-
-*/
-#ifdef VMB
-#define TRACEABLE ((!(loc.h&sign_bit)||show_operating_system) && rO_below_limit())
-#else
-#define TRACEABLE (rO_below_limit())
-#endif
-
-static bool is_traceable(octa loc)
-{ return !(loc.h&sign_bit)||show_operating_system;
-}
-
-#ifdef VMB
-#define AFTERTRACEABLE ((!(inst_ptr.h&sign_bit)||show_operating_system) && rO_below_limit())
-#else
-#define AFTERTRACEABLE (rO_below_limit())
-#endif
-static bool trace_once=false; /* do we trace the next traceable instruction */
-
-
 static void mmix_load(int file_no)
 { if (!file2loading(file_no)) return;
   mmix_load_file(get_mmo_name(file2fullname(file_no)));
@@ -310,7 +267,7 @@ void mmix_zero_memory(mem_node *p)
 
 int mmix_main(int argc, char *argv[],char *mmo_name)
 { dbg_type dtrap_mode;
-
+  octa rOlimit; /* disable tracing and interacting while g[rO]>rOlimit */
   g[255].h=0;
   g[255].l=setjmp(mmix_exit);
   if (g[255].l!=0)
@@ -334,7 +291,6 @@ boot:
   mmix_zero_memory(mem_root);
 #endif
   mmix_boot(); 
-  rOlimit=neg_one; /*reset rOlimit */
   for_all_files(mmix_load);
   sync_breakpoints();
   show_breakpoints();
@@ -348,7 +304,6 @@ boot:
   }
   Sleep(50); /* give all devices some time finish loading the files and commandline */
   new_Q.h=new_Q.l=g[rQ].h=g[rQ].l=0; /* remove error flags */
-  trace_once=true;
 #ifdef VMB
   if (interacting) 
   { 
@@ -369,7 +324,7 @@ boot:
 #endif
 	  !halted) {
 	bool fetch_traced=false;
-	static octa ftrap_loc;
+	static octa ftrap_loc, push_loc;
 
     breakpoint=0;
 	mmix_fetch_instruction();
@@ -393,6 +348,11 @@ reswitch0:
 		     ftrap_loc=loc;
              tracing= true; interact_after_break=!break_after;
 		  }
+		  else if ((inst>>24)==PUSHJ ||(inst>>24)==PUSHJB  || (inst>>24)==PUSHGO ) 
+		  {  dbg_mode=dbg_over_push;
+		     push_loc=loc; rOlimit=g[rO];
+             tracing= true; interact_after_break=!break_after;
+		  }
 		  else
 		  { dbg_mode=dbg_step; goto reswitch0; } 
 		  break;
@@ -402,6 +362,7 @@ reswitch0:
 		else
 		  { dbg_mode=dtrap_mode; goto reswitch0; }
 		break;
+	  case dbg_over_push:	
 	  case dbg_over_ftrap:	
 			tracing=interact_after_break=false;
 		break;
@@ -453,6 +414,11 @@ reswitch1:
 		     ftrap_loc=loc;
              tracing= false; interact_after_break=false;
 		  }
+		  else if ((inst>>24)==PUSHJ ||(inst>>24)==PUSHJB  || (inst>>24)==PUSHGO ) 
+		  {  dbg_mode=dbg_over_push;
+		     push_loc=loc; rOlimit=g[rO];rOlimit=incr(rOlimit,-8);
+             tracing= false; interact_after_break=false;
+		  }
 		  else
 		  { dbg_mode=dbg_step; goto reswitch1; } 
 		  break;
@@ -460,6 +426,16 @@ reswitch1:
 	    if ((inst>>24)==RESUME && (inst_ptr.h&sign_bit)==0)
 		{ fetch_traced=tracing=true, interact_after_break=break_after;
 		  loc=ftrap_loc;
+          dbg_mode=dbg_step;
+		}
+		else 
+		  tracing=interact_after_break=false;
+        break;
+	   case dbg_over_push:	
+	    if ((inst>>24)==POP && 
+			((g[rO].h==rOlimit.h && g[rO].l<=rOlimit.l) || g[rO].h<rOlimit.h))
+		{ fetch_traced=tracing=true, interact_after_break=break_after;
+		  loc=push_loc;
           dbg_mode=dbg_step;
 		}
 		else 
@@ -507,7 +483,7 @@ if (mmix_dynamic_trap() && !show_operating_system)
 	  else	/* plain resume without insering an instruction */
 	    resuming=false;
   	if (dbg_mode==dbg_over_ftrap && (loc.h&sign_bit)==0)
-          interact_after_break=true; /* not sure if I ever need this */
+          interact_after_break=true; /* not sure if I ever need this comming back from OS with an instruction in $255 */
 	}
   
 	if (
