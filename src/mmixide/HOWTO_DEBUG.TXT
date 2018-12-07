@@ -154,7 +154,8 @@ And after performing the instruction, we have
 				
 5. Interrupts
 Interrupts can occur in an interrupt handler or by pressing the
-Break Button. The break button sets the value of interrupt to true as will do the interrupt handler.
+Break Button. The break button sets the value of interrupt to 
+true as will do the interrupt handler.
 We check for an interrupt after checking for breakpoints.		
 	if (interrupt) 
 		interacting=tracing=interact_after_break=true, interrupt=false;
@@ -169,19 +170,88 @@ Lets start with the latter.
 
 The step over button sets the dbg_mode to dbg_over.
 If the instruction after fetching turns out to be a TRAP,
-we switch the mode to dbg_over_os. In this mode
+we switch the mode to dbg_over_ftrap. In this mode
 we run without tracing until we encounter a resume
 and get back to the user program.
 		
-Lets first to make things simple. When we traverse
-a TRAP, we trace it continue to the resume, trace it,
-and then stop, like in a dbg_step command.
+Let us first consider the case when break_after==true
+and the mmix_interact after performing the previous instruction
+returns dbg_over. We see this when checking the dbg_mode
+at the beginning of the loop. We check that the instruction
+is a TRAP and we are still in user space. We switch 
+to dbg_over_ftrap and remember the trap location
+because we want to position the editor on the
+trap once we resume. While in dbg_over_ftrap mode we 
+stop tracing and interacting as long as we are in the os.
+	  case dbg_over:
+		  if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
+		  {  dbg_mode=dbg_over_ftrap;
+		     trap_loc=loc;
+             tracing= true; interact_after_break=false;
+		  }
+		  { dbg_mode=dbg_step; goto reswitch0; } 
+		  break;
+	  case dbg_over_ftrap:	
+	    if (loc.h&sign_bit) 
+			tracing=interact_after_break=false;
+		else
+		  { dbg_mode=dbg_step; goto reswitch0; } 
+		break;
 
-Still not working!
+After having performed a RESUME and the next instruction back in user
+space, we resume tracing and possibly interacting 	
+	   case dbg_over_ftrap:	
+	    if ((inst>>24)==RESUME && (inst_ptr.h&sign_bit)==0)
+		{ fetch_traced=tracing=true, interact_after_break=break_after;
+		  loc=trap_loc;
+          dbg_mode=dbg_step;
+		}
+		else 
+		  tracing=interact_after_break=false;
+        break;
+
+Now we consider the case when break_after==false
+We discover thos situation after tracing the instruction.
+Using the same code as before.		
+	  case dbg_over:
+	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
+		  {  dbg_mode=dbg_over_ftrap;
+		     trap_loc=loc;
+             tracing= false; interact_after_break=false;
+		  }
+		  else
+		  { dbg_mode=dbg_step; goto reswitch1; } 
+		  break;
 		
-		
-		
+Next we look at dynamic traps.
+When we discover a dynamic trap and the variable
+show_operating_system is false, we switch into the
+debug mode dbg_over_dtrap.
+It will ignore all instructions from the operating system and return to normal operations after the final resume.
+
+when we get a dynamic trap, we switch to dbg_over_dtrap mode:		
+if (mmix_dynamic_trap() && !show_operating_system)
+{ dtrap_mode=dbg_mode;
+  dbg_mode=dbg_over_dtrap;
+}
+
+We return to the previous mode when we are back in user space otherwise we do not trace or interact.
+
+after fetch:		
+	  case dbg_over_dtrap:
+		 if (loc.h&sign_bit) 
+			tracing=interact_after_break=false;
+		else
+		  { dbg_mode=dtrap_mode; goto reswitch0; }
+		break;
 	
+after perform:	
+		
+	  case dbg_over_dtrap:
+		tracing=interact_after_break=false;
+		break;
+
+
 ----------------------------
 
 medium old loop:
@@ -274,9 +344,9 @@ interact:
 	    tracing=true;
 		interact_after_break=false;
 		if ((inst>>24)==TRAP) 
-			dbg_mode=dbg_over_os;
+			dbg_mode=dbg_over_ftrap;
 		break;
-	  case dbg_over_os:
+	  case dbg_over_ftrap:
 		  if (loc.h&sign_bit)
 		     tracing=interact_after_break=false;
 		  else
@@ -312,9 +382,9 @@ resume:
 	switch (dbg_mode)
 	{ case dbg_over:
 		if ((inst>>24)==TRAP) 
-			dbg_mode=dbg_over_os;
+			dbg_mode=dbg_over_ftrap;
 		break;
-     case dbg_over_os:
+     case dbg_over_ftrap:
 		if (!(inst_ptr.h&sign_bit)) 
 		{  tracing=interact_after_break=true;
           dbg_mode=dbg_step;

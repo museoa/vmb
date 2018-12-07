@@ -33,7 +33,9 @@
 
 extern bool interact_after_break;
 
-typedef enum { dbg_cont, dbg_step, dbg_over, dbg_over_os, dbg_out, dbg_break, dbg_quit} dbg_type;
+typedef enum { dbg_cont, dbg_step, 
+               dbg_over, dbg_over_ftrap, dbg_over_dtrap, 
+               dbg_out, dbg_break, dbg_quit} dbg_type;
 
 dbg_type dbg_mode=dbg_cont;
 
@@ -307,7 +309,8 @@ void mmix_zero_memory(mem_node *p)
 
 
 int mmix_main(int argc, char *argv[],char *mmo_name)
-{
+{ dbg_type dtrap_mode;
+
   g[255].h=0;
   g[255].l=setjmp(mmix_exit);
   if (g[255].l!=0)
@@ -350,13 +353,11 @@ boot:
   if (interacting) 
   { 
 	if ((loc.h&sign_bit)&& !show_operating_system) 
-		dbg_mode=dbg_over_os;
+	{	dbg_mode=dbg_over_dtrap; dtrap_mode=dbg_step; }
 	else 
 		dbg_mode=dbg_step;
   }
   else dbg_mode=dbg_cont;
-
-dbg_mode=dbg_step;
 
 #else
   dbg_mode=dbg_step;
@@ -368,7 +369,7 @@ dbg_mode=dbg_step;
 #endif
 	  !halted) {
 	bool fetch_traced=false;
-	octa trap_loc;
+	static octa ftrap_loc;
 
     breakpoint=0;
 	mmix_fetch_instruction();
@@ -388,23 +389,26 @@ reswitch0:
 		goto end_simulation; 
 	  case dbg_over:
 		  if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
-		  {  dbg_mode=dbg_over_os;
-		     trap_loc=loc;
-             tracing= true; interact_after_break=false;
+		  {  dbg_mode=dbg_over_ftrap;
+		     ftrap_loc=loc;
+             tracing= true; interact_after_break=!break_after;
 		  }
 		  else
 		  { dbg_mode=dbg_step; goto reswitch0; } 
 		  break;
-	  case dbg_over_os:	
-	    if (loc.h&sign_bit) 
+	  case dbg_over_dtrap:
+		 if (loc.h&sign_bit) 
 			tracing=interact_after_break=false;
 		else
-		  { dbg_mode=dbg_step; goto reswitch0; } /* unused case */
+		  { dbg_mode=dtrap_mode; goto reswitch0; }
+		break;
+	  case dbg_over_ftrap:	
+			tracing=interact_after_break=false;
 		break;
 	  case dbg_step:
 	    tracing=interact_after_break=true;
 	    break;
-	  case dbg_cont:	
+	  case dbg_cont:
 	  default:
         tracing=interact_after_break=false;
 		break;
@@ -437,21 +441,28 @@ reswitch1:
 	switch (dbg_mode)
 	{ case dbg_over:
 	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0)
-		  {  dbg_mode=dbg_over_os;
-		     trap_loc=loc;
+		  {  dbg_mode=dbg_over_ftrap;
+		     ftrap_loc=loc;
              tracing= false; interact_after_break=false;
 		  }
 		  else
 		  { dbg_mode=dbg_step; goto reswitch1; } 
 		  break;
-	   case dbg_over_os:	
+	   case dbg_over_ftrap:	
 	    if ((inst>>24)==RESUME && (inst_ptr.h&sign_bit)==0)
 		{ fetch_traced=tracing=true, interact_after_break=break_after;
-		  loc=trap_loc;
+		  loc=ftrap_loc;
           dbg_mode=dbg_step;
 		}
 		else 
 		  tracing=interact_after_break=false;
+        break;
+	  case dbg_over_dtrap:
+			tracing=interact_after_break=false;
+		break;
+	  case dbg_step:
+	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 && !show_operating_system)
+		{ dbg_mode=dbg_over; goto reswitch1; }	
         break;
 	  default:
 		break;
@@ -474,7 +485,11 @@ reswitch1:
 
 	/* mmix_trace(); */
 #ifdef VMB
-	mmix_dynamic_trap();
+if (mmix_dynamic_trap() && !show_operating_system)
+{ dtrap_mode=dbg_mode;
+  dbg_mode=dbg_over_dtrap;
+}
+	
 #endif
     if (resuming)
 	{ if (op==RESUME) /* this is the case if $255 contains the next instruction */
@@ -483,9 +498,8 @@ reswitch1:
 	  }
 	  else	/* plain resume without insering an instruction */
 	    resuming=false;
-  	if (dbg_mode==dbg_over_os && (loc.h&sign_bit)==0)
-          interact_after_break=true;
-
+  	if (dbg_mode==dbg_over_ftrap && (loc.h&sign_bit)==0)
+          interact_after_break=true; /* not sure if I ever need this */
 	}
   
 	if (
