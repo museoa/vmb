@@ -12,7 +12,7 @@
 int (*MemContextMenu)(inspector_def *insp, int offset, int x, int y)=NULL; /* if not NULL the function to handle the context menu for the memory window */  
 
 char *format_names[]={"Hex","Ascii","Unsigned","Signed","Float"};
-char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA"};
+char *chunk_names[]={"BYTE","WYDE","TETRA","OCTA",""};
 static int top_height, sb_width=0;  
 
 static void invalidate_mem(inspector_def *insp)
@@ -239,6 +239,38 @@ void adjust_mem_display(inspector_def *insp)
 
 
 
+static void set_chunk(HWND hDlg,enum chunk_fmt c)
+{ BOOL isbyte, iswyde,istetra,isocta;
+
+  if (c==byte_chunk) isbyte=TRUE, iswyde=istetra=isocta=FALSE;
+  else if (c==wyde_chunk) isbyte=iswyde=TRUE, istetra=isocta=FALSE;
+  else if (c==tetra_chunk) isbyte=iswyde=istetra=TRUE, isocta=FALSE;
+  else if (c==octa_chunk) isbyte=iswyde=istetra=isocta=TRUE;
+  CheckDlgButton(hDlg,IDC_CHECK_BYTE,isbyte?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_WYDE,iswyde?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_BYTE3,istetra?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_TETRA,istetra?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_BYTE5,isocta?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_BYTE6,isocta?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_BYTE7,isocta?BST_CHECKED:BST_UNCHECKED);
+  CheckDlgButton(hDlg,IDC_CHECK_OCTA,isocta?BST_CHECKED:BST_UNCHECKED);
+  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[c]);
+}
+
+  
+
+static enum chunk_fmt get_chunk(HWND hDlg, int ItemID)
+{ enum chunk_fmt c=undefined_chunk;;
+  if (ItemID ==IDC_CHECK_BYTE)
+   c= byte_chunk;
+  else if (ItemID ==IDC_CHECK_WYDE)
+   c= wyde_chunk;
+  else if (ItemID ==IDC_CHECK_TETRA)
+   c= tetra_chunk;
+  else if (ItemID ==IDC_CHECK_OCTA)
+   c= octa_chunk;
+  return c;
+}
 
 
 int chunk_len(enum mem_fmt f, int chunk_size)
@@ -547,25 +579,21 @@ void SetInspector(HWND hMemory, inspector_def * insp)
     ScreenToClient(insp->hWnd,&p);
 	xButton=p.x+fixed_char_width;
 	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),xButton,border_size,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),xButton+fixed_char_width+r.right-r.left,border_size,r.right-r.left,r.bottom-r.top,TRUE);
   }
   else
   { RECT r;
 	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO),SW_HIDE);
   	ShowWindow(GetDlgItem(insp->hWnd,IDC_GOTO_PROMPT),SW_HIDE);
 	GetWindowRect(GetDlgItem(insp->hWnd,IDC_FORMAT),&r);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_FORMAT),fixed_char_width,border_size,r.right-r.left,r.bottom-r.top,TRUE);
-	MoveWindow(GetDlgItem(insp->hWnd,IDC_CHUNK),2*fixed_char_width+r.right-r.left,border_size,r.right-r.left,r.bottom-r.top,TRUE);
-
   }
   SetDlgItemText(insp->hWnd,IDC_FORMAT,format_names[insp->format]);
-  SetDlgItemText(insp->hWnd,IDC_CHUNK,chunk_names[insp->chunk]);
+  set_chunk(insp->hWnd,insp->chunk);
 }
+
 
 static INT_PTR CALLBACK   
 MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
-{ 
+{
   switch ( message )
   { case WM_INITDIALOG :
       if (sb_width==0)
@@ -576,7 +604,7 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		top_height = separator_height*2+(sbRect.bottom-sbRect.top);
 	  }
 	  SetDlgItemText(hDlg,IDC_FORMAT,format_names[0]);
-	  SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[0]);
+	  set_chunk(hDlg,octa_chunk);
 	  hDataEditInstance=hInst;
 	  register_subwindow(hDlg);
 	  return FALSE;
@@ -620,27 +648,22 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  }
 	  else if (HIWORD(wparam) == BN_CLICKED) 
 	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+	    enum chunk_fmt cf;
 	    if (insp==NULL) return FALSE;
-        if ((HWND)lparam==GetDlgItem(hDlg,IDC_FORMAT))
+        if ((cf=get_chunk(hDlg,LOWORD(wparam)))!=undefined_chunk)
+		{ insp->chunk=cf;
+		  set_chunk(hDlg,cf);
+     	  resize_memory_dialog(insp);
+		}
+        else if ((HWND)lparam==GetDlgItem(hDlg,IDC_FORMAT))
 	    { insp->format++; if (insp->format>last_format) insp->format=0;
 		  SetDlgItemText(hDlg, IDC_FORMAT, format_names[insp->format]);
 		  if (insp->format==float_format && insp->chunk<tetra_chunk)
 		  { insp->chunk=tetra_chunk;
-            SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
+			set_chunk(hDlg,tetra_chunk);
 		  } 
      	  resize_memory_dialog(insp);
 	    } 
-	    else if ((HWND)lparam==GetDlgItem(hDlg,IDC_CHUNK))
-	    { if (insp->format==float_format && insp->chunk==octa_chunk)
-		    insp->chunk=tetra_chunk;
-		  else if (insp->format==float_format && insp->chunk!=octa_chunk)
-		    insp->chunk=octa_chunk;
-		  else
-		    insp->chunk++; 
-		  if (insp->chunk>last_chunk) insp->chunk=0;
-		  SetDlgItemText(hDlg, IDC_CHUNK, chunk_names[insp->chunk]);
-     	  resize_memory_dialog(insp);
-	    }
 	  }
 	  return FALSE;
 	case WM_VSCROLL: 

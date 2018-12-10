@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32connect.rc
+// Used by win32memory.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1
@@ -74,6 +74,14 @@
 #define IDC_EDITBYTE7                   1033
 #define IDC_LOAD                        1041
 #define IDC_STORE                       1042
+#define IDC_CHECK_BYTE                  1043
+#define IDC_CHECK_WYDE                  1044
+#define IDC_CHECK_BYTE3                 1045
+#define IDC_CHECK_TETRA                 1046
+#define IDC_CHECK_BYTE5                 1047
+#define IDC_CHECK_BYTE6                 1048
+#define IDC_CHECK_BYTE7                 1049
+#define IDC_CHECK_OCTA                  1050
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -544,7 +552,6 @@
 #define AFX_IDP_E_CANTSAVEFILETOTEMP    0xFEC5
 #define AFX_IDP_E_SEARCHTEXTNOTFOUND    0xFEC6
 #define AFX_IDP_E_REPLACEMENTSTOOLONG   0xFEC7
-#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
@@ -552,7 +559,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
