@@ -57,7 +57,7 @@ int colors[8] = {RGB(0xFF,0,0),RGB(0,0xFF,0),RGB(0,0,0xFF),RGB(0xFF,0xFF,0),
                  RGB(0xFF,0,0xFF),RGB(0,0xFF,0xFF),RGB(0xFF,0x80,0x80),RGB(0x80,0x80,0xFF)};
 char *pictures[8] = {0};
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char version[]="$Revision$ $Date$";
 char title[] = "VMB LED";
 char howto[] =

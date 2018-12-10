@@ -44,7 +44,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 
 void display_char(char c);
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char title[] ="VMB Keyboard";
 
 char version[]="$Revision$ $Date$";

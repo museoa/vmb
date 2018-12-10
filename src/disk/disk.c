@@ -28,7 +28,7 @@ extern HBITMAP hbussy;
 #include "bus-arith.h"
 #include "param.h"
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 extern device_info vmb;
 
 char title[] ="VMB Disk";

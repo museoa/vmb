@@ -19,7 +19,7 @@ HMENU hMenu;
 HBITMAP hon,hoff,hconnect;
 device_info vmb = {0};
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char version[]="$Revision$ $Date$";
 char title[] ="VMB Sevensegment";
 char howto[] =

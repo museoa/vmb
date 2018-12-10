@@ -45,7 +45,7 @@ static void display_char(char c);
 extern device_info vmb;
 char title[] ="VMB Screen";
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char version[]="$Revision$ $Date$";
 
 char howto[] =

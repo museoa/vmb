@@ -35,7 +35,7 @@ extern HWND hMainWnd;
 #include "vmb.h"
 #include "param.h"
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char version[]="$Revision$ $Date$";
 char title[] ="VMB RAM";
 
