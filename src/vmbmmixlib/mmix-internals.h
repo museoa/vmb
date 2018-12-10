@@ -78,7 +78,6 @@ extern bool interacting;
 extern bool show_operating_system;
 extern octa rOlimit;
 extern bool just_traced;
-extern bool trace_once;
 extern bool halted, profile_started, stack_tracing, profiling, interrupt, tracing;
 extern int breakpoint;
 extern unsigned int tracing_exceptions; /* exception bits that cause tracing */

@@ -11,6 +11,7 @@ static ATOM hDataEditClass=0;
 HINSTANCE hDataEditInstance=0;
 HWND hDataEditParent=0;
 
+#define DEDIT_STYLE (WS_OVERLAPPED|WS_SYSMENU|WS_CAPTION|WS_VISIBLE|WS_SIZEBOX)
 
 static LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { static int min_w, min_h;
@@ -23,7 +24,7 @@ static LRESULT CALLBACK DataEditProc(HWND hWnd, UINT message, WPARAM wParam, LPA
       GetWindowRect(hDataEdit,&rect);
 	  x=rect.left;
 	  y=rect.top;
-	  AdjustWindowRect(&rect,WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,FALSE);
+	  AdjustWindowRect(&rect,DEDIT_STYLE,FALSE);
 	  min_w = rect.right-rect.left;
 	  min_h = rect.bottom-rect.top;
 	  if (y>screen_height-min_h) y=screen_height-min_h;
@@ -88,7 +89,7 @@ HWND GetDataEdit(int id, HWND hMemory)
     GetWindowRect(hDataEditParent,&rect);
   else
     rect.left=rect.bottom=CW_USEDEFAULT;
-  h = CreateWindow("DATAEDITCLASS","Data Editor", WS_OVERLAPPED|WS_SYSMENU|WS_CAPTION|WS_VISIBLE,
+  h = CreateWindow("DATAEDITCLASS","Data Editor",DEDIT_STYLE ,
 			rect.left,rect.bottom,CW_USEDEFAULT,CW_USEDEFAULT,
 		  hDataEditParent,NULL,hDataEditInstance,0);
   if (h!=NULL)

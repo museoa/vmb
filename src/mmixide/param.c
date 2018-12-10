@@ -233,5 +233,4 @@ void param_init(void)
 #ifdef VMB
   if (vmb_verbose_flag) vmb_debug_mask=0;
 #endif
-  SetWindowText(hMainWnd,defined);
 }

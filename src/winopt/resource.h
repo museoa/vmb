@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by win32memory.rc
+// Used by win32dedit.rc
 //
 #define ID_SEPARATOR                    0
 #define IDS_CLASS                       1
@@ -82,6 +82,13 @@
 #define IDC_CHECK_BYTE6                 1048
 #define IDC_CHECK_BYTE7                 1049
 #define IDC_CHECK_OCTA                  1050
+#define IDC_FORMAT_HEX                  1051
+#define IDC_FORMAT_ASCII                1052
+#define IDC_FORMAT_INT                  1053
+#define IDC_FORMAT_FLOAT                1054
+#define IDC_FORMAT_UINT                 1055
+#define IDC_FORMAT_AUTO                 1056
+#define IDC_FORMAT_BIN                  1056
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -559,7 +566,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1051
+#define _APS_NEXT_CONTROL_VALUE         1052
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

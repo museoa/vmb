@@ -473,7 +473,7 @@ int valid_address(octa address)
   if (address.h&0x80000000) return 1;
   else 
   { int p = translate_address(&address, &data_tc);
-  if (p&PAGE_TABLE_ERROR || p==0) return 0;
+  if ((p&PAGE_TABLE_ERROR) || p==0) return 0;
   }
   return 1;
 }

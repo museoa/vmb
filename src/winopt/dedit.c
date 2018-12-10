@@ -139,9 +139,9 @@ static void show_edit_windows(dataedit *de)
   int size=de->size;
   int chunk_size=1<<de->chunk;
   int x;
-  int chunk_w= chunk_len(de->format,chunk_size)*fixed_char_width+2*border_size;
+  int chunk_w= chunk_len(de->format,chunk_size)*fixed_char_width+4*border_size;
   x = left_width;
- 
+  min_w=x;
   SetWindowPos(GetDlgItem(h,IDC_EDITBYTE0),HWND_TOP,x,top_height,
 	  chunk_w,fixed_line_height,size>0?SWP_SHOWWINDOW:SWP_HIDEWINDOW);
   x+=chunk_w+separator_width;
@@ -185,30 +185,32 @@ static void show_edit_windows(dataedit *de)
   show_edit_mem(de);
 }
 
-    
-static set_edit_format(dataedit *de, enum mem_fmt format)
-{ 
-  if (format==ascii_format && de->chunk!=byte_chunk) format++;
-  if (format>last_format) format=0;
-  if (format==float_format && de->size<4) format=hex_format;
-  if (format==float_format && de->chunk<tetra_chunk) format=hex_format;
+static void set_edit_chunk(dataedit *de, enum chunk_fmt chunk);
+static void set_edit_format(dataedit *de, enum mem_fmt format)
+{ enum chunk_fmt cf;
+  cf=de->chunk;
   put_edit_mem(de);
+  if (format==ascii_format) 
+    cf=byte_chunk;
+  else if (format==float_format && de->size<4) format=de->format;
+  else if (format==float_format && de->chunk<tetra_chunk) cf=tetra_chunk; 
+  if (cf!=de->chunk)
+  { de->chunk=cf; set_chunk(de->hWnd, de->chunk);}
   de->format=format;
-  SetDlgItemText(de->hWnd, IDC_FORMAT, format_names[format]);
+  set_format(de->hWnd,de->format);
 }
 
-static set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
-{ if (chunk>last_chunk) chunk=byte_chunk;
-  if (1<<chunk>de->size) chunk=byte_chunk;
-  if (de->format==ascii_format)
-   chunk=byte_chunk;
-  else if (de->format==float_format && de->size<8)
-   chunk=tetra_chunk;
-  else if (de->format==float_format)
-   chunk=octa_chunk;
+static void set_edit_chunk(dataedit *de, enum chunk_fmt chunk)
+{ enum mem_fmt mf;
   put_edit_mem(de);
+  mf=de->format;
+  if ((1<<chunk) > de->size) chunk=de->chunk;
+  else if (de->format==ascii_format && chunk!=byte_chunk) mf=hex_format;
+  else if (de->format==float_format && chunk<tetra_chunk) mf=hex_format;
+  if (mf!=de->format)
+  {clear_format(de->hWnd,de->format); de->format=mf; set_format(de->hWnd,de->format);}
   de->chunk=chunk;
-  SetDlgItemText(de->hWnd, IDC_CHUNK, chunk_names[chunk]);
+  set_chunk(de->hWnd, de->chunk);
 }
 
 	
@@ -333,10 +335,12 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 	    SetWindowLongPtr(hDlg,DWLP_USER,(LONG)(LONG_PTR)de);
 	    de->hWnd=hDlg;
-	    SetDlgItemText(hDlg,IDC_FORMAT,format_names[de->format]);
-	    SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[de->chunk]);
-		GetWindowRect(GetDlgItem(hDlg,IDC_FORMAT),&rect);
-		top_height = separator_height*2+(rect.bottom-rect.top);
+		set_format(hDlg,de->format);
+		set_chunk(hDlg,de->chunk);
+		GetWindowRect(GetDlgItem(hDlg,IDC_CHUNK),&rect);
+		top_height=-rect.top;
+		GetWindowRect(GetDlgItem(hDlg,IDC_CHECK_BYTE),&rect);
+		top_height = top_height+separator_height*2+rect.bottom;
 	    SetFocus(GetDlgItem(hDlg,IDC_LOAD));
 		set_de_font(hDlg);
         de_update(hDlg);
@@ -361,7 +365,9 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	case WM_COMMAND: 
       if (HIWORD(wparam) == BN_CLICKED) 
 	  { dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
-		if (LOWORD(wparam) ==IDC_LOAD)   /* User has hit the Load key.*/
+	    enum chunk_fmt cf;
+		enum mem_fmt mf;
+        if (LOWORD(wparam) ==IDC_LOAD)   /* User has hit the Load key.*/
 		{ if (de->insp!=NULL && de->insp->load!=NULL && de->insp->de_size>0) 
 		  { if (de->reg_name!=NULL)
  			  memmove(de->mem,de->insp->load(de->reg_offset,de->size),de->size);
@@ -373,12 +379,12 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		else if (LOWORD(wparam) ==IDC_STORE)   /* User has hit the store key.*/
 		  de_save(hDlg);
 
-	    else if (LOWORD(wparam) == IDC_FORMAT)
-		{ set_edit_format(de,de->format+1);
+	    else if ((mf=get_format(hDlg,LOWORD(wparam)))!=undefined_format)
+		{ set_edit_format(de,mf);
 		  show_edit_windows(de);
 		}
-	    else if (LOWORD(wparam) == IDC_CHUNK)
-		{ set_edit_chunk(de,de->chunk+1);
+	    else if ((cf=get_chunk(hDlg,LOWORD(wparam)))!=undefined_chunk)
+		{ set_edit_chunk(de,cf);
 		  show_edit_windows(de);
 		}
 	  }

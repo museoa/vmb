@@ -2,16 +2,22 @@
 #define INSPECT_H
 #include "float.h"
 
-enum mem_fmt {hex_format=0, ascii_format=1, unsigned_format=2, signed_format=3,  float_format=4, last_format=4, user_format=5 };
+enum mem_fmt {hex_format=0, ascii_format=1, unsigned_format=2, signed_format=3,  
+   float_format=4, bin_format=5, last_format=5, user_format=6 , undefined_format=7};
 
-enum chunk_fmt {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, last_chunk=3, user_chunk=4, undefined_chunk=5 };
+enum chunk_fmt {byte_chunk=0, wyde_chunk=1,tetra_chunk=2,octa_chunk=3, 
+                last_chunk=3, user_chunk=4, undefined_chunk=5 };
 
 extern char *format_names[];
 
 extern char *chunk_names[];
 
+extern void set_format(HWND hDlg,enum mem_fmt f);
+extern void clear_format(HWND hDlg,enum mem_fmt f);
+extern enum mem_fmt get_format(HWND hDlg, int ItemID);
 extern int chunk_len(enum mem_fmt format, int chunk_size);
-
+extern void set_chunk(HWND hDlg,enum chunk_fmt c);
+extern enum chunk_fmt get_chunk(HWND hDlg, int ItemID);
 extern int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt, 
 						int chunk_size, int column_digits);
 

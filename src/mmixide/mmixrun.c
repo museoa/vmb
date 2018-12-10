@@ -383,8 +383,15 @@ reswitch0:
 		break;
 	}
 
- 	if (breakpoint&exec_bit)  
+ 	if (breakpoint&exec_bit)
+	{ if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 && !show_operating_system)
+      { dbg_mode=dbg_over_ftrap; /* same as dbg_over */
+		ftrap_loc=loc;
+        tracing= true; interact_after_break=!break_after;
+	  }
+	  else
 		tracing=interact_after_break=true;
+	}
 	if (breakpoint & trace_bit) 
 		tracing=true;
 	if (interrupt) 
