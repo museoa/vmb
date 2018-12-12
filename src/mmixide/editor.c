@@ -827,6 +827,7 @@ int ed_save_as(void)
 	{  file_set_name(edit_file_no,asname);
 	   ed_write_file();
 	   file2reading(edit_file_no)=0;
+	   SetWindowText(hMainWnd,unique_name(edit_file_no));
 	  //InvalidateRect(hEdit, NULL, NULL);
 	   return 1;
 	}
