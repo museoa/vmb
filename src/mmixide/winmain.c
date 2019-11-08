@@ -41,7 +41,7 @@
 
 #pragma warning(disable : 4996)
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=1;
 char version[]="$Revision$ $Date$";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";
@@ -602,6 +602,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  bb_set_group(hButtonBar,BG_DEBUG,0,0);
 	  bb_set_group(hButtonBar,BG_EDIT,1,1);
 	  update_symtab();
+	  if (auto_close_dbg) delete_debug_windows();
 	}
 	else if (lParam==0||item_file_no(lParam)==0xFF)
 	{ mmix_status(MMIX_STOPPED);

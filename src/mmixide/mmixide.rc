@@ -116,7 +116,7 @@ BEGIN
     CONTROL         "Break after instruction (classic)",IDC_RADIO_BREAK_AFTER,
                     "Button",BS_AUTORADIOBUTTON,17,123,115,10
     CONTROL         "Break before instruction",IDC_RADIO_BREAK_BEFORE,"Button",BS_AUTORADIOBUTTON,17,137,93,10
-    CONTROL         "Auto-Close Debug Windows",IDC_CHECK_AUTOCLOSE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,176,103,105,10
+    CONTROL         "Auto-Close Debug Windows",IDC_CHECK_AUTOCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,176,103,105,10
     GROUPBOX        "Tracing",IDC_STATIC,9,84,153,129
     CONTROL         "Warn if no application",IDC_CHECK_MISSING_APP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,176,120,85,10
     CONTROL         "Debug Operating System",IDC_CHECK_OS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,179,96,10

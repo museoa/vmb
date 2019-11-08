@@ -15,6 +15,7 @@ extern unsigned int show_special_registers;
 extern INT_PTR CALLBACK OptionSpecialDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern INT_PTR CALLBACK OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam );
 extern void set_debug_windows(void);
+extern void delete_debug_windows(void);
 extern int is_inspector(HWND h);
 extern void change_mem_font(void);
 extern int break_at_Main;
@@ -36,6 +37,7 @@ extern int show_debug_pool;
 extern int show_debug_stack;
 extern int show_debug_neg;
 extern int show_trace;
+extern int auto_close_dbg;
 
 extern int missing_app;
 

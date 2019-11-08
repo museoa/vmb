@@ -29,6 +29,8 @@ extern void mmix_status(int status);
 
 
 extern void show_trace_window(void);
+extern void close_trace_window(void);
+
 
 #define MMIX_DISCONNECTED 0
 #define MMIX_CONNECTED    1

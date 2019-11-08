@@ -228,6 +228,12 @@ void mmix_debug(void)
 		  MMIXThread();
 }
 
+void close_trace_window(void)
+{ if (hLog==NULL) return;
+  SendMessage(hLog,WM_CLOSE,0,0);
+  hLog=NULL;
+}
+
 void show_trace_window(void)
 { if (hLog!=NULL) return;
   sp_create_options(0,0,0.2,0,NULL);

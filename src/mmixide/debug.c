@@ -29,6 +29,7 @@ int show_debug_pool=0;
 int show_debug_stack=0;
 int show_debug_neg=0;
 int missing_app=1;
+int auto_close_dbg=0;
 
 
 
@@ -123,6 +124,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		  CheckDlgButton(hDlg,IDC_CHECK_EXCEPTIONS,BST_INDETERMINATE);
 		CheckDlgButton(hDlg,IDC_CHECK_MISSING_APP,missing_app!=0?BST_CHECKED:BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CHECK_STAT,showing_stats?BST_CHECKED:BST_UNCHECKED);
+		CheckDlgButton(hDlg,IDC_CHECK_AUTOCLOSE,auto_close_dbg?BST_CHECKED:BST_UNCHECKED);
 
 #ifdef VMB
         CheckDlgButton(hDlg,IDC_CHECK_OS,show_operating_system?BST_CHECKED:BST_UNCHECKED);
@@ -157,6 +159,7 @@ OptionDebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		break_at_Main=IsDlgButtonChecked(hDlg,IDC_CHECK_MAIN);
 		show_trace=IsDlgButtonChecked(hDlg,IDC_CHECK_TRACE);
 		showing_stats=IsDlgButtonChecked(hDlg,IDC_CHECK_STAT);
+		auto_close_dbg=IsDlgButtonChecked(hDlg,IDC_CHECK_AUTOCLOSE);
 #ifdef VMB
 		show_operating_system=IsDlgButtonChecked(hDlg,IDC_CHECK_OS);
 #endif
@@ -209,17 +212,37 @@ void set_debug_windows(void)
   if (show_trace) show_trace_window();
 }
 
+void delete_debug_windows(void)
+{ close_register_view(0);
+  close_register_view(1);
+  close_register_view(2);
+  close_memory_view(0);
+  close_memory_view(1);
+  close_memory_view(2);
+  close_memory_view(3);	
+  close_memory_view(4);	
+  close_trace_window();
+}
+
 /* generic routines */
 static int get_mem(uint64_t address, int size, unsigned char *buf)
 { octa addr;
   addr.h=(tetra)((address>>32)&0xFFFFFFFF);
   addr.l=(tetra)(address&0xFFFFFFFF);
   if (mmix_active())
-    return mmgetchars(buf, size, addr, -1);
+  { octa q,nq,f;
+      q=g[rQ];
+	  nq=new_Q;
+	  f=g[rF];
+	  size= mmgetchars(buf, size, addr, -1);
+	  g[rQ]=q;
+	  new_Q=nq;
+	  g[rF]=f;
+  }
   else
   { memset(buf,0,size);
-    return size;
   }
+  return size;
 }
 
 static unsigned char *load_mem(uint64_t address, int size)

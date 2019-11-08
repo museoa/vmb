@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
+#include <time.h>
 #pragma warning(disable : 4996)
 #include "resource.h"
 #include "winmain.h"
@@ -168,12 +169,14 @@ static void check_diskfile_change(void)
   { int dirty = (int)ed_send(SCI_GETMODIFY,0,0);
     int decision;
     char msg[200];
+	char dtimebuf[26],ftimebuf[26];
+    ctime_s(dtimebuf, 26,&dtime); dtimebuf[24]=0;
+    ctime_s(ftimebuf, 26,&file_time[edit_file_no]);ftimebuf[24]=0;
+
     if (dirty)
-		sprintf(msg, "File (time %ld) has changed on disk (time %ld).\nDiscard changes and reload?",
-			(long)file_time[edit_file_no],(long)dtime);
+		sprintf(msg, "File (time %s) has changed on disk (time %s).\nDiscard changes and reload?",ftimebuf,dtimebuf);
     else
-		sprintf(msg, "File (time %ld) has changed on disk (time %ld).\n Reload?",
-			(long)file_time[edit_file_no],(long)dtime);
+		sprintf(msg, "File (time %s) has changed on disk (time %s).\n Reload?",ftimebuf,dtimebuf);
     decision= MessageBox(hMainWnd, msg, full_mms_name, MB_YESNO|MB_ICONWARNING);
 	if (decision == IDYES)
 	{ ed_read_file();
