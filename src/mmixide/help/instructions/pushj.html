@@ -16,7 +16,8 @@
  <br><a name="PUSHGO" id="PUSHGO">PUSHGO</a> $X,$Y,Z
  <p>
 <B>Specification:</B>
-  assignment to $X.
+ <p>
+  Assignment to $X.
   If X &#x003C; rG, registers $0 to $X - 1 are pushed to the register stack.
   If $X is a marginal register, it is automatically made local as in an
   Finally, the value X is pushed on the register stack.
@@ -61,12 +62,13 @@ PUSHGO: 3&upsilon;
   The only difference between the two is the computation of the
   target address. PUSHJ uses a 16-bit relative address, like branch
   instructions, while PUSHGO uses an absolute address $Y+$Z (or $Y+Z)
-  like the GO instruction.
+  like the GO instruction.<br><br>
+  (<b>Consider:</b> You can see examples of the PUSHJ and POP instruction <a href="pushjandpopexample.html">here</a>)
   <p>
 <B>See also:</B>
 <p>
-<a href="pop.html">POP</a> and
-  <br><a href="go.html">GO</a> 
+<a href="pop.html">POP</a>,
+  <br><a href="go.html">GO</a> and <a href="pushjandpopexample.html">PUSHJ and POP examples</a>
 
 </body>
 

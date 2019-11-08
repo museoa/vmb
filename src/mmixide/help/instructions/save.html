@@ -1,35 +1,70 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
 
 
-<h4>SAVE and UNSAVE</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="SAVE">
-	<param name="Keyword" value="UNSAVE">
-</OBJECT>
+    <h4>SAVE and UNSAVE</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="SAVE">
+        <param name="Keyword" value="UNSAVE">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-<a name="SAVE" id="SAVE">SAVE</a> $X,0
- <br><a name="UNSAVE" id="UNSAVE">UNSAVE</a> $Z
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <p>
+        <a name="SAVE" id="SAVE">SAVE</a> $X,0
+        <br><a name="UNSAVE" id="UNSAVE">UNSAVE</a> $Z
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>SAVE:  Condition X &#x2265; rG
-  <tr><td>u($X)  &larr; context
-  <tr><td>rL  &larr; 0.
-<tr><td>UNSAVE: context  &larr; u($Z)
+        <tr><td>SAVE:  Condition X &#x2265; rG
+        <tr><td>u($X)  &larr; context
+        <tr><td>rL  &larr; 0.
+        <tr><td>UNSAVE: context  &larr; u($Z)
     </table><p>
-<B>Timing:</B>
-<p>
-&upsilon; + 20&mu;
-  <p>
-<B>Description:</B>
-<p>
-Saves and restore the process state in the register stack.
+        <B>Timing:</B>
+    <p>
+        &upsilon; + 20&mu;
+    <p>
+        <B>Description:</B>
+    <p>
+        Saves and restore the process state in the register stack.
+    <p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td>SAVE | UNSAVE:</td><td><i>"save process state" | "restore process state" (the Y field must be 0, and so must
+                the Z field of SAVE, the X field of UNSAVE.)</i><br><br>
+                
+                The SAVE instruction stores all registers and special registers that might affect the computation of the
+                currently running process. First the current local registers $0, $1, . . . , $(L - 1) are pushed down as in
+                PUSHGO $255, and L is set to zero. Then the current global registers $G, $(G+1), . . . , $255 are placed above
+                them in the register stack; finally rB, rD, rE, rH, rJ, rM, rR, rP, rW, rX, rY, and rZ are placed at the very
+                top, followed by registers rG and rA packed into eight bytes:<br><br>
+                
+                <div style="text-align:center"><img class="img-save" src="../image/img-save.png"></div><br><br>
+                The address of the topmost octabyte is then placed in register $X, which must be a global register. (This
+                instruction is interruptible. If an interrupt occurs while the registers are being saved, we will have &alpha; = &beta; = &gamma;
+                in the ring of local registers; thus rO will equal rS and rL will be zero. The interrupt handler essentially has
+                a new register stack, starting on top of the partially saved context.) Immediately after a SAVE the values
+                of rO and rS are equal to the location of the first byte following the stack just saved. The current register
+                stack is effectively empty at this point; thus one shouldn't do a POP until this context or some other context
+                has been unsaved.
+                The UNSAVE instruction goes the other way, restoring all the registers when given an address in register $Z
+                that was returned by a previous SAVE. Immediately after an UNSAVE the values of rO and rS will be equal.
+                Like SAVE, this instruction is interruptible.
+                The operating system uses SAVE and UNSAVE to switch context between different processes. It can also
+                use UNSAVE to establish suitable initial values of rO and rS. But a user program that knows what it is doing
+                can in fact allocate its own register stack or stacks and do its own process switching.<br><br>
+                <b>Caution</b>: UNSAVE is destructive, in the sense that a program can't reliably UNSAVE twice from the same
+                saved context. Once an UNSAVE has been done, further operations are likely to change the memory record of
+                what was saved. Moreover, an interrupt during the middle of an UNSAVE may have already clobbered some
+                of the data in memory before the UNSAVE has completely finished, although the data will appear properly in
+                all registers.
+            </td></tr>
+
+
+    </table>
 
 </body>

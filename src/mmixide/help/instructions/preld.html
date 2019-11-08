@@ -1,38 +1,61 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>PRELD, PREST, and PREGO</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="PRELD">
-	<param name="Keyword" value="PREST">
-	<param name="Keyword" value="PREGO">
-</OBJECT>
+    <h4>PRELD, PREST, and PREGO</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="PRELD">
+        <param name="Keyword" value="PREST">
+        <param name="Keyword" value="PREGO">
+    </OBJECT>
 
 
- <B>Name:</B>
-<p>
-<table cellspacing=5>
-<tr><td><a name="PRELD" id="PRELD">PRELD</a> X,$Y,$Z
-<tr><td><a name="PREST" id="PREST">PREST</a> $X,$Y,$Z
-<tr><td><a name="PREGO" id="PREGO">PREGO</a> X,$Y,$Z
-</table><p>
-<B>Timing:</B>
-<p>
-1&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Informs the machine that the content of the memory region from
- $Y+$Z to X+$Y+$Z will 
-      <ul class="itemize1">
-      <li class="itemize">probably soon be used in a load or store instruction (PRELD),
-      </li>
-      <li class="itemize">definitively be written before the next load (PREST), or
-      </li>
-      <li class="itemize">probably soon be used as an instruction (PREGO).</li>
-</ul>
+    <B>Name:</B>
+    <p>
+    <table cellspacing=5>
+        <tr><td><a name="PRELD" id="PRELD">PRELD</a> X,$Y,$Z
+        <tr><td><a name="PREST" id="PREST">PREST</a> $X,$Y,$Z
+        <tr><td><a name="PREGO" id="PREGO">PREGO</a> X,$Y,$Z
+    </table><p>
+        <B>Timing:</B>
+    <p>
+        1&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Informs the machine that the content of the memory region from
+        $Y+$Z to X+$Y+$Z will 
+    <ul class="itemize1">
+        <li class="itemize">probably soon be used in a load or store instruction (PRELD),
+        </li>
+        <li class="itemize">definitively be written before the next load (PREST), or
+        </li>
+        <li class="itemize">probably soon be used as an instruction (PREGO).</li>
+    </ul>
+    <p><table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td>PRELD:</td><td><i>"preload data"</i><br><br>
+                This instruction has no effect on registers or memory, but it informs the computer that many of the
+                X + 1 bytes M[$Y + $Z] through M[$Y + $Z + X], or M[$Y + Z] through M[$Y + Z + X], will probably be
+                loaded and/or stored in the near future. No protection failure occurs if the memory is not accessible.
+            </td></tr>
+        <tr><td>PREST:</td><td><i>"prestore data"</i><br><br>
+
+                This instruction has no effect on registers or memory, but it informs the computer that many of the
+                X + 1 bytes M[$Y + $Z] through M[$Y + $Z + X], or M[$Y + Z] through M[$Y + Z + X], will definitely be stored in the near future before they are loaded.
+                (Therefore it is permissible for the machine to ignore the present contents of those bytes. Also, if those bytes
+                are being shared by several processors, the current processor should try to acquire exclusive access.) No
+                protection failure occurs if the memory is not accessible.
+            </td></tr>
+        <tr><td>PREGO:</td><td><i>"prefetch to go"</i><br><br>
+
+                This instruction has no effect on registers or memory, but it informs the computer that many of the
+                X + 1 bytes M[$Y + $Z] through M[$Y + $Z + X], or M[$Y + Z] through M[$Y + Z + X], will probably be
+                used as instructions in the near future. No protection failure occurs if the memory is not accessible.
+            </td></tr>
+
+
+    </table></p>
 </body>
 

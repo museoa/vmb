@@ -1,108 +1,176 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>Comparing Floating Point Numbers</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Comparison">
-	<param name="Keyword" value="Floating Point">
-	<param name="Keyword" value="FCMP">
-	<param name="Keyword" value="FEQL">
-	<param name="Keyword" value="FUN">
-	<param name="Keyword" value="FCMPE">
-	<param name="Keyword" value="FEQLE">
-	<param name="Keyword" value="FUNE">
-</OBJECT>
+    <h4>Comparing Floating Point Numbers</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Comparison">
+        <param name="Keyword" value="Floating Point">
+        <param name="Keyword" value="FCMP">
+        <param name="Keyword" value="FEQL">
+        <param name="Keyword" value="FUN">
+        <param name="Keyword" value="FCMPE">
+        <param name="Keyword" value="FEQLE">
+        <param name="Keyword" value="FUNE">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-  <a name="FCMP" id="FCMP">FCMP</a> $X,$Y,$Z
- <br><a name="FEQL" id="FEQL">FEQL</a> $X,$Y,$Z
- <br><a name="FUN" id="FUN">FUN</a> $X,$Y,$Z
- <br><a name="FCMPE" id="FCMPE">FCMPE</a> $X,$Y,$Z
- <br><a name="FEQLE" id="FEQLE">FEQLE</a> $X,$Y,$Z
- <br><a name="FUNE" id="FUNE">FUNE</a> $X,$Y,$Z
- <p>
-<B>Specification:</B>
-<table cellspacing=5>
-<tr><td>FCMP:<td>
-<table>
-<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
-     <td rowspan=3 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td> - 1 <td> if f($Y) &#x003C; f($Z)
-<tr><td>    0 <td> if f($Y) = f($Z)
-<tr><td>   +1 <td> if f($Y) &#x003E; f($Z)
-</table>
-<tr><td>FEQL:<td>
-<table>
-<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
-     <td rowspan=2 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td>  1  <td> if f ($Y) = f($Z)
-<tr><td>    0 <td> otherwise
-</table>
-</table>
-<p>
-Let N<sub>&#x03B5;</sub>(u) = {x| |x - u|&#x2264; &#x03B5; 2<sup>e-q</sup>},
- where q is the excess 
- and  e = E + q is the sum of exponent and excess
-of the floating point representation of u. Then:
+    <B>Name:</B>
+    <p>
+        <a name="FCMP" id="FCMP">FCMP</a> $X,$Y,$Z
+        <br><a name="FEQL" id="FEQL">FEQL</a> $X,$Y,$Z
+        <br><a name="FUN" id="FUN">FUN</a> $X,$Y,$Z
+        <br><a name="FCMPE" id="FCMPE">FCMPE</a> $X,$Y,$Z
+        <br><a name="FEQLE" id="FEQLE">FEQLE</a> $X,$Y,$Z
+        <br><a name="FUNE" id="FUNE">FUNE</a> $X,$Y,$Z
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5>
+        <tr><td>FCMP:<td>
+                <table>
+                    <tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+                        <td rowspan=3 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td> - 1 <td> if f($Y) &#x003C; f($Z)
+                    <tr><td>    0 <td> if f($Y) = f($Z)
+                    <tr><td>   +1 <td> if f($Y) &#x003E; f($Z)
+                </table>
+        <tr><td>FEQL:<td>
+                <table>
+                    <tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td>  1  <td> if f ($Y) = f($Z)
+                    <tr><td>    0 <td> otherwise
+                </table>
+    </table>
+    <p>
+        Let N<sub>&#x03B5;</sub>(u) = {x| |x - u|&#x2264; &#x03B5; 2<sup>e-q</sup>},
+        where q is the excess 
+        and  e = E + q is the sum of exponent and excess
+        of the floating point representation of u. Then:
 
-<br>
-<table cellspacing=5>
-<tr><td>FCMPE:<td>
-<table>
-<tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
-     <td rowspan=3 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td>  - 1 <td> if f($Y) &#x003C; N<sub>&#x03B5;</sub>(f($Z)) 
-                    and N<sub>&#x03B5;</sub>(f($Y)) &#x003C; f($Z)
-<tr><td> 0     <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
-                    or f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
-<tr><td> +1    <td> if f($Y) &#x003E; N<sub>&#x03B5;</sub>(f($Z)) 
-                    and N<sub>&#x03B5;</sub>(f($Y)) &#x003E; f($Z)
-</table>
-        
-<tr><td>FEQLE:<td>
-<table>
-<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
-     <td rowspan=2 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td> 1 <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
-                 and f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
-<tr><td>  0 <td> otherwise
-</table>
-</table>
-<br>
-The value of &#x03B5; is taken from the special register rE.
-<table cellspacing=5>
-<p>
-<tr><td>FUN:<td>
-<table>
-<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
-     <td rowspan=2 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td>  1 <td> if either $Y or $Z is not a Number (NaN),
-<tr><td>  0  <td> otherwise
-</table>
+        <br>
+    <table cellspacing=5>
+        <tr><td>FCMPE:<td>
+                <table>
+                    <tr> <td rowspan=3 valign="middle"> s($X)  &larr; 
+                        <td rowspan=3 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td>  - 1 <td> if f($Y) &#x003C; N<sub>&#x03B5;</sub>(f($Z)) 
+                            and N<sub>&#x03B5;</sub>(f($Y)) &#x003C; f($Z)
+                    <tr><td> 0     <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
+                            or f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
+                    <tr><td> +1    <td> if f($Y) &#x003E; N<sub>&#x03B5;</sub>(f($Z)) 
+                            and N<sub>&#x03B5;</sub>(f($Y)) &#x003E; f($Z)
+                </table>
 
-<tr><td>FUNE:<td>
-<table>
-<tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
-     <td rowspan=2 valign="middle"> 
-       <img src="brace.png" alt="{">
-     <td>  1 <td> if either $Y, $Z or rE is not a Number (NaN),
-<tr><td>   0 <td> otherwise
-</table>
-</table>
-  <p>
-<B>Description:</B>
-<p>
-For a more detailed description see for example
- [<a href="mmix-doc.pdf">mmix-doc</a>].
+        <tr><td>FEQLE:<td>
+                <table>
+                    <tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td> 1 <td> if f($Y) &#x2208; N<sub>&#x03B5;</sub>(f($Z)) 
+                            and f($Z) &#x2208; N<sub>&#x03B5;</sub>(f ($Y))
+                    <tr><td>  0 <td> otherwise
+                </table>
+    </table>
+    <br>
+    The value of &#x03B5; is taken from the special register rE.
+    <table cellspacing=5>
+        <p>
+        <tr><td>FUN:<td>
+                <table>
+                    <tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td>  1 <td> if either $Y or $Z is not a Number (NaN),
+                    <tr><td>  0  <td> otherwise
+                </table>
+
+        <tr><td>FUNE:<td>
+                <table>
+                    <tr> <td rowspan=2 valign="middle"> s($X)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td>  1 <td> if either $Y, $Z or rE is not a Number (NaN),
+                    <tr><td>   0 <td> otherwise
+                </table>
+    </table>
+    <p>
+        <B>Description:</B>
+    <p>
+        Besides doing arithmetic, we need to compare floating point numbers with each other, taking proper
+        account of NaNs and the fact that -0.0 should be considered equal to +0.0. The following instructions are
+        analogous to the comparison operators CMP and CMPU that we have used for integers.
+    <p>
+
+    <table border=1 cellspacing="4" cellpadding="4">
+
+        <tr><td>FCMP:</td> <td><i>"floating compare"</i>.
+                Register $X is set to -1 if $Y < $Z according to the conventions of floating point arithmetic, or to 1 if
+                $Y > $Z according to those conventions. Otherwise it is set to 0. An invalid exception occurs if either $Y
+                or $Z is a NaN; in such cases the result is zero.
+            </td></tr>
+        <tr><td>FEQL: </td><td><i> "floating equal to"</i>.
+                Register $X is set to 1 if $Y = $Z according to the conventions of floating point arithmetic. Otherwise it is
+                set to 0. The result is zero if either $Y or $Z is a NaN, even if a NaN is being compared with itself. However,
+                no invalid exception occurs, not even when $Y or $Z is a signaling NaN. (Perhaps MMIX differs slightly
+                from the IEEE standard in this regard, but programmers sometimes need to look at signaling NaNs without
+                encountering side effects. Programmers who insist on raising an invalid exception whenever a signaling NaN
+                is compared for floating equality should issue the instructions FSUB $X,$Y,$Y; FSUB $X,$Z,$Z just before
+                saying FEQL $X,$Y,$Z.)<br>
+                Suppose w, x, y, and z are unsigned 64-bit integers with w &lt; x &lt; 2
+                &le; y &lt; z. Thus, the leftmost bits of
+                w and x are 0, while the leftmost bits of y and z are 1. Then we have w &lt; x &lt; y &lt; z when these numbers
+                are considered as unsigned integers, but y &lt; z &lt; w &lt; x when they are considered as signed integers, because
+                y and z are negative. Furthermore, we have z &lt; y $le; w &lt; x when these same 64-bit quantities are considered
+                to be floating point numbers, assuming that no NaNs are present, because the leftmost bit of a floating point
+                number represents its sign and the remaining bits represent its magnitude. The case y = w occurs in floating
+                point comparison if and only if y is the representation of -0.0 and w is the representation of +0.0.
+            </td></tr>
+        <tr><td>FUN:</td><td> <i> "floating unordered"</i>.
+                Register $X is set to 1 if $Y and $Z are unordered according to the conventions of floating point arithmetic
+                (namely, if either one is a NaN); otherwise register $X is set to 0. No invalid exception occurs, not even when
+                $Y or $Z is a signaling NaN.<br>
+                The IEEE standard discusses 26 different possible relations on floating point numbers; MMIX implements
+                14 of them with single instructions, followed by a branch (or by a ZS to make a "pure" 0 or 1 result); all 26
+                can be evaluated with a sequence of at most four MMIX commands and a subsequent branch. The hardest
+                case to handle is "?&gt;=" (unordered or greater or equal, to be computed without exceptions), for which the
+                following sequence makes $X &ge; 0 if and only if $Y ?&gt;= $Z:<br><br>
+
+                <div style='display:inline-block;'>FUN $255,$Y,$Z<br>
+                    BP $255,1F % skip ahead if unordered<br>
+                    FCMP $X,$Y,$Z % $X=[$Y>$Z]-[$Y<$Z]; no exceptions will arise<br>
+                    1H CSNZ $X,$255,1 % $X=1 if unordered</div><br><br>
+
+            </td></tr>
+        <tr><td>FCMPE:</td> <td><i> "floating compare (with respect to epsilon)"</i>.
+                Register $X is set to -1 if $Y &pr; $Z (rE) according to the conventions of Seminumerical Algorithms as stated
+                above; it is set to 1 if $Y &sc; $Z (rE) according to those conventions; otherwise it is set to 0. Here rE is
+                a floating point number in the special epsilon register , which is used only by the floating point comparison
+                operations FCMPE, FEQLE, and FUNE. An invalid exception occurs, and the result is zero, if any of $Y, $Z, or
+                rE are NaN, or if rE is negative. If no such exception occurs, exactly one of the three conditions $Y &pr; $Z,
+                $Y &sim; $Z, $Y &sc; $Z holds with respect to rE.
+
+
+            </td></tr>
+        <tr><td>FEQLE:</td> <td><i> "floating equivalent (with respect to epsilon)"</i>.
+                Register $X is set to 1 if $Y &asymp; $Z (rE) according to the conventions of Seminumerical Algorithms as stated
+                above; otherwise it is set to 0. An invalid exception occurs, and the result is zero, if any of $Y, $Z, or rE are
+                NaN, or if rE is negative. Notice that the relation $Y &asymp; $Z computed by FEQLE is stronger than the relation
+                $Y &sim; $Z computed by FCMPE.
+
+
+            </td></tr>
+        <tr><td>FUNE:</td> <td><i> "floating unordered (with respect to epsilon)"</i>.
+                Register $X is set to 1 if $Y, $Z, or rE are exceptional as discussed for FCMPE and FEQLE; otherwise it is set
+                to 0. No exceptions occur, even if $Y, $Z, or rE is a signaling NaN.
+
+
+            </td></tr>
+    </table><p>
 
 </body>

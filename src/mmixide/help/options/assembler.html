@@ -1,28 +1,27 @@
 <head>
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Assembler Options">
-	<param name="Keyword" value="Buffer size">
-	<param name="Keyword" value="Address calculation">
-	<param name="Keyword" value="Expanded address calculation">
-	<param name="Keyword" value="Listing file">
-	<param name="Keyword" value="Auto assemble">
-</OBJECT>
+
 <body>
 	<h3>The MMIX Assembler Options</h3>
 	<p><img src="assembler.png" alt="" border="0"></p>
 	<p></p>
 	<p>You reach the MMIX assembler options through the Options menu.</p>
-	<h4>Buffer size</h4>
+	<h4><a id="buffer">Buffer size</a></h4>
 	<p>This edit control  determines the assemblers buffer size for source lines (the -b command line option of mmixal). Longer lines in the source file will be truncated with a warning showing up in the assembler output window.</p>
-	<h4>Expanden address calculations</h4>
-	<p>If this box is checked, the MMIX assembler will use four instructions to load any required address into register $255. This will make `<tt>GREG @</tt>´ instructions unnecessary but yields  larger and slower code.</p>
-	<h4>Create listing file</h4>
-	<p>If this box is checked, the assembler will produce a listing file. The name of the listing file is the name of the source file with the extension `<tt>.mms</tt>´ replaced by `<tt>.mml</tt>´.</p>
-	<h4>Auto assemble</h4>
+	<h4><a id="expanded">Expanded address calculations</a></h4>
+	<p>If this box is checked, the MMIX assembler will use four instructions to load any required address into register $255. This will make '<tt>GREG @</tt>' instructions unnecessary but yields  larger and slower code.</p>
+	<h4><a id="create">Create listing file</a></h4>
+	<p>If this box is checked, the assembler will produce a listing file. The name of the listing file is the name of the source file with the extension '<tt>.mms</tt>' replaced by '<tt>.mml</tt>'.</p>
+	<h4><a id="twae">Treat Warnings as Errors</a></h4>
+	<p>If the assembler produces a warning. The warning is instead displayed as error. Which results in the failing of the assembling process.</p>
+	<h4><a id="woifpc">Warn on imprecise floating point constants</a></h4>
+	<p>If there is a floating point constant which can't be displayed full, which means it needs to be rounded because of the machine limitations, when assembling a warning is created.</p>
+	<h4><a id="autoa">Auto assemble</a></h4>
 	<p>Whenever the debugger starts, it will check whether there is an object file and whether it is newer than the source file. If this is not the case, it might be appropriate to assemble the source file.</p>
 	<p>If this check box is checked, the source file will be assembled aoutomatically. </p>
 	<p>If the box is not checked, a message box will pop up and ask he user whether the source file should be assembled before starting the debugger. </p>
+	<h4><a id="autoc">Auto close error list</a></h4>
+	<p>If the error list opens in the assembling process due to an error in the source file and the error is fixed the error list will close automatically if this is checked.</p>
 	<p></p>
 </body>

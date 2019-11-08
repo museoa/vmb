@@ -36,7 +36,14 @@
 <p>
 This collection of increment instructions will first shift the 16-bit 
 immediate value to the left by 6, 4, 2, or 0 byte before adding it
-to $X.
+to $X.</p>
+<table  border=1 cellspacing="4" cellpadding="4">
+    <tr><td>INCH | INCMH | INCML | INCL</td><td>The 16-bit unsigned number YZ is shifted left by either 48 or 32 or 16 or 0 bits, respectively, and added to
+register $X, ignoring overflow; the result is placed back into register $X.
+If YZ is the hexadecimal constant #8000, the command INCH $X,YZ complements the most significant bit
+of register $X. This can be used to negate a floating point number.
+</td>
+</table>
   <p>
 <B>See also:</B>
 <p>

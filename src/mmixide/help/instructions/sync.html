@@ -1,28 +1,65 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
 
 
-<h4>SYNC</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="SYNC">
-</OBJECT>
+    <h4>SYNC</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="SYNC">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-<a name="SYNC" id="SYNC">SYNC</a> XYZ
- <p>
-<B>Timing:</B>
-<p>
-1&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Needed to synchronize processes.
-XYZ has a value from 0 to 7, where values greater 3 are reserved for the
-operating system.
+    <B>Name:</B>
+    <p>
+        <a name="SYNC" id="SYNC">SYNC</a> XYZ
+    <p>
+        <B>Timing:</B>
+    <p>
+        1&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Needed to synchronize processes.
+        XYZ has a value from 0 to 7, where values greater 3 are reserved for the
+        operating system.<br><br>
+        Of course no SYNC is necessary between a command that loads from or stores into memory and a subsequent
+        command that loads from or stores into exactly the same location. However, SYNC might be necessary in
+        certain cases even on a one-processor system, because input/output processes take place in parallel with
+        ordinary computation.<br>
+        The cases XYZ > 3 are privileged, in the sense that only the operating system can use them. More
+        precisely, if a SYNC command is encountered with XYZ = 4 or XYZ = 5 or XYZ = 6 or XYZ = 7, a
+        "privileged instruction interrupt" occurs unless that interrupt is currently disabled. Only the operating
+        system can disable interrupts 
+    <p>
+    <table border=1 cellspacing="4" cellpadding="4">
+        <tr><td>SYNC:</td> <td><i>"Synchronize"</i> <table border=1 cellspacing="4" cellpadding="4">
+                    <tr><td>XYZ = 0</td><td>the machine drains its pipeline (that is, it stalls until all preceding instructions have completed
+                            their activity). </td></tr>
+                    <tr><td>XYZ = 1</td><td>tthe machine controls its actions less drastically, in such a way that all store
+                            instructions preceding this SYNC will be completed before all store instructions after it. </td></tr>
+                    <tr><td>XYZ = 2</td><td>the
+                            machine controls its actions in such a way that all load instructions preceding this SYNC will be completed
+                            before all load instructions after it. </td></tr>
+                    <tr><td>XYZ = 3</td><td>the machine controls its actions in such a way that all load
+                            or store instructions preceding this SYNC will be completed before all load or store instructions after it. </td></tr>
+                    <tr><td>XYZ = 4</td><td>the machine goes into a power-saver mode, in which instructions may be executed more slowly (or
+                            not at all) until some kind of "wake-up" signal is received.  </td></tr>
+                    <tr><td>XYZ = 5</td><td>the machine empties its write buffer
+                            and cleans its data caches, if any (including a possible secondary cache); the caches retain their data, but the
+                            cache contents also appear in memory.  </td></tr>
+                    <tr><td>XYZ = 6</td><td>the machine clears its virtual address translation caches
+                        </td></tr>
+                    <tr><td>XYZ = 7</td><td>the machine clears its instruction and data caches, discarding any information in
+                            the data caches that wasn't previously in memory. ("Clearing" is stronger than "cleaning"; a clear cache
+                            remembers nothing. Clearing is also faster, because it simply obliterates everything.)</td></tr>
+                    <tr><td>XYZ > 7</td><td>an illegal
+                            instruction interrupt occurs.</td></tr>
+                </table> </td>
+
+    </table>
+</p>
 
 
 </body>

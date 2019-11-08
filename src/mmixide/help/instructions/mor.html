@@ -10,12 +10,14 @@
 </OBJECT>
 
 
-
- <B>Name:</B>
+<B>Name:</B>
 <p>
-     <a name="MOR" id="MOR">MOR</a> $X,$Y,$Z
- <br><a name="MXOR" id="MXOR">MXOR</a> $X,$Y,$Z
- <p>
+    <table cellspacing=5>
+        <tr><td><a name="MOR" id="MOR">MOR</a> $X,$Y,$Z</td><td>MOR $X,$Y,Z</td></tr>
+        <tr><td><a name="MXOR" id="MXOR">MXOR</a> $X,$Y,$Z</td><td>MXOR $X,$Y,Z</td></tr>
+    </table> 
+    
+<p>
 <B>Specification:</B>
 <table cellspacing=5 >
 
@@ -40,10 +42,24 @@ Assume that the 64 bits in $Y are numbered as follows
   <p>
 <B>Description:</B>
 <p>
-These instructions regard the 8 Byte of a register as a  8&#x00D7;8-Matrix
+These instructions regard the 8 Byte of a register as a  8 &#x00D7; 8-Matrix
 and compute the result as a matrix multiplication,  where in MOR, Addition is replaced by
   OR (logical or (|))  and in MXOR, Addition is replaced by XOR
   (exclusive or (&#x02C6;)). In both cases the AND operation (&amp;) is used 
   instead of multiplication.
+  </p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+  <tr><td>MOR:</td><td>For better understanding an example: If register Z contains the constant #0102040810204080, MOR reverses the order of the
+bytes in register $Y, converting between little-endian and big-endian addressing. (The ith byte of $X depends
+on the bytes of $Y as specified by the ith byte of $Z or Z. If we regard 64-bit words as 8 &#x00D7; 8 Boolean
+matrices, with one byte per column, this operation computes the Boolean product $X = $Y $Z or $X = $Y Z.
+Alternatively, if we regard 64-bit words as 8 &#x00D7; 8 matrices with one byte per row, MOR computes the Boolean
+product $X = $Z $Y or $X = Z $Y with operands in the opposite order. The immediate form MOR $X,$Y,Z
+always sets the leading seven bytes of register X to zero; the other byte is set to the bitwise or of whatever
+bytes of register $Y are specified by the immediate operand Z.)</td></tr>
+  <tr><td>MXOR:</td><td>This operation is like the Boolean multiplication just discussed, but exclusive-or is used to combine the bits.
+Thus we obtain a matrix product over the field of two elements instead of a Boolean matrix product. This
+operation can be used to construct hash functions, among many other things.</td></tr>
+    </table>
 </body>
 

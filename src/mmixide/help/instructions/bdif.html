@@ -1,41 +1,59 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>Bytewise Operations</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="BDIF">
-	<param name="Keyword" value="WDIF">
-	<param name="Keyword" value="TDIF">
-	<param name="Keyword" value="ODIF">
-</OBJECT>
+    <h4>Bytewise Operations</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="BDIF">
+        <param name="Keyword" value="WDIF">
+        <param name="Keyword" value="TDIF">
+        <param name="Keyword" value="ODIF">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<table cellspacing=5 
-><tr><td><a name="BDIF" id="BDIF">BDIF</a> $X,$Y,$Z</td><td>BDIF $X,$Y,Z</td></tr>
-<tr><td><a name="WDIF" id="WDIF">WDIF</a> $X,$Y,$Z</td><td>WDIF $X,$Y,Z</td></tr>
-<tr><td><a name="TDIF" id="TDIF">TDIF</a> $X,$Y,$Z</td><td>TDIF $X,$Y,Z</td></tr>
-<tr><td><a name="ODIF" id="ODIF">ODIF</a> $X,$Y,$Z</td><td>ODIF $X,$Y,Z</td></tr>
-<tr><td>             </td></tr>
-</table> 
- <p>
-<B>Specification:</B>
-<p>
-  x  &larr; y-&#x02D9;z = max (0,y - z)
-<br>
-  Here x,y,z are corresponding elements of the vectors $X, $Y, and $Z.
-<p>
-<B>Timing:</B>
-<p>
-1&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Saturated Difference. An Octa byte is regarded as a vector of
-eight byte, four Wyde, or two Tetra respectively.
+    <B>Name:</B>
+    <p>
+    <table cellspacing=5 
+           ><tr><td><a name="BDIF" id="BDIF">BDIF</a> $X,$Y,$Z</td><td>BDIF $X,$Y,Z</td></tr>
+        <tr><td><a name="WDIF" id="WDIF">WDIF</a> $X,$Y,$Z</td><td>WDIF $X,$Y,Z</td></tr>
+        <tr><td><a name="TDIF" id="TDIF">TDIF</a> $X,$Y,$Z</td><td>TDIF $X,$Y,Z</td></tr>
+        <tr><td><a name="ODIF" id="ODIF">ODIF</a> $X,$Y,$Z</td><td>ODIF $X,$Y,Z</td></tr>
+        <tr><td>             </td></tr>
+    </table> 
+    <p>
+        <B>Specification:</B>
+    <p>
+        x  &larr; y-&#x02D9;z = max (0,y - z)
+        <br>
+        Here x,y,z are corresponding elements of the vectors $X, $Y, and $Z.
+    <p>
+        <B>Timing:</B>
+    <p>
+        1&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Saturated Difference. An Octa byte is regarded as a vector of
+        eight byte, four Wyde, or two Tetra respectively.
+    </p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td>BDIF | WDIF | TDIF | ODIF</td><td>For each (byte | wyde | tetra | octa) position j, the jth (byte | wyde | tetra | octa) register $X is set to (byte | wyde | tetra | octa) j of register $Y minus (byte | wyde | tetra | octa) j of the other
+                operand $Z or Z, unless that difference is negative; in the latter case, (byte | wyde | tetra | octa) j of $X is set to zero.</br></br>
+                The BDIF and WDIF commands are useful in applications to graphics or video; TDIF and ODIF are also
+                present for reasons of consistency. For example, if a and b are registers containing 8-byte quantities, their
+                bytewise maxima c and bytewise minima d are computed by</br></br>
+                <div style='text-align: center'>BDIF x,a,b; <a href="unsigned.html">ADDU</a> c,x,b; <a href="unsigned.html">SUBU</a> d,a,x;</div></br>
+                similarly, the individual "pixel differences" e, namely the absolute values of the differences of corresponding
+                bytes, are computed by</br></br>
+                <div style='text-align: center'>BDIF x,a,b; BDIF y,b,a; <a href="logic.html">OR</a> e,x,y;</div></br>
+                To add individual bytes of a and b while clipping all sums to 255 if they don't fit in a single byte, one can
+                say</br></br>
+                <div style='text-align: center'><a href="logic.html">NOR</a> acomp,a,0; BDIF x,acomp,b; <a href="logic.html">NOR</a> clippedsums,x,0;</div></br>
+                in other words, complement a, apply BDIF, and complement the result. The operations can also be used to
+                construct efficient operations on strings of bytes or wydes.</td></tr>
+    </table>
 
 </body>
 

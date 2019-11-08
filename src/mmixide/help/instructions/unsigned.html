@@ -1,82 +1,105 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4><a name="Unsigned_Arithmetic" id="Unsigned_Arithmetic">Unsigned Arithmetic</a></h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Unsigned Arithmetic">
-	<param name="Keyword" value="ADDU">
-	<param name="Keyword" value="SUBU">
-	<param name="Keyword" value="MULU">
-	<param name="Keyword" value="DIVU">
-</OBJECT>
+    <h4><a name="Unsigned_Arithmetic" id="Unsigned_Arithmetic">Unsigned Arithmetic</a></h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Unsigned Arithmetic">
+        <param name="Keyword" value="ADDU">
+        <param name="Keyword" value="SUBU">
+        <param name="Keyword" value="MULU">
+        <param name="Keyword" value="DIVU">
+    </OBJECT>
 
-<B>Name:</B>
-<table cellspacing=5>
-<tr><td><a name="ADDU" id="ADDU">ADDU</a> $X,$Y,$Z</td><td>ADDU $X,$Y,Z</td></tr>
-<tr><td><a name="SUBU" id="SUBU">SUBU</a> $X,$Y,$Z</td><td>SUBU $X,$Y,Z</td></tr>
-<tr><td><a name="MULU" id="MULU">MULU</a> $X,$Y,$Z</td><td>MULU $X,$Y,Z</td></tr>
-<tr><td><a name="DIVU" id="DIVU">DIVU</a> $X,$Y,$Z</td><td>DIVU $X,$Y,Z</td></tr>
-</table> 
- <p>
+    <B>Name:</B>
+    <table cellspacing=5>
+        <tr><td><a name="ADDU" id="ADDU">ADDU</a> $X,$Y,$Z</td><td>ADDU $X,$Y,Z</td></tr>
+        <tr><td><a name="SUBU" id="SUBU">SUBU</a> $X,$Y,$Z</td><td>SUBU $X,$Y,Z</td></tr>
+        <tr><td><a name="MULU" id="MULU">MULU</a> $X,$Y,$Z</td><td>MULU $X,$Y,Z</td></tr>
+        <tr><td><a name="DIVU" id="DIVU">DIVU</a> $X,$Y,$Z</td><td>DIVU $X,$Y,Z</td></tr>
+    </table> 
+    <p>
 
-<B>Specification:</B>
+        <B>Specification:</B>
+    <p>
+    <table cellspacing=5>
+        <tr><td>ADDU: u($X)  </td><td> &larr; (u($Y) + u($Z)) mod 2<sup>64</sup>
+        <tr><td>SUBU: u($X)  </td><td> &larr; (u($Y) -u($Z)) mod 2<sup>64</sup>
+        <tr><td>MULU: u(rH $X)  </td><td> &larr; u($Y) * u($Z) 
+        <tr><td valign="top">DIVU:</td><td>
+                <table>
+                    <tr> <td rowspan=2 valign="middle"> u($X)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td> &lfloor;u(rD $Y) / u($Z)&rfloor; <td> if   u($Z) &#x003E; u(rD) 
+                    <tr><td> u(rD)                            <td> otherwise
+                </table>
+                <p>
+                <table>
+                    <tr><td rowspan=2 valign="middle"> u(rR)  &larr; 
+                        <td rowspan=2 valign="middle"> 
+                            <img src="../image/brace.png" alt="{">
+                        <td> u(rD $Y) mod u($Z)  <td> if   u($Z) &#x003E; u(rD)
+                    <tr><td> u($Y)            <td> otherwise 
+                </table>
+                The special register rD is prepended to the register $Y to form a 128 bit number.
+                This number is divided by $Z and the result is stored in $X. The remainder is
+                stored in special register rR.
+                <p>
+                    If, however, rD &ge; $Z, then the result of the division would be
+                    greater than 2<sup>64</sup>
+                    and the quotient will not be computed. 
+                    Instead, rD is stored in $X and $Y is stored in rR.
+                    In Donald Knuth's "The Art of Computer Programming", Volume 2, 
+                    "Seminumerical Algorithms", Chapter 4.3.1
+                    will explain how to use this instruction to implement division of
+                    high-precision numbers with 128 bit or more.
+                <p>
+        <tr><td> 
+    </table>
+    <p>
+        All instructions exist in two variants. The second operand can either be a
+        register $Z or an immediate value Z.
+    <p>
+    <p>
+        <B>Timing:</B>
+        <br>ADDU: 1&upsilon;
+        <br>SUBU: 1&upsilon;
+        <br>MULU: 10&upsilon;
+        <br>DIVU: 60&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        These instructions perform arithmetic operations on unsigned numbers.
+        They <I>never</I> cause overflow or other exceptions, not even if dividing by zero.
+    <p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td>ADDU:</td><td>The sum ($Y + $Z) mod 2<sup>64</sup> or ($Y + Z) mod 2<sup>64</sup>
+                is placed into register $X. These instructions are the same
+                as ADD $X,$Y,$Z|Z commands except that no test for oveflow is made. (Overflow could be detected if
+                desired by using the command CMPU ovflo,$X,$Y after addition, where <a href="compare.html">CMPU</a> means "compare unsigned")</td>
+        <tr><td>SUBU:</td><td>The difference ($Y - $Z) mod 2<sup>64</sup> or ($Y - Z) mod 2<sup>64</sup>
+                is placed into register $X. These two instructions are
+                the same as SUB $X,$Y,$Z|Z except that no test for overflow is made.</td>
+        <tr><td>MULU:</td><td>The lower 64 bits of the unsigned 128-bit product of register $Y and either register $Z or Z are placed in
+                register $X, and the upper 64 bits are placed in the special himult register rH. </br></br>(<b>Consider</b>: Immediate multiplication by
+                powers of 2 can be done more rapidly with the <a href="shift.html">SLU</a> instruction, if the upper half is not needed. Furthermore,
+                an instruction like <a href="2addu.html">4ADDU</a> $X,$Y,$Y is faster than MULU $X,$Y,5)</td>
+        <tr><td>DIVU:</td><td>The unsigned 128-bit number obtained by prefixing the special dividend register rD to the contents of
+                register $Y is divided either by the unsigned number in register $Z or by the unsigned byte Z, and the quotient
+                is placed in register $X. The remainder is placed in the remainder register rR. However, if rD is greater
+                than or equal to the divisor (and in particular if the divisor is zero), then $X is set to rD and rR is set
+                to $Y. (Unsigned arithmetic never signals an exceptional condition, even when dividing by zero.) If rD is
+                zero, unsigned division by z = 2<sup>t</sup>
+                gives exactly the same quotient as shifting right t via the <a href="shift.html">SRU</a> command,
+                and exactly the same remainder as anding with z - 1 via the <a href="logical.html">AND</a> command.
+                </td>
+    </table>
 <p>
-<table cellspacing=5>
-<tr><td>ADDU: u($X)  </td><td> &larr; (u($Y) + u($Z)) mod 2<sup>64</sup>
-<tr><td>SUBU: u($X)  </td><td> &larr; (u($Y) -u($Z)) mod 2<sup>64</sup>
-<tr><td>MULU: u(rH $X)  </td><td> &larr; u($Y) * u($Z) 
-<tr><td valign="top">DIVU:</td><td>
-<table>
-<tr> <td rowspan=2 valign="middle"> u($X)  &larr; 
-     <td rowspan=2 valign="middle"> 
-       <img src="brace.png" alt="{">
-    <td> &lfloor;u(rD $Y) / u($Z)&rfloor; <td> if   u($Z) &#x003E; u(rD) 
-<tr><td> u(rD)                            <td> otherwise
-</table>
-<p>
-<table>
-<tr><td rowspan=2 valign="middle"> u(rR)  &larr; 
-    <td rowspan=2 valign="middle"> 
-      <img src="brace.png" alt="{">
-    <td> u(rD $Y) mod u($Z)  <td> if   u($Z) &#x003E; u(rD)
-<tr><td> u($Y)            <td> otherwise 
-</table>
-The special register rD is prepended to the register $Y to form a 128 bit number.
-This number is divided by $Z and the result is stored in $X. The remainder is
-stored in special register rR.
-<p>
-If, however, rD &ge; $Z, then the result of the division would be
-greater than 2<sup>64</sup>
-and the quotient will not be computed. 
-Instead, rD is stored in $X and $Y is stored in rR.
-In Donald Knuth's "The Art of Computer Programming", Volume 2, 
-"Seminumerical Algorithms", Chapter 4.3.1
-will explain how to use this instruction to implement division of
-high-precision numbers with 128 bit or more.
-<p>
-<tr><td> 
-</table>
-<p>
-All instructions exist in two variants. The second operand can either be a
-register $Z or an immediate value Z.
-  <p>
-  <p>
-<B>Timing:</B>
-<br>ADDU: 1&upsilon;
-  <br>SUBU: 1&upsilon;
-  <br>MULU: 10&upsilon;
-  <br>DIVU: 60&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-These instructions perform arithmetic operations on unsigned numbers.
-They <I>never</I> cause overflow or other exceptions, not even if dividing by zero.
-<p>
-<B>See also:</B>
-<p>
-<a href=signed.html>Signed Arithmetic</a>.
+    <B>See also:</B>
+    <p>
+        <a href=signed.html>Signed Arithmetic</a>.
 
 </body>

@@ -1,44 +1,68 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
-<h4>Floating Point Conversion</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Conversion">
-	<param name="Keyword" value="Floating Point">
-	<param name="Keyword" value="FLOT">
-	<param name="Keyword" value="FLOTU">
-	<param name="Keyword" value="FIX">
-	<param name="Keyword" value="FIXU">
-</OBJECT>
+    <h4>Floating Point Conversion</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Conversion">
+        <param name="Keyword" value="Floating Point">
+        <param name="Keyword" value="FLOT">
+        <param name="Keyword" value="FLOTU">
+        <param name="Keyword" value="FIX">
+        <param name="Keyword" value="FIXU">
+    </OBJECT>
 
-  <B>Name:</B>
-<table cellspacing=5 
-><tr><td><a name="FLOT" id="FLOT">FLOT</a> $X,$Z </td><td>FLOT $X,Z </td></tr>
-<tr><td><a name="FLOTU" id="FLOTU">FLOTU</a> $X,$Z</td><td>FLOTU $X,Z</td></tr>
-<tr><td><a name="FIX" id="FIX">FIX</a> $X,$Z  </td><td><a name="FIXU" id="FIXU">FIXU</a> $X,$Z</td></tr>
-<tr><td>           </td></tr>
-</table> 
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <table cellspacing=5 
+           ><tr><td><a name="FLOT" id="FLOT">FLOT</a> $X,$Z </td><td>FLOT $X,Z </td></tr>
+        <tr><td><a name="FLOTU" id="FLOTU">FLOTU</a> $X,$Z</td><td>FLOTU $X,Z</td></tr>
+        <tr><td><a name="FIX" id="FIX">FIX</a> $X,$Z  </td><td><a name="FIXU" id="FIXU">FIXU</a> $X,$Z</td></tr>
+        <tr><td>           </td></tr>
+    </table> 
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>FLOT: <td> f($X)  </td><td> &larr; s($Z)
-  <tr><td>FLOTU: <td> f($X)  </td><td> &larr; u($Z)
-  <tr><td>FIX: <td> s($X)  </td><td> &larr; int(f($Z))
-  <tr><td>FIXU:<td> u($X)  </td><td> &larr; (int(f($Z)))mod2<sup>64</sup>
+        <tr><td>FLOT: <td> f($X)  </td><td> &larr; s($Z)
+        <tr><td>FLOTU: <td> f($X)  </td><td> &larr; u($Z)
+        <tr><td>FIX: <td> s($X)  </td><td> &larr; int(f($Z))
+        <tr><td>FIXU:<td> u($X)  </td><td> &larr; (int(f($Z)))mod2<sup>64</sup>
     </table><p>
-<B>Timing:</B>
-<p>
-4&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Converts numbers from integer representation to floating point representation
-and vice versa.
-An optional Y-Operand can be used to specify one of the following
-rounding modes:
-  ROUND_OFF, ROUND_UP, ROUND_DOWN, or  ROUND_NEAR.
+        <B>Timing:</B>
+    <p>
+        4&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Converts numbers from integer representation to floating point representation
+        and vice versa.
+        An optional Y-Operand can be used to specify one of the following
+        rounding modes:
+        ROUND_OFF, ROUND_UP, ROUND_DOWN, or  ROUND_NEAR.
+    <p>
+
+    <table border=1 cellspacing="4" cellpadding="4">
+
+        <tr><td>FLOT:</td> <td><i>"convert fixed to floating"</i>.
+                The integer in $Z or the immediate constant Z is converted to the nearest floating point value (using the
+                current rounding mode) and placed in register $X. A floating inexact exception occurs if rounding is necessary.
+            </td></tr>
+        <tr><td>FLOTU: </td><td><i> "convert fixed to floating unsigned"</i>.
+                FLOTU is like FLOT, but $Z is treated as an unsigned integer.
+            </td></tr>
+        <tr><td>FIX:</td><td> <i> "convert floating to fixed"</i>.
+                The floating point number in register $Z is converted to an integer as with the FINT instruction, and the
+                resulting integer (mod 2<sup>64</sup>) is placed in register $X. An invalid exception occurs if $Z is infinite or a NaN;
+                in that case $X is simply set equal to $Z. A float-to-fix exception occurs if the result is less than −2<sup>64</sup> or
+                greater than 2<sup>64</sup> - 1.
+
+            </td></tr>
+        <tr><td>FIXU:</td> <td><i> "convert floating to fixed unsigned"</i>.
+               This instruction is identical to FIX except that no float-to-fix exception occurs.
+
+
+            </td></tr>
+    </table><p>
 </body>
 

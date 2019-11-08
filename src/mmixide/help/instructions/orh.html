@@ -44,6 +44,21 @@ And-Not (\) operation or the Or (|) operation:
 Bitwise operation on a 16-bit immediate value.
 Before the immediate wyde operand is used, it is shifted into one of the four
 possible positions of an octabyte.
+</p>
+<table  border=1 cellspacing="4" cellpadding="4">
+    <tr><td>ORH | ORMH | ORML | ORL</td><td>The 16-bit unsigned number YZ is shifted left by either 48 or 32 or 16 or 0 bits, respectively, and ored with
+            register $X; the result is placed back into register $X.</br></br>
+<b>Notice:</b> Any desired 4-wyde constant GH IJ KL MN can be inserted into a register with a sequence of
+four instructions such as</br></br>
+
+<div style='text-align: center'><a href="seth.html">SETH</a> $X,GH; ORMH $X,IJ; ORML $X,KL; ORL $X,MN;</div></br>
+any of these OR instructions could also be replaced by <a href="inch.html">INC</a>.</td>
+    <tr><td>ANDNH | ANDNMH | ANDNML | ANDNL</td><td>The 16-bit unsigned number YZ is shifted left by either 48 or 32 or 16 or 0 bits, respectively, then
+complemented and anded with register $X; the result is placed back into register $X.</br></br>
+If YZ is the hexadecimal constant #8000, the command ANDNH $X,YZ forces the most significant bit of
+register $X to be 0. This can be used to compute the absolute value of a floating point number.
+</td>
+</table>
 
 </body>
 

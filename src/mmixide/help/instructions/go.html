@@ -1,42 +1,61 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
-<h4>Jumps with Absolute Addresses</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Absolute Address">
-	<param name="Keyword" value="Jump">
-	<param name="Keyword" value="GO">
-</OBJECT>
+    <h4>Jumps with Absolute Addresses</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Absolute Address">
+        <param name="Keyword" value="Jump">
+        <param name="Keyword" value="GO">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-<table cellspacing=5 >
-<tr><td><a name="GO" id="GO">GO</a> $X,$Y,Z
- <tr><td>GO $X,$Y,$Z
-</table>
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <p>
+    <table cellspacing=5 >
+        <tr><td><a name="GO" id="GO">GO</a> $X,$Y,Z
+        <tr><td>GO $X,$Y,$Z
+    </table>
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>u($X) </td><td> &larr; @+4
-  <tr><td>@  </td><td> &larr; $Y + Z
+        <tr><td>u($X) </td><td> &larr; @+4
+        <tr><td>@  </td><td> &larr; $Y + Z
     </table><p>
-<B>Timing:</B>
-<p>
-3&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Unconditional jump to Address $Y+$Z, respectively $Y+Z.
-The target address is rounded down to a multiple of 4.
-The address of the next instruction is stored as return address in $X.
-The instruction can be used to link subroutines or coroutines.
-  <p>
-<B>See also:</B>
-<p><a href="pushj.html">PUSHGO</a>, <a href="geta.html">GETA</a>,
-<a href="lda.html">LDA</a>, <a href="preld.html">PREGO</a>
-                                                               
+        <B>Timing:</B>
+    <p>
+        3&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Unconditional jump to Address $Y+$Z, respectively $Y+Z.
+        The target address is rounded down to a multiple of 4.
+        The address of the next instruction is stored as return address in $X.
+        The instruction can be used to link subroutines or coroutines.
+    <p>
+    <table border=1 cellspacing="4" cellpadding="4">
+        
+        <p> <b>Consider</b>: You should read <a href="gijmp.html">General Information</a> before reading the next paragraph.</p>
+
+        <tr><td>GO:</td> <td>MMIX takes its next instruction from location $Y + $Z or $Y + Z, and continues from there. Register $X is
+                set equal to &lambda; + 4, the location of the instruction that would ordinarily have been executed next. (GO is
+                similar to a jump, but it is not relative to the current location. Since GO has the same format as a load or
+                store instruction, a loading routine can treat program labels with the same mechanism that is used to treat
+                references to data.)</br></br>
+                An old-fashioned type of subroutine linkage can be implemented by saying either "GO r,subloc,0" or
+                "<a href="geta.html">GETA</a> r,@+8; JMP Sub" (The Symbol @ is interpreted by the assembler as an abbreviation for "the location of the current instruction.")  to enter a subroutine, then "GO r,r,0" to return. But subroutines are normally
+                entered with the instructions <a href="pushj.html">PUSHJ</a> or <a href="pushj.html">PUSHGO</a>.
+                The two least significant bits of the address in a GO command are essentially ignored. They will, however,
+                appear in the value of &lambda; returned by GETA instructions, and in the return-jump register rJ after <a href="pushj.html">PUSHJ</a>
+                or <a href="pushj.html">PUSHGO</a> instructions are performed, and in the where-interrupted register at the time of an interrupt.
+                Therefore they could be used to send some kind of signal to a subroutine or (less likely) to an interrupt
+                handler.</td>
+    </table>
+    <p>
+        <B>See also:</B>
+    <p><a href="pushj.html">PUSHGO</a>, <a href="geta.html">GETA</a>,
+        <a href="lda.html">LDA</a>, <a href="preld.html">PREGO</a>, <a href="gijmp.html">General Information</a>
+
 </body>

@@ -1,0 +1,306 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+
+    <h4>General Information </h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="General Information Trip Trap">
+        <param name="Keyword" value="Trip Trap Resume">
+    </OBJECT>
+
+    <B>TRIP and TRAP</B>
+
+    <ol>
+        <li><a href="#general">General</a></li>
+        <li><a href="#waystointerrupt">Ways to interrupt</a></li>
+        <li><a href="#listofinterrupts"> Description of Interrupts</a>
+            <ol style="list-style-type: lower-alpha;">
+                <li><a href="#trip">TRIP</a></li>
+                <li><a href="#trap">TRAP</a></li>
+                <li><a href="#dynamictrap">Dynamic TRAP</a></li>
+            </ol>
+        <li><a href="#resume">RESUME</a>
+    </ol>
+    <B>General</B>
+    <p id="general">
+        Special register rA records the current status information about arithmetic
+        exceptions. Its least significant byte contains eight "event" bits called DVWIOUZX from left to right,
+        where D stands for integer divide check, V for integer overflow, W for float-to-fix overflow, I for invalid
+        operation, O for floating overflow, U for floating underflow, Z for floating division by zero, and X for floating
+        inexact. The next least significant byte of rA contains eight "enable" bits with the same names DVWIOUZX
+        and the same meanings. When an exceptional condition occurs, there are two cases: If the corresponding
+        enable bit is 0, the corresponding event bit is set to 1. But if the corresponding enable bit is 1, MMIX
+        interrupts its current instruction stream and executes a special "exception handler." Thus, the event bits
+        record exceptions that have not been "tripped."<br><br>
+        Floating point overflow always causes two exceptions, O and X. (The strictest interpretation of the IEEE
+        standard would raise exception X on overflow only if floating overflow is not enabled, but MMIX always
+        considers an overflowed result to be inexact.) Floating point underflow always causes both U and X when
+        underflow is not enabled, and it might cause both U and X when underflow is enabled. If both enable bits
+        are set to 1 in such cases, the overflow or underflow handler is called and the inexact handler is ignored. All
+        other types of exceptions arise one at a time, so there is no ambiguity about which exception handler should
+        be invoked unless exceptions are raised by "ropcode 2" (see below); in general the first enabled exception in
+        the list DVWIOUZX takes precedence.<br>
+        What about the six high-order bytes of the status register rA? At present, only two of those 48 bits are
+        defined; the others must be zero for compatibility with possible future extensions. The two bits corresponding
+        to 2<sup>17</sup>
+        and 2<sup>16</sup>
+        in rA specify a rounding mode, as follows: 00 means round to nearest (the default); 01 means
+        round off (toward zero); 10 means round up (toward positive infinity); and 11 means round down (toward
+        negative infinity).
+    </p>
+    <B id="waystointerrupt">Ways to interrupt</B>
+    <p>
+        The execution of MMIX programs can be interrupted in several ways. We have just seen that arithmetic
+        exceptions will cause interrupts if they are enabled; so will illegal or privileged instructions, or instructions
+        that are emulated in software instead of provided by the hardware. Input/output operations or external
+        timers are another common source of interrupts; the operating system knows how to deal with all gadgets
+        that might be hooked up to an MMIX processor chip. Interrupts occur also when memory accesses fail-for
+        example if memory is nonexistent or protected. Power failures that force the machine to use its backup
+        battery power in order to keep running in an emergency, or hardware failures like parity errors, all must be
+        handled as gracefully as possible.
+        Users can also force interrupts to happen by giving explicit TRAP or TRIP instructions:
+
+    </p>
+    <p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td><a href="trap.html">TRAP</a> | <a href="trip.html">TRIP</a></td><td><i>"trap" | "trip"</i><br><br>Both of these instructions interrupt processing and transfer control to a handler. The difference between
+                them is that TRAP is handled by the operating system but TRIP is handled by the user. More precisely, the
+                X, Y, and Z fields of TRAP have special significance predefined by the operating system kernel. For example,
+                a system call-say an I/O command, or a command to allocate more memory-might be invoked by certain
+                settings of X, Y, and Z. The X, Y, and Z fields of TRIP, on the other hand, are definable by users for their
+                own applications, and users also define their own handlers. "Trip handler" programs invoked by TRIP are
+                interruptible, but interrupts are normally inhibited while a TRAP is being serviced. Specific details about the
+                precise actions of TRIP and TRAP appear below, together with the description of another command called
+                RESUME that returns control from a handler to the interrupted program.
+                Only two variants of TRAP are predefined by the MMIX architecture: If XYZ = 0 in a TRAP command, a
+                user process should terminate. If XYZ = 1, the operating system should provide default action for cases in
+                which the user has not provided any handler for a particular kind of interrupt (see below).
+                A few additional variants of TRAP are predefined in the rudimentary operating system used with MMIX
+                simulators. These variants, which allow simple input/output operations to be done, all have X = 0, and the
+                Y field is a small positive constant. For example, Y = 1 invokes the Fopen routine, which opens a file.
+            </td></tr>
+
+
+
+    </table>
+</p>
+<p>
+    Non-catastrophic interrupts in MMIX are always <i>precise</i>, in the sense that all legal instructions before a
+    certain point have effectively been executed, and no instructions after that point have yet been executed. The
+    current instruction, which may or may not have been completed at the time of interrupt and which may or
+    may not need to be resumed after the interrupt has been serviced, is put into the special <i>execution register</i> rX,
+    and its operands (if any) are placed in special registers rY and rZ. The address of the following instruction
+    is placed in the special <i>where-interrupted register</i> rW. The instruction in rX might not be the same as the
+    instruction in location rW - 4; for example, it might be an instruction that branched or jumped to rW. It
+    might also be an instruction inserted internally by the MMIX processor. (For example, the computer silently
+    inserts an internal instruction that increases L before an instruction like ADD $9,$1,$0 if L is currently less
+    than 10. If an interrupt occurs, between the inserted instruction and the ADD, the instruction in rX will say
+    ADD, because an internal instruction retains the identity of the actual command that spawned it; but rW
+    will point to the real ADD command.)</p>
+<p>
+    When an instruction has the normal meaning "set $X to the result of $Y op $Z" or "set $X to the result
+    of $Y op Z," special registers rY and rZ will relate in the obvious way to the Y and Z operands of the
+    instruction; but this is not always the case. For example, after an interrupted store instruction, the first
+    operand rY will hold the virtual memory address ($Y plus either $Z or Z), and the second operand rZ will
+    be the octabyte to be stored in memory (including bytes that have not changed, in cases like STB). In other
+    cases the actual contents of rY and rZ are defined by each implementation of MMIX, and programmers should
+    not rely on their significance.</p>
+<p>
+    Some instructions take an unpredictable and possibly long amount of time, so it may be necessary to
+    interrupt them in progress. For example, the FREM instruction (floating point remainder) is extremely
+    difficult to compute rapidly if its first operand has an exponent of 2046 and its second operand has an
+    exponent of 1. In such cases the rY and rZ registers saved during an interrupt show the current state of
+    the computation, not necessarily the original values of the operands. The value of rY rem rZ will still be
+    the desired remainder, but rY may well have been reduced to a number that has an exponent closer to the
+    exponent of rZ. After the interrupt has been processed, the remainder computation will continue where it
+    left off.<br> 
+    Another example arises with an instruction like PREST (prestore), which can specify prestoring up to 256
+    bytes. An implementation of MMIX might choose to prestore only 32 or 64 bytes at a time, depending on the
+    cache block size; then it can change the contents of rX to reflect the unfinished part of a partially completed
+    PREST command.<br> 
+    Commands that decrease G, pop the stack, save the current context, or unsave an old context also are
+    interruptible. Register rX is used to communicate information about partial completion in such a way that
+    the interruption will be essentially "invisible" after a program is resumed.
+</p>
+<B id="listofinterrupts">Description of Interrupts</B>
+<p>
+    Three kinds of interruption are possible: trips, forced traps, and dynamic traps. We will discuss each
+    of these in turn.</p>
+<B id="trip">TRIP</B>
+<p>
+    A TRIP instruction puts itself into the right half of the execution register rX, and sets the 32 bits of the
+    left half to
+    #80000000. (Therefore rX is <i>negative</i>; this fact will tell the RESUME command not to TRIP again.)
+    The special registers rY and rZ are set to the contents of the registers specfied by the Y and Z fields of the
+    TRIP command, namely $Y and $Z. Then $255 is placed into the special <i>bootstrap register</i> rB, and $255 is
+    set to rJ. MMIX now takes its next instruction from virtual memory address 0.</p>
+<p>
+
+    Arithmetic exceptions interrupt the computation in essentially the same way as TRIP, if they are enabled.
+    The only difference is that their handlers begin at the respective addresses 16, 32, 48, 64, 80, 96, 112,
+    and 128, for exception bits D, V, W, I, O, U, Z, and X of rA; registers rY and rZ are set to the operands of
+    the interrupted instruction as explained earlier.
+    A 16-byte block of memory is just enough for a sequence of commands like</p>
+<p style="text-align:center">
+    <i><a href="pushj.html">PUSHJ</a> 255,Handler; <a href="put.html">PUT</a> rJ,$255; <a href="put.html">GET</a> $255,rB; <a href="resume.html">RESUME</a></i>
+</p>
+<p>
+    which will invoke a user's handler. And if the user does not choose to provide a custom-designed handler,
+    the operating system provides a default handler via the instructions</p>
+<p style="text-align:center;">
+    <i><a href="trap.html">TRAP</a> 1; <a href="put.html">GET</a> $255,rB; <a href="resume.html">RESUME</a></i>
+</p>
+<p>
+    A trip handler might simply record the fact that tripping occurred. But the handler for an arithmetic
+    interrupt might want to change the default result of a computation. In such cases, the handler should
+    place the desired substitute result into rZ, and it should change the most significant byte of rX from #80 to
+    #02. This will have the desired effect, because of the rules of RESUME explained below, unless the exception
+    occurred on a command like STB or STSF. (A bit more work is needed to alter the effect of a command that
+    stores into memory.)</p>
+
+
+<p>
+    Instructions in negative virtual locations do not invoke trip handlers, either for TRIP or for arithmetic
+    exceptions. Such instructions are reserved for the operating system, as we will see.
+</p>
+<B id="trap">FORCED TRAP</B>
+<p>
+    A TRAP instruction interrupts the computation essentially like TRIP, but with the following modifications:<br><br>
+    (i) the interrupt mask register rK is cleared to zero, thereby inhibiting interrupts;<br> (ii) control jumps
+    to virtual memory address rT, not zero;<br> (iii) information is placed in a separate set of special registers rBB,
+    rWW, rXX, rYY, and rZZ, instead of rB, rW, rX, rY, and rZ. (These special registers are needed because
+    a trap might occur while processing a TRIP.)<br><br>
+    Another kind of forced trap occurs on implementations of MMIX that emulate certain instructions in
+    software rather than in hardware. Such instructions cause a TRAP even though their opcode is something
+    else like FREM or FADD or DIV. The trap handler can tell what instruction to emulate by looking at the
+    opcode, which appears in rXX. In such cases the left-hand half of rXX is set to
+    #02000000; the handler
+    emulating FADD, say, should compute the floating point sum of rYY and rZZ and place the result in rZZ.
+    A subsequent RESUME 1 will then place the value of rZZ in the proper register.
+
+    When a forced trap occurs on a store instruction because of memory protection failure, the settings of
+    rYY and rZZ are undefined. They do not necessarily correspond to the virtual address rY and the octabyte
+    to be stored rZ that are supplied to a trip handler after a tripped store instruction, because a forced trap
+    aborts its instruction as soon as possible.
+    Implementations of MMIX might also emulate the process of virtual-address-to-physical-address translation
+    described below, instead of providing for page table calculations in hardware. Then if, say, a LDB instruction
+    does not know the physical memory address corresponding to a specified virtual address, it will cause a
+    forced trap with the left half of rXX set to
+    #03000000 and with rYY set to the virtual address in question.
+    The trap handler should place the physical page address into rZZ; then RESUME 1 will complete the LDB.
+</p>
+<B id="dynamictrap">Dynamic TRAP</B>
+<p>
+    The third and final kind of interrupt is called a dynamic trap. Such interruptions occur when one or
+    more of the 64 bits in the special interrupt request register rQ have been set to 1, and when at least one
+    corresponding bit of the special interrupt mask register rK is also equal to 1. The bit positions of rQ and rK
+    have the general form
+</p>
+<p>
+<div ><img class="img-gitraptrip" src="../image/img-gitraptrip.png">
+</div>
+<p>
+
+<p>
+    Negative addresses are for the use of the operating system only; a security violation occurs if an instruction
+    in a nonnegative address is executed without the rwxnkbsp bits of rK all set to 1. (In such cases the s bits
+    of both rQ and rK are set to 1.)
+    The eight "machine" bits of rQ and rK represent the most urgent kinds of interrupts. The rightmost
+    bit stands for power failure, the next for memory parity error, the next for nonexistent memory, the next
+    for rebooting, etc. Interrupts that need especially quick service, like requests from a high-speed network,
+    also are allocated bit positions near the right end. Low priority I/O devices like keyboards are assigned to
+    bits at the left. The allocation of input/output devices to bit positions will differ from implementation to
+    implementation, depending on what devices are available.<br>
+    Once rQ &and; rK becomes nonzero, the machine waits briefly until it can give a precise interrupt. Then it
+    proceeds as with a forced trap, except that it uses the special "dynamic trap address register" rTT instead
+    of rT. The trap handler that begins at location rTT can figure out the reason for interrupt by examining
+    rQ &and; rK. (For example, after the instructions</p>
+<p style="text-align:center;">
+    <i><a href="put.html">GET</a> $0,rQ; <a href="ldbu.html">LDOU</a> $1,savedK; <a href="logic.html">AND</a> $0,$0,$1; <a href="unsigned.html">SUBU</a> $1,$0,1; <a href="sadd.html">SADD</a> $2,$1,$0; <a href="logic.html">ANDN</a> $1,$0,$1</i>
+</p>
+<p>
+    the highest-priority offending bit will be in $1 and its position will be in $2.)
+    If the interrupted instruction contributed 1s to any of the rwxnkbsp bits of rQ, the corresponding bits
+    are set to 1 also in rXX. A dynamic trap handler might be able to use this information (although it should
+    service higher-priority interrupts first if the right half of rQ &and; rK is nonzero).
+    The rules of MMIX are rigged so that only the operating system can execute instructions with interrupts
+    suppressed. Therefore the operating system can in fact use instructions that would interrupt an ordinary
+    program. Control of register rK turns out to be the ultimate privilege, and in a sense the only important
+    one.
+    An instruction that causes a dynamic trap is usually executed before the interruption occurs. However,
+    an instruction that traps with bits x, k, or b does nothing; a load instruction that traps with r or n loads
+    zero; a store instruction that traps with any of rwxnkbsp stores nothing.</p>
+<B id="resume">RESUME</B>
+<p>
+    After a trip handler or trap handler has done its thing, it generally invokes the following command.
+    <a href="resume.html">RESUME</a> Z <i>"resume after interrupt"</i>; the X and Y fields must be zero.
+    If the Z field of this instruction is zero, MMIX will use the information found in special registers rW, rX, rY,
+    and rZ to restart an interrupted computation. If the execution register rX is negative, it will be ignored and
+    instructions will be executed starting at virtual address rW; otherwise the instruction in the right half of
+    the execution register will be inserted into the program as if it had appeared in location rW - 4, subject to
+    certain modifications that we will explain momentarily, and the next instruction will come from rW.
+    If the Z field of RESUME is 1 and if this instruction appears in a negative location, registers rWW, rXX,
+    rYY, and rZZ are used instead of rW, rX, rY, and rZ. Also, just before resuming the computation, mask
+    register rK is set to $255 and $255 is set to rBB. (Only the operating system gets to use this feature.)
+    An interrupt handler within the operating system might choose to allow itself to be interrupted. In such
+    cases it should save the contents of rBB, rWW, rXX, rYY, and rZZ on some kind of stack, before making rK
+    nonzero. Then, before resuming whatever caused the base level interrupt, it must again disable all interrupts;
+    this can be done with TRAP, because the trap handler can tell from the virtual address in rWW that it has
+    been invoked by the operating system. Once rK is again zero, the contents of rBB, rWW, rXX, rYY, and rZZ
+    are restored from the stack, the outer level interrupt mask is placed in $255, and RESUME 1 finishes the job.
+    Values of Z greater than 1 are reserved for possible later definition. Therefore they cause an illegal
+    instruction interrupt (that is, they set the "b" bit of rQ) in the present version of MMIX.<br>
+    If the execution register rX is nonnegative, its leftmost byte controls the way its right-hand half will be
+    inserted into the program. Let's call this byte the "ropcode." A ropcode of 0 simply inserts the instruction
+    into the execution stream; a ropcode of 1 is similar, but it substitutes rY and rZ for the two operands,
+    assuming that this makes sense for the operation considered.<br>
+    Ropcode 2 inserts a command that sets $X to rZ, where X is the second byte in the right half of rX.
+    This ropcode is normally used with forced-trap emulations, so that the result of an emulated instruction is
+    placed into the correct register. It also uses the third-from-left byte of rX to raise any or all of the arithmetic
+    exceptions DVWIOUZX, at the same time as rZ is being placed in $X. Emulated instructions and explicit
+    TRAP commands can therefore cause overflow, say, just as ordinary instructions can. (Such new exceptions
+    may, of course, spawn a trip interrupt, if any of the corresponding bits are enabled in rA.)
+    Finally, ropcode 3 is the same as ropcode 0, except that it also tells MMIX to treat rZ as the page table
+    entry for the virtual address rY. Ropcodes greater
+    than 3 are not permitted; moreover, only RESUME 1 is allowed to use ropcode 3.
+    The ropcode rules in the previous paragraphs should of course be understood to involve rWW, rXX, rYY,
+    and rZZ instead of rW, rX, rY, and rZ when the ropcode is seen by RESUME 1. Thus, in particular, ropcode 3
+    always applies to rYY and rZZ, never to rY and rZ.
+    Special restrictions must hold if resumption is to work properly: Ropcodes 0 and 3 must not insert a
+    RESUME instruction; ropcode 1 must insert a "normal" instruction, namely one whose opcode begins with
+    one of the hexadecimal digits
+    
+    #0,
+    
+    #1,
+    
+    #2,
+    
+    #3,
+    
+    #6,
+    
+    #7,
+    
+    #C,
+    
+    #D, or
+    #E. (See the opcode chart below.) Some
+    implementations may also allow ropcode 1 with SYNCD[I] and SYNCID[I], so that those instructions can
+    conveniently be interrupted. Moreover, the destination register $X used with ropcode 1 or 2 must not be
+    marginal. All of these restrictions hold automatically in normal use; they are relevant only if the programmer
+    tries to do something tricky.
+    Notice that the slightly tricky sequence</p>
+    <p style="text-align:center">
+        <i><a href="lda.html">LDA</a> $0,Loc; <a href="put.html">PUT</a> rW,$0; LDTU $1,Inst; <a href="put.html">PUT</a> rX,$1; <a href="resume.html">RESUME</a></i>
+    </p>
+    <p>
+    will execute an almost arbitrary instruction Inst as if it had been in location Loc-4, and then will jump to
+    location Loc (assuming that Inst doesn't branch elsewhere).
+</p>
+<p> <B>See also:</B>
+    <p><a href="resume.html">Resume</a>, <a href="trap.html">Trap</a>,
+        <a href="trip.html">Trip</a></p>
+</body>

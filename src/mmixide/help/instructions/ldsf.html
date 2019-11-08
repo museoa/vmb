@@ -1,42 +1,68 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
-<h4>Loading and Storing of Short Floats</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Storing">
-	<param name="Keyword" value="Short Float">
-	<param name="Keyword" value="LDSF">
-	<param name="Keyword" value="STSF">
-</OBJECT>
+    <h4>Loading and Storing of Short Floats</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Storing">
+        <param name="Keyword" value="Short Float">
+        <param name="Keyword" value="LDSF">
+        <param name="Keyword" value="STSF">
+    </OBJECT>
 
 
- <B>Name:</B>
-<table cellspacing=5 
-><tr><td><a name="LDSF" id="LDSF">LDSF</a> $X,$Y,$Z</td><td>LDSF $X,$Y,Z</td></tr>
-<tr><td><a name="STSF" id="STSF">STSF</a> $X,$Y,$Z</td><td>STSF $X,$Y,Z</td></tr>
-<tr><td>             </td></tr>
-</table> 
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <table cellspacing=5 
+           ><tr><td><a name="LDSF" id="LDSF">LDSF</a> $X,$Y,$Z</td><td>LDSF $X,$Y,Z</td></tr>
+        <tr><td><a name="STSF" id="STSF">STSF</a> $X,$Y,$Z</td><td>STSF $X,$Y,Z</td></tr>
+        <tr><td>             </td></tr>
+    </table> 
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>LDSF: f($X)  </td><td> &larr; f(M<sub>4</sub>[$Y + $Z])
-  <tr><td>STSF: f(M<sub>4</sub>[$Y + $Z])  </td><td> &larr; f($X)
+        <tr><td>LDSF: f($X)  </td><td> &larr; f(M<sub>4</sub>[$Y + $Z])
+        <tr><td>STSF: f(M<sub>4</sub>[$Y + $Z])  </td><td> &larr; f($X)
     </table><p>
-<B>Timing:</B>
-<p>
-1&upsilon; + 1&mu;
-  <p>
-<B>Description:</B>
-<p>
-Loads respectively stores a 32-bit floating point number. Before storing,
-respectively after loading, a conversion from, respectively to,
-the 64-bit floating point format is done.
-  <p>
-<B>See also:</B>
-<p>
-<a href="ldb.html">LDT</a> and <a href="stb.html">STT</a> (for 32-bit fixed point numbers).
+        <B>Timing:</B>
+    <p>
+        1&upsilon; + 1&mu;
+    <p>
+        <B>Description:</B>
+    <p>
+        Loads respectively stores a 32-bit floating point number. Before storing,
+        respectively after loading, a conversion from, respectively to,
+        the 64-bit floating point format is done.
+    <p>
+    <table border=1 cellspacing="4" cellpadding="4">
+
+        <tr><td>LDSF:</td> <td>Register $X is set to the 64-bit floating point number corresponding to the 32-bit ﬂoating point number
+                represented by M<sub>4</sub>
+                [$Y + $Z] or M<sub>4</sub>
+                [$Y + Z]. No arithmetic exceptions occurs, not even if a signaling NaN is
+                loaded.</td>
+        <tr><td>STSF: </td><td> The value obtained by rounding register $X to a 32-bit floating point number is placed in M<sub>4</sub>
+                [$Y + $Z] or
+                M<sub>4</sub>
+                [$Y + Z]. Rounding is done with the current rounding mode, in a manner exactly analogous to the
+                standard conventions for rounding 64-bit results, except that the precision and exponent range are limited.
+                In particular, floating overﬂow, underflow, and inexact exceptions might occur; a signaling NaN will trigger
+                an invalid exception and it will become quiet. The fraction part of a NaN is truncated if necessary to a
+                multiple of 2<sup>-23</sup>
+                , by ignoring the least significant 29 bits.
+                If we load any two short floats and operate on them once with either FADD, FSUB, FMUL, FDIV, FREM, FSQRT,
+                or FINT, and if we then store the result as a short float, we obtain the results required by the IEEE standard
+                for single format arithmetic, because the double format can be shown to have enough precision to avoid any
+                problems of "double rounding". But programmers are usually better off sticking to 64-bit arithmetic unless
+                they have a strong reason to emulate the precise behavior of a 32-bit computer; 32 bits do not offer much
+                precision.
+
+            </td>
+
+    </table><p>
+        <B>See also:</B>
+    <p>
+        <a href="ldb.html">LDT</a> and <a href="stb.html">STT</a> (for 32-bit fixed point numbers).
 </body>
 

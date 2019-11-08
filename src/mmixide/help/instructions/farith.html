@@ -1,56 +1,132 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>Floating Point Arithmetic</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Arithmetic">
-	<param name="Keyword" value="Floating Point">
-	<param name="Keyword" value="FADD">
-	<param name="Keyword" value="FSUB">
-	<param name="Keyword" value="FMUL">
-	<param name="Keyword" value="FDIV">
-	<param name="Keyword" value="FREM">
-	<param name="Keyword" value="FSQRT">
-	<param name="Keyword" value="FINT">
-</OBJECT>
+    <h4>Floating Point Arithmetic</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Arithmetic">
+        <param name="Keyword" value="Floating Point">
+        <param name="Keyword" value="FADD">
+        <param name="Keyword" value="FSUB">
+        <param name="Keyword" value="FMUL">
+        <param name="Keyword" value="FDIV">
+        <param name="Keyword" value="FREM">
+        <param name="Keyword" value="FSQRT">
+        <param name="Keyword" value="FINT">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p><a name="FADD" id="FADD">FADD</a> $X,$Y,$Z
- <br><a name="FSUB" id="FSUB">FSUB</a> $X,$Y,$Z
- <br><a name="FMUL" id="FMUL">FMUL</a> $X,$Y,$Z
- <br><a name="FDIV" id="FDIV">FDIV</a> $X,$Y,$Z
- <br><a name="FREM" id="FREM">FREM</a> $X,$Y,$Z
- <br><a name="FSQRT" id="FSQRT">FSQRT</a> $X,$Z
- <br><a name="FINT" id="FINT">FINT</a> $X,$Z
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
-<tr><td>FDIV: <td> f($X)  </td><td> &larr; f($Y) &#x2215; f($Z)
-<tr><td>FREM: <td> f($X)  </td><td> &larr; f($Y) rem f($Z)
-<tr><td><td><td> y rem z is defined as y-nz, where n
-  is the integer number closest to y&#x2215;z, or the closest even number
-  in case of multiple closest integers.
+    <B>Name:</B>
+    <p><a name="FADD" id="FADD">FADD</a> $X,$Y,$Z
+        <br><a name="FSUB" id="FSUB">FSUB</a> $X,$Y,$Z
+        <br><a name="FMUL" id="FMUL">FMUL</a> $X,$Y,$Z
+        <br><a name="FDIV" id="FDIV">FDIV</a> $X,$Y,$Z
+        <br><a name="FREM" id="FREM">FREM</a> $X,$Y,$Z
+        <br><a name="FSQRT" id="FSQRT">FSQRT</a> $X,$Z
+        <br><a name="FINT" id="FINT">FINT</a> $X,$Z
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
+        <tr><td>FDIV: <td>f($X) </td><td> &larr; f($Y) &#x2215; f($Z)
+        <tr><td>FREM: <td>f($X) </td><td> &larr; f($Y) rem f($Z)
+        <tr><td><td><td> y rem z is defined as y-nz, where n
+                is the integer number closest to y&#x2215;z, or the closest even number
+                in case of multiple closest integers.
 
-<tr><td>FINT: <td> f($X)  </td><td> &larr; f(int(f($Z)))
-<tr><td>FSQRT: <td> f($X)  </td><td> &larr; f($Z)<sup>1<I>&#x2215;</I>2</sup>
-</table><p>
-<B>Timing:</B>
-<p>
-4&upsilon; for FADD, FSUB, FMUL, FREM and FINT
- <br>40&upsilon; for FDIV and FSQRT
- <p>
-<B>Description:</B>
-<p>
-FADD, FSUB, FMUL, and FDIV perform arithmetic on floating point numbers.
+        <tr><td>FINT: <td>f($X) </td><td> &larr; f(int(f($Z)))
+        <tr><td>FSQRT: <td>f($X) </td><td> &larr; f($Z)<sup>1<I>&#x2215;</I>2</sup>
+    </table><p>
+        <B>Timing:</B>
+    <p>
+        4&upsilon; for FADD, FSUB, FMUL, FREM and FINT
+        <br>40&upsilon; for FDIV and FSQRT
+    <p>
+        <B>Description:</B>
+    <p>
+        FADD, FSUB, FMUL, and FDIV perform arithmetic on floating point numbers.
 
-  FINT rounds a floating point number to the nearest integer number using
-  the current rounding mode. Unlike FIX, the result is still in floating point format.
-  The instructions FINT and FSQRT can use the optional Y-Operand
-  to specify a rounding mode: ROUND_OFF, ROUND_UP,
-  ROUND_DOWN, or ROUND_NEAR.                        
+        FINT rounds a floating point number to the nearest integer number using
+        the current rounding mode. Unlike FIX, the result is still in floating point format.
+        The instructions FINT and FSQRT can use the optional Y-Operand
+        to specify a rounding mode: ROUND_OFF, ROUND_UP,
+        ROUND_DOWN, or ROUND_NEAR.      
+    <p>
+        The seven IEEE floating point arithmetic operations (addition, subtraction, multiplication, division,
+        remainder, square root, and nearest-integer) all share common features, called the standard floating point
+        conventions in the discussion below: The operation is performed on floating point numbers found in two
+        registers, $Y and $Z, except that square root and integerization involve only one operand. If neither input
+        operand is a NaN, we first determine the exact result, then round it using the current rounding mode found
+        in special register rA. Infinite results are exact and need no rounding. A floating overflow exception occurs if
+        the rounded result is finite but needs an exponent greater than 2046. A floating underflow exception occurs
+        if the rounded result needs an exponent less than 1 and either <br><br>(i) the unrounded result cannot be represented
+        exactly as a subnormal number or <br>(ii) the <i>"floating underflow  <a href="trip.html">TRIP</a>"</i> is enabled in rA.<br><br> NaNs are treated specially as follows: If either $Y or $Z is a signaling NaN, an invalid exception
+        occurs and the NaN is quieted by adding 1/2 to its fraction part. Then if $Z is a quiet NaN, the result is set
+        to $Z; otherwise if $Y is a quiet NaN, the result is set to $Y. (Registers $Y and $Z do not actually change.)
+    </p>
+    <p>
+
+    <table border=1 cellspacing="4" cellpadding="4">
+
+        <tr><td>FADD:</td> <td><i>"floating add"</i>.
+                The floating point sum $Y + $Z is computed by the standard floating point conventions just described, and
+                placed in register $X. An invalid exception occurs if the sum is (+&infin;) + (-&infin;) or (-&infin;) + (+&infin;); in that
+                case the result is NaN(1/2) with the sign of $Z. If the sum is exactly zero and the current mode is not
+                rounding-down, the result is +0.0 except that (-0.0) + (-0.0) = -0.0. If the sum is exactly zero and the
+                current mode is rounding-down, the result is -0.0 except that (+0.0)+(+0.0) = +0.0. These rules for signed
+                zeros turn out to be useful when doing interval arithmetic: If the lower bound of an interval is +0.0 or if the
+                upper bound is -0.0, the interval does not contain zero, so the numbers in the interval have a known sign.
+                Floating point underflow cannot occur unless the U-trip has been enabled, because any underflowing result
+                of floating point addition can be represented exactly as a subnormal number.
+            </td></tr>
+        <tr><td>FSUB: </td><td><i> "floating substract"</i>.
+                This instruction is equivalent to FADD, but with the sign of $Z negated unless $Z is a NaN.
+            </td></tr>
+        <tr><td>FMUL:</td><td> <i> "floating multiply"</i>.
+                The floating point product $Y x $Z is computed by the standard floating point conventions, and placed in
+                register $X. An invalid exception occurs if the product is (&plusmn;0.0) x (&plusmn;&infin;) or (&plusmn;&infin;) x (&plusmn;0.0); in that case the
+                result is &plusmn;NaN(1/2). No exception occurs for the product (&plusmn;&infin;) x (&plusmn;&infin;). If neither $Y nor $Z is a NaN,
+                the sign of the result is the product of the signs of $Y and $Z.
+            </td></tr>
+        <tr><td>FDIV:</td> <td><i> "floating divide"</i>.
+                The floating point quotient $Y/$Z is computed by the standard floating point conventions, and placed in
+                $X. A floating divide by zero exception occurs if the quotient is (normal or subnormal)/(&plusmn;0.0). An invalid
+                exception occurs if the quotient is (&plusmn;0.0)/(&plusmn;0.0) or (&plusmn;&infin;)/(&plusmn;&infin;); in that case the result is &plusmn;NaN(1/2). No
+                exception occurs for the quotient (&plusmn;&infin;)/(&plusmn;0.0). If neither $Y nor $Z is a NaN, the sign of the result is the
+                product of the signs of $Y and $Z.
+                If a floating point number in register $X is known to have an exponent between 2 and 2046, the instruction
+                <a href="inch.html">INCH</a> $X,#fff0 will divide it by 2.0.
+
+            </td></tr>
+        <tr><td>FREM:</td> <td><i> "floating remainder"</i>.
+                The floating point remainder $Y rem $Z is computed by the standard floating point conventions, and placed
+                in register $X. (The IEEE standard defines the remainder to be $Y -n x $Z, where n is the nearest integer to
+                $Y/$Z, and n is an even integer in case of ties. This is not the same as the remainder $Y mod $Z computed
+                by <a href="signed.html">DIV</a> or <a href="unsigned.html">DIVU</a>.) A zero remainder has the sign of $Y. An invalid exception occurs if $Y is infinite and/or
+                $Z is zero; in that case the result is NaN(1/2) with the sign of $Y.
+
+            </td></tr>
+        <tr><td>FSQRT:</td> <td><i> "floating square root"</i>.
+                The floating point square root
+
+                &radic;$Z is computed by the standard floating point conventions, and placed in
+                register $X. An invalid exception occurs if $Z is a negative number (either infinite, normal, or subnormal);
+                in that case the result is -NaN(1/2). No exception occurs when taking the square root of -0.0 or +&infin;. In
+                all cases the sign of the result is the sign of $Z.
+                The Y field of FSQRT can be used to specify a special rounding mode.
+
+
+            </td></tr>
+        <tr><td>FINT:</td> <td><i> "floating integer"</i>.
+                The floating point number in register $Z is rounded (if necessary) to a floating point integer, using the current
+                rounding mode, and placed in register $X. Infinite values and quiet NaNs are not changed; signaling NaNs
+                are treated as in the standard conventions. Floating point overflow and underflow exceptions cannot occur.
+                The Y field of FINT can be used to specify a special rounding mode.
+
+
+            </td></tr>
+    </table>
+    <p>
 
 </body>

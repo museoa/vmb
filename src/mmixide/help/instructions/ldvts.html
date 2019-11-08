@@ -1,26 +1,50 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>The LDVTS Instruction</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="LDVTS">
-</OBJECT>
+    <h4>The LDVTS Instruction</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="LDVTS">
+    </OBJECT>
 
 
-  <B>Name:</B>
+    <B>Name:</B>
+    <p>
+        <a name="LDVTS" id="LDVTS">LDVTS</a> $X,$Y,$Z LDVTS $X,$Y,Z
+    <p>
+        <B>Timing:</B>
+    <p>
+        1&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Load virtual translation table. Modifies the
+        tables used to cache translations from virtual to physical addresses.
+    <p>
+        MMIX can't afford to perform a lengthy calculation of physical addresses every time it accesses
+        memory. The machine therefore maintains a translation cache (TC), which contains the translations of
+        recently accessed pages. (In fact, there usually are two such caches, one for instructions and one for data.)
+        A TC holds a set of 64-bit translation keys<br>
 <p>
-<a name="LDVTS" id="LDVTS">LDVTS</a> $X,$Y,$Z LDVTS $X,$Y,Z
- <p>
-<B>Timing:</B>
-<p>
-1&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Load virtual translation table. Modifies the
-tables used to cache translations from virtual to physical addresses.
+    <div style="text-align:center"><img class="img-ldvts" src="../image/img-ldvts.png"></div><br>
+    representing the relevant parts of the page table entry PTE for page v of segment i. Different processes typically have different
+    values of n, and possibly also different values of s. The operating system needs a way to keep such caches
+    up to date when pages are being allocated, moved, swapped, or recycled. The operating system also likes to
+    know which pages have been recently used. The LDVTS instructions facilitate such operations:
+    <p>
+    <table  border=1 cellspacing="4" cellpadding="4">
+        <tr><td>LDVTS:</td><td><i>"load virtual translation status"</i><br><br>
+                The sum $Y + $Z or $Y + Z should have the form of a translation cache key as above, except that the
+                rightmost three bits need not be zero. If this key is present in a TC, the rightmost three bits replace the
+                current protection code p; however, if p is thereby set to zero, the key is removed from the TC. Register X
+                is set to 0 if the key was not present in any translation cache, or to 1 if the key was present in the TC for
+                instructions, or to 2 if the key was present in the TC for data, or to 3 if the key was present in both. This
+                instruction is for the operating system only. (Changes to the TC are not immediate; so SYNC and/or SYNCD
+                ought to be done when appropriate, as discussed in MMIX-PIPE.)
+            </td></tr>
+    </table>
+
 
 </body>

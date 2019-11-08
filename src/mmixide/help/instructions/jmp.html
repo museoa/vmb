@@ -1,39 +1,53 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>Jumps with Relative Addresses</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Jump">
-	<param name="Keyword" value="Relative Address">
-	<param name="Keyword" value="JMP">
-</OBJECT>
+    <h4>Jumps with Relative Addresses</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Jump">
+        <param name="Keyword" value="Relative Address">
+        <param name="Keyword" value="JMP">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-<table cellspacing=5 >
-<tr><td><a name="JMP" id="JMP">JMP</a> XYZ
-</table>
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <p>
+    <table cellspacing=5 >
+        <tr><td><a name="JMP" id="JMP">JMP</a> XYZ
+    </table>
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>@ </td><td> &larr; RA with
-  <tr><td>RA </td><td> &larr; @+4*XYZ for a jump forward,
-  <tr><td>RA </td><td> &larr; @+4*(XYZ-2<sup>24</sup>) for a jump backward.
+        <tr><td>@ </td><td> &larr; RA with
+        <tr><td>RA </td><td> &larr; @+4*XYZ for a jump forward,
+        <tr><td>RA </td><td> &larr; @+4*(XYZ-2<sup>24</sup>) for a jump backward.
     </table><p>
-<B>Timing:</B>
+        <B>Timing:</B>
+    <p>
+        1&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Executes an unconditional jump.
+        Usually, a label is used to specify the jump target. The assembler will
+        automatically determine whether it is a jump forward or backward and
+        selects the appropriate instruction.
+   <p> <b>Consider</b>: You should read <a href="gijmp.html">General Information</a> before reading the next paragraph.</p>
+    <p><table border=1 cellspacing="4" cellpadding="4">
+        
+      
+
+
+        <tr><td>JMP:</td> <td>A JMP command treats bytes X, Y, and Z as an unsigned 24-bit integer XYZ. It allows a program to transfer
+                control from location &lambda; to any location between &lambda; - 67,108,864 and &lambda; + 67,108,860 inclusive, using relative
+                addressing as in the B and PB commands.</td>
+    </table>
 <p>
-1&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Executes an unconditional jump.
-Usually, a label is used to specify the jump target. The assembler will
-automatically determine whether it is a jump forward or backward and
-selects the appropriate instruction.
+    
+    <B>See also:</B>
+    <p><a href="gijmp.html">General Information</a>
 
 </body>

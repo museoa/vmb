@@ -1,38 +1,14 @@
 <head>
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Debugger Options">
-	<param name="Keyword" value="Debugger Windows">
-	<param name="Keyword" value="Memory">
-	<param name="Keyword" value="Register">
-	<param name="Keyword" value="Inspector">
-	<param name="Keyword" value="Text segment">
-	<param name="Keyword" value="Data segment">
-	<param name="Keyword" value="Stack segment">
-	<param name="Keyword" value="Pool segment">
-	<param name="Keyword" value="Tracing">
-	<param name="Keyword" value="Local registers">
-	<param name="Keyword" value="Register stack">
-	<param name="Keyword" value="Global registers">
-	<param name="Keyword" value="Special registers">
-	<param name="Keyword" value="Trace Window">
-	<param name="Keyword" value="Break at Main">
-	<param name="Keyword" value="Main">
-	<param name="Keyword" value="Break after instruction">
-	<param name="Keyword" value="Enable stack tracing">
-	<param name="Keyword" value="Trace exceptions">
-	<param name="Keyword" value="Arithmetic exceptions">
-	<param name="Keyword" value="Warn if no application">
-	<param name="Keyword" value="Auto-Close debug windows">
-</OBJECT>
+
 <body>
 	<h3>The MMIX Debugger Options</h3>
-	<p><img src="debugoptions.jpg" alt="" border="0"></p>
+	<p><img src="debugoptions.png" alt="" border="0"></p>
 	<p></p>
 	<p>You reach the MMIX debugger options through the Options menu.
 	</p>
-	<h4>Inspecting Registers and Memory</h4>In the two boxes on top of the dialog, you can select windows that should open automatically when you start the debugger. In the example above, the window showing the local registers and the register stack will open; further a windows showing the Data Segment. All the other windows, for example one for the global registers, can be opened manually when needed.<h4>Choosing Special Registers for display<img src="specials.png" alt="" align="right" hspace="20"></h4>
+	<h4><a id="inspect">Inspecting Registers and Memory</a></h4>In the two boxes on top of the dialog, you can select windows that should open automatically when you start the debugger. In the example above, the window showing the local registers and the register stack will open; further a windows showing the Data Segment. All the other windows, for example one for the global registers, can be opened manually when needed.<h4><a id="choosing">Choosing Special Registers for display</a><img src="specials.png" alt="" align="right" hspace="20"></h4>
 	<p>
 	Next to the checkbox for the special registers is a Choose button. 
 	Pressing it opens a dialog where you can choose which registers to 
@@ -41,18 +17,18 @@
 	all. Only the registers selected here will be shown in the special 
 	register window.
 	</p>
-	<h4>Customizing Tracing</h4>
+	<h4><a id="custom">Customizing Tracing</a></h4>
 	<ul>
-	<li>Show Trace: <br>
+	<li><a id="show">Show Trace: </a><br>
 			If the checkbox is selected, the trace window will open and a detailed trace of the instructions is printed when the program stops or hits a tracepoint. Otherwise, the program will run silent.
 			<p>
-	<li>Break at Main: <br>
+	<li><a id="breakm">Break at Main: </a><br>
 			If this checkbox is selected, a breakpoint is added automaticaly 
 			at <tt>Main</tt>. So the program will stop as soon as it enters the 
 			Main program.
 			<P>
-	<li>Break after instruction: or<br>
-	<li>Break before instruction:<br> 
+	<li><a id="breaka">Break after instruction: or</a><br>
+	<li><a id="breakb">Break before instruction:</a><br> 
 			Here you can select whether the program stops before or 
 			after executing the instruction. 
 			This applies to breakpoints as well as to single stepping.
@@ -66,14 +42,14 @@
 			that you can inspect registers and memory before the instruction, 
 			that advance the program to the next instruction and see the changes. 
 			It can also be convenient to stop at a branch instruction before it 
-			gets executet and then see where it will take the machine.
+			gets executed and then see where it will take the machine.
 			<P>
-    <li>Enable stack tracing:<br>
+    <li><a id="enable">Enable stack tracing:</a><br>
     If this box is checked, the trace will show details of the hidden register stack
      while tracing. This is equivalent to the -r option of the mmix simulator.
      <p>
-	<li>Trace exceptions:<img src="exceptions.jpg" alt="" height="279" width="375" align="right" border="0" hspace="20"><br>
-			If this boy is checked, all instructions that cause an arithmetic 
+	<li><a id="tracee">Trace exceptions:</a><img src="exceptions.jpg" alt="" height="279" width="375" align="right" border="0" hspace="20"><br>
+			If this box is checked, all instructions that cause an arithmetic 
 			exception will be shown in the trace. This is equivalent to the -e 
 			option of the mmix simulator. 
 			<p>
@@ -85,11 +61,15 @@
 			that lets you select or deselect the various arithmetic exceptions 
 			for tracing.
 			<p>
-	<li>Warn if no application:<br>
+	<p><li><a id="debugos">Debug Operating System:</a><br>
+	If this box is checked the Operating System is also debuggable. If your focus lies on debugging your program it's important to uncheck this box.</li>
+	<p><li><a id="showstats">Show Statistics:</a><br>
+		If this box is checked you can see statistics after each instruction in the output window.</li>
+	<p><li><a id="warnifno">Warn if no application:</a><br>
 	If this box is checked, the debugger will issue a warning message 
 	when you try to start a program, but no file is selected for loading into memory.
 	To select a file for loading, or change this selection use the <a href="sources.html">Sources Dialog Box</a>.
 	<p>
-	<li> The Auto-Close feature for the debug windows is not yet implemented.
+	<li><a id="autoclose"> The Auto-Close feature for the debug windows is not yet implemented.</a>
 	</ul>
 </body>

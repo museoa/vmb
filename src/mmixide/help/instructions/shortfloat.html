@@ -1,45 +1,60 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
 
-<h4>Conversion of Short Floats</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Conversion">	
-	<param name="Keyword" value="Short Float">	
-	<param name="Keyword" value="SFLOT">
-	<param name="Keyword" value="SFLOTU">
-</OBJECT>
+    <h4>Conversion of Short Floats</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Conversion">	
+        <param name="Keyword" value="Short Float">	
+        <param name="Keyword" value="SFLOT">
+        <param name="Keyword" value="SFLOTU">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-     <a name="SFLOT" id="SFLOT">SFLOT</a> $X,$Z or SFLOT $X,Z
- <br><a name="SFLOTU" id="SFLOTU">SFLOTU</a> $X,$Z or SFLOTU $X,Z
- <p>
-<B>Specification:</B>
-<table cellspacing=5 >
+    <B>Name:</B>
+    <p>
+        <a name="SFLOT" id="SFLOT">SFLOT</a> $X,$Z or SFLOT $X,Z
+        <br><a name="SFLOTU" id="SFLOTU">SFLOTU</a> $X,$Z or SFLOTU $X,Z
+    <p>
+        <B>Specification:</B>
+    <table cellspacing=5 >
 
-<tr><td>SFLOT:  <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; s($Z)
-<tr><td>SFLOTU: <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; u($Z)
+        <tr><td>SFLOT:  <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; s($Z)
+        <tr><td>SFLOTU: <td>f($X)  </td><td> &larr; f(T)  </td><td> &larr; u($Z)
     </table><p>
-<B>Timing:</B>
+        <B>Timing:</B>
+    <p>
+        4&upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Converts an integer number to 32-bit IEEE floating point format.
+        The number is first converted to T, a 32-bit intermediate value.
+        This conversion might cause rounding. After this conversion, the
+        number T is extended to a 64-bit floating point number.
+        The Y-operand may contain a rounding mode similar to the FLOT instruction.
+    <p>
+
+
+    <table border=1 cellspacing="4" cellpadding="4">
+
+        <tr><td>SFLOT | SFLOTU</td> <td><i>"convert fixed to short float (unsigned)"</i>.
+                The SFLOT instructions are like the <a href="flot.html">FLOT</a> instructions, except that they round to a floating point number
+                whose fraction part is a multiple of 2<sup>-23</sup>
+                . (Thus, the resulting value will not be changed by a "store short
+                float" instruction.) Such conversions appear in MMIX's repertoire only to establish complete conformance
+                with the IEEE standard; a programmer needs them only when emulating a 32-bit machine.
+                
+            </td></tr>
+
+    </table>
 <p>
-4&upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Converts an integer number to 32-bit IEEE floating point format.
-The number is first converted to T, a 32-bit intermediate value.
-This conversion might cause rounding. After this conversion, the
-number T is extended to a 64-bit floating point number.
-The Y-operand may contain a rounding mode similar to the FLOT instruction.
-  <p>
-<B>See also:</B>
-<p>
-<a href="flot.html">FLOT</a> and <a href="flot.html">FLOTU</a>.
-                                                                                                    
+    <B>See also:</B>
+    <p>
+        <a href="flot.html">FLOT</a> and <a href="flot.html">FLOTU</a>.
+
 </body>
 

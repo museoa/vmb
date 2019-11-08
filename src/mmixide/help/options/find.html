@@ -2,21 +2,7 @@
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="\\">
-	<param name="Keyword" value="\n">
-	<param name="Keyword" value="\r">
-	<param name="Keyword" value="\xFF">
-	<param name="Keyword" value="\t">
-	<param name="Keyword" value="Ctrl-F">
-	<param name="Keyword" value="Ctrl-G">
-	<param name="Keyword" value="Ctrl-H">
-	<param name="Keyword" value="Find">
-	<param name="Keyword" value="Match case">
-	<param name="Keyword" value="Replace">
-	<param name="Keyword" value="Whole word">
-	<param name="Keyword" value="Wrap around">
-</OBJECT>
+
 
 	<h2>Find and Replace</h2>
 	<p><img src="findreplace.png" alt="" height="193" width="561" border="0"></p>
@@ -29,27 +15,27 @@
     <li>by typing Ctrl-F.
     </ul>
     
-	<h3>Find</h3>
-	<p>Enter the string you want to find in the `Find´ edit box and click the `Find Next´ Button to find the next occurence of the string in the text; click the `Find Previous´ Button to search backwards for a previous occurence of the search string. </p>
-	<p>You can repeat the last search operation using `Find Again´ or simply by typing Ctrl-G.</p>
-	<h3>Replace</h3>
-	<p>To replace a string, enter a replacement text in the `Replace´ edit box; then click the `Find´ Butten one or more times to move the selection in the editor to an occurrence of the find string; and finally press the `Replace´ Button. Pressing the `Replace´ Button will replace the selected occurrence of the find string and automatically advance the selection to the next occurrence of the find string. This is the interactive mode of replacing. If you click the `Replace All´ button, all occurrences of the find string will be replaced immediately.</p>
-	<p>Instead of clicking the  `Replace´ Button, you can use the `Replace Again´ entry in the Edit menu or simply type Ctrl-H.</p>
-	<h3>Match case</h3>
-	<p>If this box is checked, the assembler will produce a listing file. The name of the listing file is the name of the source file with the extension `<tt>.mms</tt>´ replaced by `<tt>.mml</tt>´.</p>
-	<h3>Match whole word</h3>
+	<h3><a id="find">Find</a></h3>
+	<p>Enter the string you want to find in the 'Find' edit box and click the 'Find Next' Button to find the next occurence of the string in the text; click the 'Find Previous' Button to search backwards for a previous occurence of the search string. </p>
+	<p>You can repeat the last search operation using 'Find Again' or simply by typing Ctrl-G.</p>
+	<h3><a id="replace">Replace</a></h3>
+	<p>To replace a string, enter a replacement text in the 'Replace' edit box; then click the 'Find' Butten one or more times to move the selection in the editor to an occurrence of the find string; and finally press the 'Replace' Button. Pressing the 'Replace' Button will replace the selected occurrence of the find string and automatically advance the selection to the next occurrence of the find string. This is the interactive mode of replacing. If you click the 'Replace All' button, all occurrences of the find string will be replaced immediately.</p>
+	<p>Instead of clicking the  'Replace' Button, you can use the 'Replace Again' entry in the Edit menu or simply type Ctrl-H.</p>
+	<h3><a id="matchc">Match case</a></h3>
+	<p>If this box is checked, the assembler will produce a listing file. The name of the listing file is the name of the source file with the extension '<tt>.mms</tt>' replaced by '<tt>.mml</tt>'.</p>
+	<h3><a id="matchw">Match whole word</a></h3>
 	<p>If this box is checked, the search will find an occurence of the find string only, if it delimited in the text by non-word characters. Non-word characters are all characters, except alpha-numeric characters, the underscore character and characters with ASCII codes above 0x7F (these are considered characters of foreign alphabets).</p>
-	<h3>Use \t, \n, \r, \xFF</h3>
-	<p>If you check this box, the backslash character `\´ is used as an escape character. But why do you need an escape character?</p>
-	<p>Non printing characters are difficult or impossible to enter as part of a search or replacement string. For instance you can not type a TAB character in the `Find´ edit box, because when you hit the TAB key, the cursor will just leave the edit box and jump to the next user interface item. To make it possible to enter and see these special characters, the backslash character can be used as an escape character. </p>
+	<h3><a id="use">Use \t, \n, \r, \xFF</a></h3>
+	<p>If you check this box, the backslash character '\' is used as an escape character. But why do you need an escape character?</p>
+	<p>Non printing characters are difficult or impossible to enter as part of a search or replacement string. For instance you can not type a TAB character in the 'Find' edit box, because when you hit the TAB key, the cursor will just leave the edit box and jump to the next user interface item. To make it possible to enter and see these special characters, the backslash character can be used as an escape character. </p>
 	<p>When the backslash character is an escape character, you can type</p>
 	<p>\t for the TAB character (ASCII code 0x08)</p>
 	<p>\n for the NL (newline) character (ASCII code 0x0A)</p>
 	<p>\r for the CR (cariage return) character  (ASCII code 0x0D)</p>
-	<p>\xFF where FF are two hexadecimal digits (`0´ to `9´ and `A´ to `F´ or `a´ to `f´) for the character with the given ASCII code.</p>
+	<p>\xFF where FF are two hexadecimal digits ('0' to '9' and 'A' to 'F' or 'a' to 'f') for the character with the given ASCII code.</p>
 	<p>\\ for the backslash character itself.</p>
 	<p>If any other character follows a backslash, the backslash is simply ignored.</p>
-	<h3>Wrap around</h3>
+	<h3><a id="wrap">Wrap around</a></h3>
 	<p>If this box is checked, a forward search that reaches the end of the text will start searching at the beginning of the text; similarly, a backward search that reaches the beginning of the text will continue searching from the end of the text.</p>
 	<p></p>
 </body>

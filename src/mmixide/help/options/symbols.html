@@ -1,27 +1,17 @@
 <head>
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Symbol Table">
-	<param name="Keyword" value="Symbol Table Options">
-	<param name="Keyword" value="Local symbol">
-	<param name="Keyword" value="Show locals">
-	<param name="Keyword" value="Global symbols">
-	<param name="Keyword" value="Small values">
-	<param name="Keyword" value="Registers">
-	<param name="Keyword" value="Show Registers">
-	<param name="Keyword" value="Show small values">
-</OBJECT><body>
+<body>
 	<h3>The MMIX Symbol Table Options</h3>
 	<p><img src="symbols.png" alt="" border="0"></p>
 	<p></p>
 	<p>You reach the MMIX symbols options through the Options menu.</p>
 	<p>Even mid-sized MMIX programs contain large numbers of symbols, that can be shown in the <a href="../debugger/symbols.html">symbol table window</a>. To select which symbols you want to see here, there are three check boxes. Symbol table support is currently not yet perfect. But you can open a symbol table view and scroll any symbol into the edit window by clicking on it.</p>
-	<h4>Show Locals</h4>
+	<h4><a id="local">Show Locals</a></h4>
 	<p>A simple heuristic is used to determine what is a local smbol: global symbols contain only a single colon as the first character. This first caracter is usually not shown.</p>
 	<p>If this box is checked, local symbols (containing more than one colon) are shown.</p>
-	<h4>Show Registers</h4>
+	<h4><a id="register">Show Registers</a></h4>
 	<p>If this box is checked, symbols that name registers are shown.</p>
-	<h4>Show small values</h4>
+	<h4><a id="small">Show small values</a></h4>
 	<p>Symbols are mainly used for code and data locations. Code locations are typically at #100 and above, data locations are typically above #2000 0000 0000 0000. Symbols that name small values are often not of interest; they are shown only if this box is checked.</p>
 </body>

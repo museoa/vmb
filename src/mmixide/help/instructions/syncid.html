@@ -1,25 +1,40 @@
 <head>
-<link rel="stylesheet" type="text/css" href="../mmixide.css">
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
 <body>
 
 
-<h4>SYNCID</h4>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="SYNCID">
-</OBJECT>
+    <h4>SYNCID</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="SYNCID">
+    </OBJECT>
 
 
-  <B>Name:</B>
-<p>
-<a name="SYNCID" id="SYNCID">SYNCID</a> X,$Y,$Z
- <p>
-<B>Timing:</B>
-<p>
-SYNCID: &upsilon;
-  <p>
-<B>Description:</B>
-<p>
-Synchronize instruction and data cache in the region
-$Y+$Z to X+$Y+$Z.
+    <B>Name:</B>
+    <p>
+        <a name="SYNCID" id="SYNCID">SYNCID</a> X,$Y,$Z
+    <p>
+        <B>Timing:</B>
+    <p>
+        SYNCID: &upsilon;
+    <p>
+        <B>Description:</B>
+    <p>
+        Synchronize instruction and data cache in the region
+        $Y+$Z to X+$Y+$Z.
+    <p><table border=1 cellspacing="4" cellpadding="4">
+        <tr><td>SYNCID:</td> 
+            <td><i>"Synchronize instructions and data"</i> <br>When executed from nonnegative locations these instructions have no effect on registers or memory if the
+                computer has no instruction cache separate from a data cache. But when such a cache exists, they force the
+                computer to make sure that the X + 1 bytes M[$Y + $Z] through M[$Y + $Z + X], or M[$Y + Z] through
+                M[$Y +Z+X], will be interpreted correctly if used as instructions before they are next modified. (Generally
+                speaking, an MMIX program is not expected to store anything in memory locations that are also being used
+                as instructions. Therefore MMIX's instruction cache is allowed to become inconsistent with respect to its
+                data cache. Programmers who insist on executing instructions that have been fabricated dynamically, for
+                example when setting a breakpoint for debugging, must first SYNCID those instructions in order to guarantee
+                that the intended results will be obtained.) A SYNCID command might be implemented in several ways; for
+                example, the machine might update its instruction cache to agree with its data cache. A simpler solution,
+                which is good enough because the need for SYNCID ought to be rare, removes instructions in the specified
+                range from the instruction cache, if present, so that they will have to be fetched from memory the next time.</tr>
+    </table>
 </body>

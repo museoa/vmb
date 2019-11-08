@@ -38,7 +38,7 @@
 This instruction are used to load 16-bit constants.
 Either the two highest(High), the second highest (Medium High),
   the second lowest (Medium Low), or the lowest(Low) two byte can be loaded.
-  All other bytes of the result are set to zero.
+  All other bytes of the result are set to zero.</br></br>(<b>Consider</b>: Using two or more of these instructions doesn't work because it sets the two set bytes of the previous instruction to 0. Instead use the instruction that can be found in the description at <a href="orh.html">ORH</a>)
 <p>
 The instruction SET $X,YZ is assembled as SETL $X,YZ.
   <p>

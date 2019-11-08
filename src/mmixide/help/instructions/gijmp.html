@@ -1,0 +1,75 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="../mmixide.css">
+</head>
+<body>
+
+    <h4>Jumps with Absolute Addresses</h4>
+    <Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
+        <param name="Keyword" value="Absolute Address">
+        <param name="Keyword" value="Jump">
+        <param name="Keyword" value="Branch">
+    </OBJECT>
+
+    <B>General Information:</B>
+    <p>
+    <table cellspacing=5 >
+        <tr><td>MMIX ordinarily executes instructions in sequence, proceeding from an
+                instruction in tetrabyte M<sub>4</sub>
+                [&lambda;] to the instruction in M<sub>4</sub>
+                [&lambda; + 4]. But there are several ways to interrupt
+                the normal flow of control, most of which use the Y and Z fields of an instruction as a combined 16-bit YZ
+                field. For example, BNZ $3,@+4000 (branch if nonzero) is typical: It means that control should skip ahead
+                1000 instructions to the command that appears 4000 bytes after the BNZ, if register 3 is not equal to zero.
+                There are eight branch-forward instructions, corresponding to the eight conditions in the CS and ZS
+                commands that we discussed earlier. And there are eight similar branch-backward instructions; for example,
+                BOD $2,@-4000 (branch if odd) takes control to the instruction that appears 4000 bytes before this BOD
+                command, if register 2 is odd. The numeric OP-code when branching backward is one greater than the
+                OP-code when branching forward; the assembler takes care of this automatically, just as it takes cares of
+                changing ADD from 32 to 33 when necessary.</br></br>
+                Since branches are relative to the current location, the MMIX assembler treats branch instructions in a
+                special way. Suppose a programmer writes <i>"BNZ $3,Case5"</i>, where Case5 is the address of an instruction
+                in location l. If this instruction appears in location &lambda;, the assembler first computes the displacement
+                <i>&sigma; = b (l - &lambda;) / 4c</i>. Then if &sigma; is nonnegative, the quantity &sigma; is placed in the YZ field of a BNZ command,
+                and it should be less than 2<sup>16</sup>; if &sigma; is negative, the quantity 2<sup>16</sup> + &sigma; is placed in the YZ field of a BNZ
+                command with OP-code increased by 1, and &sigma; should not be less than -2<sup>16</sup>.
+                The symbol @ used in our examples of BNZ and BOD above is interpreted by the assembler as an abbreviation
+                for "the location of the current instruction." In the following notes we will define pairs of branch commands by
+                writing, for example, <i>"BNZ $X,@+4*YZ [-262144]"</i>; this stands for a branch-forward command that branches
+                to the current location plus four times YZ, as well as for a branch-backward command that branches to the
+                current location plus four times (YZ - 65536).</br></br>
+                <i>- BN $X,@+4*YZ [-262144] "branch if negative".</br>
+                - BZ $X,@+4*YZ [-262144] "branch if zero".</br>
+                - BP $X,@+4*YZ [-262144] "branch if positive".</br>
+                - BOD $X,@+4*YZ [-262144] "branch if odd".</br>
+                - BNN $X,@+4*YZ [-262144] "branch if nonnegative".</br>
+                - BNZ $X,@+4*YZ [-262144] "branch if nonzero".</br>
+                - BNP $X,@+4*YZ [-262144] "branch if nonpositive".</br>
+                - BEV $X,@+4*YZ [-262144] "branch if even".</br></br></i>
+                If register $X is respectively negative, zero, positive, odd, nonnegative, nonzero, nonpositive, or even, and if
+                this instruction appears in memory location &lambda;, the next instruction is taken from memory location &lambda; + 4YZ
+                (branching forward) or &lambda; + 4(YZ - 2<sup>16</sup>) (branching backward). Thus one can go from location &lambda; to any
+                location between &lambda; - 262,144 and &lambda; + 262,140, inclusive.
+                Sixteen additional branch instructions called probable branches are also provided. They have exactly the
+                same meaning as ordinary branch instructions; for example, PBOD $2,@-4000 and BOD $2,@-4000 both go
+                backward 4000 bytes if register 2 is odd. But they differ in running time: On some implementations of MMIX,
+                a branch instruction takes longer when the branch is taken, while a probable branch takes longer when the
+                branch is not taken. Thus programmers should use a B instruction when they think branching is relatively
+                unlikely, but they should use PB when they expect branching to occur more often than not. Here is a list of
+                the probable branch commands, for completeness:</br></br>
+               <i>- PBN $X,@+4*YZ [-262144] "probable branch if negative".</br>
+                - PBZ $X,@+4*YZ [-262144] "probable branch if zero".</br>
+                - PBP $X,@+4*YZ [-262144] "probable branch if positive".</br>
+                - PBOD $X,@+4*YZ [-262144] "probable branch if odd".</br>
+                - PBNN $X,@+4*YZ [-262144] "probable branch if nonnegative".</br>
+                - PBNZ $X,@+4*YZ [-262144] "probable branch if nonzero".</br>
+                - PBNP $X,@+4*YZ [-262144] "probable branch if nonpositive".</br>
+                - PBEV $X,@+4*YZ [-262144] "probable branch if even".</br></i>
+    </table>
+    <p>
+     <B>See also:</B>
+    <p><a href="jmp.html">Jumps with Relative Addresses</a>, <a href="go.html">Jumps with Absolute Addresses</a>,
+        <a href="branch.html">Branches</a>, <a href="cset.html">Conditional Assignments</a>
+
+
+
+</body>

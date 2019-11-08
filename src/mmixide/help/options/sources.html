@@ -1,39 +1,28 @@
 <head>
 <link rel="stylesheet" type="text/css" href="../mmixide.css">
 </head>
-<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e">
-	<param name="Keyword" value="Sources Options">
-	<param name="Keyword" value="Single source file">
-	<param name="Keyword" value="Multiple source files">
-	<param name="Keyword" value="Load single file">
-	<param name="Keyword" value="Load multiple files">
-	<param name="Keyword" value="Add file">
-	<param name="Keyword" value="File Tabs">
-	<param name="Keyword" value="Editor">
-	<param name="Keyword" value="Assemble File">
-	<param name="Keyword" value="Load File">
-	<param name="Keyword" value="Symbol table">
-	<param name="Keyword" value="Full file name">
-	<param name="Keyword" value="Execute command">
-</OBJECT>
+
 <body>
 	<h3>The MMIX Sources Options</h3>
 	<p><img src="source.png" alt="" border="0"></p>
 	<p></p>
 	<p>You reach the MMIX sources options through the Options menu.</p>
-	<h4>Load single file</h4>
+	<h4><a id="load">Load single file</a></h4>
 	<p>In a typical MMIX setting, the complete MMIX program is contained in a single source file. If this box is checked, the check boxes below will be set automatically in such a way, that only one source file will be assembled and loaded. If this box is unchecked you are free to assemble and load as many files you want (even none at all). You should then know what you do. Note that programs are loaded into memory using the XOR operation.</p>
-	<h4>Add file</h4>
+	<h4><a id="add">Add file</a></h4>
 	<p>Pressing the Add File button will allow you to browse your disk and add files to the editor.</p>
-	<h4>File Tabs</h4>
+	<h4><a id="tabs">File Tabs</a></h4>
 	<p>For each file open in the editor, the tab contoll below will contain one page. Files that are loaded when the debugger starts are marked by a red dot next to the file name.</p>
-	<h4>Full File Name</h4>
+	<h4><a id="ffn">Full File Name</a></h4>
 	<p>The first entry on each page shows the full file name, </p>
-	<h4>Assemble and read symbol table</h4>
+	<h4><a id="aarst">Assemble and read symbol table</a></h4>
 	<p>If this box is checked, the source file will be assembled and its symbols will be read into the symbol table.</p>
-	<h4>Execute command</h4>
+	<h4><a id="load">Load mmo file</a></h4>
+	<p>If this box is checked, the obejct file produced by the assembler will be loaded into memory. Only one object file can be loaded into memory at once.</p>
+	<p>Checking this box while the 'Load single file' is checked will cause the same check box for all other files to be unchecked.</p>
+	<h4><a id="create">Create image file</a></h4>
+	<p>If this box is checked an image file is created. This is used for assembling and running your own BIOS file.</p>
+	<h4><a id="execute">Execute command</a></h4>
 	<p>If this box is checked, the following edit box is enabled. You can type any command here. The command will be executed after the source file has been assembled. You man define here some postprocessing.</p>
-	<h4>Load mmo file</h4>
-	<p>If this box is checked, the obejct file produced by the assembler will be loaded into memory.</p>
-	<p>Checking this box while the ``Load single file´´ is checked will cause the same check box for all other files to be unchecked.</p>
+	
 </body>

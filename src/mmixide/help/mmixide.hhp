@@ -1,0 +1,17 @@
+[OPTIONS]
+Auto Index=Yes
+Compatibility=1.1 or later
+Compiled file=mmixide.chm
+Contents file=mmixide.hhc
+Default topic=help\mmixide.html
+Display compile progress=No
+Full-text search=Yes
+Index file=mmixide.hhk
+Language=0x407 Deutsch (Deutschland)
+
+
+[FILES]
+help\mmixide.html
+
+[INFOTYPES]
+
