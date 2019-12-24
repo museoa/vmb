@@ -6,6 +6,7 @@ extern int max_opcode_indent;
 extern int max_arg_indent;
 extern int use_tab_indent;; /* whether to use tabs or spaces */
 extern int use_crlf; /* Use CR LF to end a line */
+extern int fix_comment; /* Indent full line comments */
 
 
 void indent(int file_no);

@@ -16,7 +16,7 @@ static int arg_size=16; /*measured characters for the arguments column */
 static int op_size=7;   /* size of the op column */
 int use_tab_indent=1; /* whether to use tabs or spaces */
 int use_crlf=1; /* Use CR LF to end a line */
-unsigned char line_comment; /* character to use for line comments */
+int fix_comment=0; /* Indent full line comments */
 
 static unsigned char *buffer=NULL; /* buffer to hold entire text */
 static unsigned int buffer_size=0;
@@ -133,7 +133,8 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
 				 int slabel, /* size of the label column in characters, multible of stab*/
 				 int sop,  /* size of the op column in characters, multible of stab*/			
 				 int sarg,  /* size of the arg column in characters, multible of stab*/
-				 unsigned char tab) /* tab character */ 
+				 unsigned char tab, /* tab character */ 
+				 int fix_comment) /* whether to fix full line comments */
 /* input and output buffer may overlap. out <= in
    in must point to the start of a line.
    pretty printing stops when out==in 
@@ -144,11 +145,12 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
 #define EOF       if (*in==0) {TRIM; *out=0; return NULL; }
 #define EOL			if (*in=='\n') { TRIM; CRLF;  continue; }
 #define OOM       if (out>=in) return out
-#define COPY      do { *out++=*in++; pos++; OOM; EOF;} while (!isspace(*in)) 
-#define COPYTONL    do { *out++=*in++; OOM; EOF;} while (*in!='\n'); TRIM; CRLF;
+#define COPY1     *out++=*in++,pos++
+#define COPY      do { COPY1; OOM; EOF;} while (!isspace(*in)) 
+#define COPY_TO_NL    do { COPY1; OOM; EOF;} while (*in!='\n'); TRIM; CRLF;
 #define SPACE     while (isblank(*in)) in++ 
-#define SKIPTO(i) pos=pos -pos%stab; do { *out++=tab; pos=pos+stab; OOM; } while (pos<(i))
-#define COPYTO(t) do { *out++=*in++; pos++; OOM; EOF;} while (in < t);
+#define SKIP_TO(i) pos=pos -pos%stab; do { *out++=tab; pos=pos+stab; OOM; } while (pos<(i))
+#define COPY_TO(t) do { COPY1; OOM; EOF;} while (in < t);
 
 { int iarg=slabel+sop;
   int icomment=iarg+sarg;
@@ -157,11 +159,16 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
   { int pos=0; /* position in line out */
     EOF;
 	if (isletter(*in)||isdigit(*in)) COPY; /* label */
-	else if (!isspace(*in)) { COPYTONL; continue; } /*comment*/
+	else if (!isspace(*in)) /*line starts with comment */
+	{ if (fix_comment)
+	  { COPY1; EOF; SPACE; SKIP_TO(slabel); }
+	  COPY_TO_NL; 
+	  continue; 
+	} 
 	SPACE;
 	EOF;
 	EOL;
-	SKIPTO(slabel); 
+	SKIP_TO(slabel); 
 	if (isletter(*in)||isdigit(*in))
 		do { 
 			*out++=*in++; 
@@ -170,18 +177,18 @@ static unsigned char *pretty_print(unsigned char *out, /* output buffer */
 			EOF;
 		} while (!isspace(*in)); 
 			//COPY; /* op */
-	else { COPYTONL; continue; } /* indented comment */
+	else { COPY_TO_NL; continue; } /* indented comment */
     SPACE;
 	EOF;
 	EOL;
-	SKIPTO(iarg);
+	SKIP_TO(iarg);
     t =in+argsize(in);
-	COPYTO(t);
+	COPY_TO(t);
 	SPACE;
 	EOF;
 	EOL;
-	SKIPTO(icomment);
-	COPYTONL;
+	SKIP_TO(icomment);
+	COPY_TO_NL;
   }
   return out;
 }
@@ -206,7 +213,7 @@ void indent(int file_no)
     label_size=tabsize*((label_size+tabsize)/tabsize);
     arg_size=tabsize*((arg_size+tabsize)/tabsize);
     op_size=tabsize*((op_size+tabsize)/tabsize);
-    eob=pretty_print(buffer,in,tabsize,label_size,op_size,arg_size,use_tab_indent?'\t':' ');
+    eob=pretty_print(buffer,in,tabsize,label_size,op_size,arg_size,use_tab_indent?'\t':' ',fix_comment);
     if (eob==NULL) 
 	{ put_buffer(file_no);
 	  return;

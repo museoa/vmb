@@ -164,7 +164,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,7,98,165,10
 END
 
-IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 181
+IDD_OPTIONS_EDITOR DIALOGEX 0, 0, 186, 192
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editor Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -174,7 +174,7 @@ BEGIN
     CONTROL         "Allways save changed files",IDC_CHECK_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,101,10
     CONTROL         "Show line numbers",IDC_CHECK_LINENO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,19,75,10
     CONTROL         "Show profile",IDC_CHECK_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,31,55,10
-    GROUPBOX        "Layout and Pretty Printing",IDC_STATIC,7,58,172,116
+    GROUPBOX        "Layout and Pretty Printing",IDC_STATIC,7,55,172,130
     EDITTEXT        IDC_TABWIDTH,14,72,30,14,ES_RIGHT | ES_AUTOHSCROLL
     CONTROL         "",IDC_SPIN_TABWIDTH,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,72,11,14
     LTEXT           "Tabulator width",IDC_STATIC,48,75,51,8
@@ -189,6 +189,7 @@ BEGIN
     CONTROL         "",IDC_SPIN_ARG,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,33,140,11,14
     LTEXT           "Maximum argument width",IDC_STATIC,46,143,82,8
     CONTROL         "Use CR LF for line ends",IDC_USE_CRLF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,158,95,10
+    CONTROL         "Indent full line comments",IDC_FIX_COMMENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,171,95,10
 END
 
 IDD_SHOW_SPECIAL DIALOGEX 0, 0, 183, 395
@@ -323,7 +324,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 179
         TOPMARGIN, 7
-        BOTTOMMARGIN, 174
+        BOTTOMMARGIN, 185
     END
 
     IDD_SHOW_SPECIAL, DIALOG
@@ -423,7 +424,7 @@ END
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
-// Generated from the TEXTINCLUDE 3 resource.h
+// Generated from the TEXTINCLUDE 3 resource.
 //
 #include "vmb_vd.rc"
 /////////////////////////////////////////////////////////////////////////////

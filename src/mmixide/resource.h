@@ -170,6 +170,8 @@
 #define IDC_CHECK_AUTOCLOSE_ERRORS2     1061
 #define IDC_CHECK_IMPRECISE             1061
 #define IDC_READ                        1062
+#define IDC_USE_CRLF2                   1062
+#define IDC_FIX_COMMENT                 1062
 #define IDC_WRITE                       1063
 #define IDC_CHECK_EXCEPTIONS            1064
 #define IDC_TRACE                       1066

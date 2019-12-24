@@ -45,6 +45,7 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  SendMessage(GetDlgItem(hDlg,IDC_SPIN_ARG),UDM_SETRANGE,0,(LPARAM) MAKELONG (64,0));
 	  CheckDlgButton(hDlg,IDC_USE_TABS,use_tab_indent?BST_CHECKED:BST_UNCHECKED);
 	  CheckDlgButton(hDlg,IDC_USE_CRLF,use_crlf?BST_CHECKED:BST_UNCHECKED);
+	  CheckDlgButton(hDlg,IDC_FIX_COMMENT,fix_comment?BST_CHECKED:BST_UNCHECKED);
       return TRUE;
     case WM_SYSCOMMAND:
       if( wparam == SC_CLOSE ) 
@@ -69,6 +70,7 @@ OptionEditorDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
         max_arg_indent=GetDlgItemInt(hDlg,IDC_ARG_WIDTH,NULL,FALSE);
 		use_tab_indent =IsDlgButtonChecked(hDlg,IDC_USE_TABS);
 		use_crlf =IsDlgButtonChecked(hDlg,IDC_USE_CRLF);
+		fix_comment =IsDlgButtonChecked(hDlg,IDC_FIX_COMMENT);
 		EndDialog(hDlg, TRUE);
         return TRUE;
       } 
