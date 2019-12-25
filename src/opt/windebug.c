@@ -132,14 +132,14 @@ DebugDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
       if (p->code == TCN_SELCHANGE) 
       { int i = TabCtrl_GetCurSel (GetDlgItem (hDlg, IDC_TAB_DEBUG));
 	    ShowWindow(hLog,i==0?SW_SHOW:SW_HIDE);
-        ShowWindow(hFilter,i==1?SW_SHOW:SW_HIDE);
-		ShowWindow(hMemory,(i!=extraTabCtrl && i>1)?SW_SHOW:SW_HIDE); 
         ShowWindow(hExtraDebug,i==extraTabCtrl?SW_SHOW:SW_HIDE);
 	    if (i==1) show_filter();
 		else if (i>1 && i!=extraTabCtrl)
 		{ cur_insp=i-2;
 		  SetInspector(hMemory, &inspector[cur_insp]);
 		}
+        ShowWindow(hFilter,i==1?SW_SHOW:SW_HIDE);
+		ShowWindow(hMemory,(i!=extraTabCtrl && i>1)?SW_SHOW:SW_HIDE); 
       }
 	}
     break;

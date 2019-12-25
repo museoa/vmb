@@ -23,7 +23,12 @@ void vmb_raise_reset(device_info *vmb)
      /* trigger a hard reset on the bus */
 { send_msg(&(vmb->fd), TYPE_BUS, 0, 0, ID_RESET, 0, 0, 0);
 }
+		
+static void change_event(device_info *vmb, unsigned int *event, unsigned int value);
 
+void vmb_clear_reset(device_info *vmb)
+{ change_event(vmb, &vmb->reset_flag, 0);
+}
 
 #ifndef WIN32
 void clean_up_event_mutex(void *vmb)
@@ -516,15 +521,16 @@ static void dispatch_message(device_info *vmb, unsigned char type,
 	return;
       case ID_RESET:
         change_event(vmb, &vmb->reset_flag, 1);
-	if(vmb->reset) vmb->reset();
+	if(vmb->reset) 
+		vmb->reset();
         return;
       case ID_POWEROFF:
-        vmb->reset_flag = 0;
+		change_event(vmb, &vmb->reset_flag, 0);
         change_event(vmb, &vmb->power,0);
 	    if (vmb->poweroff) vmb->poweroff();
         return;
       case ID_POWERON:
-        vmb->reset_flag = 0;
+		change_event(vmb, &vmb->reset_flag, 0);
         change_event(vmb, &vmb->power, 1);
 		if (vmb->poweron) vmb->poweron();
         return;

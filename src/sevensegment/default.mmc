@@ -1,9 +1,0 @@
-# default.mmc configuration file for  the MMIX hardware
-
-
-port 9002
-host localhost
-
-#if sevensegment
-address 0x0005000000000000
-#endif

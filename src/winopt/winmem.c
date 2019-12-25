@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include <string.h>
 #include <stdio.h>
 #include "resource.h"
@@ -277,34 +278,24 @@ enum mem_fmt get_format(HWND hDlg, int ItemID)
 }
 
 void set_chunk(HWND hDlg,enum chunk_fmt c)
-{ BOOL isbyte, iswyde,istetra,isocta;
-
-  if (c==byte_chunk) isbyte=TRUE, iswyde=istetra=isocta=FALSE;
-  else if (c==wyde_chunk) isbyte=iswyde=TRUE, istetra=isocta=FALSE;
-  else if (c==tetra_chunk) isbyte=iswyde=istetra=TRUE, isocta=FALSE;
-  else if (c==octa_chunk) isbyte=iswyde=istetra=isocta=TRUE;
-  CheckDlgButton(hDlg,IDC_CHECK_BYTE,isbyte?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_WYDE,iswyde?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_BYTE3,istetra?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_TETRA,istetra?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_BYTE5,isocta?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_BYTE6,isocta?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_BYTE7,isocta?BST_CHECKED:BST_UNCHECKED);
-  CheckDlgButton(hDlg,IDC_CHECK_OCTA,isocta?BST_CHECKED:BST_UNCHECKED);
+{ if (c>last_chunk) c=last_chunk;
+  SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETPOS,TRUE,1<<c);
   SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[c]);
 }
 
   
 
 enum chunk_fmt get_chunk(HWND hDlg, int ItemID)
-{ enum chunk_fmt c=undefined_chunk;;
-  if (ItemID ==IDC_CHECK_BYTE)
+{ enum chunk_fmt c=undefined_chunk;
+  int pos;
+  pos=(int)SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_GETPOS,0,0);
+  if (pos<=1)
    c= byte_chunk;
-  else if (ItemID ==IDC_CHECK_WYDE)
+  else if (pos ==2)
    c= wyde_chunk;
-  else if (ItemID ==IDC_CHECK_TETRA)
+  else if (pos <=5)
    c= tetra_chunk;
-  else if (ItemID ==IDC_CHECK_OCTA)
+  else 
    c= octa_chunk;
   return c;
 }
@@ -400,7 +391,10 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 	  break;
     case ascii_format:
       for (j=0;j<chunk_size;j++)
-        if (buf[j]>0x1F && buf[j]<0x7F) str[j]=buf[j]; else str[j]=0x7F;
+        //if (buf[j]>0x1F && buf[j]<0x7F) 
+			str[j]=buf[j]; 
+		//else 
+		//	str[j]=0x7F;
 	  w=chunk_size;
 	  break;
 	case unsigned_format:
@@ -453,6 +447,32 @@ void update_max_regnames(inspector_def *insp)
   insp->address_width=max_regname;
 }
 
+#define HEX_CHAR(X)  ((X)<10?((X)+'0'):((X)+'A'-10))
+void display_ascii(HDC hdc, RECT *r,char *str, int len)
+	   { char hex[2];
+         int i;
+		 HFONT hF;
+		 SetTextAlign(hdc,TA_LEFT|TA_NOUPDATECP);
+		 for (i=0;i<len;i++)
+		 {  r->right=r->left+fixed_char_width;
+		   if (str[i]>=0x20 && str[i]<0x7F)
+		     ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,str+i,1,NULL);
+		   else
+		   { hF=SelectObject(hdc, hNarrowFont);
+			 hex[0]=HEX_CHAR((str[i]>>4)&0xF);
+			 hex[1]=HEX_CHAR(str[i]&0xF);
+			 ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,hex,1,NULL);
+			 r->top=r->top+separator_height;
+			 r->left=r->left+(fixed_char_width+1)/2;
+			 ExtTextOut(hdc,r->left,r->top,ETO_CLIPPED,r,hex+1,1,NULL);
+			 r->top=r->top-separator_height;
+             r->left=r->left-(fixed_char_width+1)/2;
+		     SelectObject(hdc, hF);
+		    }
+			r->left=r->right;
+		 }
+	   }
+
 void display_registers(inspector_def *insp,HDC hdc)
 { 
   int i,k, nr;
@@ -502,8 +522,14 @@ void display_registers(inspector_def *insp,HDC hdc)
        rect.left=x;
        rect.right=x+len*fixed_char_width;
        rect.bottom=y+fixed_line_height-separator_height;
-       ExtTextOut(hdc,x+len*fixed_char_width,y,
+	   if (insp->format==ascii_format)
+         display_ascii(hdc, &rect,str,chunk_size);
+	   else
+         ExtTextOut(hdc,x+len*fixed_char_width,y,
 		   ETO_OPAQUE,&rect,str,(int)strlen(str),NULL);
+	   /* may be I shoud display charactes here and use GetGlyphOutline to get bitmaps of
+	      0-9A-F and display them resized to indicate a non ascii code in HEX
+		  or have a half height/width font and display the HEX codes directly*/
 	   x=x+len*fixed_char_width+separator_width;
 	 }
    } 
@@ -553,7 +579,9 @@ void display_memory(inspector_def *insp,HDC hdc)
        r.left=x;
        r.right=x+insp->column_digits*fixed_char_width;
        r.bottom=y+fixed_line_height-separator_height;
-
+       if (insp->format==ascii_format)
+         display_ascii(hdc, &r,str,chunk_size);
+	   else
        ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
 		   ETO_OPAQUE|ETO_CLIPPED,&r,str,l,NULL);
 	 }
@@ -632,17 +660,21 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 {
   switch ( message )
   { case WM_INITDIALOG :
+      SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETRANGE,TRUE,MAKELONG (0,8));
+      SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,1);
+      SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,2);
+      SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,4);
       if (sb_width==0)
 	  { RECT sbRect;
         GetWindowRect(GetDlgItem(hDlg,IDC_MEM_SCROLLBAR),&sbRect);
         sb_width=sbRect.right-sbRect.left;
 		GetWindowRect(GetDlgItem(hDlg,IDC_CHUNK),&sbRect);
 		top_height=-sbRect.top;
-		GetWindowRect(GetDlgItem(hDlg,IDC_CHECK_BYTE),&sbRect);
+		GetWindowRect(GetDlgItem(hDlg,IDC_SLIDER_CHUNK),&sbRect);
 		top_height = top_height+separator_height*2+sbRect.bottom;
 	  }
-	  set_format(hDlg,hex_format);
-	  set_chunk(hDlg,octa_chunk);
+//	  set_format(hDlg,hex_format);
+//	  set_chunk(hDlg,octa_chunk);
 	  hDataEditInstance=hInst;
 	  register_subwindow(hDlg);
 	  return FALSE;
@@ -686,15 +718,9 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	  }
 	  else if (HIWORD(wparam) == BN_CLICKED) 
 	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
-	    enum chunk_fmt cf;
 		enum mem_fmt mf;
 	    if (insp==NULL) return FALSE;
-        if ((cf=get_chunk(hDlg,LOWORD(wparam)))!=undefined_chunk)
-		{ insp->chunk=cf;
-		  set_chunk(hDlg,cf);
-     	  resize_memory_dialog(insp);
-		}
-        else if ((mf=get_format(hDlg,LOWORD(wparam)))!=undefined_format)
+        if ((mf=get_format(hDlg,LOWORD(wparam)))!=undefined_format)
 	    { insp->format=mf;
 		  if (insp->format==float_format && insp->chunk<tetra_chunk)
 		  { insp->chunk=tetra_chunk;
@@ -704,7 +730,46 @@ MemoryDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 	    } 
 	  }
 	  return FALSE;
-	case WM_VSCROLL: 
+	case WM_HSCROLL: /* chunk trackbar */
+		{  inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+	       int c, v;
+
+		   if (insp==NULL) return FALSE;
+		  c=LOWORD(wparam);
+		  v=HIWORD(wparam);
+		 
+		  if (c==SB_LINELEFT || c==SB_PAGELEFT)
+		  {	
+		  if (insp->chunk>byte_chunk) insp->chunk--;
+		  }
+		  else if (c==SB_LINERIGHT || c==SB_PAGERIGHT)
+		  { 
+			  if (insp->chunk<octa_chunk) insp->chunk++;
+		   
+		  }
+		  else if (c==SB_THUMBTRACK)
+		  { if (v==0||v==1) v=byte_chunk;
+		    else if (v==2) v=wyde_chunk;
+		    else if (v==3||v==4||v==5) v=tetra_chunk;
+		    else v=octa_chunk;
+			SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[v]);
+			return TRUE;
+	      }
+		  else if (c==SB_THUMBPOSITION)
+		  { if (v==0||v==1) insp->chunk=byte_chunk;
+		    else if (v==2) insp->chunk=wyde_chunk;
+		    else if (v==3||v==4||v==5) insp->chunk=tetra_chunk;
+		    else insp->chunk=octa_chunk;
+	      }
+		  else if (c==SB_ENDSCROLL)
+			   return TRUE;
+		  else
+			  return TRUE;
+		  set_chunk(hDlg,insp->chunk);
+		  resize_memory_dialog(insp);
+		}
+		return TRUE;
+	case WM_VSCROLL: /* memmory scrollbar */ 
 	  { inspector_def *insp=(inspector_def *)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
 	    if (insp==NULL) return FALSE;
         sb_move(insp,wparam);

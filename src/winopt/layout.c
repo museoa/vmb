@@ -7,6 +7,7 @@
 /* these depend only on the font, which is the same for all inspectors */
 
 HFONT hFixedFont=NULL;
+HFONT hNarrowFont=NULL;
 HFONT hVarFont=NULL;
 HFONT hGUIFont=NULL;
 int fixed_line_height=10;
@@ -28,7 +29,7 @@ static int dpi;
 static LOGFONT varlf={0};
 void set_var_font(int fontsize)
 { if (hVarFont!=NULL) { DeleteObject(hVarFont); hVarFont=NULL; }
-  varlf.lfHeight = -((fontsize*dpi)/72);  
+  varlf.lfHeight = -(((fontsize*dpi)+36)/72);  
   hVarFont = CreateFontIndirect(&varlf);
   if (hVarFont==NULL)
 	  hVarFont=hGUIFont;
@@ -37,12 +38,22 @@ void set_var_font(int fontsize)
 static LOGFONT fixedlf={0};
 void set_fixed_font(int fontsize)
 { if (hFixedFont!=NULL) { DeleteObject(hFixedFont); hFixedFont=NULL; }
-  fixedlf.lfHeight = -((fontsize*dpi)/72);  
+  fixedlf.lfHeight = -(((fontsize*dpi)+36)/72);  
   hFixedFont = CreateFontIndirect(&fixedlf);
   if (hFixedFont==NULL)
     hFixedFont = GetStockObject(ANSI_FIXED_FONT); 
 }
 
+
+static LOGFONT narrowlf={0};
+void set_narrow_font(int width, int height)
+{ if (hNarrowFont!=NULL) { DeleteObject(hNarrowFont); hNarrowFont=NULL; }
+  narrowlf.lfHeight = height;
+  narrowlf.lfWidth = width;
+  hNarrowFont = CreateFontIndirect(&narrowlf);
+  if (hNarrowFont==NULL)
+    hNarrowFont = GetStockObject(ANSI_FIXED_FONT); 
+}
 
 
 void set_font_size(int size)
@@ -67,6 +78,7 @@ void set_font_size(int size)
    if (separator_height<2) separator_height=2;
    separator_width = fixed_char_width/2;
    if (separator_width<2) separator_width=2;
+   set_narrow_font(fixed_char_width/2,fixed_char_height-separator_height);
 
    holdfnt=SelectObject(hdc, hVarFont);
    ZeroMemory(&tm, sizeof(tm));
@@ -134,6 +146,13 @@ void init_layout(int interactive)
   fixedlf.lfOutPrecision=OUT_TT_ONLY_PRECIS;
   fixedlf.lfItalic=FALSE;
   strcpy_s(fixedlf.lfFaceName,sizeof(fixedlf.lfFaceName),"Courier New");
+
+  narrowlf.lfCharSet=ANSI_CHARSET;
+  narrowlf.lfWeight = FW_SEMIBOLD;
+  narrowlf.lfPitchAndFamily = FIXED_PITCH  | FF_SWISS;
+  narrowlf.lfQuality =  PROOF_QUALITY;
+  narrowlf.lfOutPrecision=OUT_TT_ONLY_PRECIS;
+  narrowlf.lfItalic=FALSE;
 
   change_font_size(0);
 

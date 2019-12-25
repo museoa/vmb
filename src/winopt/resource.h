@@ -74,14 +74,6 @@
 #define IDC_EDITBYTE7                   1033
 #define IDC_LOAD                        1041
 #define IDC_STORE                       1042
-#define IDC_CHECK_BYTE                  1043
-#define IDC_CHECK_WYDE                  1044
-#define IDC_CHECK_BYTE3                 1045
-#define IDC_CHECK_TETRA                 1046
-#define IDC_CHECK_BYTE5                 1047
-#define IDC_CHECK_BYTE6                 1048
-#define IDC_CHECK_BYTE7                 1049
-#define IDC_CHECK_OCTA                  1050
 #define IDC_FORMAT_HEX                  1051
 #define IDC_FORMAT_ASCII                1052
 #define IDC_FORMAT_INT                  1053
@@ -89,6 +81,8 @@
 #define IDC_FORMAT_UINT                 1055
 #define IDC_FORMAT_AUTO                 1056
 #define IDC_FORMAT_BIN                  1056
+#define IDC_SLIDER1                     1057
+#define IDC_SLIDER_CHUNK                1057
 #define AFX_IDC_COLOR_BLACK             1100
 #define AFX_IDC_COLOR_WHITE             1101
 #define AFX_IDC_COLOR_RED               1102
@@ -566,7 +560,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1052
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

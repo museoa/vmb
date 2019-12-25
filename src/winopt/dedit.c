@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include "resource.h"
 #include "winde.h"
 #include "dedit.h"
@@ -258,7 +259,8 @@ void de_update(HWND hDlg)
 	de->reg_name=r->name;
 	if (de->reg_name==NULL) de->reg_name=empty;
   	de->size=r->size;
-  	set_edit_format(de, r->format);
+	if (r->format!=user_format)
+      set_edit_format(de, r->format);
     set_edit_chunk(de,r->chunk);
 	de->reg_offset=r->offset;
     if (de->size>0) de->insp->get_mem(r->offset,r->size,de->mem);
@@ -327,7 +329,6 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
   { case WM_INITDIALOG :
       { RECT rect;
 	    dataedit *de;
-		register_subwindow(hDlg);
 		de = new_dataedit();
 		if (de==NULL) 
 		{ DestroyWindow(hDlg);
@@ -335,15 +336,22 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 	    SetWindowLongPtr(hDlg,DWLP_USER,(LONG)(LONG_PTR)de);
 	    de->hWnd=hDlg;
-		set_format(hDlg,de->format);
-		set_chunk(hDlg,de->chunk);
+        SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETRANGE,TRUE,MAKELONG (0,8));
+        SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,1);
+        SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,2);
+        SendDlgItemMessage(hDlg,IDC_SLIDER_CHUNK,TBM_SETTIC,0,4);
+
 		GetWindowRect(GetDlgItem(hDlg,IDC_CHUNK),&rect);
 		top_height=-rect.top;
-		GetWindowRect(GetDlgItem(hDlg,IDC_CHECK_BYTE),&rect);
+		GetWindowRect(GetDlgItem(hDlg,IDC_SLIDER_CHUNK),&rect);
 		top_height = top_height+separator_height*2+rect.bottom;
 	    SetFocus(GetDlgItem(hDlg,IDC_LOAD));
 		set_de_font(hDlg);
+		set_format(hDlg,de->format);
+		set_chunk(hDlg,de->chunk);
+
         de_update(hDlg);
+		register_subwindow(hDlg);
 	  }
 	  return FALSE;
 	case WM_CLOSE:
@@ -389,6 +397,44 @@ DataEditDialogProc( HWND hDlg, UINT message, WPARAM wparam, LPARAM lparam )
 		}
 	  }
 	  return FALSE;
+	case WM_HSCROLL: /* chunk trackbar */
+		{  dataedit *de = (dataedit*)(LONG_PTR)GetWindowLongPtr(hDlg,DWLP_USER);
+		   inspector_def *insp=de->insp;
+	       int c, v;
+		  c=LOWORD(wparam);
+		  v=HIWORD(wparam);
+		 
+		  if (c==SB_LINELEFT || c==SB_PAGELEFT)
+		  {	
+		  if (insp->chunk>byte_chunk) insp->chunk--;
+		  }
+		  else if (c==SB_LINERIGHT || c==SB_PAGERIGHT)
+		  { 
+			  if (insp->chunk<octa_chunk) insp->chunk++;
+		   
+		  }
+		  else if (c==SB_THUMBTRACK)
+		  { if (v==0||v==1) v=byte_chunk;
+		    else if (v==2) v=wyde_chunk;
+		    else if (v==3||v==4||v==5) v=tetra_chunk;
+		    else v=octa_chunk;
+			SetDlgItemText(hDlg,IDC_CHUNK,chunk_names[v]);
+			return TRUE;
+	      }
+		  else if (c==SB_THUMBPOSITION)
+		  { if (v==0||v==1) insp->chunk=byte_chunk;
+		    else if (v==2) insp->chunk=wyde_chunk;
+		    else if (v==3||v==4||v==5) insp->chunk=tetra_chunk;
+		    else insp->chunk=octa_chunk;
+	      }
+		  else if (c==SB_ENDSCROLL)
+			   return TRUE;
+		  else
+			  return TRUE;
+		   set_edit_chunk(de,insp->chunk);
+		  show_edit_windows(de);
+		}
+		return TRUE;
 	case WM_SIZE:
 		InvalidateRect(hDlg,NULL,TRUE);
 		return FALSE;

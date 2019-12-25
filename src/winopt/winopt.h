@@ -81,6 +81,7 @@ extern void read_regtab(char * program);
 /* from layout.c */
 
 extern HFONT hFixedFont;
+extern HFONT hNarrowFont;
 extern HFONT hVarFont;
 extern HFONT hGUIFont;
 extern int fixed_line_height;

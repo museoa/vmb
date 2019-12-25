@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 extern int terminate_flag;
 
@@ -1103,6 +1104,21 @@ InitInstance (HINSTANCE hInstance)
   return TRUE;
 }
 
+ static HANDLE hMutex;
+
+static int already_running(void)
+{ 
+   char mutex_name[21];
+   _snprintf(mutex_name,20,"VMB-mother-%d",port);
+   hMutex=CreateMutex(NULL,TRUE,mutex_name);
+   if (hMutex!=NULL && GetLastError()==ERROR_ALREADY_EXISTS)
+   { CloseHandle(hMutex);
+     vmb_error(__LINE__,"VMB motherboard already running on same port!");
+	 return 1;
+  }
+  else
+     return 0;
+}
 
 
 int APIENTRY
@@ -1112,16 +1128,7 @@ WinMain (HINSTANCE hInstance,
   HACCEL hAccelTable;
   MSG msg;
   WSADATA wsadata;
-  HANDLE hMutex;
 
-  hMutex=CreateMutex(NULL,TRUE,"VMB-motherboard-running");
-  if (hMutex!=NULL && 
-	  GetLastError()==ERROR_ALREADY_EXISTS &&
-      MessageBox(NULL,"Previous Instance of motherboard detected! Start a second instance?",
-		            "START of VMB motherboard",MB_YESNO|MB_ICONWARNING)!=IDYES)
-    { CloseHandle(hMutex);
-      return 0;
-    }
   
   vmb_message_hook = win32_message;
   vmb_debug_hook = win32_log;
@@ -1155,6 +1162,9 @@ WinMain (HINSTANCE hInstance,
   {   do_commands ();
       return 0;
   }
+  if (already_running())
+	  return 0;
+ 
   SetWindowPos(hMainWnd,HWND_TOP,xpos,ypos,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_SHOWWINDOW);
   UpdateWindow(hMainWnd);
   initialize_slots ();

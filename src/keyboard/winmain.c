@@ -104,7 +104,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           return 0;
 		default: 
           break; 
-      }      
+      }   
   }
   return (OptWndProc(hWnd, message, wParam, lParam));
 }

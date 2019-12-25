@@ -1308,7 +1308,7 @@ BOOL InitInstance(HINSTANCE hInstance)
 		bm.bmWidth=bm.bmHeight=CW_USEDEFAULT;
 
     hMainWnd = CreateWindow(szClassName, title ,WS_VRAM,
-                            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                            xpos, ypos, CW_USEDEFAULT, CW_USEDEFAULT,
 	                        NULL, NULL, hInstance, NULL);
    return TRUE;
 }

@@ -55,7 +55,6 @@ END
 
 IDR_ACCELERATOR ACCELERATORS 
 BEGIN
-    VK_ESCAPE,      ID_EXIT,                VIRTKEY, NOINVERT
     VK_F1,          IDHELP,                 VIRTKEY, NOINVERT
 END
 
