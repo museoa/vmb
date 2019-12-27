@@ -31,7 +31,7 @@ static dataedit *new_dataedit(void)
 }
 
 static void show_item(dataedit *de,int IDC,int offset, int size)
-{ char str[22]; 
+{ char str[65]; 
   if (offset>=de->size) return;
   chunk_to_str(str, de->mem+offset,de->format,size,0);
   SetDlgItemText(de->hWnd,IDC,str);

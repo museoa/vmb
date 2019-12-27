@@ -47,12 +47,25 @@ void set_fixed_font(int fontsize)
 
 static LOGFONT narrowlf={0};
 void set_narrow_font(int width, int height)
-{ if (hNarrowFont!=NULL) { DeleteObject(hNarrowFont); hNarrowFont=NULL; }
-  narrowlf.lfHeight = height;
-  narrowlf.lfWidth = width;
-  hNarrowFont = CreateFontIndirect(&narrowlf);
-  if (hNarrowFont==NULL)
-    hNarrowFont = GetStockObject(ANSI_FIXED_FONT); 
+{   int i;
+	TEXTMETRIC tm;
+   HDC hdc; 
+   HFONT holdfnt;
+     hdc=GetDC(NULL);
+
+   if (hNarrowFont!=NULL) { DeleteObject(hNarrowFont); hNarrowFont=NULL; }
+   for (i=0;i<3;i++)
+   { narrowlf.lfHeight = height;
+     narrowlf.lfWidth = width-i;
+     hNarrowFont = CreateFontIndirect(&narrowlf); 
+     holdfnt=SelectObject(hdc, hNarrowFont);
+     ZeroMemory(&tm, sizeof(tm));
+     GetTextMetrics(hdc,&tm);
+     SelectObject(hdc,holdfnt);
+     if (tm.tmAveCharWidth<= width) break;
+   }
+   if (hNarrowFont==NULL)
+     hNarrowFont = GetStockObject(ANSI_FIXED_FONT); 
 }
 
 
@@ -149,7 +162,7 @@ void init_layout(int interactive)
 
   narrowlf.lfCharSet=ANSI_CHARSET;
   narrowlf.lfWeight = FW_SEMIBOLD;
-  narrowlf.lfPitchAndFamily = FIXED_PITCH  | FF_SWISS;
+  narrowlf.lfPitchAndFamily = FIXED_PITCH  | FF_MODERN;
   narrowlf.lfQuality =  PROOF_QUALITY;
   narrowlf.lfOutPrecision=OUT_TT_ONLY_PRECIS;
   narrowlf.lfItalic=FALSE;

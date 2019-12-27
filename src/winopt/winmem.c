@@ -389,12 +389,14 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 	    sprintf(str+j*2,"%02X",buf[j]);
 	    w=chunk_size*2;
 	  break;
+	case bin_format:
+      for (j=0;j<chunk_size;j++)
+			str[j]=buf[j]; 
+   	  w=chunk_size*4; /*8*1/2 characters per byte */
+	  break;
     case ascii_format:
       for (j=0;j<chunk_size;j++)
-        //if (buf[j]>0x1F && buf[j]<0x7F) 
 			str[j]=buf[j]; 
-		//else 
-		//	str[j]=0x7F;
 	  w=chunk_size;
 	  break;
 	case unsigned_format:
@@ -422,11 +424,15 @@ int chunk_to_str(char *str, unsigned char *buf, enum mem_fmt fmt,
 	    w=f64_to_str(str,GET8(buf),column_digits); 
 	  break;
   }
-  if (column_digits>0 && w>column_digits)
-  {	memset(str,'*',column_digits);
-	w=column_digits;
+  if (fmt==bin_format)
+	  str[64]=0;
+  else 
+  { if (column_digits>0 && w>column_digits)
+    {	memset(str,'*',column_digits);
+	  w=column_digits;
+    }
+    str[w]=0;
   }
-  str[w]=0;
   return w;
 }
 
@@ -449,34 +455,52 @@ void update_max_regnames(inspector_def *insp)
 
 #define HEX_CHAR(X)  ((X)<10?((X)+'0'):((X)+'A'-10))
 void display_ascii(HDC hdc, RECT *r,char *str, int len)
-	   { char hex[2];
-         int i;
-		 HFONT hF;
-		 SetTextAlign(hdc,TA_LEFT|TA_NOUPDATECP);
-		 for (i=0;i<len;i++)
-		 {  r->right=r->left+fixed_char_width;
-		   if (str[i]>=0x20 && str[i]<0x7F)
-		     ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,str+i,1,NULL);
-		   else
-		   { hF=SelectObject(hdc, hNarrowFont);
-			 hex[0]=HEX_CHAR((str[i]>>4)&0xF);
-			 hex[1]=HEX_CHAR(str[i]&0xF);
-			 ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,hex,1,NULL);
-			 r->top=r->top+separator_height;
-			 r->left=r->left+(fixed_char_width+1)/2;
-			 ExtTextOut(hdc,r->left,r->top,ETO_CLIPPED,r,hex+1,1,NULL);
-			 r->top=r->top-separator_height;
-             r->left=r->left-(fixed_char_width+1)/2;
-		     SelectObject(hdc, hF);
-		    }
-			r->left=r->right;
-		 }
-	   }
+{ char hex[2];
+  int i;
+  HFONT hF;
+  SetTextAlign(hdc,TA_LEFT|TA_NOUPDATECP);
+  for (i=0;i<len;i++)
+  { r->right=r->left+fixed_char_width;
+    if (str[i]>=0x20 && str[i]<0x7F)
+	  ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,str+i,1,NULL);
+	else
+	{ hF=SelectObject(hdc, hNarrowFont);
+	  hex[0]=HEX_CHAR((str[i]>>4)&0xF);
+	  hex[1]=HEX_CHAR(str[i]&0xF);
+	  ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,hex,1,NULL);
+	  r->top=r->top+separator_height;
+	  r->left=r->left+(fixed_char_width+1)/2;
+	  ExtTextOut(hdc,r->left,r->top,ETO_CLIPPED,r,hex+1,1,NULL);
+	  r->top=r->top-separator_height;
+      r->left=r->left-(fixed_char_width+1)/2;
+	  SelectObject(hdc, hF);
+	}
+	r->left=r->right;
+  }
+}
+
+void display_bin(HDC hdc, RECT *r,char *str, int len)
+{ char bin[8];
+  int i,k,y;
+  HFONT hF;
+  SetTextAlign(hdc,TA_LEFT|TA_NOUPDATECP);
+  hF=SelectObject(hdc, hNarrowFont);
+  for (i=0;i<len;i++)
+  { r->right=r->left+fixed_char_width*4;
+    for (k=0;k<8;k++) 
+	  bin[k]=((str[i]>>(7-k))&0x01)+'0';
+	y = r->top;
+    if (i&1) y=y+separator_height;
+	ExtTextOut(hdc,r->left,y,ETO_OPAQUE|ETO_CLIPPED,r,bin,8,NULL);
+    r->left=r->right;
+  }
+  SelectObject(hdc, hF);
+}
 
 void display_registers(inspector_def *insp,HDC hdc)
 { 
   int i,k, nr;
-  char str[22]; /* big enough for the largest 8-Byte integer */
+  char str[65]; /* big enough for the largest 8-Byte integer */
   RECT rect;
   nr = insp->num_regs;
   if (nr>insp->lines) nr=insp->lines;
@@ -524,6 +548,8 @@ void display_registers(inspector_def *insp,HDC hdc)
        rect.bottom=y+fixed_line_height-separator_height;
 	   if (insp->format==ascii_format)
          display_ascii(hdc, &rect,str,chunk_size);
+	   else if (insp->format==bin_format)
+	     display_bin(hdc, &rect,str,chunk_size);
 	   else
          ExtTextOut(hdc,x+len*fixed_char_width,y,
 		   ETO_OPAQUE,&rect,str,(int)strlen(str),NULL);
@@ -551,7 +577,7 @@ void display_address(inspector_def *insp,HDC hdc)
 void display_memory(inspector_def *insp,HDC hdc)
 { 
   int i,k;
-  char str[22]; /* big enough for the largest 8Byte integer */
+  char str[65]; /* big enough for the largest 8Byte integer */
   RECT r;
   int chunk_size=1<<insp->chunk;
   int columns= insp->columns;
@@ -581,6 +607,8 @@ void display_memory(inspector_def *insp,HDC hdc)
        r.bottom=y+fixed_line_height-separator_height;
        if (insp->format==ascii_format)
          display_ascii(hdc, &r,str,chunk_size);
+	   else if (insp->format==bin_format)
+         display_bin(hdc, &r,str,chunk_size);
 	   else
        ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
 		   ETO_OPAQUE|ETO_CLIPPED,&r,str,l,NULL);
