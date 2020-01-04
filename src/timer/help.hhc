@@ -14,10 +14,6 @@
 		</OBJECT>
 	<UL>
 		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="">
-			<param name="Local" value="help.html">
-			</OBJECT>
-		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Memory Layout">
 			<param name="Local" value="help.html">
 			</OBJECT>

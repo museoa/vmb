@@ -2,12 +2,15 @@
 
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<link rel="stylesheet" type="text/css" href="vmb.css">
 		<title>VMB LED Device Specification</title>
 	</head>
 
 	<BODY>
 <H1>LED Device Specification</H1>
-		<h1><img src="led.gif" alt="" width="96" height="32" border="0"></h1>The LED device offers just one byte of memory. Each bit of the byte corresponding to one of 8 LEDs: LED7 through LED0. LED0 corresponds to the least significant bit (0x01) and LED7 corresponds to the most significant bit (0x80).<p>Seting a bit to 1 turns the LED on, setting a bit to 0 turns the LED off.
+<img src="led.gif" alt="" width="96" height="32" border="0">
+<p>
+The LED device offers just one byte of memory. Each bit of the byte corresponding to one of 8 LEDs: LED7 through LED0. LED0 corresponds to the least significant bit (0x01) and LED7 corresponds to the most significant bit (0x80).<p>Seting a bit to 1 turns the LED on, setting a bit to 0 turns the LED off.
 		<p>The color of any LED can beconfigured to be any 3 Byte RGB value (0xFF0000 is red, 0x00FF00 is green, and 0x0000FF is blue). Further, for each LED a picture can be specified to customize the apperance. The picture must be a 32x32 pixel 32 bit color RGB bitmap file . It is used as an alpha channel: each color value of  each pixel in the LED is multiplied by the corresponding value of the picture bitmap.  The multiplication is scalled such that 255 is equivalent to the factor 1 and 0 to the factor 0. This has the effect that a black and white picture will mask the LED, keeping it black where the picture is black and showing the normal color where the picture is white. On the other extreme, when the LEDs color is set to &quot;white&quot;, the LED will display the given picture (with all its colors) when its on, and a much darker version of the colored picture, when it is off. Specifying no picture is equivalent to specifying an all white picture.</p>
 		<p> A label can be specified to be placed under the LED display and the LEDs can be displayed ieither n a horizontal row, as shown above, or in a vertical column. The number of LEDs displayed can be set to any value n between 1 and 8, showing from left to right LED(n-1) to LED0.</p>
 		<H2>LED Configuration</H2>
