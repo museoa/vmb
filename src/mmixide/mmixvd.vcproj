@@ -39,6 +39,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
 				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS"
@@ -62,7 +63,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib Msimg32.lib comctl32.lib Htmlhelp.lib"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib Msimg32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -93,8 +95,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy helpfile to output directory"
-				CommandLine="copy mmixvd.chm $(OutDir)\mmixvd.chm"
 			/>
 		</Configuration>
 		<Configuration
@@ -146,7 +146,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Imm32.lib Msimg32.lib comctl32.lib Htmlhelp.lib"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib Msimg32.lib"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -183,8 +184,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy helpfile to output directory"
-				CommandLine="copy mmixvd.chm $(OutDir)\mmixvd.chm"
 			/>
 		</Configuration>
 	</Configurations>
@@ -222,25 +221,6 @@
 			</File>
 			<File
 				RelativePath=".\flags.c"
-				>
-			</File>
-			<File
-				RelativePath=".\help.hhp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputDir)\help.html"
-						Outputs="$(InputDir)\help.chm"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\help.html"
 				>
 			</File>
 			<File
@@ -548,9 +528,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy mmixvd.chm $(OutDir)\mmixvd.chm "
 						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixvd.html"
-						Outputs="$(InputDir)\mmixvd.chm"
+						Outputs="$(OutDir)\mmixvd.chm"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -559,9 +539,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixvd.html"
-						Outputs="$(InputDir)\mmixvd.chm"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy mmixvd.chm $(OutDir)\mmixvd.chm "
+						AdditionalDependencies="$(InputDir)\help\mmixvd.css;$(InputDir)\help\mmixvd.html"
+						Outputs="$(OutDir)\mmixvd.chm"
 					/>
 				</FileConfiguration>
 			</File>

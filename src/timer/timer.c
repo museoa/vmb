@@ -215,7 +215,7 @@ void timer_signal()
 
 
 
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char title[] ="VMB Timer";
 
 char version[]="$Revision$ $Date$";

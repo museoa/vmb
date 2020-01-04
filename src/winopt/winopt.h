@@ -26,7 +26,7 @@ extern void win32_log(char *msg);
 extern void win32_fatal_error(int line, char *message);
 extern void init_layout(int interactive);
 extern void set_font_size(int size);
-#define DEFAULT_FONT_SIZE 10
+#define DEFAULT_FONT_SIZE 12
 extern void change_font_size(int scale);
 extern int xpos, ypos; /* Window position */
 extern int width,height; /* dimension of main window */

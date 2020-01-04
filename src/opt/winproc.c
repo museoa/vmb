@@ -118,6 +118,12 @@ LRESULT CALLBACK OptWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	case ID_MINIMIZE:
 	  CloseWindow(hWnd);
 	  return 0; 
+	case ID_ZOOM_IN:
+		change_font_size(+1);
+		return 0;
+	case ID_ZOOM_OUT:
+		change_font_size(-1);
+		return 0;
 	}
     return 0;
 

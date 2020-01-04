@@ -89,11 +89,11 @@ BEGIN
         MENUITEM "&Assemble\tF7",               ID_MMIX_ASSEMBLE,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Debug\tF5",                  ID_MMIX_DEBUG,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Step Instruction",           ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
-        MENUITEM "Step &Over",                  ID_MMIX_STEPOVER,MFT_STRING,MFS_ENABLED
-        MENUITEM "Step O&ut",                   ID_MMIX_STEPOUT,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Step Instruction\tF11",           ID_MMIX_STEP,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step &Over\tF10",                  ID_MMIX_STEPOVER,MFT_STRING,MFS_ENABLED
+        MENUITEM "Step O&ut\tShift+F11",                   ID_MMIX_STEPOUT,MFT_STRING,MFS_ENABLED
         MENUITEM "&Break Execution",            ID_MMIX_STOP,MFT_STRING,MFS_ENABLED
-        MENUITEM "&Halt Execution",             ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Halt Execution\tShift+F5",             ID_MMIX_QUIT,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR
         MENUITEM "&Run\tCtrl+F5",               ID_MMIX_RUN,MFT_STRING,MFS_ENABLED
         MENUITEM MFT_SEPARATOR

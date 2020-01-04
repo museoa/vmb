@@ -41,15 +41,16 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\util"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
+				CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -62,10 +63,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Htmlhelp.lib"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib htmlhelp.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -73,6 +75,8 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -118,13 +122,18 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				UseUnicodeResponseFiles="false"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="2"
+				Optimization="3"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="..\util;..\winopt;..\opt"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				RuntimeLibrary="0"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -137,10 +146,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Htmlhelp.lib"
+				UseUnicodeResponseFiles="false"
+				AdditionalDependencies="ws2_32.lib  comctl32.lib htmlhelp.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -150,6 +160,8 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
+				AdditionalManifestFiles="vmb.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -176,6 +188,10 @@
 			ReferencedProjectIdentifier="{C7A37974-103B-4A8A-ACD4-F304C0D9C35C}"
 			RelativePathToProject="..\util\vmbwin.vcproj"
 		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{5A384688-86B5-439D-B700-C52330851681}"
+			RelativePathToProject="..\winopt\winopt.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -191,25 +207,6 @@
 				RelativePath=".\maintemplate.c"
 				>
 			</File>
-			<File
-				RelativePath=".\help.hhp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0"
-						AdditionalDependencies="$(InputDir)\help.html"
-						Outputs="$(InputDir)\help.chm"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\help.html"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -222,6 +219,40 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="Helpfiles"
+			>
+			<File
+				RelativePath=".\help.hhp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="HtmlHelp Compiler"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy $(InputName).chm $(OutDir)\$(TargetName).chm&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputDir)\help.html"
+						Outputs="$(OutDir)\$(TargetName).chm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="HtmlHelp Compiler"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy $(InputName).chm $(OutDir)\$(TargetName).chm&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputDir)\help.html"
+						Outputs="$(OutDir)\$(TargetName).chm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\help.html"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

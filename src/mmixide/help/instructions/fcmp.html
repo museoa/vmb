@@ -110,7 +110,7 @@
     <table border=1 cellspacing="4" cellpadding="4">
 
         <tr><td>FCMP:</td> <td><i>"floating compare"</i>.
-                Register $X is set to -1 if $Y < $Z according to the conventions of floating point arithmetic, or to 1 if
+                Register $X is set to -1 if $Y &lt; $Z according to the conventions of floating point arithmetic, or to 1 if
                 $Y > $Z according to those conventions. Otherwise it is set to 0. An invalid exception occurs if either $Y
                 or $Z is a NaN; in such cases the result is zero.
             </td></tr>
@@ -143,7 +143,7 @@
 
                 <div style='display:inline-block;'>FUN $255,$Y,$Z<br>
                     BP $255,1F % skip ahead if unordered<br>
-                    FCMP $X,$Y,$Z % $X=[$Y>$Z]-[$Y<$Z]; no exceptions will arise<br>
+                    FCMP $X,$Y,$Z % $X=[$Y &gt; $Z]-[$Y &lt; $Z]; no exceptions will arise<br>
                     1H CSNZ $X,$255,1 % $X=1 if unordered</div><br><br>
 
             </td></tr>

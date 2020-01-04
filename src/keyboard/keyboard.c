@@ -44,7 +44,7 @@ extern HBITMAP hBmpActive, hBmpInactive;
 
 void display_char(char c);
 
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char title[] ="VMB Keyboard";
 
 char version[]="$Revision$ $Date$";
@@ -215,8 +215,8 @@ struct register_def kbd_regs[] = {
 	/* name no offset size chunk format */
 	{"Error" ,ERROR,1,byte_chunk,hex_format},
 	{"Count" ,COUNT,1,byte_chunk,unsigned_format},
-    {"Char"  ,DATA,1,byte_chunk,ascii_format},
-    {"Char"  ,DATA,1,byte_chunk,hex_format},
+    {"Extension"  ,EXTENSION,1,byte_chunk,hex_format},
+    {"Char"  ,DATA,1,byte_chunk,user_format},
 	{0}};
 
 int kbd_reg_read(unsigned int offset, int size, unsigned char *buf)

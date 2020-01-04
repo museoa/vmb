@@ -30,7 +30,7 @@ extern HBITMAP hbussy;
 #include "param.h"
 
 extern device_info vmb;
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char title[] ="VMB Host Disk";
 
 char version[]="$Revision$ $Date$";

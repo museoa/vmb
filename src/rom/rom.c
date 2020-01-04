@@ -45,7 +45,7 @@ extern HWND hMainWnd;
 #include "inspect.h"
 #endif
 
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char title[] ="VMB ROM";
 
 char version[]="$Revision$ $Date$";

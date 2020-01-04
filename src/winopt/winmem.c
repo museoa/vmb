@@ -1,3 +1,4 @@
+#define _WIN32_WINNT 0x0500 /* needed for GetGlyphIndices */
 #include <windows.h>
 #include <commctrl.h>
 #include <string.h>
@@ -306,6 +307,7 @@ int chunk_len(enum mem_fmt f, int chunk_size)
   switch (f)
   { 
     case ascii_format: column_digits=1*chunk_size; break;
+    case bin_format: column_digits=4*chunk_size; break;
 	case signed_format:
       if (chunk_size==1) column_digits=4;
       else column_digits=1+5*chunk_size/2;
@@ -458,10 +460,14 @@ void display_ascii(HDC hdc, RECT *r,char *str, int len)
 { char hex[2];
   int i;
   HFONT hF;
+  DWORD g;
+  WORD x;
   SetTextAlign(hdc,TA_LEFT|TA_NOUPDATECP);
   for (i=0;i<len;i++)
   { r->right=r->left+fixed_char_width;
-    if (str[i]>=0x20 && str[i]<0x7F)
+    g=GetGlyphIndices(hdc,str+i,1,&x,GGI_MARK_NONEXISTING_GLYPHS);
+ 
+   if ((str[i]>=0x20 && str[i]<0x7F)|| (x!=0xffff))
 	  ExtTextOut(hdc,r->left,r->top,ETO_OPAQUE|ETO_CLIPPED,r,str+i,1,NULL);
 	else
 	{ hF=SelectObject(hdc, hNarrowFont);
@@ -546,9 +552,9 @@ void display_registers(inspector_def *insp,HDC hdc)
        rect.left=x;
        rect.right=x+len*fixed_char_width;
        rect.bottom=y+fixed_line_height-separator_height;
-	   if (insp->format==ascii_format)
+	   if (format==ascii_format)
          display_ascii(hdc, &rect,str,chunk_size);
-	   else if (insp->format==bin_format)
+	   else if (format==bin_format)
 	     display_bin(hdc, &rect,str,chunk_size);
 	   else
          ExtTextOut(hdc,x+len*fixed_char_width,y,
@@ -586,6 +592,7 @@ void display_memory(inspector_def *insp,HDC hdc)
      y=top_height+i*fixed_line_height;
 	 for (k=0;k<columns;k++)
 	 { int x,l;
+	   int blank=0;
 	   if ((unsigned int)((i*columns+k+1)*chunk_size)<= insp->mem_size)
 	   { unsigned int offset= (i*columns+k)*chunk_size;
 		 l=chunk_to_str(str, insp->mem_buf+offset, insp->format,chunk_size, insp->column_digits);
@@ -595,22 +602,24 @@ void display_memory(inspector_def *insp,HDC hdc)
 		 { if (offset+chunk_size>insp->de_offset-insp->mem_base && offset< insp->de_offset-insp->mem_base+insp->de_size) SetBkColor(hdc,COLD_DE); else SetBkColor(hdc,COLD); }
 	   }
 	   else
-	   { str[0]=0;
-	     l=0;
-         SetBkColor(hdc,COLD);
-	   }
+         blank=1;
 	   x = insp->address_width*fixed_char_width+separator_width+separator_width+k*(insp->column_digits*fixed_char_width+separator_width);
 	   SetTextAlign(hdc,TA_RIGHT|TA_NOUPDATECP);
 	   r.top=y;
        r.left=x;
        r.right=x+insp->column_digits*fixed_char_width;
        r.bottom=y+fixed_line_height-separator_height;
-       if (insp->format==ascii_format)
+	   if (blank)
+	   { SetBkColor(hdc,COLD);
+		 ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
+		   ETO_OPAQUE|ETO_CLIPPED,&r,"",0,NULL);
+	   }
+       else if (insp->format==ascii_format)
          display_ascii(hdc, &r,str,chunk_size);
 	   else if (insp->format==bin_format)
          display_bin(hdc, &r,str,chunk_size);
 	   else
-       ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
+         ExtTextOut(hdc,x+insp->column_digits*fixed_char_width,y,
 		   ETO_OPAQUE|ETO_CLIPPED,&r,str,l,NULL);
 	 }
    } 

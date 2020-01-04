@@ -34,6 +34,9 @@
 #define ID_HELP_ABOUT                   40014
 #define ID_SETTINGS                     40015
 #define ID_MINIMIZE                     40016
+#define ID_ZOOM_IN                      40017
+#define ID_ZOOM_OUT                     40018
+
 #define ID_HELP_CONFIGURATION           40112
 
 #endif

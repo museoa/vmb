@@ -41,7 +41,7 @@
 
 #pragma warning(disable : 4996)
 
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char version[]="$Revision$ $Date$";
 #ifdef VMB
 char title[] ="VMB MMIX IDE";

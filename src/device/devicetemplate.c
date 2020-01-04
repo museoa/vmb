@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-int major_version=2, minor_version=0;
+int major_version=2, minor_version=2;
 char version[]="$Revision:$ $Date:$";
 
 static unsigned char ram[RAMSIZE];

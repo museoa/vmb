@@ -13,7 +13,7 @@
 #include "opt.h"
 #include "inspect.h"
 
-int major_version=2, minor_version=1;
+int major_version=2, minor_version=2;
 char version[]="$Revision$ $Date$";
 char title[] ="VMB Video Ram";
 #define WS_VRAM (WS_OVERLAPPEDWINDOW&(~WS_MAXIMIZEBOX)&(~WS_THICKFRAME)) 

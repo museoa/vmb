@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=vmb
-AppVerName=vmb version 2.1, Virtual Hardware for the Real World
-AppVersion=2.1
+AppVerName=vmb version 2.2, Virtual Hardware for the Real World
+AppVersion=2.2
 AppPublisher=Martin Ruckert
 AppPublisherURL=http://www.cs.hm.edu/~ruckert/
 AppSupportURL=http://vmb.sourceforge.net/

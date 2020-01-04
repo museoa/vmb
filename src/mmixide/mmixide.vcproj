@@ -39,6 +39,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
 				AdditionalIncludeDirectories="mmixlib;..\winopt;..\splitterlib;..\util;..\vmbmmixlib;..\opt"
 				PreprocessorDefinitions="MMIXLIB;WIN32;_DEBUG;_WINDOWS;VMB"
@@ -95,8 +96,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy helpfile to output directory"
-				CommandLine="copy mmixide.chm $(OutDir)\mmixide.chm"
 			/>
 		</Configuration>
 		<Configuration
@@ -151,7 +150,6 @@
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
 				AdditionalDependencies="Ws2_32.lib Imm32.lib comctl32.lib Htmlhelp.lib Msimg32.lib"
-				ShowProgress="0"
 				LinkIncremental="1"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
@@ -188,8 +186,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy helpfile to output directory"
-				CommandLine="copy mmixide.chm $(OutDir)\mmixide.chm"
 			/>
 		</Configuration>
 	</Configurations>
@@ -370,10 +366,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\bitmap1.bmp"
-				>
-			</File>
-			<File
 				RelativePath=".\Icons\break.ico"
 				>
 			</File>
@@ -438,15 +430,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Icons\mmixide.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\mmixide.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixide16.ico"
 				>
 			</File>
 			<File
@@ -459,14 +443,6 @@
 			</File>
 			<File
 				RelativePath=".\Icons\mmixidesmall.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixvd.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Icons\mmixvd16.ico"
 				>
 			</File>
 			<File
@@ -562,9 +538,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy mmixide.chm $(OutDir)\mmixide.chm "
 						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixide.html"
-						Outputs="$(InputDir)\mmixide.chm"
+						Outputs="$(OutDir)\mmixide.chm"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -573,9 +549,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="HtmlHelp Compiler"
-						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;IF ERRORLEVEL 1 EXIT /B 0&#x0D;&#x0A;"
+						CommandLine="&quot;C:\Program Files (x86)\HTML Help Workshop\hhc.exe&quot; $(InputFileName)&#x0D;&#x0A;copy mmixide.chm $(OutDir)\mmixide.chm "
 						AdditionalDependencies="$(InputDir)\help\mmixide.css;$(InputDir)\help\mmixide.html"
-						Outputs="$(InputDir)\mmixide.chm"
+						Outputs="$(OutDir)\mmixide.chm"
 					/>
 				</FileConfiguration>
 			</File>
