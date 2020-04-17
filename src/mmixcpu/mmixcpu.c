@@ -193,7 +193,7 @@ boot:
 			(inst_ptr.h==0x80000000&&inst_ptr.l==0))
 		{breakpoint= false;
 		if(interacting){
-			if(!mmix_interact())goto end_simulation;
+			mmix_interact();
 		}
 		}
 		if(halted)break;
