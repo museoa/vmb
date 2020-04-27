@@ -622,9 +622,8 @@ int store_data(int size,octa data, octa address)
 }
 
 
-int load_data_uncached(int size, octa *data, octa address,int signextension)
-/* size may be 1, 2, 4 or 8 
-   load a byte, wyde, tetra, or octa into data from the given virtual address 
+int load_octa_uncached(octa *data, octa address,int signextension)
+/* load an octa into data from the given virtual address 
    raise an interrupt if there is a problem
 */
 
@@ -662,12 +661,16 @@ int load_data_uncached(int size, octa *data, octa address,int signextension)
     last_d_trans.h=address.h;
     last_d_trans.l=address.l&0xFFFFE000;
   }
-  load_uncached_data(size,data,address,signextension);
+  if (is_cached_data(address))
+  { write_data_cache(address,8);
+    clear_data_cache(address,8);
+  }
+  load_uncached_data(8,data,address,signextension);
   return 1;
 }
 
 
-int store_data_uncached(int size,octa data, octa address)
+int store_octa_uncached(octa data, octa address)
 /* store an octa from data into the given virtual address 
    raise an interrupt and return 0 if there is a problem
 */
@@ -704,7 +707,11 @@ int store_data_uncached(int size,octa data, octa address)
     last_d_trans.h=address.h;
     last_d_trans.l=address.l&0xFFFFE000;
   }
-  store_uncached_data(size,data,address);
+  if (is_cached_data(address))
+  { write_data_cache(address,8);
+    clear_data_cache(address,8);
+  }
+  store_uncached_data(8,data,address);
   return 1;
 }
 
@@ -745,6 +752,25 @@ void delete_data(octa address,int size)
     clear_data_cache(address, size);
 }
 
+void preload_data(octa address,int size)
+     /* make sure size bytes starting at address are read into
+        the data cache */
+{ if (address.h&0x80000000)
+    /* negative addresses are maped to physical adresses by suppressing the sign bit */
+    address.h= address.h&0x7FFFFFFF;
+  else
+  { int p = translate_address(&address, &data_tc);
+    if (p&PAGE_TABLE_ERROR || !(p&READ_BIT)) 
+      return;
+  }
+  if (address.h & 0xFFFF0000)
+    return; /* these addresses are not cached */
+  else
+    preload_data_cache(address, size);
+}
+
+
+
 void delete_instruction(octa address,int size)
      /* make sure size bytes starting at address are deleted
         from the instruction cache */
@@ -752,7 +778,7 @@ void delete_instruction(octa address,int size)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
     address.h= address.h&0x7FFFFFFF;
   else
-  { int p = translate_address(&address, &data_tc);
+  { int p = translate_address(&address, &exec_tc);
     if (p&PAGE_TABLE_ERROR ||p==0) 
       return;
   }
@@ -769,7 +795,7 @@ void prego_instruction(octa address,int size)
     /* negative addresses are maped to physical adresses by suppressing the sign bit */
     address.h= address.h&0x7FFFFFFF;
   else
-  { int p = translate_address(&address, &data_tc);
+  { int p = translate_address(&address, &exec_tc);
     if (p&PAGE_TABLE_ERROR || !(p&EXEC_BIT)) 
       return;
   }

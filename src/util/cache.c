@@ -49,6 +49,16 @@ static vmb_cache_line *cache_lookup(vmb_cache *c, int address_hi, int address_lo
    return NULL;
 }
 
+int vmb_is_cached_data(vmb_cache *c,int address_hi, int address_lo)
+/* check if data in this address is in the cache
+   if so return 1 else return 0
+*/
+{ vmb_cache_line *line = cache_lookup(c, address_hi, LINESTART(address_lo));
+  return (line!=NULL);
+}
+
+  
+
 
 void vmb_cache_clear_line(vmb_cache *c, int address_hi, int address_lo)
 /* initialize the line to be completely empty */

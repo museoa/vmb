@@ -84,5 +84,5 @@ extern void vmb_cache_clear_line(vmb_cache *c, int address_hi, int address_lo);
 extern void vmb_cache_flush(device_info *vmb, vmb_cache *c);
 extern void vmb_cache_flush_line(device_info *vmb, vmb_cache *c,int address_hi,int address_lo);
 extern void vmb_cache_zero_line(device_info *vmb, vmb_cache *c,int address_hi,int address_lo);
-
+extern int  vmb_is_cached_data(vmb_cache *c,int address_hi, int address_lo);
 #endif

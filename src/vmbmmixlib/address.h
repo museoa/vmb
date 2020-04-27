@@ -42,7 +42,7 @@ extern int load_data(int size, octa *data, octa address,int signextension);
 /* load an octa into data from the given virtual address 
    raise an interrupt if there is a problem and load 0
 */
-extern int load_data_uncached(int size, octa *data, octa address,int signextension);
+extern int load_octa_uncached(octa *data, octa address,int signextension);
 /* load an octa into data from the given virtual address 
    raise an interrupt if there is a problem and load 0
 */
@@ -52,7 +52,7 @@ extern int store_data(int size,octa data, octa address);
    raise an interrupt if there is a problem
 */
 
-extern int store_data_uncached(int size,octa data, octa address);
+extern int store_octa_uncached(octa data, octa address);
 /* store an octa into data to the given virtual address 
    raise an interrupt if there is a problem
 */
@@ -70,6 +70,7 @@ extern void write_data(octa address,int size);
 extern void delete_data(octa address,int size);
 extern void delete_instruction(octa address,int size);
 extern void read_instruction(octa address,int size);
+extern void preload_data(octa address,int size);
 extern void prego_instruction(octa address,int size);
 
 extern int valid_address(octa address);

@@ -22,6 +22,7 @@
 extern int get_interrupt(octa *data);
 extern int wait_time(int ms);
 extern void cancel_wait(void);
+extern int is_cached_data(octa address);
 extern void load_uncached_data(int size, octa *data, octa address, int signextension);
 extern void store_uncached_data(int size, octa data, octa address);
 extern void load_cached_data(int size, octa *data, octa address, int signextension);

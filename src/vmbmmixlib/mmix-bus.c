@@ -134,6 +134,9 @@ void store_uncached_data(int size, octa data, octa address)
   }
 }
 
+int is_cached_data(octa address)
+{ return vmb_is_cached_data(&vmb_d_cache,address.h, address.l);
+}
 
 void load_cached_data(int size, octa *data, octa address, int signextension)
 {
@@ -162,15 +165,6 @@ void store_cached_data(int size, octa data, octa address)
     inttochar(data.l,tmp);
     memcpy(d,tmp+(4-size),size);
   }
-#if 0
- { unsigned char search[8]={0x01,0x73,0x01,0x68,0x01,0x2d,0x01,0x33};
-  // check for special store 
-   if (strncmp(d+size-8,search,8)==0)
-     { fprintf(stderr,"loc: %08x %08x, addr: %08x %08x, size: %d\n", loc.h, loc.l,address.h, address.l, size);
-	 g[rQ].l|=B_BIT;
-  }
-  }
-#endif
 }
 
 extern octa incr(octa y,int delta);
@@ -182,6 +176,8 @@ void write_all_data_cache(void)
 void clear_all_data_cache(void)
 { vmb_cache_clear(&vmb_d_cache);
 }
+
+
 
 void clear_all_instruction_cache(void)
 { vmb_cache_clear(&vmb_i_cache);
