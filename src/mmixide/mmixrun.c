@@ -390,7 +390,11 @@ reswitch0:
 	}
 
  	if (breakpoint&exec_bit)
-	{ if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 && !show_operating_system)
+	{ if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 
+#ifdef VMB
+	       && !show_operating_system
+#endif
+		   )
       { dbg_mode=dbg_over_ftrap; /* same as dbg_over */
 		ftrap_loc=loc;
         tracing= true; interact_after_break=!break_after;
@@ -458,7 +462,11 @@ reswitch1:
 			tracing=interact_after_break=false;
 		break;
 	  case dbg_step:
-	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0 && !show_operating_system)
+	    if ((inst>>24)==TRAP && (loc.h&sign_bit)==0
+#ifdef VMB
+			&& !show_operating_system
+#endif
+			)
 		{ dbg_mode=dbg_over; goto reswitch1; }	
         break;
 	  default:
